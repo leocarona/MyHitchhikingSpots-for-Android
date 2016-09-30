@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  Copyright 2014 Google, Inc
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<resources>
+    <string name="app_name">MyHitchhikingSpots</string>
+    <string name="spot_list_title">Locais salvos</string>
+
+    <string name="latitude_label">Latitude</string>
+    <string name="longitude_label">Longitude</string>
+    <string name="last_update_time_label">Última atualização de GPS</string>
+
+    <string name="save_spot_button_text">Salvar local</string>
+    <string name="got_a_ride_button_text">Peguei carona</string>
+    <string name="arrived_button_text">Cheguei ao destino</string>
+    <string name="break_button_text">Fazer uma pausa</string>
+    <string name="evaluate_running_spot_required">Você deve selecionar \'Peguei carona\' ou \'Fazer uma pausa\' antes de criar/editar outro ponto.</string>
+
+    <string name="location_updated_message">Localização atualizada</string>
+    <string name="save_spot_location_disabled_message">Por favor habilite a opção "Atualizar minha localização" para que sua localização por ser salva.</string>
+    <string name="update_location_switch">Atualizar minha localização</string>
+
+    <string name="hitchability">Facilidade de carona</string>
+    <string name="hitchability_unknown">Desconhecido</string>
+    <string name="hitchability_very_good">Muito bom</string>
+    <string name="hitchability_good">Bom</string>
+    <string name="hitchability_average">Médio</string>
+    <string name="hitchability_bad">Ruim</string>
+    <string name="hitchability_senseless">Muito ruim</string>
+    <string name="hitchability_no_answer">N/A</string>
+
+    <string name="attempt_result">Resultado da tentativa</string>
+    <string name="attempt_result_unknown">Desconhecido</string>
+    <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
+    <string name="attempt_result_gave_up">@string/break_button_text</string>
+
+    <string-array name="hitchabilities">
+        <item>@string/hitchability_unknown</item>
+        <item>@string/hitchability_very_good</item>
+        <item>@string/hitchability_good</item>
+        <item>@string/hitchability_average</item>
+        <item>@string/hitchability_bad</item>
+        <item>@string/hitchability_senseless</item>
+        <item>@string/hitchability_no_answer</item>
+    </string-array>
+
+    <string-array name="attempt_results">
+        <item>@string/attempt_result_unknown</item>
+        <item>@string/attempt_result_successful</item>
+        <item>@string/attempt_result_gave_up</item>
+    </string-array>
+    <string name="sample_basic_master_title">Basic Master Layout</string>
+
+    <string name="settings_master_title">Ferramentas</string>
+    <string name="settings_importdb_button_label">importar banco de dados</string>
+    <string name="settings_exportdb_button_label">exportar banco de dados</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+
+    <string name="title_activity_scrolling">@string/save_spot_button_text</string>
+
+    <string name="spot_form_note_label">Nota</string>
+    <string name="spot_form_hitchability_label">@string/hitchability</string>
+    <string name="spot_form_date_label">Data</string>
+    <string name="spot_form_time_label">Horário</string>
+    <string name="spot_form_waiting_time_label">Tempo de espera (em minutos)</string>
+    <string name="spot_form_attempt_result_label">@string/attempt_result</string>
+    <string name="spot_form_more_options_label">Mais opçōes</string>
+
+
+    <string name="action_settings">Configuraçōes</string>
+    <string name="spot_saved_successfuly">Local salvo!</string>
+    <string name="spot_deleted_successfuly">Local deletado</string>
+    <string name="title_activity_main">@string/app_name</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+    <string name="main_activity_you_tab">você</string>
+    <string name="main_activity_list_tab">lista</string>
+    <string name="spot_list_item_arrival_label">chegada</string>
+    <string name="spot_list_item_waiting_label">aguardando</string>
+    <string name="spot_form_save_button_text">salvar</string>
+    <string name="spot_form_delete_button_text">deletar</string>
+    <string name="spot_form_delete_dialog_title_text">Deletar local</string>
+    <string name="spot_form_delete_dialog_message_text">Você tem certeza que deseja deletar esse local permanentemente?</string>
+    <string name="spot_form_delete_dialog_no_option">Não</string>
+    <string name="spot_form_delete_dialog_yes_option">Sim</string>
+    <string name="spot_form_is_destination_checkbox_text">Este é meu destino nesta viagem</string>
+    <string name="spot_form_title_evaluate">Avaliar ponto</string>
+    <string name="spot_form_title_edit">Editar ponto</string>
+
+    <string name="unable_to_find_location">Nāo foi possível encontrar sua localizaçāo com o Google api client :(</string>
+    <string name="trying_to_reconnect_to_provider_of_location">Tentar reconectar ao localizador..</string>
+
+    <string name="destination_spot_totals_format">TOTAL | %1$s | %2$d caronas</string>
+    <string name="break_spot_state_label">PAUSA</string>
+
+</resources>
