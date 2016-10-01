@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Dictionary;
@@ -75,7 +77,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                     totalsToDestinations.put(spot.getId(), String.format(
                             spotListFragment.getResources().getString(R.string.destination_spot_totals_format),
-                            getWaitingTimeAsString(minutes), totalRides));
+                            totalRides, getWaitingTimeAsString(minutes)));
 
                     //totalWaitingTimeMinutes = 0;
                     totalRides = 0;
@@ -234,19 +236,19 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     static String locationSeparator = ", ";
 
     private static String spotLocationToString(Spot spot) {
-        String spotLocation = "", city = "", state = "", country = "";
-        String[] loc;
+
+        ArrayList<String> loc = new ArrayList();
         try {
 
-            if (spot.getCity() != null)
-                city = spot.getCity().trim();
-            if (spot.getState() != null)
-                state = spot.getState().trim();
-            if (spot.getCountry() != null)
-                country = spot.getCountry().trim();
+            if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
+                loc.add(spot.getCity().trim());
+            if (spot.getState() != null && !spot.getState().trim().isEmpty())
+                loc.add(spot.getState().trim());
+            if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
+                loc.add(spot.getCountry().trim());
 
-            loc = new String[]{city, state, country};
-            for (int i = 0; i < loc.length; i++) {
+            return TextUtils.join(locationSeparator, loc);
+           /* for (int i = 0; i < loc.length; i++) {
                 if (loc[i] != null && !loc[i].isEmpty()) {
                     spotLocation += loc[i];
                     //if (i + 1 < loc.length && loc[i + 1] != null && !loc[i + 1].isEmpty())
@@ -257,7 +259,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             if (spotLocation.length() > 0)
                 spotLocation = spotLocation.substring(0, spotLocation.length() - locationSeparator.length());
 
-            return spotLocation;
+            return spotLocation;*/
         } catch (Exception ex) {
             Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
 

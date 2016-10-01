@@ -59,10 +59,8 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     protected Switch mGetLocationSwitch;
     public ImageButton mSaveSpotButton, mArrivedButton;
     public ImageButton mGotARideButton, mTookABreakButton;
-    public LinearLayout mSaveSpotPanel, mEvaluatePanel, mArrivedPanel;
-    protected TextView mLastUpdateTimeTextView;
-    protected TextView mLatitudeTextView;
-    protected TextView mLongitudeTextView;
+    public LinearLayout mSaveSpotPanel, mEvaluatePanel, mArrivedPanel, mCurrentLocationPanel;
+    protected TextView mLastUpdateTimeTextView, mLatitudeTextView, mLongitudeTextView, mWaitingToGetCurrentLocation;
     //protected ImageButton extra_image_button;
 
     // UI Labels.
@@ -88,6 +86,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mSaveSpotPanel = (LinearLayout) rootView.findViewById(R.id.save_spot_panel);
         mEvaluatePanel = (LinearLayout) rootView.findViewById(R.id.evaluate_panel);
         mArrivedPanel = (LinearLayout) rootView.findViewById(R.id.arrived_panel);
+        mCurrentLocationPanel = (LinearLayout) rootView.findViewById(R.id.current_location_info_panel);
 
         mSaveSpotButton = (ImageButton) rootView.findViewById(R.id.save_hitchhiking_spot_button);
         mArrivedButton = (ImageButton) rootView.findViewById(R.id.arrived_button);
@@ -97,6 +96,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mLatitudeTextView = (TextView) rootView.findViewById(R.id.latitude_text);
         mLongitudeTextView = (TextView) rootView.findViewById(R.id.longitude_text);
         mLastUpdateTimeTextView = (TextView) rootView.findViewById(R.id.last_update_time_text);
+        mWaitingToGetCurrentLocation = (TextView) rootView.findViewById(R.id.waiting_location_textview);
         //extra_image_button = (ImageButton) rootView.findViewById(R.id.extra_image_button);
 
         // Set UI labels.
@@ -108,6 +108,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mGetLocationSwitch.setEnabled(false);
         mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
         mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
+        mCurrentLocationPanel.setVisibility(View.INVISIBLE);
 
         parentActivity = (TrackLocationBaseActivity) getActivity();
 
@@ -134,7 +135,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     //RemoteControlReceiver receiver;
     Spot mCurrentWaitingSpot;
     boolean mIsWaitingForARide;
-
+    boolean mWillItBeFirstSpotOfARoute;
 
     @Override
     public void onResume() {
@@ -150,14 +151,12 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
         DaoSession daoSession = context.getDaoSession();
-        //insertSampleData(daoSession);
         SpotDao spotDao = daoSession.getSpotDao();
         List<Spot> spotList = spotDao.queryBuilder().orderDesc().orderDesc(SpotDao.Properties.StartDateTime).limit(1).list();
         if (spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()))
-            mArrivedPanel.setVisibility(View.GONE);
+            mWillItBeFirstSpotOfARoute = true;
         else
-            mArrivedPanel.setVisibility(View.VISIBLE);
-
+            mWillItBeFirstSpotOfARoute = false;
 
         /*if(mIsWaitingForARide) {
         if (Build.VERSION.SDK_INT >= 21 )
@@ -285,6 +284,11 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      * user is requesting location updates.
      */
     protected void updateUISaveButtons() {
+        if (mWillItBeFirstSpotOfARoute)
+            mArrivedPanel.setVisibility(View.GONE);
+        else
+            mArrivedPanel.setVisibility(View.VISIBLE);
+
         if (mIsWaitingForARide) {
             mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
             mEvaluatePanel.setVisibility(View.VISIBLE);//setEnabled(true);
@@ -297,9 +301,16 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
                     mSaveSpotPanel.setVisibility(View.VISIBLE);
                 else
                     mSaveSpotPanel.setVisibility(View.GONE);
-
             }
             mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
+        }
+
+        if (mSaveSpotPanel.getVisibility() == View.GONE && mEvaluatePanel.getVisibility() == View.GONE) {
+            mWaitingToGetCurrentLocation.setVisibility(View.VISIBLE);
+            mCurrentLocationPanel.setVisibility(View.INVISIBLE);
+        } else {
+            mWaitingToGetCurrentLocation.setVisibility(View.GONE);
+            mCurrentLocationPanel.setVisibility(View.VISIBLE);
         }
     }
 

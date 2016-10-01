@@ -104,7 +104,8 @@
     <string name="unable_to_find_location">Nāo foi possível encontrar sua localizaçāo com o Google api client :(</string>
     <string name="trying_to_reconnect_to_provider_of_location">Tentar reconectar ao localizador..</string>
 
-    <string name="destination_spot_totals_format">TOTAL | %1$s | %2$d caronas</string>
+    <string name="destination_spot_totals_format">TOTAL | %1$d caronas | %2$s</string>
     <string name="break_spot_state_label">PAUSA</string>
+    <string name="waiting_for_gps">Aguardando atualização da sua localizaçāo..</string>
 
 </resources>

@@ -109,8 +109,8 @@ public class MyHitchhikingSpotsApplication extends Application {
         spot4.setCountry("Turkey");
         spot4.setLatitude(-19.9167);
         spot4.setLongitude(-43.9333);
-        spot4.setHitchability(3);
-        spot4.setAttemptResult(3);
+        spot4.setHitchability(1);
+        spot4.setAttemptResult(1);
         spot4.setWaitingTime(50);
         spot4.setStartDateTime(new GregorianCalendar(2012, 11, 11, 10, 00, 00).getTime());
 

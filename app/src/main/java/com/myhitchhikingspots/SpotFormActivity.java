@@ -173,9 +173,9 @@ public class SpotFormActivity extends BaseActivity {
                 SetDateTime(date_datepicker, time_timepicker, mCurrentSpot.getStartDateTime());
 
                 if (mFormType == FormType.All) {
-                    if (mCurrentSpot.getHitchability() != null)
+                    if (mCurrentSpot.getHitchability() != null && mCurrentSpot.getHitchability() >= 0 && mCurrentSpot.getHitchability() < hitchability_spinner.getCount())
                         hitchability_spinner.setSelection(mCurrentSpot.getHitchability());
-                    if (mCurrentSpot.getAttemptResult() != null)
+                    if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount())
                         attempt_results_spinner.setSelection(mCurrentSpot.getAttemptResult());
 
                     form_title.setText(getResources().getString(R.string.spot_form_title_edit));
@@ -189,7 +189,7 @@ public class SpotFormActivity extends BaseActivity {
                 waiting_time_edittext.setText(minutes.toString());
 
                 //TODO: make this check in a not hardcoded way!
-                if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() > 0) {
+                if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount()) {
                     attempt_results_spinner.setSelection(mCurrentSpot.getAttemptResult());
 
                     //TODO: make this check in a not hardcoded way!

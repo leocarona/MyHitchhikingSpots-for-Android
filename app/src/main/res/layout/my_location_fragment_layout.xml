@@ -10,15 +10,15 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MyLocationFragment">
-   <!-- <ImageButton
-        android:scaleType="fitCenter"
-        android:id="@+id/extra_image_button"
-        android:layout_width="158dp"
-        android:layout_height="189dp"
-        android:src="@drawable/rumo_a_stl"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/rounded_shape"/>-->
+    <!-- <ImageButton
+         android:scaleType="fitCenter"
+         android:id="@+id/extra_image_button"
+         android:layout_width="158dp"
+         android:layout_height="189dp"
+         android:src="@drawable/rumo_a_stl"
+         android:layout_alignParentBottom="true"
+         android:layout_centerHorizontal="true"
+         android:background="@drawable/rounded_shape"/>-->
 
 
     <LinearLayout
@@ -27,170 +27,187 @@
         android:orientation="vertical">
 
         <Switch
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/update_location_switch"
             android:id="@+id/update_location_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="right"
-            android:clickable="true" />
+            android:clickable="true"
+            android:text="@string/update_location_switch" />
 
 
         <TextView
-            android:id="@+id/latitude_text"
-            android:layout_width="wrap_content"
+            android:id="@+id/waiting_location_textview"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/small_margin"
-            android:layout_marginStart="@dimen/small_margin"
-            android:textSize="@dimen/default_text_size" />
+            android:text="@string/waiting_for_gps" />
 
-        <TextView
-            android:id="@+id/longitude_text"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/current_location_info_panel"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/small_margin"
-            android:layout_marginStart="@dimen/small_margin"
-            android:textSize="@dimen/default_text_size" />
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/last_update_time_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/small_margin"
-            android:layout_marginStart="@dimen/small_margin"
-            android:textSize="@dimen/default_text_size" />
+            <TextView
+                android:id="@+id/latitude_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:layout_marginStart="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
 
+            <TextView
+                android:id="@+id/longitude_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:layout_marginStart="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
+
+            <TextView
+                android:id="@+id/last_update_time_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:layout_marginStart="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/save_spot_panel"
             android:layout_width="match_parent"
-            android:baselineAligned="false"
-            android:orientation="horizontal"
             android:layout_height="120dp"
-            android:layout_marginTop="20dp">
+            android:layout_marginTop="20dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
             <LinearLayout
-                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center_horizontal"
+                android:orientation="vertical"
                 android:weightSum="1">
+
                 <ImageButton
-                    android:layout_width="92dp"
                     android:id="@+id/save_hitchhiking_spot_button"
+                    android:layout_width="92dp"
                     android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/ic_regular_spot_icon"
-                    android:gravity="center_horizontal"
+                    android:layout_weight="0.79"
                     android:background="@drawable/save_spot_button"
-                    android:layout_weight="0.79"/>
+                    android:gravity="center_horizontal"
+                    app:srcCompat="@drawable/ic_regular_spot_icon" />
 
                 <TextView
-                    android:text="@string/save_spot_button_text"
+                    android:id="@+id/textView3"
                     android:layout_width="92dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/textView3"
                     android:gravity="center_horizontal"
                     android:labelFor="@+id/save_hitchhiking_spot_button"
-                    android:textStyle="normal|bold"
+                    android:lines="2"
+                    android:text="@string/save_spot_button_text"
                     android:textAllCaps="true"
-                    android:lines="2" />
+                    android:textStyle="normal|bold" />
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/arrived_panel"
-                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center_horizontal"
+                android:orientation="vertical"
                 android:weightSum="1">
+
                 <ImageButton
-                    android:layout_width="92dp"
                     android:id="@+id/arrived_button"
+                    android:layout_width="92dp"
                     android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/ic_arrival_icon"
-                    android:gravity="center_horizontal"
+                    android:layout_weight="0.79"
                     android:background="@drawable/arrived_button"
-                    android:layout_weight="0.79"/>
+                    android:gravity="center_horizontal"
+                    app:srcCompat="@drawable/ic_arrival_icon" />
 
 
                 <TextView
-                    android:text="@string/arrived_button_text"
+                    android:id="@+id/textView4"
                     android:layout_width="92dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/textView4"
                     android:gravity="center_horizontal"
                     android:labelFor="@+id/arrived_button"
-                    android:textStyle="normal|bold"
+                    android:lines="2"
+                    android:text="@string/arrived_button_text"
                     android:textAllCaps="true"
-                    android:lines="2" />
+                    android:textStyle="normal|bold" />
             </LinearLayout>
         </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/evaluate_panel"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:baselineAligned="false"
-        android:orientation="horizontal"
-        android:layout_marginTop="20dp">
         <LinearLayout
-            android:orientation="vertical"
+            android:id="@+id/evaluate_panel"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center_horizontal"
-            android:weightSum="1">
-            <ImageButton
-                android:id="@+id/got_a_ride_button"
-                android:layout_width="92dp"
-                android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ic_got_a_ride_spot_icon"
+            android:layout_height="120dp"
+            android:layout_marginTop="20dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:gravity="center_horizontal"
-                android:background="@drawable/got_a_ride_button"
-                android:layout_weight="0.79" />
+                android:orientation="vertical"
+                android:weightSum="1">
+
+                <ImageButton
+                    android:id="@+id/got_a_ride_button"
+                    android:layout_width="92dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.79"
+                    android:background="@drawable/got_a_ride_button"
+                    android:gravity="center_horizontal"
+                    app:srcCompat="@drawable/ic_got_a_ride_spot_icon" />
 
 
-            <TextView
-                android:text="@string/got_a_ride_button_text"
-                android:layout_width="92dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/textView5"
+                <TextView
+                    android:id="@+id/textView5"
+                    android:layout_width="92dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:labelFor="@+id/got_a_ride_button"
+                    android:lines="2"
+                    android:text="@string/got_a_ride_button_text"
+                    android:textAllCaps="true"
+                    android:textStyle="normal|bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:gravity="center_horizontal"
-                android:labelFor="@+id/got_a_ride_button"
-                android:textStyle="normal|bold"
-                android:textAllCaps="true"
-                android:lines="2" />
+                android:orientation="vertical"
+                android:weightSum="1">
+
+                <ImageButton
+                    android:id="@+id/break_button"
+                    android:layout_width="92dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.79"
+                    android:background="@drawable/break_button"
+                    android:gravity="center_horizontal"
+                    app:srcCompat="@drawable/ic_break_spot_icon" />
+
+
+                <TextView
+                    android:id="@+id/textView6"
+                    android:layout_width="92dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:labelFor="@+id/break_button"
+                    android:lines="2"
+                    android:text="@string/break_button_text"
+                    android:textAllCaps="true"
+                    android:textStyle="normal|bold" />
+            </LinearLayout>
         </LinearLayout>
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center_horizontal"
-            android:weightSum="1">
-            <ImageButton
-                android:id="@+id/break_button"
-                android:layout_width="92dp"
-                android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ic_break_spot_icon"
-                android:gravity="center_horizontal"
-                android:background="@drawable/break_button"
-                android:layout_weight="0.79"/>
-
-
-            <TextView
-                android:text="@string/break_button_text"
-                android:layout_width="92dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/textView6"
-                android:gravity="center_horizontal"
-                android:labelFor="@+id/break_button"
-                android:textStyle="normal|bold"
-                android:textAllCaps="true"
-                android:lines="2" />
-        </LinearLayout>
-    </LinearLayout>
     </LinearLayout>
 </RelativeLayout>
