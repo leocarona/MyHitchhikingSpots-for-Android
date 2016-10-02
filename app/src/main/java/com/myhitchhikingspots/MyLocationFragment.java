@@ -152,7 +152,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
         DaoSession daoSession = context.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
-        List<Spot> spotList = spotDao.queryBuilder().orderDesc().orderDesc(SpotDao.Properties.StartDateTime).limit(1).list();
+        List<Spot> spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.Id).orderDesc(SpotDao.Properties.StartDateTime).limit(1).list();
         if (spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()))
             mWillItBeFirstSpotOfARoute = true;
         else

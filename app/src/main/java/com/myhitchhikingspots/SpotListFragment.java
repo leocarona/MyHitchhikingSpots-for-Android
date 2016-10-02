@@ -40,7 +40,7 @@ public class SpotListFragment extends Fragment {
         super.onResume();
         DaoSession daoSession = ((MyHitchhikingSpotsApplication) getActivity().getApplicationContext()).getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
-        List spotList = spotDao.queryBuilder().orderDesc().orderDesc(SpotDao.Properties.StartDateTime).list();
+        List spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.Id).orderDesc(SpotDao.Properties.StartDateTime).list();
         recyclerView.setAdapter(new SpotListAdapter(spotList, this));
     }
 

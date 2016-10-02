@@ -75,9 +75,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         minutes = Minutes.minutesBetween(startDateTime, endDateTime).getMinutes();
                     }
 
-                    totalsToDestinations.put(spot.getId(), String.format(
-                            spotListFragment.getResources().getString(R.string.destination_spot_totals_format),
-                            totalRides, getWaitingTimeAsString(minutes)));
+                    String formatedStr = String.format(spotListFragment.getResources().getString(R.string.destination_spot_totals_format),
+                            totalRides, getWaitingTimeAsString(minutes));
+                    totalsToDestinations.put(spot.getId(), formatedStr);
 
                     //totalWaitingTimeMinutes = 0;
                     totalRides = 0;
@@ -206,15 +206,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             if (spot.getStartDateTime() != null)
                 dateTime.setText(dateTimeToString(spot.getStartDateTime()));
 
-            String spotLoc = spotLocationToString(spot).trim();
-            if (spotLoc != null && !spotLoc.isEmpty()) {
-                cityNameText.setText("- " + spotLoc);
-                //cityNameText.setTextColor(Color.BLACK);
-            } else {
-                if (spot.getLatitude() != null && spot.getLongitude() != null)
-                    cityNameText.setText("- (" + spot.getLatitude() + "," + spot.getLongitude() + ")");
-                //cityNameText.setTextColor(notesText.getTextColors());
-            }
+            String spotLoc = getString(spot);
+            cityNameText.setText(spotLoc);
 
             if (captilizedNote != null && !captilizedNote.isEmpty())
                 captilizedNote = captilizedNote.substring(0, 1).toUpperCase() + captilizedNote.substring(1);
@@ -229,6 +222,17 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             notesText.setText(captilizedNote);
 
 
+        }
+
+
+        @NonNull
+        private static String getString(Spot mCurrentSpot) {
+            String spotLoc = spotLocationToString(mCurrentSpot).trim();
+            if (spotLoc != null && !spotLoc.isEmpty())
+                spotLoc = "- " + spotLoc;
+            else if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null)
+                spotLoc = "- (" + mCurrentSpot.getLatitude() + "," + mCurrentSpot.getLongitude() + ")";
+            return spotLoc;
         }
     }
 
@@ -248,18 +252,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 loc.add(spot.getCountry().trim());
 
             return TextUtils.join(locationSeparator, loc);
-           /* for (int i = 0; i < loc.length; i++) {
-                if (loc[i] != null && !loc[i].isEmpty()) {
-                    spotLocation += loc[i];
-                    //if (i + 1 < loc.length && loc[i + 1] != null && !loc[i + 1].isEmpty())
-                    spotLocation += locationSeparator;
-                }
-            }
-
-            if (spotLocation.length() > 0)
-                spotLocation = spotLocation.substring(0, spotLocation.length() - locationSeparator.length());
-
-            return spotLocation;*/
         } catch (Exception ex) {
             Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
 

@@ -108,4 +108,11 @@
     <string name="break_spot_state_label">PAUSA</string>
     <string name="waiting_for_gps">Aguardando atualização da sua localizaçāo..</string>
 
+    <string name="fetch_address">obter endereço</string>
+    <string name="no_geocoder_available">Serviço indisponível</string>
+    <string name="address_found">Endereço encontrado</string>
+    <string name="no_address_found">Infelizmente um endereço nāo foi encontrado</string>
+    <string name="no_location_data_provided">As coordenadas nāo foram informadas</string>
+    <string name="service_not_available">Infelizmente o serviço nāo se encontra disponível</string>
+    <string name="invalid_lat_long_used">A latitude ou longitude utilizada nāo é válida</string>
 </resources>

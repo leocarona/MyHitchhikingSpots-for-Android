@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -15,16 +16,16 @@
         android:orientation="vertical">
 
         <TextView
-            android:text="Spot form"
+            android:id="@+id/save_spot_form_title"
+            style="@style/Base.TextAppearance.AppCompat.Title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/Base.TextAppearance.AppCompat.Title"
-            android:id="@+id/save_spot_form_title"
-            android:gravity="center_horizontal"
-            android:textAllCaps="true"
-            android:textStyle="normal|bold"
             android:layout_marginBottom="10dp"
-            android:layout_marginTop="5dp" />
+            android:layout_marginTop="5dp"
+            android:gravity="center_horizontal"
+            android:text="Spot form"
+            android:textAllCaps="true"
+            android:textStyle="normal|bold" />
 
         <LinearLayout
             android:id="@+id/save_spot_form_basic"
@@ -55,25 +56,6 @@
                 android:inputType="textMultiLine" />
 
 
-            <LinearLayout
-                android:id="@+id/save_spot_form_hitchability_options"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/text_margin"
-                    android:text="@string/spot_form_hitchability_label" />
-
-                <Spinner
-                    android:id="@+id/spot_form_hitchability_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:entries="@array/hitchabilities" />
-            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -142,14 +124,35 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:ems="10"
-                android:inputType="number" />
+                android:inputType="number"/>
 
+            <LinearLayout
+                android:id="@+id/save_spot_form_hitchability_options"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/text_margin"
+                    android:text="@string/spot_form_hitchability_label" />
+
+                <Spinner
+                    android:id="@+id/spot_form_hitchability_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:entries="@array/hitchabilities"
+                    style="@android:style/Widget.DeviceDefault.Light.Spinner" />
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/save_spot_form_attempt_result_panel"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -162,25 +165,70 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:entries="@array/attempt_results" />
+                    android:entries="@array/attempt_results"
+                    style="@android:style/Widget.DeviceDefault.Light.Spinner" />
             </LinearLayout>
         </LinearLayout>
 
-        <Button
-            android:id="@+id/save_button"
-            android:layout_width="wrap_content"
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_centerInParent="true" />
+
+        <TextView
+            android:id="@+id/location_address_view"
+            android:layout_width="match_parent"
+            android:gravity="right|center_vertical"
+            android:text="City, State, Country"
+            android:layout_height="40dp"
+            android:onClick="locationAddressButtonHandler"
+            android:clickable="true" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:onClick="saveButtonHandler"
-            android:text="@string/spot_form_save_button_text" />
+            android:gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
+
+            <Button
+                android:id="@+id/save_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/save_spot_button"
+                android:onClick="saveButtonHandler"
+                android:padding="15dp"
+                android:text="@string/spot_form_save_button_text" />
+
+            <Button
+                android:id="@+id/fetch_address_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/arrived_button"
+                android:onClick="fetchAddressButtonHandler"
+                android:padding="13dp"
+                android:paddingTop="15dp"
+                android:paddingBottom="15dp"
+                android:text="@string/fetch_address" />
+
+
 
         <Button
             android:id="@+id/delete_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:background="@drawable/break_button"
             android:onClick="deleteButtonHandler"
+            android:padding="13dp"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
             android:text="@string/spot_form_delete_button_text"
-            android:visibility="gone" />
+            android:visibility="gone"/> </LinearLayout>
     </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

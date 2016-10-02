@@ -1,9 +1,12 @@
 package com.myhitchhikingspots;
 
 import android.content.DialogInterface;
+import android.location.Address;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -11,6 +14,7 @@ import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -24,9 +28,24 @@ import com.myhitchhikingspots.model.SpotDao;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
+import java.util.ArrayList;
 import java.util.Date;
 
+import android.content.Intent;
+import android.location.Geocoder;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationServices;
+
 public class SpotFormActivity extends BaseActivity {
+
+
     private Button mSaveButton, mDeleteButton;
     private EditText note_edittext, waiting_time_edittext;
     private DatePicker date_datepicker;
@@ -38,6 +57,52 @@ public class SpotFormActivity extends BaseActivity {
     private LinearLayout spot_form_evaluate, spot_form_basic, spot_form_more_options, hitchability_options, attempt_result_panel;
     protected static final String TAG = "save_spot";
     protected final static String CURRENT_SPOT_KEY = "current-spot-key";
+
+    //----BEGIN: Part related to reverse geocoding
+    protected static final String ADDRESS_REQUESTED_KEY = "address-request-pending";
+    protected static final String LOCATION_ADDRESS_KEY = "location-address";
+
+    /**
+     * Represents a geographical location.
+     */
+    protected MyLocation mLastLocation;
+
+    /**
+     * Tracks whether the user has requested an address. Becomes true when the user requests an
+     * address and false when the address (or an error message) is delivered.
+     * The user requests an address by pressing the Fetch Address button. This may happen
+     * before GoogleApiClient connects. This activity uses this boolean to keep track of the
+     * user's intent. If the value is true, the activity tries to fetch the address as soon as
+     * GoogleApiClient connects.
+     */
+    protected boolean mAddressRequested;
+
+    /**
+     * The formatted location address.
+     */
+    protected Address mAddressOutput;
+
+    /**
+     * Receiver registered with this activity to get the response from FetchAddressIntentService.
+     */
+    private AddressResultReceiver mResultReceiver;
+
+    /**
+     * Displays the location address.
+     */
+    protected TextView mLocationAddressTextView;
+
+    /**
+     * Visible while the address is being fetched.
+     */
+    ProgressBar mProgressBar;
+
+    /**
+     * Kicks off the request to fetch an address when pressed.
+     */
+    Button mFetchAddressButton;
+    //----END: Part related to reverse geocoding
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,17 +124,38 @@ public class SpotFormActivity extends BaseActivity {
         attempt_result_panel = (LinearLayout) findViewById(R.id.save_spot_form_attempt_result_panel);
         form_title = (TextView) findViewById(R.id.save_spot_form_title);
 
+        //----BEGIN: Part related to reverse geocoding
+        mResultReceiver = new AddressResultReceiver(new Handler());
+
+        mLocationAddressTextView = (TextView) findViewById(R.id.location_address_view);
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
+        mFetchAddressButton = (Button) findViewById(R.id.fetch_address_button);
+
+        // Set defaults, then update using values stored in the Bundle.
+        mAddressRequested = false;
+        mAddressOutput = null;
+
+        updateUIWidgets();
+        //----END: Part related to reverse geocoding
+
+
         try {
             if (savedInstanceState != null)
                 updateValuesFromBundle(savedInstanceState);
-            else
+            else {
                 mCurrentSpot = (Spot) getIntent().getSerializableExtra("Spot");
+                mLocationAddressTextView.setText(getString(mCurrentSpot));
+            }
 
             // If user is currently waiting for a ride at the current spot, show him the Evaluate form. If he is not,
             // that means he's saving a new spot so we need to show him the Basic form instead.
             if (mCurrentSpot == null)
                 mFormType = FormType.Unknown;
             else {
+                if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
+                    mLastLocation = new MyLocation(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude());
+                }
+
                 if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
                     mFormType = FormType.Evaluate;
                 else if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination())
@@ -107,6 +193,19 @@ public class SpotFormActivity extends BaseActivity {
                 // is not null.
                 mCurrentSpot = (Spot) savedInstanceState.getSerializable(CURRENT_SPOT_KEY);
             }
+
+            //----BEGIN: Part related to reverse geocoding
+            // Check savedInstanceState to see if the address was previously requested.
+            if (savedInstanceState.keySet().contains(ADDRESS_REQUESTED_KEY)) {
+                mAddressRequested = savedInstanceState.getBoolean(ADDRESS_REQUESTED_KEY);
+            }
+            // Check savedInstanceState to see if the location address string was previously found
+            // and stored in the Bundle. If it was found, display the address string in the UI.
+            if (savedInstanceState.keySet().contains(LOCATION_ADDRESS_KEY)) {
+                mAddressOutput = savedInstanceState.getParcelable(LOCATION_ADDRESS_KEY);
+                displayAddressOutput();
+            }
+            //----END: Part related to reverse geocoding
         }
     }
 
@@ -188,6 +287,8 @@ public class SpotFormActivity extends BaseActivity {
                 Integer minutes = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
                 waiting_time_edittext.setText(minutes.toString());
 
+                mFetchAddressButton.setVisibility(View.GONE);
+
                 //TODO: make this check in a not hardcoded way!
                 if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount()) {
                     attempt_results_spinner.setSelection(mCurrentSpot.getAttemptResult());
@@ -215,12 +316,22 @@ public class SpotFormActivity extends BaseActivity {
             } else if (mFormType == FormType.Basic) {
                 form_title.setText(getResources().getString(R.string.save_spot_button_text));
                 is_destination_check_box.setVisibility(View.VISIBLE);
+
+                if (mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved())
+                    fetchAddressButtonHandler(null);
             }
 
         } catch (Exception ex) {
             Log.e(TAG, "updateUI", ex);
             Toast.makeText(getApplicationContext(), "Something went wrong :(", Toast.LENGTH_LONG).show();
         }
+    }
+
+    public void locationAddressButtonHandler(View v){
+
+        //TODO: copy a string with format "address (lat, lng)" to the memory so that the user can paste it wherever he wants
+        Toast.makeText(getApplicationContext(), "This will copy the coordinates to the memory in the future.", Toast.LENGTH_LONG).show();
+
     }
 
     public void saveButtonHandler(View view) {
@@ -367,6 +478,162 @@ public class SpotFormActivity extends BaseActivity {
      */
     public void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putSerializable(CURRENT_SPOT_KEY, mCurrentSpot);
+
+        //----BEGIN: Part related to reverse geocoding
+// Save whether the address has been requested.
+        savedInstanceState.putBoolean(ADDRESS_REQUESTED_KEY, mAddressRequested);
+
+        // Save the address string.
+        savedInstanceState.putParcelable(LOCATION_ADDRESS_KEY, mAddressOutput);
+        //----END: Part related to reverse geocoding
         super.onSaveInstanceState(savedInstanceState);
     }
+
+
+    //----BEGIN: Part related to reverse geocoding
+
+
+    /**
+     * Runs when user clicks the Fetch Address button. Starts the service to fetch the address if
+     * GoogleApiClient is connected.
+     */
+    public void fetchAddressButtonHandler(View view) {
+        // We only start the service to fetch the address if GoogleApiClient is connected.
+        if (mLastLocation != null) {
+            startIntentService();
+        }
+        // If GoogleApiClient isn't connected, we process the user's request by setting
+        // mAddressRequested to true. Later, when GoogleApiClient connects, we launch the service to
+        // fetch the address. As far as the user is concerned, pressing the Fetch Address button
+        // immediately kicks off the process of getting the address.
+        mAddressRequested = true;
+        updateUIWidgets();
+    }
+
+
+    /**
+     * Creates an intent, adds location data to it as an extra, and starts the intent service for
+     * fetching an address.
+     */
+    protected void startIntentService() {
+        // Create an intent for passing to the intent service responsible for fetching the address.
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+
+        // Pass the result receiver as an extra to the service.
+        intent.putExtra(Constants.RECEIVER, mResultReceiver);
+
+        // Pass the location data as an extra to the service.
+        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
+
+        // Start the service. If the service isn't already running, it is instantiated and started
+        // (creating a process for it if needed); if it is running then it remains running. The
+        // service kills itself automatically once all intents are processed.
+        startService(intent);
+    }
+
+    /**
+     * Updates the address in the UI.
+     */
+    protected void displayAddressOutput() {
+        if (mAddressOutput != null) {
+            mCurrentSpot.setCity(mAddressOutput.getLocality());
+            mCurrentSpot.setState(mAddressOutput.getAdminArea());
+            mCurrentSpot.setCountry(mAddressOutput.getCountryName());
+            mCurrentSpot.setGpsResolved(true);
+        }
+
+        mLocationAddressTextView.setText(getString(mCurrentSpot));
+
+    }
+
+    @NonNull
+    private static String getString(Spot mCurrentSpot) {
+        String spotLoc = spotLocationToString(mCurrentSpot).trim();
+        if ((spotLoc == null || spotLoc.isEmpty()) && (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null))
+            spotLoc = "Lat: " + mCurrentSpot.getLatitude() + " Lng: " + mCurrentSpot.getLongitude() + "  ";
+        return spotLoc;
+    }
+
+    static String locationSeparator = ", ";
+
+    private static String spotLocationToString(Spot spot) {
+
+        ArrayList<String> loc = new ArrayList();
+        try {
+
+            if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
+                loc.add(spot.getCity().trim());
+            if (spot.getState() != null && !spot.getState().trim().isEmpty())
+                loc.add(spot.getState().trim());
+            if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
+                loc.add(spot.getCountry().trim());
+
+            return TextUtils.join(locationSeparator, loc);
+        } catch (Exception ex) {
+            Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
+
+        }
+        return "";
+    }
+
+
+    /**
+     * Toggles the visibility of the progress bar. Enables or disables the Fetch Address button.
+     */
+    private void updateUIWidgets() {
+        if (mAddressRequested) {
+            mLocationAddressTextView.setVisibility(View.GONE);
+            mProgressBar.setVisibility(ProgressBar.VISIBLE);
+            mFetchAddressButton.setEnabled(false);
+        } else {
+            mLocationAddressTextView.setVisibility(View.VISIBLE);
+            mProgressBar.setVisibility(ProgressBar.GONE);
+            mFetchAddressButton.setEnabled(true);
+        }
+    }
+
+    /**
+     * Shows a toast with the given text.
+     */
+    protected void showToast(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
+
+
+    /**
+     * Receiver for data sent from FetchAddressIntentService.
+     */
+    class AddressResultReceiver extends ResultReceiver {
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        /**
+         * Receives data sent from FetchAddressIntentService and updates the UI in MainActivity.
+         */
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            String strResult = "";
+
+            // Show a toast message notifying whether an address was found.
+            if (resultCode == Constants.FAILURE_RESULT)
+                strResult = resultData.getString(Constants.RESULT_STRING_KEY);
+            else {
+                strResult = getString(R.string.address_found);
+
+                // Display the address string or an error message sent from the intent service.
+                mAddressOutput = resultData.getParcelable(Constants.RESULT_ADDRESS_KEY);
+            }
+
+            displayAddressOutput();
+
+            // Reset. Enable the Fetch Address button and stop showing the progress bar.
+            mAddressRequested = false;
+            showToast(strResult);
+            updateUIWidgets();
+        }
+    }
+
+    //----END: Part related to reverse geocoding
+
 }
