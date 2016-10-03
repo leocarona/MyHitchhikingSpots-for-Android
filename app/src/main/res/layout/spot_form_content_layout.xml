@@ -184,7 +184,10 @@
             android:text="City, State, Country"
             android:layout_height="40dp"
             android:onClick="locationAddressButtonHandler"
-            android:clickable="true" />
+            android:clickable="true"
+            android:paddingRight="10dp"
+            android:lines="2"
+            android:paddingLeft="10dp" />
 
 
         <LinearLayout
@@ -228,7 +231,6 @@
             android:padding="13dp"
             android:paddingTop="15dp"
             android:paddingBottom="15dp"
-            android:text="@string/spot_form_delete_button_text"
-            android:visibility="gone"/> </LinearLayout>
+            android:text="@string/spot_form_delete_button_text"/> </LinearLayout>
     </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

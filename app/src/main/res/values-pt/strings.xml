@@ -100,6 +100,8 @@
     <string name="spot_form_is_destination_checkbox_text">Este é meu destino nesta viagem</string>
     <string name="spot_form_title_evaluate">Avaliar ponto</string>
     <string name="spot_form_title_edit">Editar ponto</string>
+    <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
+
 
     <string name="unable_to_find_location">Nāo foi possível encontrar sua localizaçāo com o Google api client :(</string>
     <string name="trying_to_reconnect_to_provider_of_location">Tentar reconectar ao localizador..</string>
@@ -115,4 +117,6 @@
     <string name="no_location_data_provided">As coordenadas nāo foram informadas</string>
     <string name="service_not_available">Infelizmente o serviço nāo se encontra disponível</string>
     <string name="invalid_lat_long_used">A latitude ou longitude utilizada nāo é válida</string>
+    <string name="spot_form_save_while_requesting_addr_dialog_title">Obtendo endereço</string>
+    <string name="spot_form_save_while_requesting_addr_dialog_text">Você tem certeza que deseja salvar antes que o endereço tenha sido obtido?</string>
 </resources>

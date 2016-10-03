@@ -232,13 +232,18 @@ public class SpotFormActivity extends BaseActivity {
                 Toast.makeText(this, "Something went wrong, please open your spot again :(", Toast.LENGTH_LONG).show();
             }
 
-            if (mFormType == FormType.Evaluate || mFormType == FormType.All) {
+            //If the spot been evaluated is of type 'Take a Break' or it's FormType.All, then show the delete button. Otherwise, hide it.
+            if (mFormType == FormType.All)
                 mDeleteButton.setVisibility(View.VISIBLE);
+            else
+                mDeleteButton.setVisibility(View.GONE);
+
+
+            if (mFormType == FormType.Evaluate || mFormType == FormType.All)
                 spot_form_evaluate.setVisibility(View.VISIBLE);
-            } else if (mFormType == FormType.Destination) {
-                mDeleteButton.setVisibility(View.VISIBLE);
+            else if (mFormType == FormType.Destination)
                 spot_form_evaluate.setVisibility(View.GONE);
-            }
+
 
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All)
                 spot_form_basic.setVisibility(View.VISIBLE);
@@ -327,7 +332,7 @@ public class SpotFormActivity extends BaseActivity {
         }
     }
 
-    public void locationAddressButtonHandler(View v){
+    public void locationAddressButtonHandler(View v) {
 
         //TODO: copy a string with format "address (lat, lng)" to the memory so that the user can paste it wherever he wants
         Toast.makeText(getApplicationContext(), "This will copy the coordinates to the memory in the future.", Toast.LENGTH_LONG).show();
@@ -335,6 +340,38 @@ public class SpotFormActivity extends BaseActivity {
     }
 
     public void saveButtonHandler(View view) {
+        if (!mAddressRequested)
+            SaveSpot();
+        else {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getResources().getString(R.string.spot_form_save_while_requesting_addr_dialog_title))
+                    .setMessage(getResources().getString(R.string.spot_form_save_while_requesting_addr_dialog_text))
+                    .setPositiveButton(getResources().getString(R.string.spot_form_save_button_text), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    // code runs in a thread
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            stopIntentService();
+                                            SaveSpot();
+                                        }
+                                    });
+                                }
+                            }.start();
+                        }
+
+                    })
+                    .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
+                    .show();
+        }
+    }
+
+    private void SaveSpot() {
         try {
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
                 mCurrentSpot.setNote(note_edittext.getText().toString());
@@ -499,9 +536,11 @@ public class SpotFormActivity extends BaseActivity {
      */
     public void fetchAddressButtonHandler(View view) {
         // We only start the service to fetch the address if GoogleApiClient is connected.
-        if (mLastLocation != null) {
-            startIntentService();
-        }
+        if (mLastLocation == null)
+            return;
+
+        startIntentService();
+
         // If GoogleApiClient isn't connected, we process the user's request by setting
         // mAddressRequested to true. Later, when GoogleApiClient connects, we launch the service to
         // fetch the address. As far as the user is concerned, pressing the Fetch Address button
@@ -510,6 +549,7 @@ public class SpotFormActivity extends BaseActivity {
         updateUIWidgets();
     }
 
+    Intent fetchAddressServiceIntent;
 
     /**
      * Creates an intent, adds location data to it as an extra, and starts the intent service for
@@ -517,18 +557,27 @@ public class SpotFormActivity extends BaseActivity {
      */
     protected void startIntentService() {
         // Create an intent for passing to the intent service responsible for fetching the address.
-        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        fetchAddressServiceIntent = new Intent(this, FetchAddressIntentService.class);
 
         // Pass the result receiver as an extra to the service.
-        intent.putExtra(Constants.RECEIVER, mResultReceiver);
+        fetchAddressServiceIntent.putExtra(Constants.RECEIVER, mResultReceiver);
 
         // Pass the location data as an extra to the service.
-        intent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
+        fetchAddressServiceIntent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
 
         // Start the service. If the service isn't already running, it is instantiated and started
         // (creating a process for it if needed); if it is running then it remains running. The
         // service kills itself automatically once all intents are processed.
-        startService(intent);
+        startService(fetchAddressServiceIntent);
+    }
+
+    protected void stopIntentService() {
+        if (!mAddressRequested || fetchAddressServiceIntent == null)
+            return;
+
+        stopService(fetchAddressServiceIntent);
+        mAddressRequested = false;
+        updateUIWidgets();
     }
 
     /**
@@ -547,10 +596,16 @@ public class SpotFormActivity extends BaseActivity {
     }
 
     @NonNull
-    private static String getString(Spot mCurrentSpot) {
-        String spotLoc = spotLocationToString(mCurrentSpot).trim();
-        if ((spotLoc == null || spotLoc.isEmpty()) && (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null))
-            spotLoc = "Lat: " + mCurrentSpot.getLatitude() + " Lng: " + mCurrentSpot.getLongitude() + "  ";
+    private String getString(Spot mCurrentSpot) {
+        String spotLoc = "";
+        try {
+            spotLoc = spotLocationToString(mCurrentSpot).trim();
+            if ((spotLoc == null || spotLoc.isEmpty()) && (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null))
+                spotLoc = String.format(getResources().getString(R.string.spot_form_lat_lng_label),
+                        mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());
+        } catch (Exception ex) {
+            Log.w("getString", "Err msg: " + ex.getMessage());
+        }
         return spotLoc;
     }
 
