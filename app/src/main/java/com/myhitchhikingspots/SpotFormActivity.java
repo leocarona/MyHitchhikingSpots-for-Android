@@ -179,7 +179,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         } catch (Exception ex) {
             Log.e(TAG, "onCreate", ex);
-            Toast.makeText(getApplicationContext(), "Something went wrong :(", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), getResources().getString(R.string.generall_error_message), Toast.LENGTH_LONG).show();
         }
 
         updateUI();
@@ -269,7 +269,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (mFormType == FormType.Unknown) {
                 mSaveButton.setEnabled(false);
                 Log.e(TAG, "Something went wrong - mCurrentSpot is null");
-                Toast.makeText(this, "Something went wrong, please open your spot again :(", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getResources().getString(R.string.generall_error_message) + " Please open your spot again.", Toast.LENGTH_LONG).show();
             }
 
             //If the spot been evaluated is of type 'Take a Break' or it's FormType.All, then show the delete button. Otherwise, hide it.
@@ -297,7 +297,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
                 if ((mFormType == FormType.Basic || mFormType == FormType.Destination)  &&
-                        mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved())
+                        (mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved()))
                     fetchAddressButtonHandler(null);
             }
 
@@ -377,7 +377,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         } catch (Exception ex) {
             Log.e(TAG, "updateUI", ex);
-            Toast.makeText(getApplicationContext(), "Something went wrong :(", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), getResources().getString(R.string.generall_error_message), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -500,7 +500,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         } catch (Exception ex) {
             Log.e(TAG, "saveButtonHandler", ex);
-            Toast.makeText(getApplicationContext(), "Something went wrong :(", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), getResources().getString(R.string.generall_error_message), Toast.LENGTH_LONG).show();
         }
     }
 

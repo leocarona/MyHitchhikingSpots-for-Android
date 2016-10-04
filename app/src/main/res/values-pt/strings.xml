@@ -119,4 +119,7 @@
     <string name="invalid_lat_long_used">A latitude ou longitude utilizada nāo é válida</string>
     <string name="spot_form_save_while_requesting_addr_dialog_title">Obtendo endereço</string>
     <string name="spot_form_save_while_requesting_addr_dialog_text">Você tem certeza que deseja salvar antes que o endereço tenha sido obtido?</string>
+
+    <string name="generall_error_message">Houve uma falha :(</string>
+
 </resources>
