@@ -35,9 +35,9 @@
     <string name="hitchability_unknown">Desconhecido</string>
     <string name="hitchability_very_good">Muito bom</string>
     <string name="hitchability_good">Bom</string>
-    <string name="hitchability_average">Médio</string>
+    <string name="hitchability_average">Normal</string>
     <string name="hitchability_bad">Ruim</string>
-    <string name="hitchability_senseless">Muito ruim</string>
+    <string name="hitchability_senseless">Horrível</string>
     <string name="hitchability_no_answer">N/A</string>
 
     <string name="attempt_result">Resultado da tentativa</string>

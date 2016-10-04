@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -53,15 +54,15 @@ import java.util.List;
  * uses Google Play services for authentication, see
  * https://github.com/googlesamples/android-google-accounts/tree/master/QuickStart.
  */
-public class MyLocationFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+public class MyLocationFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener, RatingBar.OnRatingBarChangeListener {
 
     // UI Widgets
     protected Switch mGetLocationSwitch;
     public ImageButton mSaveSpotButton, mArrivedButton;
     public ImageButton mGotARideButton, mTookABreakButton;
     public LinearLayout mSaveSpotPanel, mEvaluatePanel, mArrivedPanel, mCurrentLocationPanel;
-    protected TextView mLastUpdateTimeTextView, mLatitudeTextView, mLongitudeTextView, mWaitingToGetCurrentLocation;
-    //protected ImageButton extra_image_button;
+    protected TextView mLastUpdateTimeTextView, mLatitudeTextView, mLongitudeTextView, mWaitingToGetCurrentLocation, hitchabilityLabel;
+    protected RatingBar hitchability_ratingbar;
 
     // UI Labels.
     protected String mLatitudeLabel;
@@ -93,6 +94,9 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mGotARideButton = (ImageButton) rootView.findViewById(R.id.got_a_ride_button);
         mTookABreakButton = (ImageButton) rootView.findViewById(R.id.break_button);
 
+        hitchability_ratingbar = (RatingBar) rootView.findViewById(R.id.spot_form_hitchability_ratingbar);
+        hitchabilityLabel = (TextView) rootView.findViewById(R.id.spot_form_hitchability_selectedvalue);
+
         mLatitudeTextView = (TextView) rootView.findViewById(R.id.latitude_text);
         mLongitudeTextView = (TextView) rootView.findViewById(R.id.longitude_text);
         mLastUpdateTimeTextView = (TextView) rootView.findViewById(R.id.last_update_time_text);
@@ -108,7 +112,13 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mGetLocationSwitch.setEnabled(false);
         mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
         mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
-        mCurrentLocationPanel.setVisibility(View.INVISIBLE);
+        mCurrentLocationPanel.setVisibility(View.GONE);
+        mCurrentLocationPanel.setVisibility(View.GONE);
+
+        hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
+        hitchability_ratingbar.setStepSize(1);
+        hitchability_ratingbar.setOnRatingBarChangeListener(this);
+        hitchabilityLabel.setText("");
 
         parentActivity = (TrackLocationBaseActivity) getActivity();
 
@@ -150,9 +160,17 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         else
             mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
+        if (mIsWaitingForARide)
+            parentActivity.mRequestingLocationUpdates = false;
+        else {
+            parentActivity.mRequestingLocationUpdates = true;
+            hitchability_ratingbar.setRating(0);
+        }
+
+
         DaoSession daoSession = context.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
-        List<Spot> spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.Id).orderDesc(SpotDao.Properties.StartDateTime).limit(1).list();
+        List<Spot> spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).limit(1).list();
         if (spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()))
             mWillItBeFirstSpotOfARoute = true;
         else
@@ -231,6 +249,8 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      * updates were not previously requested.
      */
     public void evaluateSpotButtonHandler() {
+        mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
+
         if (mIsWaitingForARide) {
             Intent intent = new Intent(parentActivity.getApplicationContext(), SpotFormActivity.class);
             intent.putExtra("Spot", mCurrentWaitingSpot);
@@ -292,6 +312,9 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         if (mIsWaitingForARide) {
             mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
             mEvaluatePanel.setVisibility(View.VISIBLE);//setEnabled(true);
+            mCurrentLocationPanel.setVisibility(View.GONE);
+            mGetLocationSwitch.setVisibility(View.GONE);
+
         } else {
             if (parentActivity.mGoogleApiClient == null || !parentActivity.mGoogleApiClient.isConnected() || parentActivity.mCurrentLocation == null) {
                 mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
@@ -303,14 +326,15 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
                     mSaveSpotPanel.setVisibility(View.GONE);
             }
             mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
+            mGetLocationSwitch.setVisibility(View.VISIBLE);
+            mCurrentLocationPanel.setVisibility(View.VISIBLE);
         }
 
         if (mSaveSpotPanel.getVisibility() == View.GONE && mEvaluatePanel.getVisibility() == View.GONE) {
             mWaitingToGetCurrentLocation.setVisibility(View.VISIBLE);
-            mCurrentLocationPanel.setVisibility(View.INVISIBLE);
+            mCurrentLocationPanel.setVisibility(View.GONE);
         } else {
             mWaitingToGetCurrentLocation.setVisibility(View.GONE);
-            mCurrentLocationPanel.setVisibility(View.VISIBLE);
         }
     }
 
@@ -353,5 +377,60 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (buttonView.getId() == R.id.update_location_switch)
             getLocationSwitchHandler(buttonView);
+    }
+
+    @Override
+    public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+
+        hitchabilityLabel.setText(getRatingString(Math.round(rating)));
+    }
+
+    private String getRatingString(Integer rating) {
+        String res = "";
+        switch (rating) {
+            case 1:
+                res = getResources().getString(R.string.hitchability_senseless);
+                break;
+            case 2:
+                res = getResources().getString(R.string.hitchability_bad);
+                break;
+            case 3:
+                res = getResources().getString(R.string.hitchability_average);
+                break;
+            case 4:
+                res = getResources().getString(R.string.hitchability_good);
+                break;
+            case 5:
+                res = getResources().getString(R.string.hitchability_very_good);
+                break;
+           /* default:
+                res = getResources().getString(R.string.hitchability_no_answer);
+                break;*/
+        }
+        return res;
+    }
+
+    private static Integer findTheOpposit(Integer rating) {
+        //NOTE: For sure there should be a math formula to find this result, I just didn't feel like using
+        // more time on this so why not a switch until you make it better =)
+        Integer res = 0;
+        switch (rating) {
+            case 1:
+                res = 5;
+                break;
+            case 2:
+                res = 4;
+                break;
+            case 3:
+                res = 3;
+                break;
+            case 4:
+                res = 2;
+                break;
+            case 5:
+                res = 1;
+                break;
+        }
+        return res;
     }
 }

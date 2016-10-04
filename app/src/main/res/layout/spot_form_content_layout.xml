@@ -108,9 +108,8 @@
         <LinearLayout
             android:id="@+id/save_spot_form_evaluate"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -126,26 +125,7 @@
                 android:ems="10"
                 android:inputType="number"/>
 
-            <LinearLayout
-                android:id="@+id/save_spot_form_hitchability_options"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/text_margin"
-                    android:text="@string/spot_form_hitchability_label" />
-
-                <Spinner
-                    android:id="@+id/spot_form_hitchability_spinner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:entries="@array/hitchabilities"
-                    style="@android:style/Widget.DeviceDefault.Light.Spinner" />
-            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/save_spot_form_attempt_result_panel"
@@ -168,6 +148,45 @@
                     android:entries="@array/attempt_results"
                     style="@android:style/Widget.DeviceDefault.Light.Spinner" />
             </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/save_spot_form_hitchability_options"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="@dimen/text_margin"
+                        android:text="@string/spot_form_hitchability_label"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:text="TextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/spot_form_hitchability_selectedvalue"
+                        android:layout_weight="1"
+                        android:gravity="right"
+                        android:textStyle="normal|bold"
+                        android:paddingRight="10dp" />
+                </LinearLayout>
+
+                <RatingBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spot_form_hitchability_ratingbar"
+                    android:layout_gravity="center_horizontal" />
+
+            </LinearLayout>
         </LinearLayout>
 
 
@@ -180,7 +199,8 @@
         <TextView
             android:id="@+id/location_address_view"
             android:layout_width="match_parent"
-            android:gravity="right|center_vertical"
+            android:gravity="center_vertical|right"
+            android:textStyle="normal|bold"
             android:text="City, State, Country"
             android:layout_height="40dp"
             android:onClick="locationAddressButtonHandler"

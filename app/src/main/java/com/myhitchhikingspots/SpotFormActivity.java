@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.content.DialogInterface;
 import android.location.Address;
+import android.media.Rating;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,6 +16,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -43,18 +45,20 @@ import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationServices;
 
-public class SpotFormActivity extends BaseActivity {
+public class SpotFormActivity extends BaseActivity implements RatingBar.OnRatingBarChangeListener {
 
 
     private Button mSaveButton, mDeleteButton;
     private EditText note_edittext, waiting_time_edittext;
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
-    private Spinner attempt_results_spinner, hitchability_spinner;
+    private Spinner attempt_results_spinner;
     private Spot mCurrentSpot;
     private CheckBox is_destination_check_box;
-    private TextView form_title;
+    private TextView form_title, hitchabilityLabel;
     private LinearLayout spot_form_evaluate, spot_form_basic, spot_form_more_options, hitchability_options, attempt_result_panel;
+    private RatingBar hitchability_ratingbar;
+
     protected static final String TAG = "save_spot";
     protected final static String CURRENT_SPOT_KEY = "current-spot-key";
 
@@ -111,7 +115,6 @@ public class SpotFormActivity extends BaseActivity {
         mSaveButton = (Button) findViewById(R.id.save_button);
         mDeleteButton = (Button) findViewById(R.id.delete_button);
         note_edittext = (EditText) findViewById(R.id.spot_form_note_edittext);
-        hitchability_spinner = (Spinner) findViewById(R.id.spot_form_hitchability_spinner);
         date_datepicker = (DatePicker) findViewById(R.id.spot_form_date_datepicker);
         time_timepicker = (TimePicker) findViewById(R.id.spot_form_time_timepicker);
         waiting_time_edittext = (EditText) findViewById(R.id.spot_form_waiting_time_edittext);
@@ -120,9 +123,11 @@ public class SpotFormActivity extends BaseActivity {
         spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
         spot_form_more_options = (LinearLayout) findViewById(R.id.save_spot_form_more_options);
         is_destination_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_destination_check_box);
-        hitchability_options = (LinearLayout) findViewById(R.id.save_spot_form_hitchability_options);
         attempt_result_panel = (LinearLayout) findViewById(R.id.save_spot_form_attempt_result_panel);
         form_title = (TextView) findViewById(R.id.save_spot_form_title);
+        hitchability_ratingbar = (RatingBar) findViewById(R.id.spot_form_hitchability_ratingbar);
+        hitchability_options = (LinearLayout) findViewById(R.id.save_spot_form_hitchability_options);
+        hitchabilityLabel = (TextView) findViewById(R.id.spot_form_hitchability_selectedvalue);
 
         //----BEGIN: Part related to reverse geocoding
         mResultReceiver = new AddressResultReceiver(new Handler());
@@ -138,6 +143,10 @@ public class SpotFormActivity extends BaseActivity {
         updateUIWidgets();
         //----END: Part related to reverse geocoding
 
+        hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
+        hitchability_ratingbar.setStepSize(1);
+        hitchability_ratingbar.setOnRatingBarChangeListener(this);
+        hitchabilityLabel.setText("");
 
         try {
             if (savedInstanceState != null)
@@ -209,6 +218,37 @@ public class SpotFormActivity extends BaseActivity {
         }
     }
 
+    @Override
+    public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+
+        hitchabilityLabel.setText(getRatingString(Math.round(rating)));
+    }
+
+    private String getRatingString(Integer rating) {
+        String res = "";
+        switch (rating) {
+            case 1:
+                res = getResources().getString(R.string.hitchability_senseless);
+                break;
+            case 2:
+                res = getResources().getString(R.string.hitchability_bad);
+                break;
+            case 3:
+                res = getResources().getString(R.string.hitchability_average);
+                break;
+            case 4:
+                res = getResources().getString(R.string.hitchability_good);
+                break;
+            case 5:
+                res = getResources().getString(R.string.hitchability_very_good);
+                break;
+           /* default:
+                res = getResources().getString(R.string.hitchability_no_answer);
+                break;*/
+        }
+        return res;
+    }
+
     private enum FormType {
         Unknown,
         Basic,
@@ -239,14 +279,27 @@ public class SpotFormActivity extends BaseActivity {
                 mDeleteButton.setVisibility(View.GONE);
 
 
-            if (mFormType == FormType.Evaluate || mFormType == FormType.All)
+            if (mFormType == FormType.Evaluate || mFormType == FormType.All) {
                 spot_form_evaluate.setVisibility(View.VISIBLE);
+
+                Integer h = 0;
+                if (mCurrentSpot.getHitchability() != null)
+                    h = mCurrentSpot.getHitchability();
+                hitchability_ratingbar.setRating(findTheOpposit(h));
+            }
             else if (mFormType == FormType.Destination)
                 spot_form_evaluate.setVisibility(View.GONE);
 
 
-            if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All)
+            if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
                 spot_form_basic.setVisibility(View.VISIBLE);
+
+
+
+                if ((mFormType == FormType.Basic || mFormType == FormType.Destination)  &&
+                        mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved())
+                    fetchAddressButtonHandler(null);
+            }
 
             if (mFormType == FormType.All)
                 attempt_result_panel.setVisibility(View.VISIBLE);
@@ -277,9 +330,8 @@ public class SpotFormActivity extends BaseActivity {
                 SetDateTime(date_datepicker, time_timepicker, mCurrentSpot.getStartDateTime());
 
                 if (mFormType == FormType.All) {
-                    if (mCurrentSpot.getHitchability() != null && mCurrentSpot.getHitchability() >= 0 && mCurrentSpot.getHitchability() < hitchability_spinner.getCount())
-                        hitchability_spinner.setSelection(mCurrentSpot.getHitchability());
-                    if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount())
+                    if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 &&
+                            mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount())
                         attempt_results_spinner.setSelection(mCurrentSpot.getAttemptResult());
 
                     form_title.setText(getResources().getString(R.string.spot_form_title_edit));
@@ -321,15 +373,37 @@ public class SpotFormActivity extends BaseActivity {
             } else if (mFormType == FormType.Basic) {
                 form_title.setText(getResources().getString(R.string.save_spot_button_text));
                 is_destination_check_box.setVisibility(View.VISIBLE);
-
-                if (mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved())
-                    fetchAddressButtonHandler(null);
             }
 
         } catch (Exception ex) {
             Log.e(TAG, "updateUI", ex);
             Toast.makeText(getApplicationContext(), "Something went wrong :(", Toast.LENGTH_LONG).show();
         }
+    }
+
+
+    private static Integer findTheOpposit(Integer rating) {
+        //NOTE: For sure there should be a math formula to find this result, I just didn't feel like using
+        // more time on this so why not a switch until you make it better =)
+        Integer res = 0;
+        switch (rating) {
+            case 1:
+                res = 5;
+                break;
+            case 2:
+                res = 4;
+                break;
+            case 3:
+                res = 3;
+                break;
+            case 4:
+                res = 2;
+                break;
+            case 5:
+                res = 1;
+                break;
+        }
+        return res;
     }
 
     public void locationAddressButtonHandler(View v) {
@@ -340,7 +414,9 @@ public class SpotFormActivity extends BaseActivity {
     }
 
     public void saveButtonHandler(View view) {
-        if (!mAddressRequested)
+        SaveSpot();
+
+        /*if (!mAddressRequested)
             SaveSpot();
         else {
             new AlertDialog.Builder(this)
@@ -368,7 +444,7 @@ public class SpotFormActivity extends BaseActivity {
                     })
                     .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
                     .show();
-        }
+        }*/
     }
 
     private void SaveSpot() {
@@ -378,11 +454,11 @@ public class SpotFormActivity extends BaseActivity {
 
                 if (is_destination_check_box.isChecked()) {
                     mCurrentSpot.setIsDestination(true);
-                    mCurrentSpot.setHitchability(null);
+                    mCurrentSpot.setHitchability(0);
                     mCurrentSpot.setIsWaitingForARide(false);
                 } else {
                     mCurrentSpot.setIsDestination(false);
-                    mCurrentSpot.setHitchability(hitchability_spinner.getSelectedItemPosition());
+                    mCurrentSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
                     if (mFormType == FormType.Basic)
                         mCurrentSpot.setIsWaitingForARide(true);
                     else if (mFormType == FormType.Destination)
@@ -397,6 +473,7 @@ public class SpotFormActivity extends BaseActivity {
                 if (vals != null && !vals.isEmpty())
                     mCurrentSpot.setWaitingTime(Integer.parseInt(vals));
                 mCurrentSpot.setAttemptResult(attempt_results_spinner.getSelectedItemPosition());
+                mCurrentSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
 
                 if (mFormType == FormType.Evaluate)
                     mCurrentSpot.setIsWaitingForARide(false);
