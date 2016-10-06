@@ -196,6 +196,10 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
     }
 
+    public Integer getSelectedHitchability() {
+        return findTheOpposit(Math.round(hitchability_ratingbar.getRating()));
+    }
+
     public void saveRegularSpotButtonHandler() {
         saveSpotButtonHandler(false);
     }
@@ -219,7 +223,6 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
                 spot.setIsDestination(isDestination);
                 spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
                 spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());
-                spot.setStartDateTime(parentActivity.mLastUpdateTime);
                 Log.i(TAG, "Save spot button handler: a new spot is being created.");
             } else {
                 spot = mCurrentWaitingSpot;

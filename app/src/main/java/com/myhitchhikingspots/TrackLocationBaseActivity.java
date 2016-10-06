@@ -1,4 +1,5 @@
 package com.myhitchhikingspots;
+
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -65,7 +66,6 @@ public class TrackLocationBaseActivity extends BaseActivity implements
     protected Date mLastUpdateTime;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -108,7 +108,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
 
             // Update the value of mLastUpdateTime from the Bundle and update the UI.
             if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_STRING_KEY)) {
-                mLastUpdateTime = (Date)savedInstanceState.getSerializable(LAST_UPDATED_TIME_STRING_KEY);
+                mLastUpdateTime = (Date) savedInstanceState.getSerializable(LAST_UPDATED_TIME_STRING_KEY);
             }
         }
     }
@@ -178,7 +178,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
 
         // The final argument to {@code requestLocationUpdates()} is a LocationListener
         // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        Log.i(TAG,  mGoogleApiClient!=null?"mGoogleApiClient is NOT null":"mGoogleApiClient is null");
+        Log.i(TAG, mGoogleApiClient != null ? "mGoogleApiClient is NOT null" : "mGoogleApiClient is null");
         Log.i(TAG, mGoogleApiClient.isConnected() ? "mGoogleApiClient is connected" : "mGoogleApiClient is NOT connected");
 
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
@@ -264,7 +264,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
         mLastUpdateTime = new Date();
         updateUILabels();
 
-        if(!wasFirstLocationReceived){
+        if (!wasFirstLocationReceived) {
             updateUILocationSwitch();
             wasFirstLocationReceived = true;
         }
@@ -292,8 +292,11 @@ public class TrackLocationBaseActivity extends BaseActivity implements
         updateUILocationSwitch();
     }
 
-    protected void updateUILabels(){}
-    protected void updateUILocationSwitch(){}
+    protected void updateUILabels() {
+    }
+
+    protected void updateUILocationSwitch() {
+    }
 
     /**
      * Stores activity data in the Bundle.
@@ -305,7 +308,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
         super.onSaveInstanceState(savedInstanceState);
     }
 
-    private String dateToString(Date dt){
+    private String dateToString(Date dt) {
         return DateFormat.getTimeInstance().format(dt);
     }
 

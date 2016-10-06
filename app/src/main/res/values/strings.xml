@@ -124,4 +124,5 @@
     <string name="spot_form_save_while_requesting_addr_dialog_text">Are you sure you want to save before the address is fetched?</string>
 
     <string name="generall_error_message">Something went wrong :(</string>
+    <string name="shortcut_save_button_failed">It was not possible to update your spot through the shortcut :(</string>
 </resources>

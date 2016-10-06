@@ -272,12 +272,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 Toast.makeText(this, getResources().getString(R.string.generall_error_message) + " Please open your spot again.", Toast.LENGTH_LONG).show();
             }
 
-            //If the spot been evaluated is of type 'Take a Break' or it's FormType.All, then show the delete button. Otherwise, hide it.
-            if (mFormType == FormType.All)
+            //Show delete button when the spot is been edited and it's not of type Evaluate
+            if ((mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0) && mFormType != FormType.Evaluate) {
                 mDeleteButton.setVisibility(View.VISIBLE);
-            else
+                is_destination_check_box.setVisibility(View.VISIBLE);
+            } else {
                 mDeleteButton.setVisibility(View.GONE);
-
+                is_destination_check_box.setVisibility(View.GONE);
+            }
 
             if (mFormType == FormType.Evaluate || mFormType == FormType.All) {
                 spot_form_evaluate.setVisibility(View.VISIBLE);
@@ -286,8 +288,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 if (mCurrentSpot.getHitchability() != null)
                     h = mCurrentSpot.getHitchability();
                 hitchability_ratingbar.setRating(findTheOpposit(h));
-            }
-            else if (mFormType == FormType.Destination)
+            } else if (mFormType == FormType.Destination)
                 spot_form_evaluate.setVisibility(View.GONE);
 
 
@@ -295,8 +296,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 spot_form_basic.setVisibility(View.VISIBLE);
 
 
-
-                if ((mFormType == FormType.Basic || mFormType == FormType.Destination)  &&
+                if ((mFormType == FormType.Basic || mFormType == FormType.Destination) &&
                         (mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved()))
                     fetchAddressButtonHandler(null);
             }
@@ -306,6 +306,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             else
                 attempt_result_panel.setVisibility(View.GONE);
 
+            Date spotStartDT = new Date();
+            if (mCurrentSpot.getStartDateTime() != null)
+                spotStartDT = mCurrentSpot.getStartDateTime();
+            SetDateTime(date_datepicker, time_timepicker, spotStartDT);
 
             //If mFormType == FormType.Destination || mFormType == FormType.All this means the spot is a destination or it was already evaluated and now it's being edited.
             if (mFormType == FormType.Destination || mFormType == FormType.All) {
@@ -327,7 +331,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                 is_destination_check_box.setEnabled(false);
 
-                SetDateTime(date_datepicker, time_timepicker, mCurrentSpot.getStartDateTime());
 
                 if (mFormType == FormType.All) {
                     if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 &&
@@ -337,7 +340,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     form_title.setText(getResources().getString(R.string.spot_form_title_edit));
                 } else {
                     form_title.setText(getResources().getString(R.string.arrived_button_text));
-                    is_destination_check_box.setVisibility(View.VISIBLE);
                 }
             } else if (mFormType == FormType.Evaluate) {
                 DateTime date = new DateTime(mCurrentSpot.getStartDateTime());
@@ -372,7 +374,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 }
             } else if (mFormType == FormType.Basic) {
                 form_title.setText(getResources().getString(R.string.save_spot_button_text));
-                is_destination_check_box.setVisibility(View.VISIBLE);
             }
 
         } catch (Exception ex) {
@@ -449,6 +450,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     private void SaveSpot() {
         try {
+            DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
+            mCurrentSpot.setStartDateTime(dateTime.toDate());
+
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
                 mCurrentSpot.setNote(note_edittext.getText().toString());
 
@@ -464,9 +468,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     else if (mFormType == FormType.Destination)
                         mCurrentSpot.setIsWaitingForARide(false);
                 }
-
-                DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
-                mCurrentSpot.setStartDateTime(dateTime.toDate());
             }
             if (mFormType == FormType.Evaluate || mFormType == FormType.All) {
                 String vals = waiting_time_edittext.getText().toString();

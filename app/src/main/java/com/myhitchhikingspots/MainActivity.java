@@ -58,6 +58,7 @@ public class MainActivity extends TrackLocationBaseActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -128,6 +129,7 @@ public class MainActivity extends TrackLocationBaseActivity {
             case KeyEvent.KEYCODE_VOLUME_UP:
                 if (action == KeyEvent.ACTION_DOWN) {
                     //TODO
+                    GotARideShortcut();
                 }
                 return true;
             case KeyEvent.KEYCODE_VOLUME_DOWN:
@@ -141,17 +143,32 @@ public class MainActivity extends TrackLocationBaseActivity {
         }
     }
 
-    protected void GotARideShortcut(){
-        try{
+    protected void GotARideShortcut() {
+        try {
             //Get currentSpot and update it
             Spot mCurrentSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
 
-            DateTime date= new DateTime(mCurrentSpot.getStartDateTime());
-            Integer waiting_time= Minutes.minutesBetween(date, DateTime.now()).getMinutes();
+            if (mCurrentSpot == null || mCurrentSpot.getIsWaitingForARide() == null || !mCurrentSpot.getIsWaitingForARide()) {
+                if (mCurrentLocation == null)
+                    return;
+                mCurrentSpot = new Spot();
+                mCurrentSpot.setStartDateTime(new Date());
+                mCurrentSpot.setIsWaitingForARide(true);
+                mCurrentSpot.setIsDestination(false);
+                mCurrentSpot.setLatitude(mCurrentLocation.getLatitude());
+                mCurrentSpot.setLongitude(mCurrentLocation.getLongitude());
+            } else {
+                DateTime date = new DateTime(mCurrentSpot.getStartDateTime());
+                Integer waiting_time = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
 
-            mCurrentSpot.setWaitingTime(waiting_time);
-            mCurrentSpot.setAttemptResult(1); //R.array.attempt_results GOT A RIDE must always be 1
-            mCurrentSpot.setIsWaitingForARide(false);
+                mCurrentSpot.setWaitingTime(waiting_time);
+                //TODO: Do this in a not hardcoded way
+                mCurrentSpot.setAttemptResult(1);
+                mCurrentSpot.setIsWaitingForARide(false);
+
+                if (fragment != null)
+                    mCurrentSpot.setHitchability(fragment.getSelectedHitchability());
+            }
 
             //Persist on DB
             DaoSession daoSession = ((MyHitchhikingSpotsApplication) getApplicationContext()).getDaoSession();
@@ -163,13 +180,13 @@ public class MainActivity extends TrackLocationBaseActivity {
             if (fragment != null)
                 fragment.onResume();
 
-            if(fragment2 != null)
+            if (fragment2 != null)
                 fragment2.onResume();
 
             //finish();
         } catch (Exception ex) {
             Log.e(TAG, "GotARideShortcut", ex);
-            //Toast.makeText(getApplicationContext(), "Something went wrong :(", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), getResources().getString(R.string.shortcut_save_button_failed), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -299,9 +316,9 @@ public class MainActivity extends TrackLocationBaseActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return getResources().getString( R.string.main_activity_you_tab);
+                    return getResources().getString(R.string.main_activity_you_tab);
                 case 1:
-                    return getResources().getString( R.string.main_activity_list_tab);
+                    return getResources().getString(R.string.main_activity_list_tab);
             }
             return null;
         }

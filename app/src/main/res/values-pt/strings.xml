@@ -121,5 +121,6 @@
     <string name="spot_form_save_while_requesting_addr_dialog_text">Você tem certeza que deseja salvar antes que o endereço tenha sido obtido?</string>
 
     <string name="generall_error_message">Houve uma falha :(</string>
+    <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
 
 </resources>

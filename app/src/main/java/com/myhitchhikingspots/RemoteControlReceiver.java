@@ -13,6 +13,7 @@ import com.myhitchhikingspots.model.SpotDao;
 
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
+
 import android.os.Handler;
 
 /**
@@ -27,16 +28,16 @@ public class RemoteControlReceiver extends BroadcastReceiver {
         super ();
     }*/
 
-   /* private final Handler handler; // Handler used to execute code on the UI thread
+    /* private final Handler handler; // Handler used to execute code on the UI thread
 
-    public RemoteControlReceiver(Handler handler) {
-        this.handler = handler;
+     public RemoteControlReceiver(Handler handler) {
+         this.handler = handler;
+     }
+ */
+    public RemoteControlReceiver() {
     }
-*/
-   public RemoteControlReceiver() {
-   }
 
-       @Override
+    @Override
     public void onReceive(Context context, Intent intent) {
         if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
               /* handle media button intent here by reading contents */
@@ -45,25 +46,26 @@ public class RemoteControlReceiver extends BroadcastReceiver {
             String intentAction = intent.getAction();
             Log.i(TAG_MEDIA, intentAction.toString() + " happended");
             if (!Intent.ACTION_MEDIA_BUTTON.equals(intentAction)) {
-                Log.i (TAG_MEDIA, "no media button information");
+                Log.i(TAG_MEDIA, "no media button information");
                 return;
             }
-            KeyEvent event = (KeyEvent)intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+            KeyEvent event = (KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
             if (event == null) {
                 Log.i(TAG_MEDIA, "no keypress");
                 return;
             }
             // other stuff you want to do
 
-            try{
+            try {
                 //Get currentSpot and update it
                 Spot mCurrentSpot = ((MyHitchhikingSpotsApplication) context.getApplicationContext()).getCurrentSpot();
 
-                DateTime date= new DateTime(mCurrentSpot.getStartDateTime());
-                Integer waiting_time= Minutes.minutesBetween(date, DateTime.now()).getMinutes();
+                DateTime date = new DateTime(mCurrentSpot.getStartDateTime());
+                Integer waiting_time = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
 
                 mCurrentSpot.setWaitingTime(waiting_time);
-                mCurrentSpot.setAttemptResult(1); //R.array.attempt_results GOT A RIDE must always be 1
+                //TODO: Do this in a not hardcoded way
+                mCurrentSpot.setAttemptResult(0);
                 mCurrentSpot.setIsWaitingForARide(false);
 
                 //Persist on DB
