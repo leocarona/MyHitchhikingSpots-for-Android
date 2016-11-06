@@ -64,7 +64,7 @@ public class SettingsActivity extends BaseActivity {
                     // Get the URI that points to the selected contact
                     File mFile = new File(getPath(this, data.getData()));
                     CopyChosenFile(mFile, getDatabasePath(Constants.dbName).getPath());
-                }catch (Exception e){
+                } catch (Exception e) {
                     Toast.makeText(getBaseContext(), "Can't read file.",
                             Toast.LENGTH_LONG).show();
                 }
@@ -93,8 +93,8 @@ public class SettingsActivity extends BaseActivity {
         String filePath = null;
         Uri _uri = uri;
         Log.d("", "URI = " + _uri);
-        if(_uri != null && "content".equals(_uri.getScheme()))  {
-            Cursor cursor = context.getContentResolver().query(_uri, new String[] { android.provider.MediaStore.Files.FileColumns.DATA }, null, null, null);
+        if (_uri != null && "content".equals(_uri.getScheme())) {
+            Cursor cursor = context.getContentResolver().query(_uri, new String[]{android.provider.MediaStore.Files.FileColumns.DATA}, null, null, null);
             cursor.moveToFirst();
             filePath = cursor.getString(0);
             cursor.close();
@@ -105,7 +105,7 @@ public class SettingsActivity extends BaseActivity {
         return filePath;
     }
 
-    public void shareButtonHandler(View view){
+    public void shareButtonHandler(View view) {
         //create the send intent
         Intent shareIntent = new Intent(android.content.Intent.ACTION_SEND);
 
@@ -114,7 +114,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public void pickFileButtonHandler(View view) {
-        if(!dbExported){
+        if (!dbExported) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle("Database not backed up")//getResources().getString(R.string.spot_form_delete_dialog_message_text)
@@ -132,9 +132,7 @@ public class SettingsActivity extends BaseActivity {
                     })*/
                     .setNegativeButton("OK", null)
                     .show();
-        }
-        else
-        {
+        } else {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("*/*");
             startActivityForResult(intent, PICK_DB_REQUEST);
@@ -143,7 +141,7 @@ public class SettingsActivity extends BaseActivity {
 
 
     public void importButtonHandler(View view) {
-        if(!dbExported){
+        if (!dbExported) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle("Database not backedup")//getResources().getString(R.string.spot_form_delete_dialog_message_text)
@@ -158,8 +156,7 @@ public class SettingsActivity extends BaseActivity {
                     })*/
                     .setNegativeButton("OK", null)
                     .show();
-        }
-        else
+        } else
             importDB();
     }
 
@@ -167,13 +164,20 @@ public class SettingsActivity extends BaseActivity {
 
     public void exportButtonHandler(View view) {
         try {
-            exportDB();
+            String dbExportResult = exportDB(getBaseContext());
+            if (dbExportResult.isEmpty())
+                dbExported = false;
+            else
+                dbExported = true;
+            mfeedbacklabel.setText(dbExportResult);
+
             //copyDataBase2(Constants.dbName);
 
             dbExported = true;
             ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
-        }catch (Exception e){}
+        } catch (Exception e) {
+        }
     }
 
     //importing database
@@ -181,20 +185,20 @@ public class SettingsActivity extends BaseActivity {
         File sd = Environment.getExternalStorageDirectory();
 
         if (sd.canWrite()) {
-            String backupDBPath  = DBBackupSubdirectory + "/" + Constants.dbName;
+            String backupDBPath = DBBackupSubdirectory + "/" + Constants.dbName;
             File backedupDB = new File(sd, backupDBPath);
 
             CopyChosenFile(backedupDB, getDatabasePath(Constants.dbName).getPath());
 
-        }else
+        } else
             Toast.makeText(getBaseContext(), "Can't write to SD card.",
                     Toast.LENGTH_LONG).show();
     }
 
-    private void CopyChosenFile(File chosenFile, String destinationFilePath)  {
-        String destinationPath="";
+    private void CopyChosenFile(File chosenFile, String destinationFilePath) {
+        String destinationPath = "";
         try {
-            if(chosenFile.exists()) {
+            if (chosenFile.exists()) {
                 File currentDB = new File(destinationFilePath);
 
                 FileChannel src = new FileInputStream(chosenFile).getChannel();
@@ -207,7 +211,7 @@ public class SettingsActivity extends BaseActivity {
                         Toast.LENGTH_LONG).show();
 
                 destinationPath = String.format("Database imported to:\n%s", currentDB.toString());
-            }else{
+            } else {
                 Toast.makeText(getBaseContext(), "No database found to be imported.",
                         Toast.LENGTH_LONG).show();
             }
@@ -217,13 +221,13 @@ public class SettingsActivity extends BaseActivity {
                     .show();
 
         }
-        mfeedbacklabel.setText( destinationPath);
+        mfeedbacklabel.setText(destinationPath);
     }
 
-    final String DBBackupSubdirectory = "/backup";
+    final static String DBBackupSubdirectory = "/backup";
 
     //exporting database
-    private void exportDB() {
+    public static String exportDB(Context context) {
 
         String currentDBPath = "";
         String destinationPath = "";
@@ -231,7 +235,7 @@ public class SettingsActivity extends BaseActivity {
             File sd = Environment.getExternalStorageDirectory();
 
             if (sd.canWrite()) {
-                currentDBPath = getDatabasePath(Constants.dbName).getPath();
+                currentDBPath = context.getDatabasePath(Constants.dbName).getPath();
 
                 File backupDir = new File(sd + DBBackupSubdirectory);
                 boolean success = false;
@@ -243,11 +247,11 @@ public class SettingsActivity extends BaseActivity {
 
                 File currentDB = new File(currentDBPath);
 
-                if(success && currentDB.exists()){
+                if (success && currentDB.exists()) {
                     File backupDB = new File(backupDir, Constants.dbName);
 
                     //If a backup file already exists, RENAME it so that the new backup file we're generating now can use its name
-                    if(backupDB.exists()){
+                    if (backupDB.exists()) {
                         String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
                         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
                         String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.dbName;
@@ -262,42 +266,39 @@ public class SettingsActivity extends BaseActivity {
                     src.close();
                     dst.close();
 
-                    if(backupDB.exists()) {
-                        dbExported = true;
-
-                        Toast.makeText(getBaseContext(), "Database exported successfully.",
+                    if (backupDB.exists()) {
+                        Toast.makeText(context, "Database exported successfully.",
                                 Toast.LENGTH_LONG).show();
 
                         destinationPath = String.format("Database exported to:\n%s", backupDB.toString());
-                    }else
-                        Toast.makeText(getBaseContext(), "DB wasn't backed up.",
+                    } else
+                        Toast.makeText(context, "DB wasn't backed up.",
                                 Toast.LENGTH_LONG).show();
-                }
-                else
-                    Toast.makeText(getBaseContext(), "No database found to be exported.",
+                } else
+                    Toast.makeText(context, "No database found to be exported.",
                             Toast.LENGTH_LONG).show();
 
-            }else
-                Toast.makeText(getBaseContext(), "Can't write to SD card.",
+            } else
+                Toast.makeText(context, "Can't write to SD card.",
                         Toast.LENGTH_LONG).show();
 
         } catch (Exception e) {
 
-            Toast.makeText(getBaseContext(), e.toString(), Toast.LENGTH_LONG)
+            Toast.makeText(context, e.toString(), Toast.LENGTH_LONG)
                     .show();
 
         }
 
-        mfeedbacklabel.setText(destinationPath);
+        return destinationPath;
     }
 
     /**
      * Copies your database from your local assets-folder to the just created
      * empty database in the system folder, from where it can be accessed and
      * handled. This is done by transfering bytestream.
-     * */
+     */
     private void copyDataBase2(String dbname) throws IOException {
-        try{
+        try {
             // Open your local db as the input stream
             InputStream myInput = getAssets().open(dbname);
             // Path to the just created empty db
@@ -320,15 +321,16 @@ public class SettingsActivity extends BaseActivity {
             e.printStackTrace();
             Toast.makeText(getBaseContext(), e.toString(), Toast.LENGTH_LONG)
                     .show();
-        }}
+        }
+    }
 
     public void copyDataBase() {
 
         int length;
         byte[] buffer = new byte[1024];
-        String databasePath = "/BackupFolder/"+Constants.dbName;
+        String databasePath = "/BackupFolder/" + Constants.dbName;
         try {
-            InputStream databaseInputFile = getAssets().open(Constants.dbName +".db");
+            InputStream databaseInputFile = getAssets().open(Constants.dbName + ".db");
             OutputStream databaseOutputFile = new FileOutputStream(databasePath);
 
             while ((length = databaseInputFile.read(buffer)) > 0) {

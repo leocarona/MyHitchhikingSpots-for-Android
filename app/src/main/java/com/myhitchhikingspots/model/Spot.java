@@ -25,6 +25,9 @@ public class Spot implements java.io.Serializable {
     private Integer AttemptResult;
     private Boolean IsWaitingForARide;
     private Boolean IsDestination;
+    private String CountryCode;
+    private Boolean HasAccuracy;
+    private Float Accuracy;
 
     public Spot() {
     }
@@ -33,7 +36,7 @@ public class Spot implements java.io.Serializable {
         this.id = id;
     }
 
-    public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, java.util.Date StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination) {
+    public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, java.util.Date StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination, String CountryCode, Boolean HasAccuracy, Float Accuracy) {
         this.id = id;
         this.Name = Name;
         this.Street = Street;
@@ -53,6 +56,9 @@ public class Spot implements java.io.Serializable {
         this.AttemptResult = AttemptResult;
         this.IsWaitingForARide = IsWaitingForARide;
         this.IsDestination = IsDestination;
+        this.CountryCode = CountryCode;
+        this.HasAccuracy = HasAccuracy;
+        this.Accuracy = Accuracy;
     }
 
     public Long getId() {
@@ -205,6 +211,30 @@ public class Spot implements java.io.Serializable {
 
     public void setIsDestination(Boolean IsDestination) {
         this.IsDestination = IsDestination;
+    }
+
+    public String getCountryCode() {
+        return CountryCode;
+    }
+
+    public void setCountryCode(String CountryCode) {
+        this.CountryCode = CountryCode;
+    }
+
+    public Boolean getHasAccuracy() {
+        return HasAccuracy;
+    }
+
+    public void setHasAccuracy(Boolean HasAccuracy) {
+        this.HasAccuracy = HasAccuracy;
+    }
+
+    public Float getAccuracy() {
+        return Accuracy;
+    }
+
+    public void setAccuracy(Float Accuracy) {
+        this.Accuracy = Accuracy;
     }
 
 }

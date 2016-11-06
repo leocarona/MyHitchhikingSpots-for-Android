@@ -42,6 +42,9 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         public final static Property AttemptResult = new Property(16, Integer.class, "AttemptResult", false, "ATTEMPT_RESULT");
         public final static Property IsWaitingForARide = new Property(17, Boolean.class, "IsWaitingForARide", false, "IS_WAITING_FOR_ARIDE");
         public final static Property IsDestination = new Property(18, Boolean.class, "IsDestination", false, "IS_DESTINATION");
+        public final static Property CountryCode = new Property(19, String.class, "CountryCode", false, "COUNTRY_CODE");
+        public final static Property HasAccuracy = new Property(20, Boolean.class, "HasAccuracy", false, "HAS_ACCURACY");
+        public final static Property Accuracy = new Property(21, Float.class, "Accuracy", false, "ACCURACY");
     };
 
 
@@ -75,7 +78,10 @@ public class SpotDao extends AbstractDao<Spot, Long> {
                 "\"HITCHABILITY\" INTEGER," + // 15: Hitchability
                 "\"ATTEMPT_RESULT\" INTEGER," + // 16: AttemptResult
                 "\"IS_WAITING_FOR_ARIDE\" INTEGER," + // 17: IsWaitingForARide
-                "\"IS_DESTINATION\" INTEGER);"); // 18: IsDestination
+                "\"IS_DESTINATION\" INTEGER," + // 18: IsDestination
+                "\"COUNTRY_CODE\" TEXT," + // 19: CountryCode
+                "\"HAS_ACCURACY\" INTEGER," + // 20: HasAccuracy
+                "\"ACCURACY\" REAL);"); // 21: Accuracy
     }
 
     /** Drops the underlying database table. */
@@ -183,6 +189,21 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         if (IsDestination != null) {
             stmt.bindLong(19, IsDestination ? 1L: 0L);
         }
+ 
+        String CountryCode = entity.getCountryCode();
+        if (CountryCode != null) {
+            stmt.bindString(20, CountryCode);
+        }
+ 
+        Boolean HasAccuracy = entity.getHasAccuracy();
+        if (HasAccuracy != null) {
+            stmt.bindLong(21, HasAccuracy ? 1L: 0L);
+        }
+ 
+        Float Accuracy = entity.getAccuracy();
+        if (Accuracy != null) {
+            stmt.bindDouble(22, Accuracy);
+        }
     }
 
     /** @inheritdoc */
@@ -213,7 +234,10 @@ public class SpotDao extends AbstractDao<Spot, Long> {
             cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // Hitchability
             cursor.isNull(offset + 16) ? null : cursor.getInt(offset + 16), // AttemptResult
             cursor.isNull(offset + 17) ? null : cursor.getShort(offset + 17) != 0, // IsWaitingForARide
-            cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0 // IsDestination
+            cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0, // IsDestination
+            cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // CountryCode
+            cursor.isNull(offset + 20) ? null : cursor.getShort(offset + 20) != 0, // HasAccuracy
+            cursor.isNull(offset + 21) ? null : cursor.getFloat(offset + 21) // Accuracy
         );
         return entity;
     }
@@ -240,6 +264,9 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         entity.setAttemptResult(cursor.isNull(offset + 16) ? null : cursor.getInt(offset + 16));
         entity.setIsWaitingForARide(cursor.isNull(offset + 17) ? null : cursor.getShort(offset + 17) != 0);
         entity.setIsDestination(cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0);
+        entity.setCountryCode(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
+        entity.setHasAccuracy(cursor.isNull(offset + 20) ? null : cursor.getShort(offset + 20) != 0);
+        entity.setAccuracy(cursor.isNull(offset + 21) ? null : cursor.getFloat(offset + 21));
      }
     
     /** @inheritdoc */

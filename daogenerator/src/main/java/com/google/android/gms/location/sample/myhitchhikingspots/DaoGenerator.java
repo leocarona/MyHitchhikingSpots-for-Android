@@ -12,7 +12,7 @@ public class DaoGenerator {
     private static final String PROJECT_DIR = System.getProperty("user.dir").replace("\\", "/");
     public static void main(String args[]) throws Exception {
 
-        Schema schema = new Schema(2, "com.myhitchhikingspots.model");
+        Schema schema = new Schema(3, "com.myhitchhikingspots.model");
         /*Entity person = schema.addEntity("Person");
         person.addIdProperty();
         person.addStringProperty("name");
@@ -57,6 +57,11 @@ public class DaoGenerator {
 
         spot.addBooleanProperty("IsWaitingForARide");
         spot.addBooleanProperty("IsDestination");
+
+        //3 fields added on schema of database version 3 on November 06, 2016:
+        spot.addStringProperty("CountryCode");
+        spot.addBooleanProperty("HasAccuracy");
+        spot.addFloatProperty("Accuracy");
 
         spot.implementsSerializable();
 

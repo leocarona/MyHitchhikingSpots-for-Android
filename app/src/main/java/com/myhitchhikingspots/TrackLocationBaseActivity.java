@@ -91,24 +91,30 @@ public class TrackLocationBaseActivity extends BaseActivity implements
      */
     private void updateValuesFromBundle(Bundle savedInstanceState) {
         Log.i(TAG, "Updating values from bundle");
+
         if (savedInstanceState != null) {
-            // Update the value of mRequestingLocationUpdates from the Bundle.
-            if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
-                mRequestingLocationUpdates = savedInstanceState.getBoolean(
-                        REQUESTING_LOCATION_UPDATES_KEY);
-            }
+            try {
+                // Update the value of mRequestingLocationUpdates from the Bundle.
+                if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
+                    mRequestingLocationUpdates = savedInstanceState.getBoolean(
+                            REQUESTING_LOCATION_UPDATES_KEY);
+                }
 
-            // Update the value of mCurrentLocation from the Bundle and update the UI to show the
-            // correct latitude and longitude.
-            if (savedInstanceState.keySet().contains(LOCATION_KEY)) {
-                // Since LOCATION_KEY was found in the Bundle, we can be sure that mCurrentLocation
-                // is not null.
-                mCurrentLocation = savedInstanceState.getParcelable(LOCATION_KEY);
-            }
+                // Update the value of mCurrentLocation from the Bundle and update the UI to show the
+                // correct latitude and longitude.
+                if (savedInstanceState.keySet().contains(LOCATION_KEY)) {
+                    // Since LOCATION_KEY was found in the Bundle, we can be sure that mCurrentLocation
+                    // is not null.
+                    mCurrentLocation = savedInstanceState.getParcelable(LOCATION_KEY);
+                }
 
-            // Update the value of mLastUpdateTime from the Bundle and update the UI.
-            if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_STRING_KEY)) {
-                mLastUpdateTime = (Date) savedInstanceState.getSerializable(LAST_UPDATED_TIME_STRING_KEY);
+                // Update the value of mLastUpdateTime from the Bundle and update the UI.
+                if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_STRING_KEY)) {
+                    mLastUpdateTime = (Date) savedInstanceState.getSerializable(LAST_UPDATED_TIME_STRING_KEY);
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage());
+                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
             }
         }
     }
@@ -164,13 +170,15 @@ public class TrackLocationBaseActivity extends BaseActivity implements
     protected void startLocationUpdates() {
         // The final argument to {@code requestLocationUpdates()} is a LocationListener
         // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
+        if (mGoogleApiClient.isConnected())
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
     }
 
     /**
      * Removes location updates from the FusedLocationApi.
      */
+
     protected void stopLocationUpdates() {
         // It is a good practice to remove location requests when the activity is in a paused or
         // stopped state. Doing so helps battery performance and is especially
@@ -302,9 +310,14 @@ public class TrackLocationBaseActivity extends BaseActivity implements
      * Stores activity data in the Bundle.
      */
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, mRequestingLocationUpdates);
-        savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
-        savedInstanceState.putSerializable(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
+        try {
+            savedInstanceState.putBoolean(REQUESTING_LOCATION_UPDATES_KEY, mRequestingLocationUpdates);
+            savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
+            savedInstanceState.putSerializable(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
+        } catch (Exception ex) {
+            Log.e(TAG, ex.getMessage());
+            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
+        }
         super.onSaveInstanceState(savedInstanceState);
     }
 

@@ -19,6 +19,7 @@
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
+    <string name="accuracy_label">Accuracy</string>
     <string name="last_update_time_label">Last location update time</string>
 
     <string name="save_spot_button_text">Save spot</string>

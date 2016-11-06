@@ -666,6 +666,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mCurrentSpot.setCity(mAddressOutput.getLocality());
             mCurrentSpot.setState(mAddressOutput.getAdminArea());
             mCurrentSpot.setCountry(mAddressOutput.getCountryName());
+            mCurrentSpot.setCountryCode(mAddressOutput.getCountryCode());
             mCurrentSpot.setGpsResolved(true);
         }
 
