@@ -61,7 +61,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     public ImageButton mSaveSpotButton, mArrivedButton;
     public ImageButton mGotARideButton, mTookABreakButton;
     public LinearLayout mSaveSpotPanel, mEvaluatePanel, mArrivedPanel, mCurrentLocationPanel;
-    protected TextView mLastUpdateTimeTextView, mLatitudeTextView, mLongitudeTextView, mWaitingToGetCurrentLocation, hitchabilityLabel, mAccuracyButton;
+    protected TextView mLastUpdateTimeTextView, mLatitudeTextView, mLongitudeTextView, mWaitingToGetCurrentLocationTextView, mHitchabilityTextView, mAccuracyTextView;
     protected RatingBar hitchability_ratingbar;
 
     // UI Labels.
@@ -92,22 +92,22 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mGotARideButton = (ImageButton) rootView.findViewById(R.id.got_a_ride_button);
         mTookABreakButton = (ImageButton) rootView.findViewById(R.id.break_button);
 
-        mAccuracyButton = (TextView) rootView.findViewById(R.id.accuracy_text);
+        mAccuracyTextView = (TextView) rootView.findViewById(R.id.accuracy_text);
 
 
         hitchability_ratingbar = (RatingBar) rootView.findViewById(R.id.spot_form_hitchability_ratingbar);
-        hitchabilityLabel = (TextView) rootView.findViewById(R.id.spot_form_hitchability_selectedvalue);
+        mHitchabilityTextView = (TextView) rootView.findViewById(R.id.spot_form_hitchability_selectedvalue);
 
         mLatitudeTextView = (TextView) rootView.findViewById(R.id.latitude_text);
         mLongitudeTextView = (TextView) rootView.findViewById(R.id.longitude_text);
         mLastUpdateTimeTextView = (TextView) rootView.findViewById(R.id.last_update_time_text);
-        mWaitingToGetCurrentLocation = (TextView) rootView.findViewById(R.id.waiting_location_textview);
+        mWaitingToGetCurrentLocationTextView = (TextView) rootView.findViewById(R.id.waiting_location_textview);
         //extra_image_button = (ImageButton) rootView.findViewById(R.id.extra_image_button);
 
         // Set UI labels.
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
         mLongitudeLabel = getResources().getString(R.string.longitude_label);
-        mAccuracyLabel = getResources().getString(R.string.longitude_label);
+        mAccuracyLabel = getResources().getString(R.string.accuracy_label);
         mLastUpdateTimeLabel = getResources().getString(R.string.last_update_time_label);
 
 
@@ -120,7 +120,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
         hitchability_ratingbar.setStepSize(1);
         hitchability_ratingbar.setOnRatingBarChangeListener(this);
-        hitchabilityLabel.setText("");
+        mHitchabilityTextView.setText("");
 
         parentActivity = (TrackLocationBaseActivity) getActivity();
 
@@ -303,8 +303,8 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             mLongitudeTextView.setText(String.format("%s: %f", mLongitudeLabel,
                     parentActivity.mCurrentLocation.getLongitude()));
             if (parentActivity.mCurrentLocation.hasAccuracy())
-                mAccuracyButton.setText(String.format("%s: %.2f m", mAccuracyLabel,
-                        Math.ceil(parentActivity.mCurrentLocation.getAccuracy())));
+                mAccuracyTextView.setText(String.format("%s: %.2f m", mAccuracyLabel,
+                        parentActivity.mCurrentLocation.getAccuracy()));
             mLastUpdateTimeTextView.setText(String.format("%s: %s", mLastUpdateTimeLabel,
                     dateToString(parentActivity.mLastUpdateTime)));
         }
@@ -343,11 +343,19 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             mCurrentLocationPanel.setVisibility(View.VISIBLE);
         }
 
-        if (mSaveSpotPanel.getVisibility() == View.GONE && mEvaluatePanel.getVisibility() == View.GONE) {
-            mWaitingToGetCurrentLocation.setVisibility(View.VISIBLE);
+        updateWaitingToGetCurrentLocation();
+    }
+
+    void updateWaitingToGetCurrentLocation() {
+        Boolean c1, c2, c3;
+        c1 = parentActivity.mGoogleApiClient == null;
+        c2 = !parentActivity.mGoogleApiClient.isConnected();
+        c3 = parentActivity.mCurrentLocation == null;
+        if (c1 || c3 || !parentActivity.mRequestingLocationUpdates) {
+            mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
             mCurrentLocationPanel.setVisibility(View.GONE);
         } else {
-            mWaitingToGetCurrentLocation.setVisibility(View.GONE);
+            mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
         }
     }
 
@@ -395,7 +403,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     @Override
     public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
 
-        hitchabilityLabel.setText(getRatingString(Math.round(rating)));
+        mHitchabilityTextView.setText(getRatingString(Math.round(rating)));
     }
 
     private String getRatingString(Integer rating) {
