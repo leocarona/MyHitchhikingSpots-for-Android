@@ -226,6 +226,28 @@ public class TrackLocationBaseActivity extends BaseActivity implements
         super.onStop();
     }
 
+    boolean wasFirstLocationReceived = false;
+
+    /**
+     * Callback that fires when the location changes.
+     */
+    @Override
+    public void onLocationChanged(Location location) {
+
+        mCurrentLocation = location;
+        mLastUpdateTime = new Date();
+        updateUILabels();
+
+        if (!wasFirstLocationReceived) {
+            wasFirstLocationReceived = true;
+            updateUILocationSwitch();
+            updateUISaveButtons();
+        }
+
+        Toast.makeText(this, getResources().getString(R.string.location_updated_message),
+                Toast.LENGTH_SHORT).show();
+    }
+
     /**
      * Runs when a GoogleApiClient object successfully connects.
      */
@@ -233,6 +255,8 @@ public class TrackLocationBaseActivity extends BaseActivity implements
     public void onConnected(Bundle connectionHint) {
         Log.i(TAG, "Connected to GoogleApiClient");
 
+        updateUILocationSwitch();
+        updateUISaveButtons();
 
         // If the initial location was never previously requested, we use
         // FusedLocationApi.getLastLocation() to get it. If it was previously requested, we store
@@ -257,28 +281,6 @@ public class TrackLocationBaseActivity extends BaseActivity implements
             startLocationUpdates();
         }
 
-        updateUILocationSwitch();
-    }
-
-    boolean wasFirstLocationReceived = false;
-
-    /**
-     * Callback that fires when the location changes.
-     */
-    @Override
-    public void onLocationChanged(Location location) {
-
-        mCurrentLocation = location;
-        mLastUpdateTime = new Date();
-        updateUILabels();
-
-        if (!wasFirstLocationReceived) {
-            updateUILocationSwitch();
-            wasFirstLocationReceived = true;
-        }
-
-        Toast.makeText(this, getResources().getString(R.string.location_updated_message),
-                Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -288,6 +290,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
         Log.w(TAG, "Connection suspended");
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.trying_to_reconnect_to_provider_of_location), Toast.LENGTH_LONG).show();
         updateUILocationSwitch();
+        updateUISaveButtons();
         mGoogleApiClient.connect();
     }
 
@@ -298,12 +301,16 @@ public class TrackLocationBaseActivity extends BaseActivity implements
         Log.e(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.unable_to_find_location), Toast.LENGTH_LONG).show();
         updateUILocationSwitch();
+        updateUISaveButtons();
     }
 
     protected void updateUILabels() {
     }
 
     protected void updateUILocationSwitch() {
+    }
+
+    protected void updateUISaveButtons() {
     }
 
     /**
@@ -320,10 +327,5 @@ public class TrackLocationBaseActivity extends BaseActivity implements
         }
         super.onSaveInstanceState(savedInstanceState);
     }
-
-    private String dateToString(Date dt) {
-        return DateFormat.getTimeInstance().format(dt);
-    }
-
 
 }

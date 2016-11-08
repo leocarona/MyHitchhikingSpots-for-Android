@@ -25,6 +25,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
@@ -166,8 +167,8 @@ public class MainActivity extends TrackLocationBaseActivity {
                 mCurrentSpot.setAttemptResult(1);
                 mCurrentSpot.setIsWaitingForARide(false);
 
-                if (fragment != null)
-                    mCurrentSpot.setHitchability(fragment.getSelectedHitchability());
+                if (mSectionsPagerAdapter != null)
+                    mCurrentSpot.setHitchability(mSectionsPagerAdapter.getSelectedHitchability());
             }
 
             //Persist on DB
@@ -177,11 +178,8 @@ public class MainActivity extends TrackLocationBaseActivity {
             ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
             Toast.makeText(getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
 
-            if (fragment != null)
-                fragment.onResume();
-
-            if (fragment2 != null)
-                fragment2.onResume();
+            if (mSectionsPagerAdapter != null)
+                mSectionsPagerAdapter.resumeFragments();
 
             //finish();
         } catch (Exception ex) {
@@ -212,18 +210,22 @@ public class MainActivity extends TrackLocationBaseActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    MyLocationFragment fragment;
-    SpotListFragment fragment2;
 
     protected void updateUILabels() {
-        if (fragment != null)
-            fragment.updateUILabels();
+        if (mSectionsPagerAdapter != null)
+            mSectionsPagerAdapter.updateUILabels();
     }
 
     protected void updateUILocationSwitch() {
-        if (fragment != null)
-            fragment.updateUILocationSwitch();
+        if (mSectionsPagerAdapter != null)
+            mSectionsPagerAdapter.updateUILocationSwitch();
     }
+
+    protected void updateUISaveButtons() {
+        if (mSectionsPagerAdapter != null)
+            mSectionsPagerAdapter.updateUISaveButtons();
+    }
+
    /*
     @Override
     public void onStart() {
@@ -281,9 +283,32 @@ public class MainActivity extends TrackLocationBaseActivity {
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
+        private MyLocationFragment fragment;
+        private SpotListFragment fragment2;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
+        }
+
+        // Here we can finally safely save a reference to the created
+        // Fragment, no matter where it came from (either getItem() or
+        // FragmentManger). Simply save the returned Fragment from
+        // super.instantiateItem() into an appropriate reference depending
+        // on the ViewPager position. This solution was copied from:
+        // http://stackoverflow.com/a/29288093/1094261
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Fragment createdFragment = (Fragment) super.instantiateItem(container, position);
+            // save the appropriate reference depending on position
+            switch (position) {
+                case 0:
+                    fragment = (MyLocationFragment) createdFragment;
+                    break;
+                case 1:
+                    fragment2 = (SpotListFragment) createdFragment;
+                    break;
+            }
+            return createdFragment;
         }
 
         @Override
@@ -292,16 +317,15 @@ public class MainActivity extends TrackLocationBaseActivity {
             // Return a PlaceholderFragment (defined as a static inner class below).
             switch (position) {
                 case 0:
-                    fragment = new MyLocationFragment();
+                    MyLocationFragment frag = new MyLocationFragment();
                     Bundle args = new Bundle();
-                    fragment.setArguments(args);
-
-                    return fragment;
+                    frag.setArguments(args);
+                    return frag;
                 case 1:
-                    fragment2 = new SpotListFragment();
+                    SpotListFragment frag2 = new SpotListFragment();
                     Bundle args2 = new Bundle();
-                    fragment2.setArguments(args2);
-                    return fragment2;
+                    frag2.setArguments(args2);
+                    return frag2;
             }
             return null;
         }
@@ -321,6 +345,36 @@ public class MainActivity extends TrackLocationBaseActivity {
                     return getResources().getString(R.string.main_activity_list_tab);
             }
             return null;
+        }
+
+        public void updateUILabels() {
+            if (fragment != null)
+                fragment.updateUILabels();
+        }
+
+        public void updateUILocationSwitch() {
+            if (fragment != null)
+                fragment.updateUILocationSwitch();
+        }
+
+        public void updateUISaveButtons() {
+            if (fragment != null)
+                fragment.updateUISaveButtons();
+        }
+
+        public Integer getSelectedHitchability() {
+            if (fragment == null)
+                return 0;
+            else
+                return fragment.getSelectedHitchability();
+        }
+
+        public void resumeFragments() {
+            if (fragment != null)
+                fragment.onResume();
+
+            if (fragment2 != null)
+                fragment2.onResume();
         }
     }
 

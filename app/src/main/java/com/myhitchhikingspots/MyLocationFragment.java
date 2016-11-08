@@ -115,7 +115,6 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
         mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
         mCurrentLocationPanel.setVisibility(View.GONE);
-        mCurrentLocationPanel.setVisibility(View.GONE);
 
         hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
         hitchability_ratingbar.setStepSize(1);
@@ -162,13 +161,12 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         else
             mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
-        if (mIsWaitingForARide)
+       /* if (mIsWaitingForARide)
             parentActivity.mRequestingLocationUpdates = false;
         else {
             parentActivity.mRequestingLocationUpdates = true;
             hitchability_ratingbar.setRating(0);
-        }
-
+        }*/
 
         DaoSession daoSession = context.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
@@ -195,7 +193,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         }*/
 
         updateUILocationSwitch();
-
+        updateUISaveButtons();
     }
 
     public Integer getSelectedHitchability() {
@@ -279,17 +277,6 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             parentActivity.mRequestingLocationUpdates = false;
             parentActivity.stopLocationUpdates();
         }
-        updateUILocationSwitch();
-    }
-
-
-    protected void updateUILocationSwitch() {
-        if (parentActivity.mGoogleApiClient == null || !parentActivity.mGoogleApiClient.isConnected()) {
-            //mGetLocationSwitch.setEnabled(false);
-        } else {
-            //mGetLocationSwitch.setEnabled(true);
-            mGetLocationSwitch.setChecked(parentActivity.mRequestingLocationUpdates);
-        }
         updateUISaveButtons();
     }
 
@@ -310,53 +297,66 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    protected void updateUILocationSwitch() {
+        if (parentActivity.mGoogleApiClient == null || !parentActivity.mGoogleApiClient.isConnected()) {
+            //mGetLocationSwitch.setEnabled(false);
+        } else {
+            //mGetLocationSwitch.setEnabled(true);
+            mGetLocationSwitch.setChecked(parentActivity.mRequestingLocationUpdates);
+            //updateUISaveButtons();
+        }
+
+    }
+
 
     /**
      * Ensures that only one button is enabled at any time. The Start Updates button is enabled
      * if the user is not requesting location updates. The Stop Updates button is enabled if the
      * user is requesting location updates.
      */
+    //This method should be called when the following variables change:
+    // mIsWaitingForARide, mWillItBeFirstSpotOfARoute, parentActivity.mCurrentLocation, parentActivity.mGoogleApiClient, parentActivity.mGoogleApiClient.isConnected()
     protected void updateUISaveButtons() {
-        if (mWillItBeFirstSpotOfARoute)
-            mArrivedPanel.setVisibility(View.GONE);
-        else
-            mArrivedPanel.setVisibility(View.VISIBLE);
+        //If it's not waiting for a ride, show only ('get location' switch, 'current location' panel and 'save spot' button)
+        // { If it's first spot of route, hide 'arrived' button
+        //   else, show 'arrived' button }
+        //If it's waiting for a ride, show only ('rating' panel, 'got a ride' and 'take a break' buttons)
+        //If 'get location' switch is set to Off or (googleApiClient is null or disconnected, or currentLocation is null)
 
-        if (mIsWaitingForARide) {
+        //If it's not waiting for a ride
+        if (!mIsWaitingForARide) {
+            if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()) {
+                mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
+                mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
+                mCurrentLocationPanel.setVisibility(View.GONE);
+            } else {
+                if (parentActivity.mRequestingLocationUpdates) {
+                    mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
+                    mSaveSpotPanel.setVisibility(View.VISIBLE);
+                    mCurrentLocationPanel.setVisibility(View.VISIBLE);
+
+                    if (mWillItBeFirstSpotOfARoute)
+                        mArrivedPanel.setVisibility(View.GONE);
+                    else
+                        mArrivedPanel.setVisibility(View.VISIBLE);
+                } else {
+                    mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
+                    mSaveSpotPanel.setVisibility(View.GONE);
+                    mCurrentLocationPanel.setVisibility(View.GONE);
+                }
+            }
+
+            mGetLocationSwitch.setVisibility(View.VISIBLE);
+            mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
+
+        } else {
+            mGetLocationSwitch.setVisibility(View.GONE);
+            mCurrentLocationPanel.setVisibility(View.GONE);
+            mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
             mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
             mEvaluatePanel.setVisibility(View.VISIBLE);//setEnabled(true);
-            mCurrentLocationPanel.setVisibility(View.GONE);
-            mGetLocationSwitch.setVisibility(View.GONE);
-
-        } else {
-            if (parentActivity.mGoogleApiClient == null || !parentActivity.mGoogleApiClient.isConnected() || parentActivity.mCurrentLocation == null) {
-                mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
-            } else {
-                //mSaveSpotPanel.setEnabled(parentActivity.mRequestingLocationUpdates);
-                if (parentActivity.mRequestingLocationUpdates)
-                    mSaveSpotPanel.setVisibility(View.VISIBLE);
-                else
-                    mSaveSpotPanel.setVisibility(View.GONE);
-            }
-            mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
-            mGetLocationSwitch.setVisibility(View.VISIBLE);
-            mCurrentLocationPanel.setVisibility(View.VISIBLE);
         }
 
-        updateWaitingToGetCurrentLocation();
-    }
-
-    void updateWaitingToGetCurrentLocation() {
-        Boolean c1, c2, c3;
-        c1 = parentActivity.mGoogleApiClient == null;
-        c2 = !parentActivity.mGoogleApiClient.isConnected();
-        c3 = parentActivity.mCurrentLocation == null;
-        if (c1 || c3 || !parentActivity.mRequestingLocationUpdates) {
-            mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
-            mCurrentLocationPanel.setVisibility(View.GONE);
-        } else {
-            mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
-        }
     }
 
 
