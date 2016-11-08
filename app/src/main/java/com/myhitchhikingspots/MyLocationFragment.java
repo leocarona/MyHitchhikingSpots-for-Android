@@ -272,7 +272,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             if (parentActivity.mGoogleApiClient.isConnected())
                 parentActivity.startLocationUpdates();
             else
-                Toast.makeText(getContext(), "Waiting connection to be established..", Toast.LENGTH_LONG);
+                Toast.makeText(getContext(), getResources().getString(R.string.waiting_for_connection), Toast.LENGTH_LONG);
         } else {
             parentActivity.mRequestingLocationUpdates = false;
             parentActivity.stopLocationUpdates();

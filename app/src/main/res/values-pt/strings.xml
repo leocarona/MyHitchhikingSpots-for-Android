@@ -104,6 +104,7 @@
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
 
 
+    <string name="waiting_for_connection">Estabelecendo conexão..</string>
     <string name="unable_to_find_location">Nāo foi possível encontrar sua localizaçāo com o Google api client :(</string>
     <string name="trying_to_reconnect_to_provider_of_location">Tentar reconectar ao localizador..</string>
 

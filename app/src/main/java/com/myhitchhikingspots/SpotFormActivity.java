@@ -1,5 +1,7 @@
 package com.myhitchhikingspots;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.location.Address;
 import android.media.Rating;
@@ -408,9 +410,22 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void locationAddressButtonHandler(View v) {
-
         //TODO: copy a string with format "address (lat, lng)" to the memory so that the user can paste it wherever he wants
-        Toast.makeText(getApplicationContext(), "This will copy the coordinates to the memory in the future.", Toast.LENGTH_LONG).show();
+
+        String strToCopy = spotLocationToString(mCurrentSpot).trim();
+
+        if ((strToCopy != null && !strToCopy.isEmpty()))
+            strToCopy += " ";
+
+        if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null)
+            strToCopy += String.format("(%1$s, %2$s)",
+                    mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());
+
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Location", strToCopy);
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(getApplicationContext(), "Coordinates copied to clipboard.", Toast.LENGTH_LONG).show();
 
     }
 
