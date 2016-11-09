@@ -425,7 +425,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         ClipData clip = ClipData.newPlainText("Location", strToCopy);
         clipboard.setPrimaryClip(clip);
 
-        Toast.makeText(getApplicationContext(), "Coordinates copied to clipboard.", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), getResources().getString(R.string.spot_form_location_info_copied), Toast.LENGTH_LONG).show();
 
     }
 
