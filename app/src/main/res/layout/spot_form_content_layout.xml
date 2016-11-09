@@ -145,8 +145,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:entries="@array/attempt_results"
-                    style="@android:style/Widget.DeviceDefault.Light.Spinner" />
+                    android:entries="@array/attempt_results" />
             </LinearLayout>
 
 

@@ -161,12 +161,9 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         else
             mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
-       /* if (mIsWaitingForARide)
-            parentActivity.mRequestingLocationUpdates = false;
-        else {
-            parentActivity.mRequestingLocationUpdates = true;
+        if (!mIsWaitingForARide)
             hitchability_ratingbar.setRating(0);
-        }*/
+
 
         DaoSession daoSession = context.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
