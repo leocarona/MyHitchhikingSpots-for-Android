@@ -108,8 +108,6 @@
     <string name="trying_to_reconnect_to_provider_of_location">Trying to reconnect to location provider..</string>
 
     <string name="destination_spot_totals_format">TOTAL | %1$d rides | %2$s</string>
-    <string name="save_spot">Save spot</string>
-    <string name="got_a_ride">Got a ride</string>
 
     <string name="break_spot_state_label">BREAK</string>
     <string name="waiting_for_gps">Waiting to receive your current location..</string>

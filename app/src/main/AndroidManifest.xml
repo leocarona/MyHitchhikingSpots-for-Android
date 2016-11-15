@@ -55,12 +55,12 @@ limitations under the License.
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Broadcast Receivers -->
+            <!-- Broadcast Receivers
             <receiver android:name=".RemoteControlReceiver">
                 <intent-filter android:priority="1000">
                     <action android:name="android.intent.action.MEDIA_BUTTON" />
                 </intent-filter>
-            </receiver>
+            </receiver> -->
         </activity>
 
         <activity
