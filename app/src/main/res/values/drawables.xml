@@ -10,6 +10,7 @@
     <item name="ic_regular_spot_color" type="color">#ff33b5e5</item>
     <item name="ic_break_color" type="color">#ffffbb33</item>
     <item name="ic_got_a_ride_color" type="color">#ff99cc00</item>
+    <item name="wallet_link_text_light" type="color">#0000ee</item>
 
     <item name="ic_arrival_icon" type="drawable">@android:drawable/ic_menu_myplaces</item>
     <item name="ic_regular_spot_icon" type="drawable">@android:drawable/ic_media_play</item>

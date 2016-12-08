@@ -1,19 +1,8 @@
 package com.myhitchhikingspots;
 
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.media.AudioManager;
-import android.media.RemoteControlClient;
-import android.net.Uri;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
-import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,15 +11,10 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -38,9 +22,7 @@ import com.myhitchhikingspots.model.SpotDao;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 
 public class MainActivity extends TrackLocationBaseActivity {
@@ -285,6 +267,7 @@ public class MainActivity extends TrackLocationBaseActivity {
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private MyLocationFragment fragment;
         private SpotListFragment fragment2;
+        private MyMapFragment fragment3;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -307,6 +290,9 @@ public class MainActivity extends TrackLocationBaseActivity {
                 case 1:
                     fragment2 = (SpotListFragment) createdFragment;
                     break;
+                case 2:
+                    fragment3 = (MyMapFragment) createdFragment;
+                    break;
             }
             return createdFragment;
         }
@@ -326,6 +312,11 @@ public class MainActivity extends TrackLocationBaseActivity {
                     Bundle args2 = new Bundle();
                     frag2.setArguments(args2);
                     return frag2;
+                case 2:
+                    MyMapFragment frag3 = new MyMapFragment();
+                    Bundle args3 = new Bundle();
+                    frag3.setArguments(args3);
+                    return frag3;
             }
             return null;
         }
@@ -333,7 +324,7 @@ public class MainActivity extends TrackLocationBaseActivity {
         @Override
         public int getCount() {
             // Show 2 total pages.
-            return 2;
+            return 3;
         }
 
         @Override
@@ -343,6 +334,8 @@ public class MainActivity extends TrackLocationBaseActivity {
                     return getResources().getString(R.string.main_activity_you_tab);
                 case 1:
                     return getResources().getString(R.string.main_activity_list_tab);
+                case 2:
+                    return "map";//getResources().getString(R.string.main_activity_list_tab);
             }
             return null;
         }
@@ -375,6 +368,9 @@ public class MainActivity extends TrackLocationBaseActivity {
 
             if (fragment2 != null)
                 fragment2.onResume();
+
+            if (fragment3 != null)
+                fragment3.onResume();
         }
     }
 
