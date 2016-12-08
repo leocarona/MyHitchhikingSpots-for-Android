@@ -1,9 +1,7 @@
 package com.myhitchhikingspots;
 
-import de.greenrobot.daogenerator.Entity;
-import de.greenrobot.daogenerator.Property;
-import de.greenrobot.daogenerator.Schema;
-import de.greenrobot.daogenerator.ToMany;
+import org.greenrobot.greendao.generator.Entity;
+import org.greenrobot.greendao.generator.Schema;
 
 /**
  * Created by leoboaventura on 03/03/2016.
@@ -65,6 +63,6 @@ public class DaoGenerator {
 
         spot.implementsSerializable();
 
-        new de.greenrobot.daogenerator.DaoGenerator().generateAll(schema, PROJECT_DIR + "/app/src/main/java");
+        new org.greenrobot.greendao.generator.DaoGenerator().generateAll(schema, PROJECT_DIR + "/app/src/main/java");
     }
 }

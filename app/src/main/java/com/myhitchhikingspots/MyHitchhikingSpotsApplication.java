@@ -1,7 +1,9 @@
 package com.myhitchhikingspots;
 
 import android.app.Application;
+import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.multidex.MultiDex;
 import android.util.Log;
 
 import com.myhitchhikingspots.model.DaoMaster;
@@ -177,4 +179,6 @@ public class MyHitchhikingSpotsApplication extends Application {
         spotDao.insertOrReplace(spot7);
         spotDao.insertOrReplace(spot8);
     }
+
+
 }

@@ -55,8 +55,6 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile files('libs/greendao-2.1.0.jar')
     //Begin: Dependencies for MapBox
     //compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
@@ -67,11 +65,12 @@ dependencies {
     //End: Dependencies for MapBox
 
     //compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'org.greenrobot:greendao:3.2.0'
     compile 'com.android.support:appcompat-v7:23.2.0'
     //compile 'com.google.android.gms:play-services:8.4.0'
     compile 'com.google.android.gms:play-services-location:8.4.0'
     compile 'com.android.support:recyclerview-v7:23.2.0'
     compile 'com.android.support:design:23.2.0'
     compile 'joda-time:joda-time:2.9.2'
-    compile 'com.android.support:multidex:1.0.0'
+    compile 'com.android.support:multidex:1.0.1'
 }
