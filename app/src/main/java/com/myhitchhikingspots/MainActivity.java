@@ -23,6 +23,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
 import java.util.Date;
+import java.util.List;
 
 
 public class MainActivity extends TrackLocationBaseActivity {
@@ -161,13 +162,20 @@ public class MainActivity extends TrackLocationBaseActivity {
             Toast.makeText(getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
 
             if (mSectionsPagerAdapter != null)
-                mSectionsPagerAdapter.resumeFragments();
+                mSectionsPagerAdapter.loadValues();
 
             //finish();
         } catch (Exception ex) {
             Log.e(TAG, "GotARideShortcut", ex);
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.shortcut_save_button_failed), Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mSectionsPagerAdapter != null)
+            mSectionsPagerAdapter.loadValues();
     }
 
    /* @Override
@@ -177,6 +185,7 @@ public class MainActivity extends TrackLocationBaseActivity {
         return true;
     }*/
 
+    /*
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -191,7 +200,7 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
+*/
 
     protected void updateUILabels() {
         if (mSectionsPagerAdapter != null)
@@ -306,16 +315,19 @@ public class MainActivity extends TrackLocationBaseActivity {
                     MyLocationFragment frag = new MyLocationFragment();
                     Bundle args = new Bundle();
                     frag.setArguments(args);
+                    frag.setValues(spotList, currentSpot);
                     return frag;
                 case 1:
                     SpotListFragment frag2 = new SpotListFragment();
                     Bundle args2 = new Bundle();
                     frag2.setArguments(args2);
+                    frag2.setValues(spotList);
                     return frag2;
                 case 2:
                     MyMapFragment frag3 = new MyMapFragment();
                     Bundle args3 = new Bundle();
                     frag3.setArguments(args3);
+                    frag3.setValues(spotList);
                     return frag3;
             }
             return null;
@@ -371,6 +383,28 @@ public class MainActivity extends TrackLocationBaseActivity {
 
             if (fragment3 != null)
                 fragment3.onResume();
+        }
+
+        List<Spot> spotList;
+        Spot currentSpot;
+
+        public void loadValues() {
+            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
+            DaoSession daoSession = appContext.getDaoSession();
+            SpotDao spotDao = daoSession.getSpotDao();
+            spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
+            currentSpot = appContext.getCurrentSpot();
+
+            if (fragment != null)
+                fragment.setValues(spotList, currentSpot);
+
+            if (fragment2 != null)
+                fragment2.setValues(spotList);
+
+            if (fragment3 != null)
+                fragment3.setValues(spotList);
+
+            resumeFragments();
         }
     }
 

@@ -32,9 +32,7 @@ import android.widget.TextView;
 import android.support.v4.app.Fragment;
 import android.widget.Toast;
 
-import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.model.SpotDao;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -113,6 +111,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
         //mGetLocationSwitch.setEnabled(false);
         mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
+        mArrivedPanel.setVisibility(View.GONE);
         mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
         mCurrentLocationPanel.setVisibility(View.GONE);
 
@@ -148,30 +147,25 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     boolean mIsWaitingForARide;
     boolean mWillItBeFirstSpotOfARoute;
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        //extra_image_button.setImageAlpha(127);
-
-        MyHitchhikingSpotsApplication context = ((MyHitchhikingSpotsApplication) parentActivity.getApplicationContext());
-        mCurrentWaitingSpot = context.getCurrentSpot();
+    public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
+        mCurrentWaitingSpot = currentWaitingSpot;
 
         if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
             mIsWaitingForARide = false;
         else
             mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
-        if (!mIsWaitingForARide)
-            hitchability_ratingbar.setRating(0);
 
-
-        DaoSession daoSession = context.getDaoSession();
-        SpotDao spotDao = daoSession.getSpotDao();
-        List<Spot> spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).limit(1).list();
         if (spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()))
             mWillItBeFirstSpotOfARoute = true;
         else
             mWillItBeFirstSpotOfARoute = false;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        //extra_image_button.setImageAlpha(127);
 
         /*if(mIsWaitingForARide) {
         if (Build.VERSION.SDK_INT >= 21 )
@@ -188,6 +182,9 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         } else {
             mAudioManager.unregisterMediaButtonEventReceiver(mReceiverComponent);
         }*/
+
+        if (!mIsWaitingForARide)
+            hitchability_ratingbar.setRating(0);
 
         updateUILocationSwitch();
         updateUISaveButtons();
@@ -399,7 +396,6 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-
         mHitchabilityTextView.setText(getRatingString(Math.round(rating)));
     }
 
