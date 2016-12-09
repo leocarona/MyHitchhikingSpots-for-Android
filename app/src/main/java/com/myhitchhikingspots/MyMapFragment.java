@@ -16,6 +16,7 @@ import com.mapbox.mapboxsdk.MapboxAccountManager;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -176,6 +177,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
                         Drawable iconDrawable = ContextCompat.getDrawable(MainActivity.this, R.drawable.blue_marker);
                         Icon arrivalIcon = iconFactory.fromDrawable(iconDrawable);
                         Icon waitingIcon = iconFactory.fromDrawable(iconDrawable);
+                        Icon currentLocationIcon = iconFactory.fromDrawable(iconDrawable);
                     */
 
                 if (spot.getIsDestination() != null && spot.getIsDestination()) {
@@ -194,8 +196,16 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
                 } else {
                     //TODO: make this check in a not hardcoded way!
                     if (spot.getAttemptResult() != null && spot.getAttemptResult() == 2 && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide())) {
+                        //THIS IS A BREAK SPOT
+
                         snippet = "(BREAK) " + snippet;
                         iconAlpha = (float) 0.5;
+                    } else if (spot.getId() == Constants.USER_CURRENT_LOCATION_SPOTLIST_ID) {
+                        //THIS IS THE USER CURRENT LOCATION (not saved)
+
+                        title = USER_CURRENT_LOCATION_TITLE;
+                        iconAlpha = (float) 0.5;
+                        //markerViewOptions.icon(currentLocationIcon);
                     }
                 }
 
@@ -218,12 +228,14 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
             return trips;
         }
 
+        String USER_CURRENT_LOCATION_TITLE = "You are here";
+
         @Override
         protected void onPostExecute(List<List<MarkerViewOptions>> trips) {
             super.onPostExecute(trips);
             mapboxMap.clear();
 
-            LatLngBounds.Builder boundsBuilder =  new LatLngBounds.Builder();
+            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
             for (int lc = 0; lc < trips.size(); lc++) {
                 List<MarkerViewOptions> spots = trips.get(lc);
 
@@ -236,27 +248,34 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
                     mapboxMap.addMarker(spot);
 
                     // Draw polyline on map
-                    line.add(spot.getPosition());
+                    if (spot.getTitle() != USER_CURRENT_LOCATION_TITLE)
+                        line.add(spot.getPosition());
 
                     boundsBuilder.include(spot.getPosition());
                 }
 
-                //Add polylines to map
-                mapboxMap.addPolyline(line);
+                if (spotList.size() > 1) {
+                    //Add polylines to map
+                    mapboxMap.addPolyline(line);
+                }
             }
 
-            LatLngBounds latLngBounds = boundsBuilder.build();
-
-            mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 100), 5000);
+            if (spotList.size() > 1) {
+                LatLngBounds latLngBounds = boundsBuilder.build();
+                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 100), 5000);
+            } else {
+                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(spotList.get(0).getLatitude(), spotList.get(0).getLongitude()), 13), 5000);
+            }
         }
+    }
 
-        private String getPolylineColor(int routeIndex) {
-            String polylineColor = "";
+    private String getPolylineColor(int routeIndex) {
+        String polylineColor = "";
 
-            if (routeIndex % 2 == 0)
-                polylineColor = "#85cf3a";
-            else
-                polylineColor = "#3bb2d0";
+        if (routeIndex % 2 == 0)
+            polylineColor = "#85cf3a";
+        else
+            polylineColor = "#3bb2d0";
 
                 /*switch (routeIndex) {
                 case 0:
@@ -300,7 +319,6 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
                     break;
             }*/
 
-            return polylineColor;
-        }
+        return polylineColor;
     }
 }

@@ -20,4 +20,8 @@ public final class Constants {
     public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME + ".LOCATION_DATA_EXTRA";
 
     public static final Integer hitchabilityNumOfOptions = 5;
+
+    //If the user current location is added to the SpotList it should be distinguished from the other saved spots with this ID
+    public static final Long USER_CURRENT_LOCATION_SPOTLIST_ID = (long) -1;
+
 }

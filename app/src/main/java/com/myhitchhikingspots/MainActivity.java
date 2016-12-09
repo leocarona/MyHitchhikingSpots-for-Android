@@ -22,6 +22,8 @@ import com.myhitchhikingspots.model.SpotDao;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -327,10 +329,29 @@ public class MainActivity extends TrackLocationBaseActivity {
                     MyMapFragment frag3 = new MyMapFragment();
                     Bundle args3 = new Bundle();
                     frag3.setArguments(args3);
-                    frag3.setValues(spotList);
+                    frag3.setValues(getSpotListWithCurrentLocation());
                     return frag3;
             }
             return null;
+        }
+
+        protected List<Spot> getSpotListWithCurrentLocation() {
+            //If user isn't waiting for a ride, add the the current location to the list so that it's included on the map
+            List<Spot> newList = new ArrayList<>();
+            Spot mCurrentSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+
+            //As of December 2016, if the user is waiting for a ride we stop fetching his location. So we better don't try to it to the map.
+            if (mCurrentSpot == null || mCurrentSpot.getIsWaitingForARide() == null || !mCurrentSpot.getIsWaitingForARide()) {
+                if (mCurrentLocation != null) {
+                    Spot myLocationSpot = new Spot();
+                    myLocationSpot.setId(Constants.USER_CURRENT_LOCATION_SPOTLIST_ID);
+                    myLocationSpot.setLatitude(mCurrentLocation.getLatitude());
+                    myLocationSpot.setLongitude(mCurrentLocation.getLongitude());
+                    newList.add(myLocationSpot);
+                }
+            }
+            newList.addAll(spotList);
+            return newList;
         }
 
         @Override
@@ -402,7 +423,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 fragment2.setValues(spotList);
 
             if (fragment3 != null)
-                fragment3.setValues(spotList);
+                fragment3.setValues(getSpotListWithCurrentLocation());
 
             resumeFragments();
         }
