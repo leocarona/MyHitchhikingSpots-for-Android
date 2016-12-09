@@ -10,6 +10,8 @@ def keystoreProperties = new Properties()
 // Load your keystore.properties file into the keystoreProperties object.
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
+def minSdk = hasProperty('minSdk') ? minSdk : 15
+
 android {
     signingConfigs {
         config {
@@ -23,7 +25,7 @@ android {
     buildToolsVersion "23.0.2"
     defaultConfig {
         applicationId 'com.myhitchhikingspots'
-        minSdkVersion 14
+        minSdkVersion minSdk
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
@@ -31,7 +33,7 @@ android {
         generatedDensities = []
 
         // Enabling multidex support.
-        multiDexEnabled true
+        multiDexEnabled false
     }
 
     // Flag to tell aapt to keep the attribute ids around
