@@ -16,7 +16,6 @@ import com.mapbox.mapboxsdk.MapboxAccountManager;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -25,18 +24,16 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.myhitchhikingspots.model.Spot;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
 
 public class MyMapFragment extends Fragment implements OnMapReadyCallback {
     private MapView mapView;
     private MapboxMap mapboxMap;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -70,7 +67,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
 
         //Load polylines
         //todo: make spotListChanged be called when list is changed!
-        new DrawGeoJson().execute();
+        new DrawAnnotations().execute();
     }
 
 
@@ -129,7 +126,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
         super.onResume();
         mapView.onResume();
 
-        new DrawGeoJson().execute();
+        new DrawAnnotations().execute();
     }
 
     List<Spot> spotList;
@@ -157,7 +154,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
         mapView.onLowMemory();
     }
 
-    private class DrawGeoJson extends AsyncTask<Void, Void, List<List<MarkerViewOptions>>> {
+    private class DrawAnnotations extends AsyncTask<Void, Void, List<List<MarkerViewOptions>>> {
         @Override
         protected List<List<MarkerViewOptions>> doInBackground(Void... voids) {
             List<List<MarkerViewOptions>> trips = new ArrayList<>();
