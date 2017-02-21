@@ -9,6 +9,13 @@
     tools:openDrawer="start"
     tools:context="com.myhitchhikingspots.SampleBasicActivity">
 
+    <!--
+       TO REUSE THIS MASTER FILE, REPLACE:
+           tools:context=".."
+       AND
+           <include layout="..">
+    -->
+
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
