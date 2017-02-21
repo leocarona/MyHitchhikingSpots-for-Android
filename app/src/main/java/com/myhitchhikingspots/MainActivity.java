@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.content.Intent;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
@@ -11,6 +12,7 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -180,14 +182,14 @@ public class MainActivity extends TrackLocationBaseActivity {
             mSectionsPagerAdapter.loadValues();
     }
 
-   /* @Override
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.master, menu);
         return true;
-    }*/
+    }
 
-    /*
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -197,12 +199,12 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
-*/
 
     protected void updateUILabels() {
         if (mSectionsPagerAdapter != null)
@@ -278,7 +280,6 @@ public class MainActivity extends TrackLocationBaseActivity {
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private MyLocationFragment fragment;
         private SpotListFragment fragment2;
-        private MyMapFragment fragment3;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -301,9 +302,6 @@ public class MainActivity extends TrackLocationBaseActivity {
                 case 1:
                     fragment2 = (SpotListFragment) createdFragment;
                     break;
-                case 2:
-                    fragment3 = (MyMapFragment) createdFragment;
-                    break;
             }
             return createdFragment;
         }
@@ -325,12 +323,6 @@ public class MainActivity extends TrackLocationBaseActivity {
                     frag2.setArguments(args2);
                     frag2.setValues(spotList);
                     return frag2;
-                case 2:
-                    MyMapFragment frag3 = new MyMapFragment();
-                    Bundle args3 = new Bundle();
-                    frag3.setArguments(args3);
-                    frag3.setValues(getSpotListWithCurrentLocation());
-                    return frag3;
             }
             return null;
         }
@@ -340,7 +332,7 @@ public class MainActivity extends TrackLocationBaseActivity {
             List<Spot> newList = new ArrayList<>();
             Spot mCurrentSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
 
-            //As of December 2016, if the user is waiting for a ride we stop fetching his location. So we better don't try to it to the map.
+            //As of December 2016, if the user is waiting for a ride we stop fetching his location. So we better don't try to add it to the map.
             if (mCurrentSpot == null || mCurrentSpot.getIsWaitingForARide() == null || !mCurrentSpot.getIsWaitingForARide()) {
                 if (mCurrentLocation != null) {
                     Spot myLocationSpot = new Spot();
@@ -356,8 +348,7 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         @Override
         public int getCount() {
-            // Show 2 total pages.
-            return 3;
+            return 2;
         }
 
         @Override
@@ -367,8 +358,6 @@ public class MainActivity extends TrackLocationBaseActivity {
                     return getResources().getString(R.string.main_activity_you_tab);
                 case 1:
                     return getResources().getString(R.string.main_activity_list_tab);
-                case 2:
-                    return "map";//getResources().getString(R.string.main_activity_list_tab);
             }
             return null;
         }
@@ -401,9 +390,6 @@ public class MainActivity extends TrackLocationBaseActivity {
 
             if (fragment2 != null)
                 fragment2.onResume();
-
-            if (fragment3 != null)
-                fragment3.onResume();
         }
 
         List<Spot> spotList;
@@ -421,9 +407,6 @@ public class MainActivity extends TrackLocationBaseActivity {
 
             if (fragment2 != null)
                 fragment2.setValues(spotList);
-
-            if (fragment3 != null)
-                fragment3.setValues(getSpotListWithCurrentLocation());
 
             resumeFragments();
         }

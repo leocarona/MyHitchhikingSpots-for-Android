@@ -81,6 +81,7 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">More options</string>
 
+    <string name="mapview_master_title">Map</string>
 
     <string name="action_settings">Settings</string>
     <string name="spot_saved_successfuly">Spot saved</string>

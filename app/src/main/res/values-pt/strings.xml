@@ -63,6 +63,8 @@
     </string-array>
     <string name="sample_basic_master_title">Basic Master Layout</string>
 
+    <string name="mapview_master_title">Mapa</string>
+
     <string name="settings_master_title">Ferramentas</string>
     <string name="settings_importdb_button_label">importar banco de dados</string>
     <string name="settings_exportdb_button_label">exportar banco de dados</string>
@@ -81,7 +83,7 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Mais opçōes</string>
 
-
+    <string name="action_view_map">Ver mapa</string>
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo!</string>
     <string name="spot_deleted_successfuly">Local deletado</string>

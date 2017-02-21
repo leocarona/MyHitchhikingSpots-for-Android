@@ -33,7 +33,7 @@ android {
         generatedDensities = []
 
         // Enabling multidex support.
-        multiDexEnabled false
+        multiDexEnabled true
     }
 
     // Flag to tell aapt to keep the attribute ids around
