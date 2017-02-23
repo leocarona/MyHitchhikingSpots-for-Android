@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:id="@+id/action_settings"
-        android:title="@string/action_view_map"
+        android:title="@string/mapview_master_title"
         android:orderInCategory="100"
         app:showAsAction="ifRoom"
         android:icon="@android:drawable/ic_menu_sort_by_size" />

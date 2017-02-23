@@ -83,7 +83,6 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Mais opçōes</string>
 
-    <string name="action_view_map">Ver mapa</string>
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo!</string>
     <string name="spot_deleted_successfuly">Local deletado</string>

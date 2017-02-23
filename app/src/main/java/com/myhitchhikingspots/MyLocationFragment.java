@@ -303,6 +303,43 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     }
 
 
+    private MapViewActivity.pageType currentPage;
+
+    protected void showCurrentPage() {
+        if (currentPage == MapViewActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE || currentPage == MapViewActivity.pageType.WILL_BE_REGULAR_SPOT) {
+            mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
+            mSaveSpotPanel.setVisibility(View.VISIBLE);
+            mCurrentLocationPanel.setVisibility(View.VISIBLE);
+        }
+
+        if (currentPage != MapViewActivity.pageType.WAITING_FOR_A_RIDE) {
+            mGetLocationSwitch.setVisibility(View.VISIBLE);
+            mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
+        }
+
+        switch (currentPage) {
+            case NOT_FETCHING_LOCATION:
+            default:
+                mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
+                mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
+                mCurrentLocationPanel.setVisibility(View.GONE);
+                break;
+            case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
+                mArrivedPanel.setVisibility(View.GONE);
+                break;
+            case WILL_BE_REGULAR_SPOT:
+                mArrivedPanel.setVisibility(View.VISIBLE);
+                break;
+            case WAITING_FOR_A_RIDE:
+                mGetLocationSwitch.setVisibility(View.GONE);
+                mCurrentLocationPanel.setVisibility(View.GONE);
+                mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
+                mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
+                mEvaluatePanel.setVisibility(View.VISIBLE);//setEnabled(true);
+                break;
+        }
+    }
+
     /**
      * Ensures that only one button is enabled at any time. The Start Updates button is enabled
      * if the user is not requesting location updates. The Stop Updates button is enabled if the
@@ -319,38 +356,24 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
-            if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()) {
-                mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
-                mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
-                mCurrentLocationPanel.setVisibility(View.GONE);
+            if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()
+                    || !parentActivity.mRequestingLocationUpdates) {
+                currentPage = MapViewActivity.pageType.NOT_FETCHING_LOCATION;
             } else {
                 if (parentActivity.mRequestingLocationUpdates) {
-                    mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
-                    mSaveSpotPanel.setVisibility(View.VISIBLE);
-                    mCurrentLocationPanel.setVisibility(View.VISIBLE);
-
                     if (mWillItBeFirstSpotOfARoute)
-                        mArrivedPanel.setVisibility(View.GONE);
+                        currentPage = MapViewActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
                     else
-                        mArrivedPanel.setVisibility(View.VISIBLE);
-                } else {
-                    mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
-                    mSaveSpotPanel.setVisibility(View.GONE);
-                    mCurrentLocationPanel.setVisibility(View.GONE);
+                        currentPage = MapViewActivity.pageType.WILL_BE_REGULAR_SPOT;
                 }
             }
 
-            mGetLocationSwitch.setVisibility(View.VISIBLE);
-            mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
 
         } else {
-            mGetLocationSwitch.setVisibility(View.GONE);
-            mCurrentLocationPanel.setVisibility(View.GONE);
-            mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
-            mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
-            mEvaluatePanel.setVisibility(View.VISIBLE);//setEnabled(true);
+            currentPage = MapViewActivity.pageType.WAITING_FOR_A_RIDE;
         }
 
+        showCurrentPage();
     }
 
 
