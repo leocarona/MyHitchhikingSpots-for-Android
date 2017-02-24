@@ -270,25 +270,19 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 @Override
                 public void onLocationChanged(Location location) {
                     if (location != null) {
-                        mCurrentLocation=location;
+                        mCurrentLocation = location;
 
                         if (!wasFirstLocationReceived) {
                             updateUISaveButtons();
                             wasFirstLocationReceived = true;
+                        } else {
+                            // Move the map camera to where the user location is and then remove the
+                            // listener so the camera isn't constantly updating when the user location
+                            // changes. When the user disables and then enables the location again, this
+                            // listener is registered again and will adjust the camera once again.
+                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location), 16));
+                            locationServices.removeLocationListener(this);
                         }
-
-                        // Move the map camera to where the user location is and then remove the
-                        // listener so the camera isn't constantly updating when the user location
-                        // changes. When the user disables and then enables the location again, this
-                        // listener is registered again and will adjust the camera once again.
-                        //mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location), 16));
-                        CameraPosition position = new CameraPosition.Builder()
-                                .target(new LatLng(location.getLatitude(), location.getLongitude())) // Sets the new camera position
-                                .zoom(16) // Sets the zoom
-                                .build(); // Creates a CameraPosition from the builder
-                        mapboxMap.animateCamera(CameraUpdateFactory
-                                .newCameraPosition(position), 7000);
-                        locationServices.removeLocationListener(this);
                     }
                 }
             });
@@ -484,15 +478,17 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     protected void zoomOutToFitAllMarkers() {
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        for (Marker marker : mapboxMap.getMarkers()) {
-            builder.include(marker.getPosition());
+        if (mapboxMap != null) {
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            for (Marker marker : mapboxMap.getMarkers()) {
+                builder.include(marker.getPosition());
+            }
+            if (mCurrentLocation != null) {
+                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), 13), 5000);
+            }
+            LatLngBounds bounds = builder.build();
+            mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100), 5000);
         }
-        if (mCurrentWaitingSpot != null) {
-            mapboxMap.easeCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), 13), 5000);
-        }
-        LatLngBounds bounds = builder.build();
-        mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100), 5000);
     }
 
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<MarkerViewOptions>>> {
