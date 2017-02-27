@@ -116,13 +116,11 @@ public class MainActivity extends TrackLocationBaseActivity {
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
                 if (action == KeyEvent.ACTION_DOWN) {
-                    //TODO
                     GotARideShortcut();
                 }
                 return true;
             case KeyEvent.KEYCODE_VOLUME_DOWN:
                 if (action == KeyEvent.ACTION_DOWN) {
-                    //TODO
                     GotARideShortcut();
                 }
                 return true;
@@ -150,8 +148,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 Integer waiting_time = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
 
                 mCurrentSpot.setWaitingTime(waiting_time);
-                //TODO: Do this in a not hardcoded way
-                mCurrentSpot.setAttemptResult(1);
+                mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
                 mCurrentSpot.setIsWaitingForARide(false);
 
                 if (mSectionsPagerAdapter != null)
@@ -220,58 +217,6 @@ public class MainActivity extends TrackLocationBaseActivity {
         if (mSectionsPagerAdapter != null)
             mSectionsPagerAdapter.updateUISaveButtons();
     }
-
-   /*
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.myhitchhikingspots/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
-
-        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
-                RemoteControlReceiver.class.getName()));
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.myhitchhikingspots/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mAudioManager.unregisterRemoteControlClient(mRemoteControlClient);
-    // mAudioManager.abandonAudioFocus(mAudioFocusListener);
-
-    }   */
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to

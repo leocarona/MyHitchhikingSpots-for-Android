@@ -66,7 +66,6 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
         });
 
         //Load polylines
-        //todo: make spotListChanged be called when list is changed!
         new DrawAnnotations().execute();
     }
 
@@ -191,8 +190,8 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
 
                     //markerViewOptions.icon(waitingIcon);
                 } else {
-                    //TODO: make this check in a not hardcoded way!
-                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == 2 && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide())) {
+                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK
+                            && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide())) {
                         //THIS IS A BREAK SPOT
 
                         snippet = "(BREAK) " + snippet;

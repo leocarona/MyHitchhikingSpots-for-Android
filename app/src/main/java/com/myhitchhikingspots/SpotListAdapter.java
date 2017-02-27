@@ -63,8 +63,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         totalWaitingTimeMinutes += spot.getWaitingTime();*/
 
                     //If user gave up on hitchhiking on this spot, then we must not count it as a ride
-                    //TODO: make this check in a not hardcoded way!
-                    if (spot.getAttemptResult() == null || spot.getAttemptResult() != 2)
+                    if (spot.getAttemptResult() == null || spot.getAttemptResult() != Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
                         totalRides++;
                 } else {
                     Integer minutes = 0;
@@ -212,8 +211,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             if (captilizedNote != null && !captilizedNote.isEmpty())
                 captilizedNote = captilizedNote.substring(0, 1).toUpperCase() + captilizedNote.substring(1);
 
-            //TODO: make this check in a not hardcoded way!
-            if (spot.getAttemptResult() != null && spot.getAttemptResult() == 2 && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide()))
+            if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK
+                    && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide()))
                 pauseIcon.setVisibility(View.VISIBLE);
             else
                 pauseIcon.setVisibility(View.GONE);
