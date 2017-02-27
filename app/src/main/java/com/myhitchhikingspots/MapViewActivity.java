@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -20,10 +22,12 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.mapbox.mapboxsdk.MapboxAccountManager;
+import com.mapbox.mapboxsdk.annotations.BaseMarkerOptions;
+import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -66,7 +70,23 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null) {
-                    showLocation();
+                    // Check if user has granted location permission
+                    if (!locationServices.areLocationPermissionsGranted()) {
+                        Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
+                                .setAction("enable", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        ActivityCompat.requestPermissions(MapViewActivity.this, new String[]{
+                                                Manifest.permission.ACCESS_COARSE_LOCATION,
+                                                Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_LOCATION);
+                                    }
+                                }).show();
+                    } else {
+                        if (!mRequestingLocationUpdates)
+                            enableLocation(true);
+                        else
+                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(locationServices.getLastLocation()), 16));
+                    }
                 }
             }
         });
@@ -207,22 +227,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    protected void showLocation() {
-        // Check if user has granted location permission
-        if (!locationServices.areLocationPermissionsGranted()) {
-            Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
-                    .setAction("enable", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            ActivityCompat.requestPermissions(MapViewActivity.this, new String[]{
-                                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                                    Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_LOCATION);
-                        }
-                    }).show();
-        } else
-            enableLocation(true);
-    }
-
     protected void updateUISaveButtons() {
         //If it's not waiting for a ride, show only ('get location' switch, 'current location' panel and 'save spot' button)
         // { If it's first spot of route, hide 'arrived' button
@@ -236,12 +240,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     || !mRequestingLocationUpdates) {
                 currentPage = pageType.NOT_FETCHING_LOCATION;
             } else {
-                if (mRequestingLocationUpdates) {
-                    if (mWillItBeFirstSpotOfARoute)
-                        currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
-                    else {
-                        currentPage = pageType.WILL_BE_REGULAR_SPOT;
-                    }
+                if (mWillItBeFirstSpotOfARoute)
+                    currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
+                else {
+                    currentPage = pageType.WILL_BE_REGULAR_SPOT;
                 }
             }
 
@@ -255,41 +257,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     /**
      * Represents a geographical location.
      */
-    protected Location mCurrentLocation;
     boolean wasFirstLocationReceived = false;
 
     private void enableLocation(boolean enabled) {
-        if (enabled) {
-            // If we have the last location of the user, we can move the camera to that position.
-            Location lastLocation = locationServices.getLastLocation();
-            if (lastLocation != null) {
-                mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation), 16));
-            }
-
-            locationServices.addLocationListener(new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    if (location != null) {
-                        mCurrentLocation = location;
-
-                        if (!wasFirstLocationReceived) {
-                            updateUISaveButtons();
-                            wasFirstLocationReceived = true;
-                        } else {
-                            // Move the map camera to where the user location is and then remove the
-                            // listener so the camera isn't constantly updating when the user location
-                            // changes. When the user disables and then enables the location again, this
-                            // listener is registered again and will adjust the camera once again.
-                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location), 16));
-                            locationServices.removeLocationListener(this);
-                        }
-                    }
-                }
-            });
-            //fabLocateUser.setImageResource(R.drawable.ic_location_disabled_24dp);
-        } else {
-            //fabLocateUser.setImageResource(R.drawable.ic_my_location_24dp);
-        }
         // Enable or disable the location layer on the map
         mapboxMap.setMyLocationEnabled(enabled);
         mRequestingLocationUpdates = enabled;
@@ -302,8 +272,25 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                locationServices.addLocationListener(new LocationListener() {
+                    @Override
+                    public void onLocationChanged(Location location) {
+                        if (location != null) {
+                            if (!wasFirstLocationReceived) {
+                                updateUISaveButtons();
+                                wasFirstLocationReceived = true;
+                            }
+
+                            // Move the map camera to where the user location is and then remove the
+                            // listener so the camera isn't constantly updating when the user location
+                            // changes. When the user disables and then enables the location again, this
+                            // listener is registered again and will adjust the camera once again.
+                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location), 16));
+                            locationServices.removeLocationListener(this);
+                        }
+                    }
+                });
                 enableLocation(true);
-                updateUISaveButtons();
             }
         }
     }
@@ -346,6 +333,118 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
+        if (locationServices.areLocationPermissionsGranted())
+            enableLocation(true);
+
+
+    /*    mapboxMap.setInfoWindowAdapter(new MapboxMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(@NonNull Marker marker) {
+
+                // The info window layout is created dynamically, parent is the info window
+                // container
+                LinearLayout parent = new LinearLayout(MapViewActivity.this);
+                parent.setLayoutParams(new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                parent.setOrientation(LinearLayout.VERTICAL);
+
+                // Depending on the marker title, the correct image source is used. If you
+                // have many markers using different images, extending Marker and
+                // baseMarkerOptions, adding additional options such as the image, might be
+                // a better choice.
+                ImageView countryFlagImage = new ImageView(MapViewActivity.this);
+                 /switch (marker.getTitle()) {
+                    case "spain":
+                        countryFlagImage.setImageDrawable(ContextCompat.getDrawable(
+                                MapViewActivity.this, R.drawable.flag_of_spain));
+                        break;
+                    case "egypt":
+                        countryFlagImage.setImageDrawable(ContextCompat.getDrawable(
+                                MapViewActivity.this, R.drawable.flag_of_egypt));
+                        break;
+                    default:
+                        // By default all markers without a matching title will use the
+                        // Germany flag
+                        countryFlagImage.setImageDrawable(ContextCompat.getDrawable(
+                                MapViewActivity.this, R.drawable.flag_of_germany));
+                        break;
+                }/
+
+                // Set the size of the image
+                countryFlagImage.setLayoutParams(new android.view.ViewGroup.LayoutParams(150, 100));
+
+                TextView tx = new TextView(MapViewActivity.this);
+                tx.setText(marker.getTitle());
+                parent.addView(tx);
+
+                TextView tx2 = new TextView(MapViewActivity.this);
+                tx2.setText(marker.getSnippet());
+                parent.addView(tx2);
+
+                // add the image view to the parent layout
+                parent.addView(countryFlagImage);
+
+
+                return parent;
+            }
+        });
+        */
+        this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
+            @Override
+            public boolean onInfoWindowClick(@NonNull Marker marker) {
+               /* Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+
+                //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+                if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
+                        mCurrentWaitingSpot.getIsWaitingForARide()) {
+                    if (mCurrentWaitingSpot.getId() == spot.getId())
+                        spot.setAttemptResult(null);
+                    else {
+                        Toast.makeText(getBaseContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+                }
+
+                Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+                //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
+                intent.putExtra("Spot", spot);
+                startActivityForResult(intent, 1);
+                return true;
+           */
+                ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
+                Spot spot = null;
+                for (Spot spot2 :
+                        spotList) {
+                    if (spot2.getId().toString() == myMarker.getTag()) {
+                        spot = spot2;
+                        break;
+                    }
+                }
+
+                if (spot != null) {
+                    Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+
+                    //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+                    if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
+                            mCurrentWaitingSpot.getIsWaitingForARide()) {
+                        if (mCurrentWaitingSpot.getId() == spot.getId())
+                            spot.setAttemptResult(null);
+                        else {
+                            Toast.makeText(getBaseContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
+                            return true;
+                        }
+                    }
+
+                    Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+                    //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
+                    intent.putExtra("Spot", spot);
+                    startActivityForResult(intent, 1);
+                }
+
+                return true;
+            }
+        });
+
         /*this.mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(@NonNull Marker marker) {
@@ -354,12 +453,17 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
         });*/
 
-        showLocation();
+       /* // If we have the last location of the user, we can move the camera to that position.
+        Location lastLocation = locationServices.getLastLocation();
+        if (lastLocation != null)
+            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation), 16));*/
 
         //Load polylines
-        //todo: make spotListChanged be called when list is changed!
         new DrawAnnotations().execute();
+        isMapReady = true;
     }
+
+    boolean isMapReady = false;
 
 
     @NonNull
@@ -416,12 +520,21 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         super.onResume();
         mapView.onResume();
 
+        //TODO: Find out why the drawable vector aren't found
+      /*
+        IconFactory iconFactory = IconFactory.getInstance(getBaseContext());
+        Drawable iconDrawable = ContextCompat.getDrawable(getBaseContext(), R.drawable.ic_break_spot_icon);
+         if(iconDrawable!=null)
+             icon = iconFactory.fromDrawable(iconDrawable);*/
+
         loadValues();
         updateUISaveButtons();
 
-        new DrawAnnotations().execute();
+        if (isMapReady)
+            new DrawAnnotations().execute();
     }
 
+    Icon icon = null;
     List<Spot> spotList = new ArrayList<Spot>();
 
     public void setValues(final List<Spot> list) {
@@ -483,19 +596,29 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             for (Marker marker : mapboxMap.getMarkers()) {
                 builder.include(marker.getPosition());
             }
-            if (mCurrentLocation != null) {
-                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), 13), 5000);
+
+            Location mCurrentLocation = locationServices.getLastLocation();
+
+            //Add current location to camera bounds
+            if (mapboxMap.getMarkers().size() == 0) {
+                if (mCurrentLocation != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(locationServices.getLastLocation()), 16));
+            } else {
+                if (mCurrentLocation != null)
+                    builder.include(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+
+                LatLngBounds bounds = builder.build();
+                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100), 5000);
             }
-            LatLngBounds bounds = builder.build();
-            mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100), 5000);
         }
     }
 
-    private class DrawAnnotations extends AsyncTask<Void, Void, List<List<MarkerViewOptions>>> {
+    private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
+
         @Override
-        protected List<List<MarkerViewOptions>> doInBackground(Void... voids) {
-            List<List<MarkerViewOptions>> trips = new ArrayList<>();
-            ArrayList<MarkerViewOptions> spots = new ArrayList<>();
+        protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
+            List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
+            ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
 
             //The spots are ordered from the last saved ones to the first saved ones, so we need to
             // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
@@ -528,8 +651,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                     //markerViewOptions.icon(waitingIcon);
                 } else {
-                    //TODO: make this check in a not hardcoded way!
-                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == 2 && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide())) {
+                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK &&
+                            (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide())) {
                         //THIS IS A BREAK SPOT
 
                         snippet = "(BREAK)";
@@ -540,18 +663,42 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         title = USER_CURRENT_LOCATION_TITLE;
                         iconAlpha = (float) 0.5;
                         //markerViewOptions.icon(currentLocationIcon);
+                    } else {
+                        snippet = "(" + spot.getWaitingTime() + "min)";
                     }
                 }
 
                 snippet = dateTimeToString(spot.getStartDateTime()) + " - " + snippet + " " + spot.getNote();
 
+                Icon icon = null;
+                // Create an Icon object for the marker to use
+                IconFactory iconFactory = IconFactory.getInstance(MapViewActivity.this);
+                if (spot.getIsWaitingForARide()) {
+                    // Drawable iconDrawable = ContextCompat.getDrawable(MapViewActivity.this, R.drawable.default_marker);
+                    // icon = iconFactory.fromDrawable(iconDrawable);
+                } else if (spot.getIsDestination()) {
+                    Drawable iconDrawable = ContextCompat.getDrawable(MapViewActivity.this, R.drawable.ic_arrival_icon);
+                    icon = iconFactory.fromDrawable(iconDrawable);
+                } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
+//                    Drawable iconDrawable = ContextCompat.getDrawable(MapViewActivity.this, R.drawable.ic_break_spot_icon);
+                    // icon = iconFactory.fromDrawable(iconDrawable);
+                } else {
+                    //Drawable iconDrawable = ContextCompat.getDrawable(MapViewActivity.this, R.drawable.ic_place_black_24dp);
+                    //icon = iconFactory.fromDrawable(iconDrawable);
+                }
+
 
                 // Customize map with markers, polylines, etc.
-                MarkerViewOptions markerViewOptions = new MarkerViewOptions()
+                ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
                         .position(new LatLng(spot.getLatitude(), spot.getLongitude()))
                         .title(title)
                         .snippet(snippet)
-                        .alpha(iconAlpha);
+                        .tag(spot.getId().toString());
+                //.icon(icon);
+                //.alpha(iconAlpha);
+
+                if (icon != null)
+                    markerViewOptions.icon(icon);
 
                 spots.add(markerViewOptions);
 
@@ -567,27 +714,26 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         String USER_CURRENT_LOCATION_TITLE = "You are here";
 
         @Override
-        protected void onPostExecute(List<List<MarkerViewOptions>> trips) {
+        protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
             super.onPostExecute(trips);
             mapboxMap.clear();
 
-            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
             for (int lc = 0; lc < trips.size(); lc++) {
-                List<MarkerViewOptions> spots = trips.get(lc);
+                List<ExtendedMarkerViewOptions> spots = trips.get(lc);
 
                 PolylineOptions line = new PolylineOptions()
                         .width(2)
                         .color(Color.parseColor(getPolylineColor(lc)));
 
-                for (MarkerViewOptions spot : spots) {
+                for (BaseMarkerOptions spot : spots) {
+
+                    //DrawableCompat.setTint(iconDrawable, Color.WHITE);
                     //Add marker to map
                     mapboxMap.addMarker(spot);
 
                     // Draw polyline on map
-                    if (spot.getTitle() != USER_CURRENT_LOCATION_TITLE)
-                        line.add(spot.getPosition());
-
-                    boundsBuilder.include(spot.getPosition());
+                    if (spot.getMarker().getTitle() != USER_CURRENT_LOCATION_TITLE)
+                        line.add(spot.getMarker().getPosition());
                 }
 
                 if (spotList.size() > 1) {
@@ -596,13 +742,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 }
             }
 
-            if (spotList.size() > 1) {
-                LatLngBounds latLngBounds = boundsBuilder.build();
-                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 100), 5000);
-            } else {
-                if (spotList.size() == 1)
-                    mapboxMap.easeCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(spotList.get(0).getLatitude(), spotList.get(0).getLongitude()), 13), 5000);
-            }
+            zoomOutToFitAllMarkers();
         }
     }
 
@@ -623,39 +763,33 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
      * updates have already been requested.
      */
     public void saveSpotButtonHandler(boolean isDestination) {
-        if (!mRequestingLocationUpdates) {
-            Toast.makeText(getBaseContext(), getResources().getString(R.string.save_spot_location_disabled_message),
-                    Toast.LENGTH_SHORT).show();
+        Spot spot = null;
+        if (!mIsWaitingForARide) {
+            spot = new Spot();
+            spot.setIsDestination(isDestination);
+            Location mCurrentLocation = locationServices.getLastLocation();
+            spot.setLatitude(mCurrentLocation.getLatitude());
+            spot.setLongitude(mCurrentLocation.getLongitude());
+            spot.setAccuracy(mCurrentLocation.getAccuracy());
+            spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
+            Log.i(TAG, "Save spot button handler: a new spot is being created.");
         } else {
-            Spot spot = null;
-            if (!mIsWaitingForARide) {
-                spot = new Spot();
-                spot.setIsDestination(isDestination);
-                spot.setLatitude(mCurrentLocation.getLatitude());
-                spot.setLongitude(mCurrentLocation.getLongitude());
-                spot.setAccuracy(mCurrentLocation.getAccuracy());
-                spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
-                Log.i(TAG, "Save spot button handler: a new spot is being created.");
-            } else {
-                spot = mCurrentWaitingSpot;
-                Log.i(TAG, "Save spot button handler: a spot is being edited.");
-            }
-
-            Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-            intent.putExtra("Spot", spot);
-            startActivityForResult(intent, 1);
+            spot = mCurrentWaitingSpot;
+            Log.i(TAG, "Save spot button handler: a spot is being edited.");
         }
+
+        Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+        intent.putExtra("Spot", spot);
+        startActivityForResult(intent, 1);
     }
 
     public void gotARideButtonHandler() {
-        //TODO: make this in a not hardcoded way!
-        mCurrentWaitingSpot.setAttemptResult(1);
+        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
         evaluateSpotButtonHandler();
     }
 
     public void tookABreakButtonHandler() {
-        //TODO: make this in a not hardcoded way!
-        mCurrentWaitingSpot.setAttemptResult(2);
+        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
         evaluateSpotButtonHandler();
     }
 
