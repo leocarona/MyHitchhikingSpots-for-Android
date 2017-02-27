@@ -310,6 +310,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
         }
 
+        //Todo: show Save Spot button even when not fetching location
         switch (currentPage) {
             case NOT_FETCHING_LOCATION:
             default:
@@ -349,17 +350,17 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
-            if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()
+           /* if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()
                     || !parentActivity.mRequestingLocationUpdates) {
                 currentPage = MapViewActivity.pageType.NOT_FETCHING_LOCATION;
             } else {
-                if (parentActivity.mRequestingLocationUpdates) {
-                    if (mWillItBeFirstSpotOfARoute)
-                        currentPage = MapViewActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
-                    else
-                        currentPage = MapViewActivity.pageType.WILL_BE_REGULAR_SPOT;
-                }
-            }
+                if (parentActivity.mRequestingLocationUpdates) {*/
+            if (mWillItBeFirstSpotOfARoute)
+                currentPage = MapViewActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
+            else
+                currentPage = MapViewActivity.pageType.WILL_BE_REGULAR_SPOT;
+            //    }
+            // }
 
 
         } else {

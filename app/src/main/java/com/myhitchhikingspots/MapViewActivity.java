@@ -236,16 +236,16 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
-            if (!locationServices.areLocationPermissionsGranted() || locationServices.getLastLocation() == null
+            /*if (!locationServices.areLocationPermissionsGranted() || locationServices.getLastLocation() == null
                     || !mRequestingLocationUpdates) {
                 currentPage = pageType.NOT_FETCHING_LOCATION;
-            } else {
-                if (mWillItBeFirstSpotOfARoute)
-                    currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
-                else {
-                    currentPage = pageType.WILL_BE_REGULAR_SPOT;
-                }
+            } else {*/
+            if (mWillItBeFirstSpotOfARoute)
+                currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
+            else {
+                currentPage = pageType.WILL_BE_REGULAR_SPOT;
             }
+            //}
 
         } else {
             currentPage = pageType.WAITING_FOR_A_RIDE;
