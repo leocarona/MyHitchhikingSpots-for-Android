@@ -89,6 +89,9 @@
     <string name="title_activity_main">@string/app_name</string>
     <string name="section_format">Hello World from section: %1$d</string>
 
+    <string name="confirm_back_button_click_dialog_title">Navigate back</string>
+    <string name="confirm_back_button_click_dialog_message">Are you sure you want to leave this page without saving your changes?</string>
+
     <string name="main_activity_you_tab">you</string>
     <string name="main_activity_list_tab">list</string>
     <string name="spot_list_item_arrival_label">arrival</string>
