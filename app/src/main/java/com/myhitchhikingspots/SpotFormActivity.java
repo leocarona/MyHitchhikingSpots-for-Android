@@ -403,7 +403,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         */
         // Enable or disable the location layer on the map
         mapboxMap.setMyLocationEnabled(enabled);
-        mRequestingLocationUpdates = enabled;
     }
 
     private void addPinToCenter() {
@@ -414,8 +413,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         dropPinView.setLayoutParams(params);
         mapView.addView(dropPinView);
     }
-
-    private boolean mRequestingLocationUpdates;
 
     @Override
     public void onRequestPermissionsResult(
@@ -589,11 +586,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                 mFetchAddressButton.setVisibility(View.GONE);
 
-                //TODO: make this check in a not hardcoded way!
-                if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount()) {
+
+                if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() != Constants.ATTEMPT_RESULT_UNKNOWN
+                        && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount()) {
                     attempt_results_spinner.setSelection(mCurrentSpot.getAttemptResult());
 
-                    //TODO: make this check in a not hardcoded way!
                     switch (mCurrentSpot.getAttemptResult()) {
                         case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                             form_title.setText(getResources().getString(R.string.got_a_ride_button_text));
@@ -649,8 +646,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void locationAddressButtonHandler(View v) {
-        //TODO: copy a string with format "address (lat, lng)" to the memory so that the user can paste it wherever he wants
-
         String strToCopy = spotLocationToString(mCurrentSpot).trim();
 
         if ((strToCopy != null && !strToCopy.isEmpty()))
@@ -673,13 +668,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
             mCurrentSpot.setStartDateTime(dateTime.toDate());
 
-
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
-                LatLng current = getPinPosition();
-                if (current != null) {
-                    mCurrentSpot.setLatitude(current.getLatitude());
-                    mCurrentSpot.setLongitude(current.getLongitude());
+                LatLng selectedLocation = getPinPosition();
+
+                if (selectedLocation == null || (selectedLocation.getLatitude() == 0.0 && selectedLocation.getLongitude() == 0.0)) {
+                    Toast.makeText(getApplicationContext(), "A location must be selected in order to save a spot.", Toast.LENGTH_LONG).show();
+                    return;
                 }
+
+                mCurrentSpot.setLatitude(selectedLocation.getLatitude());
+                mCurrentSpot.setLongitude(selectedLocation.getLongitude());
 
                 mCurrentSpot.setNote(note_edittext.getText().toString());
 

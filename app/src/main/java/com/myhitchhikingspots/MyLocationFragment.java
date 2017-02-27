@@ -207,39 +207,32 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      * updates have already been requested.
      */
     public void saveSpotButtonHandler(boolean isDestination) {
-        if (!parentActivity.mRequestingLocationUpdates) {
-            Toast.makeText(getActivity(), getResources().getString(R.string.save_spot_location_disabled_message),
-                    Toast.LENGTH_SHORT).show();
+        Spot spot = null;
+        if (!mIsWaitingForARide) {
+            spot = new Spot();
+            spot.setIsDestination(isDestination);
+            spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
+            spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());
+            spot.setAccuracy(parentActivity.mCurrentLocation.getAccuracy());
+            spot.setHasAccuracy(parentActivity.mCurrentLocation.hasAccuracy());
+            Log.i(TAG, "Save spot button handler: a new spot is being created.");
         } else {
-            Spot spot = null;
-            if (!mIsWaitingForARide) {
-                spot = new Spot();
-                spot.setIsDestination(isDestination);
-                spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
-                spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());
-                spot.setAccuracy(parentActivity.mCurrentLocation.getAccuracy());
-                spot.setHasAccuracy(parentActivity.mCurrentLocation.hasAccuracy());
-                Log.i(TAG, "Save spot button handler: a new spot is being created.");
-            } else {
-                spot = mCurrentWaitingSpot;
-                Log.i(TAG, "Save spot button handler: a spot is being edited.");
-            }
-
-            Intent intent = new Intent(getContext(), SpotFormActivity.class);
-            intent.putExtra("Spot", spot);
-            startActivityForResult(intent, 1);
+            spot = mCurrentWaitingSpot;
+            Log.i(TAG, "Save spot button handler: a spot is being edited.");
         }
+
+        Intent intent = new Intent(getContext(), SpotFormActivity.class);
+        intent.putExtra("Spot", spot);
+        startActivityForResult(intent, 1);
     }
 
     public void gotARideButtonHandler() {
-        //TODO: make this in a not hardcoded way!
-        mCurrentWaitingSpot.setAttemptResult(1);
+        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
         evaluateSpotButtonHandler();
     }
 
     public void tookABreakButtonHandler() {
-        //TODO: make this in a not hardcoded way!
-        mCurrentWaitingSpot.setAttemptResult(2);
+        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
         evaluateSpotButtonHandler();
     }
 
