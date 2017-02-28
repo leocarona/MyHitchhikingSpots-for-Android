@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -14,6 +15,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -26,7 +29,6 @@ import com.mapbox.mapboxsdk.annotations.BaseMarkerOptions;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -144,13 +146,53 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         // object or in the same activity which contains the mapview.
         MapboxAccountManager.start(getApplicationContext(), getResources().getString(R.string.mapBoxKey));
 
-
         mapView = (MapView) findViewById(R.id.mapview2);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
+        loadMarkerIcons();
+
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
+    }
+
+    private void loadMarkerIcons() {
+        Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
+        IconFactory iconFactory = IconFactory.getInstance(MapViewActivity.this);
+        //DrawableCompat.setTint(iconDrawable, Color.WHITE);
+        FloatingActionButton img = new FloatingActionButton(context);
+
+        try {
+            //Got a ride at this spot
+            img.setImageResource(R.drawable.ic_marker_got_a_ride_24dp);
+            Drawable d1 = img.getDrawable();
+            ic_got_a_ride_spot = iconFactory.fromDrawable(d1);
+        } catch (Exception ex) {
+        }
+
+        try {
+            //Took a break at this spot
+            img.setImageResource(R.drawable.ic_break_spot_icon);
+            Drawable d1 = img.getDrawable();
+            ic_took_a_break_spot = iconFactory.fromDrawable(d1);
+        } catch (Exception ex) {
+        }
+
+        try {
+            //Is waiting at this spot
+            img.setImageResource(R.drawable.ic_marker_waiting_for_a_ride_24dp);
+            Drawable d1 = img.getDrawable();
+            ic_waiting_spot = iconFactory.fromDrawable(d1);
+        } catch (Exception ex) {
+        }
+
+        try {
+            //Arrival spot
+            img.setImageResource(R.drawable.ic_arrival_icon);
+            Drawable d1 = img.getDrawable();
+            ic_arrival_spot = iconFactory.fromDrawable(d1);
+        } catch (Exception ex) {
+        }
     }
 
     Spot mCurrentWaitingSpot;
@@ -218,9 +260,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 fabMainActionButton.setBackgroundColor(getResources().getColor(R.color.ic_got_a_ride_color));
                 fabSecondaryActionButton.setImageResource(R.drawable.ic_break_spot_icon);
                 fabSecondaryActionButton.setBackgroundColor(getResources().getColor(R.color.ic_break_color));
-
-                //fabLocateUser.setVisibility(View.GONE);
-                //mWaitingToGetCurrentLocationTextView.setVisibility(View.INVISIBLE);
                 fabMainActionButton.setVisibility(View.VISIBLE);
                 fabSecondaryActionButton.setVisibility(View.VISIBLE);
                 break;
@@ -336,81 +375,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         if (locationServices.areLocationPermissionsGranted())
             enableLocation(true);
 
-
-    /*    mapboxMap.setInfoWindowAdapter(new MapboxMap.InfoWindowAdapter() {
-            @Override
-            public View getInfoWindow(@NonNull Marker marker) {
-
-                // The info window layout is created dynamically, parent is the info window
-                // container
-                LinearLayout parent = new LinearLayout(MapViewActivity.this);
-                parent.setLayoutParams(new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                parent.setOrientation(LinearLayout.VERTICAL);
-
-                // Depending on the marker title, the correct image source is used. If you
-                // have many markers using different images, extending Marker and
-                // baseMarkerOptions, adding additional options such as the image, might be
-                // a better choice.
-                ImageView countryFlagImage = new ImageView(MapViewActivity.this);
-                 /switch (marker.getTitle()) {
-                    case "spain":
-                        countryFlagImage.setImageDrawable(ContextCompat.getDrawable(
-                                MapViewActivity.this, R.drawable.flag_of_spain));
-                        break;
-                    case "egypt":
-                        countryFlagImage.setImageDrawable(ContextCompat.getDrawable(
-                                MapViewActivity.this, R.drawable.flag_of_egypt));
-                        break;
-                    default:
-                        // By default all markers without a matching title will use the
-                        // Germany flag
-                        countryFlagImage.setImageDrawable(ContextCompat.getDrawable(
-                                MapViewActivity.this, R.drawable.flag_of_germany));
-                        break;
-                }/
-
-                // Set the size of the image
-                countryFlagImage.setLayoutParams(new android.view.ViewGroup.LayoutParams(150, 100));
-
-                TextView tx = new TextView(MapViewActivity.this);
-                tx.setText(marker.getTitle());
-                parent.addView(tx);
-
-                TextView tx2 = new TextView(MapViewActivity.this);
-                tx2.setText(marker.getSnippet());
-                parent.addView(tx2);
-
-                // add the image view to the parent layout
-                parent.addView(countryFlagImage);
-
-
-                return parent;
-            }
-        });
-        */
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
             public boolean onInfoWindowClick(@NonNull Marker marker) {
-               /* Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
-
-                //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-                if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
-                        mCurrentWaitingSpot.getIsWaitingForARide()) {
-                    if (mCurrentWaitingSpot.getId() == spot.getId())
-                        spot.setAttemptResult(null);
-                    else {
-                        Toast.makeText(getBaseContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
-                        return false;
-                    }
-                }
-
-                Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-                //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-                intent.putExtra("Spot", spot);
-                startActivityForResult(intent, 1);
-                return true;
-           */
                 ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
                 Spot spot = null;
                 for (Spot spot2 :
@@ -444,19 +411,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 return true;
             }
         });
-
-        /*this.mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(@NonNull Marker marker) {
-                Toast.makeText(getBaseContext(), marker.getTitle(), Toast.LENGTH_LONG).show();
-                return false;
-            }
-        });*/
-
-       /* // If we have the last location of the user, we can move the camera to that position.
-        Location lastLocation = locationServices.getLastLocation();
-        if (lastLocation != null)
-            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation), 16));*/
 
         //Load polylines
         new DrawAnnotations().execute();
@@ -520,13 +474,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         super.onResume();
         mapView.onResume();
 
-        //TODO: Find out why the drawable vector aren't found
-      /*
-        IconFactory iconFactory = IconFactory.getInstance(getBaseContext());
-        Drawable iconDrawable = ContextCompat.getDrawable(getBaseContext(), R.drawable.ic_break_spot_icon);
-         if(iconDrawable!=null)
-             icon = iconFactory.fromDrawable(iconDrawable);*/
-
         loadValues();
         updateUISaveButtons();
 
@@ -534,7 +481,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             new DrawAnnotations().execute();
     }
 
-    Icon icon = null;
+    Icon ic_got_a_ride_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     List<Spot> spotList = new ArrayList<Spot>();
 
     public void setValues(final List<Spot> list) {
@@ -626,67 +573,34 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 Spot spot = spotList.get(i);
                 String title = getString(spot);
                 String snippet = "";
-                float iconAlpha = (float) 1.0;
-
-                     /*
-                        // Create an Icon object for the marker to use
-                        IconFactory iconFactory = IconFactory.getInstance(MainActivity.this);
-                        Drawable iconDrawable = ContextCompat.getDrawable(MainActivity.this, R.drawable.blue_marker);
-                        Icon arrivalIcon = iconFactory.fromDrawable(iconDrawable);
-                        Icon waitingIcon = iconFactory.fromDrawable(iconDrawable);
-                        Icon currentLocationIcon = iconFactory.fromDrawable(iconDrawable);
-                    */
+                Icon icon = null;
 
                 if (spot.getIsDestination() != null && spot.getIsDestination()) {
-                    //ARRIVAL SPOT
+                    //AT THIS SPOT USER HAS ARRIVED TO HIS DESTINATION
 
                     snippet = "(DESTINATION)";
-
-                    //markerViewOptions.icon(arrivalIcon);
+                    icon = ic_arrival_spot;
                 } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
-                    //USER IS WAITING FOR A RIDE
+                    //AT THIS SPOT USER IS WAITING FOR A RIDE
 
                     snippet = "(WAITING)";
-                    iconAlpha = (float) 0.5;
-
-                    //markerViewOptions.icon(waitingIcon);
+                    icon = ic_waiting_spot;
                 } else {
-                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK &&
-                            (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide())) {
-                        //THIS IS A BREAK SPOT
+                    if (spot.getAttemptResult() != null)
+                        if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
+                            //AT THIS SPOT USER TOOK A BREAK SPOT
 
-                        snippet = "(BREAK)";
-                        iconAlpha = (float) 0.5;
-                    } else if (spot.getId() == Constants.USER_CURRENT_LOCATION_SPOTLIST_ID) {
-                        //THIS IS THE USER CURRENT LOCATION (not saved)
+                            snippet = "(BREAK)";
+                            icon = ic_took_a_break_spot;
+                        } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                            //AT THIS SPOT USER GOT A RIDE
 
-                        title = USER_CURRENT_LOCATION_TITLE;
-                        iconAlpha = (float) 0.5;
-                        //markerViewOptions.icon(currentLocationIcon);
-                    } else {
-                        snippet = "(" + spot.getWaitingTime() + "min)";
-                    }
+                            snippet = "(" + spot.getWaitingTime() + "min)";
+                            icon = ic_got_a_ride_spot;
+                        }
                 }
 
                 snippet = dateTimeToString(spot.getStartDateTime()) + " - " + snippet + " " + spot.getNote();
-
-                Icon icon = null;
-                // Create an Icon object for the marker to use
-                IconFactory iconFactory = IconFactory.getInstance(MapViewActivity.this);
-                if (spot.getIsWaitingForARide()) {
-                    // Drawable iconDrawable = ContextCompat.getDrawable(MapViewActivity.this, R.drawable.default_marker);
-                    // icon = iconFactory.fromDrawable(iconDrawable);
-                } else if (spot.getIsDestination()) {
-                    Drawable iconDrawable = ContextCompat.getDrawable(MapViewActivity.this, R.drawable.ic_arrival_icon);
-                    icon = iconFactory.fromDrawable(iconDrawable);
-                } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
-//                    Drawable iconDrawable = ContextCompat.getDrawable(MapViewActivity.this, R.drawable.ic_break_spot_icon);
-                    // icon = iconFactory.fromDrawable(iconDrawable);
-                } else {
-                    //Drawable iconDrawable = ContextCompat.getDrawable(MapViewActivity.this, R.drawable.ic_place_black_24dp);
-                    //icon = iconFactory.fromDrawable(iconDrawable);
-                }
-
 
                 // Customize map with markers, polylines, etc.
                 ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
@@ -694,9 +608,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         .title(title)
                         .snippet(snippet)
                         .tag(spot.getId().toString());
-                //.icon(icon);
-                //.alpha(iconAlpha);
 
+                //TODO: find out how to place the icons beter - currently the center of the icon is the spot position but they don't look correct with pins
                 if (icon != null)
                     markerViewOptions.icon(icon);
 
@@ -710,8 +623,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
             return trips;
         }
-
-        String USER_CURRENT_LOCATION_TITLE = "You are here";
 
         @Override
         protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
@@ -727,13 +638,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                 for (BaseMarkerOptions spot : spots) {
 
-                    //DrawableCompat.setTint(iconDrawable, Color.WHITE);
                     //Add marker to map
                     mapboxMap.addMarker(spot);
 
-                    // Draw polyline on map
-                    if (spot.getMarker().getTitle() != USER_CURRENT_LOCATION_TITLE)
-                        line.add(spot.getMarker().getPosition());
+                    //Add polyline connecting this marker
+                    line.add(spot.getMarker().getPosition());
                 }
 
                 if (spotList.size() > 1) {

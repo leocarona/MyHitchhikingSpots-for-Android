@@ -3,20 +3,24 @@ package com.myhitchhikingspots;
 import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.media.Rating;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -38,6 +42,7 @@ import android.widget.Toast;
 
 
 import com.mapbox.mapboxsdk.MapboxAccountManager;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -171,19 +176,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         updateUIWidgets();
         //----END: Part related to reverse geocoding
 
-        //----BEGIN: Map related stuff ----
-        locationServices = com.mapbox.mapboxsdk.location.LocationServices.getLocationServices(SpotFormActivity.this);
-
-        // Mapbox access token is configured here. This needs to be called either in your application
-        // object or in the same activity which contains the mapview.
-        MapboxAccountManager.start(getApplicationContext(), getResources().getString(R.string.mapBoxKey));
-
-
-        mapView = (MapView) findViewById(R.id.mapview2);
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
-
-        //----END: Map related stuff ----
 
         hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
         hitchability_ratingbar.setStepSize(1);
@@ -220,6 +212,23 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.generall_error_message), Toast.LENGTH_LONG).show();
         }
 
+        if (mFormType != FormType.Evaluate) {
+            //----BEGIN: Map related stuff ----
+            locationServices = com.mapbox.mapboxsdk.location.LocationServices.getLocationServices(SpotFormActivity.this);
+
+            // Mapbox access token is configured here. This needs to be called either in your application
+            // object or in the same activity which contains the mapview.
+            MapboxAccountManager.start(getApplicationContext(), getResources().getString(R.string.mapBoxKey));
+
+
+            mapView = (MapView) findViewById(R.id.mapview2);
+            mapView.onCreate(savedInstanceState);
+            mapView.getMapAsync(this);
+
+            useMap = true;
+            //----END: Map related stuff ----
+        }
+
         updateUI();
 
         super.onCreate(savedInstanceState);
@@ -232,13 +241,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
-        /*this.mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(@NonNull Marker marker) {
-                Toast.makeText(getBaseContext(), marker.getTitle(), Toast.LENGTH_LONG).show();
-                return false;
-            }
-        });*/
 
         if (mCurrentSpot != null && mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
             mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude()), 16));
@@ -279,18 +281,25 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     locationWasManuallyChanged = true;
                 }
 
-                fetchAddressButtonHandler(null);
+                //fetchAddressButtonHandler(null);
             }
         });
     }
 
     private LatLng getPinPosition() {
+        if (!useMap)
+            return null;
+
         //Copied from: https://github.com/mapbox/mapbox-gl-native/blob/e2da260a8ee0dd0b213ec0e30db2c6e3188c7c9b/platform/android/MapboxGLAndroidSDKTestApp/src/main/java/com/mapbox/mapboxsdk/testapp/GeocoderActivity.java
         LatLng centerLatLng = new LatLng(mapboxMap.getProjection().fromScreenLocation(getCenterPoint()));
+
         return centerLatLng;
     }
 
     private PointF getCenterPoint() {
+        if (!useMap)
+            return null;
+
         final int width = mapView.getMeasuredWidth();
         final int height = mapView.getMeasuredHeight();
 
@@ -300,27 +309,34 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     @Override
     public void onResume() {
         super.onResume();
-        mapView.onResume();
+
+        if (useMap)
+            mapView.onResume();
 
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mapView.onPause();
+        if (useMap)
+            mapView.onPause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mapView.onDestroy();
+        if (useMap)
+            mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        mapView.onLowMemory();
+        if (useMap)
+            mapView.onLowMemory();
     }
+
+    private boolean useMap = false;
 
     @Override
     public void onBackPressed() {
@@ -364,51 +380,23 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      */
 
     private void enableLocation(boolean enabled) {
-
-
-        /*if (enabled) {
-
-            // If we have the last location of the user, we can move the camera to that position.
-
-            Location lastLocation = locationServices.getLastLocation();
-            if (lastLocation != null) {
-                mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation), 16));
-            }
-
-            locationServices.addLocationListener(new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    if (location != null) {
-                        mCurrentLocation = location;
-
-                        if (!wasFirstLocationReceived) {
-                            //updateUISaveButtons();
-                            wasFirstLocationReceived = true;
-                        } else {
-                            // Move the map camera to where the user location is and then remove the
-                            // listener so the camera isn't constantly updating when the user location
-                            // changes. When the user disables and then enables the location again, this
-                            // listener is registered again and will adjust the camera once again.
-                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location), 16));
-                            locationServices.removeLocationListener(this);
-                        }
-                    }
-                }
-            });
-
-            //fabLocateUser.setImageResource(R.drawable.ic_location_disabled_24dp);
-        } else {
-            //fabLocateUser.setImageResource(R.drawable.ic_my_location_24dp);
-        }
-        */
         // Enable or disable the location layer on the map
         mapboxMap.setMyLocationEnabled(enabled);
     }
 
     private void addPinToCenter() {
+        if (!useMap)
+            return;
+
+        Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
+        IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
+        //DrawableCompat.setTint(iconDrawable, Color.WHITE);
+        FloatingActionButton img = new FloatingActionButton(context);
+        img.setImageResource(R.drawable.ic_target);
+
+
         dropPinView = new ImageView(this);
-        //TODO: Find a better icon for dropPinView
-        dropPinView.setImageResource(android.R.drawable.ic_input_add);//ic_droppin_24dp
+        dropPinView.setImageDrawable(img.getDrawable());
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
         dropPinView.setLayoutParams(params);
         mapView.addView(dropPinView);
@@ -669,7 +657,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mCurrentSpot.setStartDateTime(dateTime.toDate());
 
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
-                LatLng selectedLocation = getPinPosition();
+                LatLng selectedLocation = mapboxMap.getCameraPosition().target;
 
                 if (selectedLocation == null || (selectedLocation.getLatitude() == 0.0 && selectedLocation.getLongitude() == 0.0)) {
                     Toast.makeText(getApplicationContext(), "A location must be selected in order to save a spot.", Toast.LENGTH_LONG).show();
@@ -828,7 +816,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         //----END: Part related to reverse geocoding
 
 
-        mapView.onSaveInstanceState(savedInstanceState);
+        if (useMap)
+            mapView.onSaveInstanceState(savedInstanceState);
 
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -842,10 +831,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      * GoogleApiClient is connected.
      */
     public void fetchAddressButtonHandler(View view) {
-        if (mapboxMap == null)
+        if (!useMap || mapboxMap == null)
             return;
 
-        LatLng pinPosition = getPinPosition();
+        LatLng pinPosition = mapboxMap.getCameraPosition().target;
 
         // We only start the service to fetch the address if GoogleApiClient is connected.
         if (pinPosition == null)
