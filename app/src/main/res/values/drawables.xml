@@ -12,9 +12,14 @@
     <item name="ic_got_a_ride_color" type="color">#ff99cc00</item>
     <item name="wallet_link_text_light" type="color">#0000ee</item>
 
+    <!--TODO: should replace png images for vector drawables-->
     <item name="ic_arrival_icon" type="drawable">@android:drawable/ic_menu_myplaces</item>
     <item name="ic_regular_spot_icon" type="drawable">@android:drawable/ic_media_play</item>
     <item name="ic_got_a_ride_spot_icon" type="drawable">@android:drawable/ic_media_pause</item>
-    <item name="ic_break_spot_icon" type="drawable">@android:drawable/ic_menu_recent_history</item>
+    <item name="ic_break_spot_icon" type="drawable">@drawable/ic_local_cafe_white_24dp</item><!--previous icon used as break spot icon: @android:drawable/ic_menu_recent_history-->
+
+    <item name="ic_waiting_for_a_ride_icon" type="drawable">@drawable/ic_marker_stroked_15</item>
+
+    <item name="ic_target" type="drawable">@drawable/ic_border_inner_black_24dp</item>
 
 </resources>

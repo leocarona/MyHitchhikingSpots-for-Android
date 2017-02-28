@@ -64,8 +64,7 @@ public class RemoteControlReceiver extends BroadcastReceiver {
                 Integer waiting_time = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
 
                 mCurrentSpot.setWaitingTime(waiting_time);
-                //TODO: Do this in a not hardcoded way
-                mCurrentSpot.setAttemptResult(0);
+                mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_UNKNOWN);
                 mCurrentSpot.setIsWaitingForARide(false);
 
                 //Persist on DB

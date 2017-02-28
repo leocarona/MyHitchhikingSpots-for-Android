@@ -24,4 +24,8 @@ public final class Constants {
     //If the user current location is added to the SpotList it should be distinguished from the other saved spots with this ID
     public static final Long USER_CURRENT_LOCATION_SPOTLIST_ID = (long) -1;
 
+    public static final int ATTEMPT_RESULT_UNKNOWN = 0;
+    public static final int ATTEMPT_RESULT_GOT_A_RIDE = 1;
+    public static final int ATTEMPT_RESULT_TOOK_A_BREAK = 2;
+
 }

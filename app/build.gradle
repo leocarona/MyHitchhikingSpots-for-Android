@@ -33,7 +33,7 @@ android {
         generatedDensities = []
 
         // Enabling multidex support.
-        multiDexEnabled false
+        multiDexEnabled true
     }
 
     // Flag to tell aapt to keep the attribute ids around
@@ -75,4 +75,5 @@ dependencies {
     compile 'com.android.support:design:23.2.0'
     compile 'joda-time:joda-time:2.9.2'
     compile 'com.android.support:multidex:1.0.1'
+    //compile 'com.github.clans:fab:1.6.4'
 }

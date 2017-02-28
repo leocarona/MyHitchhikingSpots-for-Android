@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.content.Intent;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
@@ -11,6 +12,7 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -114,13 +116,11 @@ public class MainActivity extends TrackLocationBaseActivity {
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
                 if (action == KeyEvent.ACTION_DOWN) {
-                    //TODO
                     GotARideShortcut();
                 }
                 return true;
             case KeyEvent.KEYCODE_VOLUME_DOWN:
                 if (action == KeyEvent.ACTION_DOWN) {
-                    //TODO
                     GotARideShortcut();
                 }
                 return true;
@@ -148,8 +148,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 Integer waiting_time = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
 
                 mCurrentSpot.setWaitingTime(waiting_time);
-                //TODO: Do this in a not hardcoded way
-                mCurrentSpot.setAttemptResult(1);
+                mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
                 mCurrentSpot.setIsWaitingForARide(false);
 
                 if (mSectionsPagerAdapter != null)
@@ -180,14 +179,14 @@ public class MainActivity extends TrackLocationBaseActivity {
             mSectionsPagerAdapter.loadValues();
     }
 
-   /* @Override
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.master, menu);
         return true;
-    }*/
+    }
 
-    /*
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -197,12 +196,12 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
-*/
 
     protected void updateUILabels() {
         if (mSectionsPagerAdapter != null)
@@ -219,58 +218,6 @@ public class MainActivity extends TrackLocationBaseActivity {
             mSectionsPagerAdapter.updateUISaveButtons();
     }
 
-   /*
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.myhitchhikingspots/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
-
-        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(this.getPackageName(),
-                RemoteControlReceiver.class.getName()));
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.myhitchhikingspots/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mAudioManager.unregisterRemoteControlClient(mRemoteControlClient);
-    // mAudioManager.abandonAudioFocus(mAudioFocusListener);
-
-    }   */
-
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -278,7 +225,6 @@ public class MainActivity extends TrackLocationBaseActivity {
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private MyLocationFragment fragment;
         private SpotListFragment fragment2;
-        private MyMapFragment fragment3;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -301,9 +247,6 @@ public class MainActivity extends TrackLocationBaseActivity {
                 case 1:
                     fragment2 = (SpotListFragment) createdFragment;
                     break;
-                case 2:
-                    fragment3 = (MyMapFragment) createdFragment;
-                    break;
             }
             return createdFragment;
         }
@@ -325,12 +268,6 @@ public class MainActivity extends TrackLocationBaseActivity {
                     frag2.setArguments(args2);
                     frag2.setValues(spotList);
                     return frag2;
-                case 2:
-                    MyMapFragment frag3 = new MyMapFragment();
-                    Bundle args3 = new Bundle();
-                    frag3.setArguments(args3);
-                    frag3.setValues(getSpotListWithCurrentLocation());
-                    return frag3;
             }
             return null;
         }
@@ -340,7 +277,7 @@ public class MainActivity extends TrackLocationBaseActivity {
             List<Spot> newList = new ArrayList<>();
             Spot mCurrentSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
 
-            //As of December 2016, if the user is waiting for a ride we stop fetching his location. So we better don't try to it to the map.
+            //As of December 2016, if the user is waiting for a ride we stop fetching his location. So we better don't try to add it to the map.
             if (mCurrentSpot == null || mCurrentSpot.getIsWaitingForARide() == null || !mCurrentSpot.getIsWaitingForARide()) {
                 if (mCurrentLocation != null) {
                     Spot myLocationSpot = new Spot();
@@ -356,8 +293,7 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         @Override
         public int getCount() {
-            // Show 2 total pages.
-            return 3;
+            return 2;
         }
 
         @Override
@@ -367,8 +303,6 @@ public class MainActivity extends TrackLocationBaseActivity {
                     return getResources().getString(R.string.main_activity_you_tab);
                 case 1:
                     return getResources().getString(R.string.main_activity_list_tab);
-                case 2:
-                    return "map";//getResources().getString(R.string.main_activity_list_tab);
             }
             return null;
         }
@@ -401,9 +335,6 @@ public class MainActivity extends TrackLocationBaseActivity {
 
             if (fragment2 != null)
                 fragment2.onResume();
-
-            if (fragment3 != null)
-                fragment3.onResume();
         }
 
         List<Spot> spotList;
@@ -421,9 +352,6 @@ public class MainActivity extends TrackLocationBaseActivity {
 
             if (fragment2 != null)
                 fragment2.setValues(spotList);
-
-            if (fragment3 != null)
-                fragment3.setValues(getSpotListWithCurrentLocation());
 
             resumeFragments();
         }

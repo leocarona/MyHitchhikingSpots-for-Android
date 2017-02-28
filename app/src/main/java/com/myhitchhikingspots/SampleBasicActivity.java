@@ -14,6 +14,15 @@ public class SampleBasicActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.sample_basic_master_layout);
 
+
+        /*
+                TO REUSE THIS ACTIVITY FILE, REPLACE:
+                setContentView(..)
+        AND
+                REMEMBER TO ADD AN "<activity>" TAG FOR THE NEW FILE INTO /app/src/main/AndroidManifest.xml
+        */
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override

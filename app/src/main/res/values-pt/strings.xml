@@ -63,6 +63,8 @@
     </string-array>
     <string name="sample_basic_master_title">Basic Master Layout</string>
 
+    <string name="mapview_master_title">Mapa</string>
+
     <string name="settings_master_title">Ferramentas</string>
     <string name="settings_importdb_button_label">importar banco de dados</string>
     <string name="settings_exportdb_button_label">exportar banco de dados</string>
@@ -81,12 +83,14 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Mais opçōes</string>
 
-
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo!</string>
     <string name="spot_deleted_successfuly">Local deletado</string>
     <string name="title_activity_main">@string/app_name</string>
     <string name="section_format">Hello World from section: %1$d</string>
+
+    <string name="confirm_back_button_click_dialog_title">Voltar</string>
+    <string name="confirm_back_button_click_dialog_message">Tem certeza que deseja sair desta página sem salvar suas alteraçōes?</string>
 
     <string name="main_activity_you_tab">você</string>
     <string name="main_activity_list_tab">lista</string>

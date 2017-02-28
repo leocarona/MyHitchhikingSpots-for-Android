@@ -207,39 +207,32 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      * updates have already been requested.
      */
     public void saveSpotButtonHandler(boolean isDestination) {
-        if (!parentActivity.mRequestingLocationUpdates) {
-            Toast.makeText(getActivity(), getResources().getString(R.string.save_spot_location_disabled_message),
-                    Toast.LENGTH_SHORT).show();
+        Spot spot = null;
+        if (!mIsWaitingForARide) {
+            spot = new Spot();
+            spot.setIsDestination(isDestination);
+            spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
+            spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());
+            spot.setAccuracy(parentActivity.mCurrentLocation.getAccuracy());
+            spot.setHasAccuracy(parentActivity.mCurrentLocation.hasAccuracy());
+            Log.i(TAG, "Save spot button handler: a new spot is being created.");
         } else {
-            Spot spot = null;
-            if (!mIsWaitingForARide) {
-                spot = new Spot();
-                spot.setIsDestination(isDestination);
-                spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
-                spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());
-                spot.setAccuracy(parentActivity.mCurrentLocation.getAccuracy());
-                spot.setHasAccuracy(parentActivity.mCurrentLocation.hasAccuracy());
-                Log.i(TAG, "Save spot button handler: a new spot is being created.");
-            } else {
-                spot = mCurrentWaitingSpot;
-                Log.i(TAG, "Save spot button handler: a spot is being edited.");
-            }
-
-            Intent intent = new Intent(getContext(), SpotFormActivity.class);
-            intent.putExtra("Spot", spot);
-            startActivityForResult(intent, 1);
+            spot = mCurrentWaitingSpot;
+            Log.i(TAG, "Save spot button handler: a spot is being edited.");
         }
+
+        Intent intent = new Intent(getContext(), SpotFormActivity.class);
+        intent.putExtra("Spot", spot);
+        startActivityForResult(intent, 1);
     }
 
     public void gotARideButtonHandler() {
-        //TODO: make this in a not hardcoded way!
-        mCurrentWaitingSpot.setAttemptResult(1);
+        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
         evaluateSpotButtonHandler();
     }
 
     public void tookABreakButtonHandler() {
-        //TODO: make this in a not hardcoded way!
-        mCurrentWaitingSpot.setAttemptResult(2);
+        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
         evaluateSpotButtonHandler();
     }
 
@@ -303,6 +296,44 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     }
 
 
+    private MapViewActivity.pageType currentPage;
+
+    protected void showCurrentPage() {
+        if (currentPage == MapViewActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE || currentPage == MapViewActivity.pageType.WILL_BE_REGULAR_SPOT) {
+            mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
+            mSaveSpotPanel.setVisibility(View.VISIBLE);
+            mCurrentLocationPanel.setVisibility(View.VISIBLE);
+        }
+
+        if (currentPage != MapViewActivity.pageType.WAITING_FOR_A_RIDE) {
+            mGetLocationSwitch.setVisibility(View.VISIBLE);
+            mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
+        }
+
+        //Todo: show Save Spot button even when not fetching location
+        switch (currentPage) {
+            case NOT_FETCHING_LOCATION:
+            default:
+                mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
+                mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
+                mCurrentLocationPanel.setVisibility(View.GONE);
+                break;
+            case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
+                mArrivedPanel.setVisibility(View.GONE);
+                break;
+            case WILL_BE_REGULAR_SPOT:
+                mArrivedPanel.setVisibility(View.VISIBLE);
+                break;
+            case WAITING_FOR_A_RIDE:
+                mGetLocationSwitch.setVisibility(View.GONE);
+                mCurrentLocationPanel.setVisibility(View.GONE);
+                mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
+                mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
+                mEvaluatePanel.setVisibility(View.VISIBLE);//setEnabled(true);
+                break;
+        }
+    }
+
     /**
      * Ensures that only one button is enabled at any time. The Start Updates button is enabled
      * if the user is not requesting location updates. The Stop Updates button is enabled if the
@@ -319,38 +350,24 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
-            if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()) {
-                mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
-                mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
-                mCurrentLocationPanel.setVisibility(View.GONE);
+           /* if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()
+                    || !parentActivity.mRequestingLocationUpdates) {
+                currentPage = MapViewActivity.pageType.NOT_FETCHING_LOCATION;
             } else {
-                if (parentActivity.mRequestingLocationUpdates) {
-                    mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
-                    mSaveSpotPanel.setVisibility(View.VISIBLE);
-                    mCurrentLocationPanel.setVisibility(View.VISIBLE);
+                if (parentActivity.mRequestingLocationUpdates) {*/
+            if (mWillItBeFirstSpotOfARoute)
+                currentPage = MapViewActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
+            else
+                currentPage = MapViewActivity.pageType.WILL_BE_REGULAR_SPOT;
+            //    }
+            // }
 
-                    if (mWillItBeFirstSpotOfARoute)
-                        mArrivedPanel.setVisibility(View.GONE);
-                    else
-                        mArrivedPanel.setVisibility(View.VISIBLE);
-                } else {
-                    mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
-                    mSaveSpotPanel.setVisibility(View.GONE);
-                    mCurrentLocationPanel.setVisibility(View.GONE);
-                }
-            }
-
-            mGetLocationSwitch.setVisibility(View.VISIBLE);
-            mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
 
         } else {
-            mGetLocationSwitch.setVisibility(View.GONE);
-            mCurrentLocationPanel.setVisibility(View.GONE);
-            mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
-            mSaveSpotPanel.setVisibility(View.GONE);//setEnabled(false);
-            mEvaluatePanel.setVisibility(View.VISIBLE);//setEnabled(true);
+            currentPage = MapViewActivity.pageType.WAITING_FOR_A_RIDE;
         }
 
+        showCurrentPage();
     }
 
 

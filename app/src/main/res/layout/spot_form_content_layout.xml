@@ -2,6 +2,7 @@
 <android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
 
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -41,6 +42,31 @@
                 android:onClick="isDestinationHandleChecked"
                 android:text="@string/spot_form_is_destination_checkbox_text" />
 
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:orientation="vertical">
+
+                <com.mapbox.mapboxsdk.maps.MapView
+                    android:id="@+id/mapview2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    mapbox:style_url="@string/style_mapbox_streets"
+                    />
+
+                <TextView
+                    android:id="@+id/location_changed_text_view"
+                    android:visibility="invisible"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentRight="true"
+                    android:text="Location changed"
+                    android:textStyle="normal|bold"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginBottom="10dp" />
+            </RelativeLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -54,7 +80,6 @@
                 android:layout_gravity="center_horizontal"
                 android:ems="10"
                 android:inputType="textMultiLine" />
-
 
 
             <TextView
@@ -123,8 +148,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:ems="10"
-                android:inputType="number"/>
-
+                android:inputType="number" />
 
 
             <LinearLayout
@@ -156,33 +180,33 @@
                 android:orientation="vertical">
 
                 <LinearLayout
-                    android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="@dimen/text_margin"
-                        android:text="@string/spot_form_hitchability_label"
-                        android:layout_weight="1" />
+                        android:layout_weight="1"
+                        android:text="@string/spot_form_hitchability_label" />
 
                     <TextView
-                        android:text="TextView"
+                        android:id="@+id/spot_form_hitchability_selectedvalue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:id="@+id/spot_form_hitchability_selectedvalue"
                         android:layout_weight="1"
                         android:gravity="right"
-                        android:textStyle="normal|bold"
-                        android:paddingRight="10dp" />
+                        android:paddingRight="10dp"
+                        android:text="TextView"
+                        android:textStyle="normal|bold" />
                 </LinearLayout>
 
                 <RatingBar
+                    android:id="@+id/spot_form_hitchability_ratingbar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/spot_form_hitchability_ratingbar"
                     android:layout_gravity="center_horizontal" />
 
             </LinearLayout>
@@ -198,23 +222,23 @@
         <TextView
             android:id="@+id/location_address_view"
             android:layout_width="match_parent"
-            android:gravity="center_vertical|right"
-            android:textStyle="normal|bold"
-            android:text="City, State, Country"
             android:layout_height="40dp"
-            android:onClick="locationAddressButtonHandler"
             android:clickable="true"
-            android:paddingRight="10dp"
+            android:gravity="center_vertical|right"
             android:lines="2"
-            android:paddingLeft="10dp" />
+            android:onClick="locationAddressButtonHandler"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:text="City, State, Country"
+            android:textStyle="normal|bold" />
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:gravity="center_horizontal"
-            android:orientation="horizontal"
-            android:layout_marginBottom="10dp">
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/save_button"
@@ -234,22 +258,22 @@
                 android:background="@drawable/arrived_button"
                 android:onClick="fetchAddressButtonHandler"
                 android:padding="13dp"
-                android:paddingTop="15dp"
                 android:paddingBottom="15dp"
+                android:paddingTop="15dp"
                 android:text="@string/fetch_address" />
 
 
-
-        <Button
-            android:id="@+id/delete_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/break_button"
-            android:onClick="deleteButtonHandler"
-            android:padding="13dp"
-            android:paddingTop="15dp"
-            android:paddingBottom="15dp"
-            android:text="@string/spot_form_delete_button_text"/> </LinearLayout>
+            <Button
+                android:id="@+id/delete_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/break_button"
+                android:onClick="deleteButtonHandler"
+                android:padding="13dp"
+                android:paddingBottom="15dp"
+                android:paddingTop="15dp"
+                android:text="@string/spot_form_delete_button_text" />
+        </LinearLayout>
     </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

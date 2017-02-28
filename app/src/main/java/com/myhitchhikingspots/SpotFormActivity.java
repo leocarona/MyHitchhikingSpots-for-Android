@@ -1,21 +1,37 @@
 package com.myhitchhikingspots;
 
+import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.graphics.PointF;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
+import android.location.Location;
 import android.media.Rating;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
@@ -25,6 +41,17 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 
+import com.mapbox.mapboxsdk.MapboxAccountManager;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.location.LocationListener;
+import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.maps.Projection;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -47,7 +74,9 @@ import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.location.LocationServices;
 
-public class SpotFormActivity extends BaseActivity implements RatingBar.OnRatingBarChangeListener {
+import static android.R.drawable.ic_input_add;
+
+public class SpotFormActivity extends BaseActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback {
 
 
     private Button mSaveButton, mDeleteButton;
@@ -57,7 +86,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private Spinner attempt_results_spinner;
     private Spot mCurrentSpot;
     private CheckBox is_destination_check_box;
-    private TextView form_title, hitchabilityLabel;
+    private TextView form_title, hitchabilityLabel, location_changed;
     private LinearLayout spot_form_evaluate, spot_form_basic, spot_form_more_options, hitchability_options, attempt_result_panel;
     private RatingBar hitchability_ratingbar;
 
@@ -67,11 +96,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     //----BEGIN: Part related to reverse geocoding
     protected static final String ADDRESS_REQUESTED_KEY = "address-request-pending";
     protected static final String LOCATION_ADDRESS_KEY = "location-address";
-
-    /**
-     * Represents a geographical location.
-     */
-    protected MyLocation mLastLocation;
 
     /**
      * Tracks whether the user has requested an address. Becomes true when the user requests an
@@ -109,6 +133,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     Button mFetchAddressButton;
     //----END: Part related to reverse geocoding
 
+    private MapView mapView;
+    protected MapboxMap mapboxMap;
+    private com.mapbox.mapboxsdk.location.LocationServices locationServices;
+    private static final int PERMISSIONS_LOCATION = 0;
+    private ImageView dropPinView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +159,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         hitchability_ratingbar = (RatingBar) findViewById(R.id.spot_form_hitchability_ratingbar);
         hitchability_options = (LinearLayout) findViewById(R.id.save_spot_form_hitchability_options);
         hitchabilityLabel = (TextView) findViewById(R.id.spot_form_hitchability_selectedvalue);
+        location_changed = (TextView) findViewById(R.id.location_changed_text_view);
+
 
         //----BEGIN: Part related to reverse geocoding
         mResultReceiver = new AddressResultReceiver(new Handler());
@@ -144,6 +175,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         updateUIWidgets();
         //----END: Part related to reverse geocoding
+
 
         hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
         hitchability_ratingbar.setStepSize(1);
@@ -163,10 +195,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (mCurrentSpot == null)
                 mFormType = FormType.Unknown;
             else {
-                if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
-                    mLastLocation = new MyLocation(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude());
-                }
-
                 if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
                     mFormType = FormType.Evaluate;
                 else if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination())
@@ -184,9 +212,205 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.generall_error_message), Toast.LENGTH_LONG).show();
         }
 
+        if (mFormType != FormType.Evaluate) {
+            //----BEGIN: Map related stuff ----
+            locationServices = com.mapbox.mapboxsdk.location.LocationServices.getLocationServices(SpotFormActivity.this);
+
+            // Mapbox access token is configured here. This needs to be called either in your application
+            // object or in the same activity which contains the mapview.
+            MapboxAccountManager.start(getApplicationContext(), getResources().getString(R.string.mapBoxKey));
+
+
+            mapView = (MapView) findViewById(R.id.mapview2);
+            mapView.onCreate(savedInstanceState);
+            mapView.getMapAsync(this);
+
+            useMap = true;
+            //----END: Map related stuff ----
+        }
+
         updateUI();
 
         super.onCreate(savedInstanceState);
+    }
+
+    protected boolean locationWasManuallyChanged = false;
+
+    @Override
+    public void onMapReady(final MapboxMap mapboxMap) {
+        // Customize map with markers, polylines, etc.
+        this.mapboxMap = mapboxMap;
+
+
+        if (mCurrentSpot != null && mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
+            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude()), 16));
+        } else {
+
+            locationServices.addLocationListener(new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {
+                    if (location != null) {
+                        // Move the map camera to where the user location is and then remove the
+                        // listener so the camera isn't constantly updating when the user location
+                        // changes. When the user disables and then enables the location again, this
+                        // listener is registered again and will adjust the camera once again.
+                        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location), 16));
+                        locationServices.removeLocationListener(this);
+                    }
+                }
+            });
+        }
+
+        showLocation();
+
+        addPinToCenter();
+
+        // Camera change listener
+        mapboxMap.setOnCameraChangeListener(new MapboxMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(@NonNull CameraPosition point) {
+                mapboxMap.removeAnnotations();
+                //mapboxMap.addMarker(new MarkerOptions().position(getPinPosition()));
+
+                //TODO: Check how to show location_changed only when user has manually moved the map camera
+
+                if (!locationWasManuallyChanged && (
+                        mFormType != FormType.Basic && (mCurrentSpot != null &&
+                                (mCurrentSpot.getLatitude() != point.target.getLatitude() || mCurrentSpot.getLongitude() != point.target.getLongitude())))) {
+                    location_changed.setVisibility(View.VISIBLE);
+                    locationWasManuallyChanged = true;
+                }
+
+                //fetchAddressButtonHandler(null);
+            }
+        });
+    }
+
+    private LatLng getPinPosition() {
+        if (!useMap)
+            return null;
+
+        //Copied from: https://github.com/mapbox/mapbox-gl-native/blob/e2da260a8ee0dd0b213ec0e30db2c6e3188c7c9b/platform/android/MapboxGLAndroidSDKTestApp/src/main/java/com/mapbox/mapboxsdk/testapp/GeocoderActivity.java
+        LatLng centerLatLng = new LatLng(mapboxMap.getProjection().fromScreenLocation(getCenterPoint()));
+
+        return centerLatLng;
+    }
+
+    private PointF getCenterPoint() {
+        if (!useMap)
+            return null;
+
+        final int width = mapView.getMeasuredWidth();
+        final int height = mapView.getMeasuredHeight();
+
+        return new PointF(width / 2, (height + dropPinView.getHeight()) / 2);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (useMap)
+            mapView.onResume();
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (useMap)
+            mapView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (useMap)
+            mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        if (useMap)
+            mapView.onLowMemory();
+    }
+
+    private boolean useMap = false;
+
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
+                .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
+                .setPositiveButton(getResources().getString(R.string.spot_form_delete_dialog_yes_option), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+
+                })
+                .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
+                .show();
+
+    }
+
+    protected void showLocation() {
+        // Check if user has granted location permission
+        if (!locationServices.areLocationPermissionsGranted()) {
+            /*Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
+                    .setAction("enable", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {*/
+            ActivityCompat.requestPermissions(SpotFormActivity.this, new String[]{
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_LOCATION);
+            //            }
+            //        }).show();
+        } else
+            enableLocation(true);
+    }
+
+    /**
+     * Represents a geographical location.
+     * <p>
+     * protected Location mCurrentLocation;
+     * boolean wasFirstLocationReceived = false;
+     */
+
+    private void enableLocation(boolean enabled) {
+        // Enable or disable the location layer on the map
+        mapboxMap.setMyLocationEnabled(enabled);
+    }
+
+    private void addPinToCenter() {
+        if (!useMap)
+            return;
+
+        Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
+        IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
+        //DrawableCompat.setTint(iconDrawable, Color.WHITE);
+        FloatingActionButton img = new FloatingActionButton(context);
+        img.setImageResource(R.drawable.ic_target);
+
+
+        dropPinView = new ImageView(this);
+        dropPinView.setImageDrawable(img.getDrawable());
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
+        dropPinView.setLayoutParams(params);
+        mapView.addView(dropPinView);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSIONS_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableLocation(true);
+                //updateUISaveButtons();
+            }
+        }
     }
 
     /**
@@ -298,8 +522,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 spot_form_basic.setVisibility(View.VISIBLE);
 
 
-                if ((mFormType == FormType.Basic || mFormType == FormType.Destination) &&
-                        (mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved()))
+                if ((mFormType == FormType.Basic) &&
+                        (mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved())) // || mFormType == FormType.Destination
                     fetchAddressButtonHandler(null);
             }
 
@@ -350,17 +574,17 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                 mFetchAddressButton.setVisibility(View.GONE);
 
-                //TODO: make this check in a not hardcoded way!
-                if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount()) {
+
+                if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() != Constants.ATTEMPT_RESULT_UNKNOWN
+                        && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount()) {
                     attempt_results_spinner.setSelection(mCurrentSpot.getAttemptResult());
 
-                    //TODO: make this check in a not hardcoded way!
                     switch (mCurrentSpot.getAttemptResult()) {
-                        case 1:
+                        case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                             form_title.setText(getResources().getString(R.string.got_a_ride_button_text));
                             attempt_result_panel.setVisibility(View.GONE);
                             break;
-                        case 2:
+                        case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                             form_title.setText(getResources().getString(R.string.break_button_text));
                             attempt_result_panel.setVisibility(View.GONE);
                             break;
@@ -410,8 +634,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void locationAddressButtonHandler(View v) {
-        //TODO: copy a string with format "address (lat, lng)" to the memory so that the user can paste it wherever he wants
-
         String strToCopy = spotLocationToString(mCurrentSpot).trim();
 
         if ((strToCopy != null && !strToCopy.isEmpty()))
@@ -430,45 +652,21 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void saveButtonHandler(View view) {
-        SaveSpot();
-
-        /*if (!mAddressRequested)
-            SaveSpot();
-        else {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getResources().getString(R.string.spot_form_save_while_requesting_addr_dialog_title))
-                    .setMessage(getResources().getString(R.string.spot_form_save_while_requesting_addr_dialog_text))
-                    .setPositiveButton(getResources().getString(R.string.spot_form_save_button_text), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    // code runs in a thread
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            stopIntentService();
-                                            SaveSpot();
-                                        }
-                                    });
-                                }
-                            }.start();
-                        }
-
-                    })
-                    .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
-                    .show();
-        }*/
-    }
-
-    private void SaveSpot() {
         try {
             DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
             mCurrentSpot.setStartDateTime(dateTime.toDate());
 
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
+                LatLng selectedLocation = mapboxMap.getCameraPosition().target;
+
+                if (selectedLocation == null || (selectedLocation.getLatitude() == 0.0 && selectedLocation.getLongitude() == 0.0)) {
+                    Toast.makeText(getApplicationContext(), "A location must be selected in order to save a spot.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                mCurrentSpot.setLatitude(selectedLocation.getLatitude());
+                mCurrentSpot.setLongitude(selectedLocation.getLongitude());
+
                 mCurrentSpot.setNote(note_edittext.getText().toString());
 
                 if (is_destination_check_box.isChecked()) {
@@ -616,6 +814,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Save the address string.
         savedInstanceState.putParcelable(LOCATION_ADDRESS_KEY, mAddressOutput);
         //----END: Part related to reverse geocoding
+
+
+        if (useMap)
+            mapView.onSaveInstanceState(savedInstanceState);
+
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -628,11 +831,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      * GoogleApiClient is connected.
      */
     public void fetchAddressButtonHandler(View view) {
-        // We only start the service to fetch the address if GoogleApiClient is connected.
-        if (mLastLocation == null)
+        if (!useMap || mapboxMap == null)
             return;
 
-        startIntentService();
+        LatLng pinPosition = mapboxMap.getCameraPosition().target;
+
+        // We only start the service to fetch the address if GoogleApiClient is connected.
+        if (pinPosition == null)
+            return;
+
+        startIntentService(new MyLocation(pinPosition.getLatitude(), pinPosition.getLongitude()));
 
         // If GoogleApiClient isn't connected, we process the user's request by setting
         // mAddressRequested to true. Later, when GoogleApiClient connects, we launch the service to
@@ -648,7 +856,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      * Creates an intent, adds location data to it as an extra, and starts the intent service for
      * fetching an address.
      */
-    protected void startIntentService() {
+    protected void startIntentService(MyLocation location) {
         // Create an intent for passing to the intent service responsible for fetching the address.
         fetchAddressServiceIntent = new Intent(this, FetchAddressIntentService.class);
 
@@ -656,7 +864,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         fetchAddressServiceIntent.putExtra(Constants.RECEIVER, mResultReceiver);
 
         // Pass the location data as an extra to the service.
-        fetchAddressServiceIntent.putExtra(Constants.LOCATION_DATA_EXTRA, mLastLocation);
+        fetchAddressServiceIntent.putExtra(Constants.LOCATION_DATA_EXTRA, location);
 
         // Start the service. If the service isn't already running, it is instantiated and started
         // (creating a process for it if needed); if it is running then it remains running. The
@@ -683,6 +891,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mCurrentSpot.setCountry(mAddressOutput.getCountryName());
             mCurrentSpot.setCountryCode(mAddressOutput.getCountryCode());
             mCurrentSpot.setGpsResolved(true);
+        } else {
+            mCurrentSpot.setCity("");
+            mCurrentSpot.setState("");
+            mCurrentSpot.setCountry("");
+            mCurrentSpot.setCountryCode("");
+            mCurrentSpot.setGpsResolved(false);
         }
 
         mLocationAddressTextView.setText(getString(mCurrentSpot));
@@ -741,11 +955,19 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
     }
 
+    Toast msgResult;
+
     /**
      * Shows a toast with the given text.
      */
     protected void showToast(String text) {
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+        if (msgResult == null)
+            msgResult = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+        else {
+            msgResult.cancel();
+            msgResult.setText(text);
+        }
+        msgResult.show();
     }
 
 
@@ -765,9 +987,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             String strResult = "";
 
             // Show a toast message notifying whether an address was found.
-            if (resultCode == Constants.FAILURE_RESULT)
+            if (resultCode == Constants.FAILURE_RESULT) {
                 strResult = resultData.getString(Constants.RESULT_STRING_KEY);
-            else {
+                mAddressOutput = null;
+            } else {
                 strResult = getString(R.string.address_found);
 
                 // Display the address string or an error message sent from the intent service.
