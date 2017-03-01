@@ -106,6 +106,7 @@
     <string name="spot_form_title_evaluate">Avaliar ponto</string>
     <string name="spot_form_title_edit">Editar ponto</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
+    <string name="spot_form_location_selected_label">Localização selecionada.</string>
 
 
     <string name="waiting_for_connection">Estabelecendo conexão..</string>

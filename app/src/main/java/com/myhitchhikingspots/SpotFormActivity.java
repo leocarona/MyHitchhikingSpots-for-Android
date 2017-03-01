@@ -7,18 +7,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
-import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
-import android.media.Rating;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
@@ -43,7 +40,6 @@ import android.widget.Toast;
 
 import com.mapbox.mapboxsdk.MapboxAccountManager;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -51,7 +47,6 @@ import com.mapbox.mapboxsdk.location.LocationListener;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.mapboxsdk.maps.Projection;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -63,18 +58,8 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import android.content.Intent;
-import android.location.Geocoder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.LocationServices;
-
-import static android.R.drawable.ic_input_add;
 
 public class SpotFormActivity extends BaseActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback {
 
@@ -139,6 +124,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private static final int PERMISSIONS_LOCATION = 0;
     private ImageView dropPinView;
 
+    private CoordinatorLayout coordinatorLayout;
+    private FloatingActionButton fabLocateUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.spot_form_master_layout);
@@ -181,14 +169,13 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         hitchability_ratingbar.setStepSize(1);
         hitchability_ratingbar.setOnRatingBarChangeListener(this);
         hitchabilityLabel.setText("");
+        mLocationAddressTextView.setText("");
 
         try {
             if (savedInstanceState != null)
                 updateValuesFromBundle(savedInstanceState);
-            else {
+            else
                 mCurrentSpot = (Spot) getIntent().getSerializableExtra("Spot");
-                mLocationAddressTextView.setText(getString(mCurrentSpot));
-            }
 
             // If user is currently waiting for a ride at the current spot, show him the Evaluate form. If he is not,
             // that means he's saving a new spot so we need to show him the Basic form instead.
@@ -226,6 +213,34 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mapView.getMapAsync(this);
 
             useMap = true;
+
+            coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+            fabLocateUser = (FloatingActionButton) findViewById(R.id.location_toggle_fab);
+            fabLocateUser.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mapboxMap != null) {
+                        // Check if user has granted location permission
+                        if (!locationServices.areLocationPermissionsGranted()) {
+                            Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
+                                    .setAction("enable", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View view) {
+                                            ActivityCompat.requestPermissions(SpotFormActivity.this, new String[]{
+                                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                                    Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_LOCATION);
+                                        }
+                                    }).show();
+                        } else {
+                            if (!mapboxMap.isMyLocationEnabled())
+                                enableLocation(true);
+                            else
+                                moveCamera(new LatLng(locationServices.getLastLocation()));
+                        }
+                    }
+                }
+            });
             //----END: Map related stuff ----
         }
 
@@ -243,7 +258,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
         if (mCurrentSpot != null && mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
-            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude()), 16));
+            moveCamera(new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude()));
+            mLocationAddressTextView.setText(getString((Spot) mCurrentSpot));
         } else {
 
             locationServices.addLocationListener(new LocationListener() {
@@ -254,7 +270,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                         // listener so the camera isn't constantly updating when the user location
                         // changes. When the user disables and then enables the location again, this
                         // listener is registered again and will adjust the camera once again.
-                        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location), 16));
+                        moveCamera(new LatLng(location));
                         locationServices.removeLocationListener(this);
                     }
                 }
@@ -267,23 +283,34 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         // Camera change listener
         mapboxMap.setOnCameraChangeListener(new MapboxMap.OnCameraChangeListener() {
-            @Override
-            public void onCameraChange(@NonNull CameraPosition point) {
-                mapboxMap.removeAnnotations();
-                //mapboxMap.addMarker(new MarkerOptions().position(getPinPosition()));
+                                                @Override
+                                                public void onCameraChange(@NonNull CameraPosition point) {
 
-                //TODO: Check how to show location_changed only when user has manually moved the map camera
+                                                    if (isCameraPositionChangingByCodeRequest) {
+                                                        if (positionAt != null && positionAt.getLatitude() == point.target.getLatitude() &&
+                                                                positionAt.getLongitude() == point.target.getLongitude())
+                                                            isCameraPositionChangingByCodeRequest = false;
+                                                    } else {
+                                                        //The camera position was changed by the user
 
-                if (!locationWasManuallyChanged && (
-                        mFormType != FormType.Basic && (mCurrentSpot != null &&
-                                (mCurrentSpot.getLatitude() != point.target.getLatitude() || mCurrentSpot.getLongitude() != point.target.getLongitude())))) {
-                    location_changed.setVisibility(View.VISIBLE);
-                    locationWasManuallyChanged = true;
-                }
+                                                        mAddressOutput = null;
+                                                        mCurrentSpot.setGpsResolved(false);
+                                                        mLocationAddressTextView.setText(getResources().getString(R.string.spot_form_location_selected_label));
+                                                        //location_changed.setVisibility(View.VISIBLE);
+                                                    }
+                                                }
+                                            }
 
-                //fetchAddressButtonHandler(null);
-            }
-        });
+        );
+    }
+
+    private LatLng positionAt = null;
+    private boolean isCameraPositionChangingByCodeRequest = false;
+
+    private void moveCamera(LatLng position) {
+        positionAt = position;
+        isCameraPositionChangingByCodeRequest = true;
+        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionAt, 16));
     }
 
     private LatLng getPinPosition() {
@@ -659,11 +686,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
                 LatLng selectedLocation = mapboxMap.getCameraPosition().target;
 
-                if (selectedLocation == null || (selectedLocation.getLatitude() == 0.0 && selectedLocation.getLongitude() == 0.0)) {
-                    Toast.makeText(getApplicationContext(), "A location must be selected in order to save a spot.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
                 mCurrentSpot.setLatitude(selectedLocation.getLatitude());
                 mCurrentSpot.setLongitude(selectedLocation.getLongitude());
 
@@ -899,7 +921,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mCurrentSpot.setGpsResolved(false);
         }
 
-        mLocationAddressTextView.setText(getString(mCurrentSpot));
+        mLocationAddressTextView.setText(getString((Spot) mCurrentSpot));
 
     }
 
@@ -908,14 +930,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         String spotLoc = "";
         try {
             spotLoc = spotLocationToString(mCurrentSpot).trim();
-            if ((spotLoc == null || spotLoc.isEmpty()) && (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null))
-                spotLoc = String.format(getResources().getString(R.string.spot_form_lat_lng_label),
-                        mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());
+           /* if ((spotLoc == null || spotLoc.isEmpty()) && (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null))
+                spotLoc = getResources().getString(R.string.spot_form_location_selected_label);
+            spotLoc = String.format(getResources().getString(R.string.spot_form_lat_lng_label),
+                        mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());*/
         } catch (Exception ex) {
             Log.w("getString", "Err msg: " + ex.getMessage());
         }
         return spotLoc;
     }
+
 
     static String locationSeparator = ", ";
 
@@ -923,13 +947,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         ArrayList<String> loc = new ArrayList();
         try {
-
-            if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                loc.add(spot.getCity().trim());
-            if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                loc.add(spot.getState().trim());
-            if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                loc.add(spot.getCountry().trim());
+            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
+                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
+                    loc.add(spot.getCity().trim());
+                if (spot.getState() != null && !spot.getState().trim().isEmpty())
+                    loc.add(spot.getState().trim());
+                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
+                    loc.add(spot.getCountry().trim());
+            }
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {

@@ -42,7 +42,7 @@
                 android:onClick="isDestinationHandleChecked"
                 android:text="@string/spot_form_is_destination_checkbox_text" />
 
-            <RelativeLayout
+            <android.support.design.widget.CoordinatorLayout
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:orientation="vertical">
@@ -51,20 +51,81 @@
                     android:id="@+id/mapview2"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    mapbox:style_url="@string/style_mapbox_streets"
-                    />
+                    mapbox:style_url="@string/style_mapbox_streets" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/location_toggle_fab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|left"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginTop="10dp"
+                    app:backgroundTint="?attr/colorAccent"
+                    app:fabSize="mini"
+                    app:srcCompat="@drawable/ic_my_location_24dp"
+                    tools:ignore="VectorDrawableCompat" />
 
                 <TextView
                     android:id="@+id/location_changed_text_view"
-                    android:visibility="invisible"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentRight="true"
+                    android:layout_gravity="bottom|right"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginRight="10dp"
                     android:text="Location changed"
                     android:textStyle="normal|bold"
-                    android:layout_marginRight="10dp"
-                    android:layout_marginBottom="10dp" />
+                    android:visibility="invisible" />
+            </android.support.design.widget.CoordinatorLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ProgressBar
+                    android:id="@+id/progress_bar"
+                    android:layout_width="match_parent"
+                    android:visibility="gone"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:layout_centerInParent="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginRight="45dp"
+                    android:layout_alignLeft="@+id/imageView2"/>
+
+                <TextView
+                    android:id="@+id/location_address_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:lines="2"
+                    android:onClick="locationAddressButtonHandler"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="5dp"
+                    android:text="City, State, Country"
+                    android:gravity="center_vertical|end"
+                    android:textStyle="normal|bold"
+                    android:layout_centerInParent="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginRight="60dp"
+                    android:layout_alignLeft="@+id/imageView2"/>
+
+                <android.support.design.widget.FloatingActionButton
+                    android:layout_width="wrap_content"
+                    android:onClick="locationAddressButtonHandler"
+                    android:layout_height="wrap_content"
+                    mapbox:srcCompat="@drawable/ic_content_copy_black_24dp"
+                    android:id="@+id/imageView2"
+                    android:layout_alignParentEnd="true"
+                    android:gravity="center_vertical"
+                    android:layout_alignParentRight="true"
+                    app:fabSize="mini"
+                    tools:ignore="VectorDrawableCompat"
+                    android:layout_gravity="center_vertical" />
+
             </RelativeLayout>
 
             <TextView
@@ -211,27 +272,6 @@
 
             </LinearLayout>
         </LinearLayout>
-
-
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_centerInParent="true" />
-
-        <TextView
-            android:id="@+id/location_address_view"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:clickable="true"
-            android:gravity="center_vertical|right"
-            android:lines="2"
-            android:onClick="locationAddressButtonHandler"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:text="City, State, Country"
-            android:textStyle="normal|bold" />
-
 
         <LinearLayout
             android:layout_width="match_parent"
