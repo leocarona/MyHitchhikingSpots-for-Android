@@ -54,7 +54,7 @@
                     mapbox:style_url="@string/style_mapbox_streets" />
 
                 <android.support.design.widget.FloatingActionButton
-                    android:id="@+id/location_toggle_fab"
+                    android:id="@+id/fab_locate_user"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|left"
@@ -265,6 +265,7 @@
                 </LinearLayout>
 
                 <RatingBar
+                    android:progressTint="?attr/colorAccent"
                     android:id="@+id/spot_form_hitchability_ratingbar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

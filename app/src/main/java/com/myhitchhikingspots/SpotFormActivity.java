@@ -216,7 +216,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-            fabLocateUser = (FloatingActionButton) findViewById(R.id.location_toggle_fab);
+            fabLocateUser = (FloatingActionButton) findViewById(R.id.fab_locate_user);
             fabLocateUser.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -419,7 +419,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
         //DrawableCompat.setTint(iconDrawable, Color.WHITE);
         FloatingActionButton img = new FloatingActionButton(context);
-        img.setImageResource(R.drawable.ic_target);
+        img.setImageResource(R.drawable.ic_target_location);
 
 
         dropPinView = new ImageView(this);

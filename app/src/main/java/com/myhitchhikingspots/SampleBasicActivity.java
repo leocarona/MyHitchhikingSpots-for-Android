@@ -23,7 +23,7 @@ public class SampleBasicActivity extends BaseActivity {
         */
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_spot_action_1);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

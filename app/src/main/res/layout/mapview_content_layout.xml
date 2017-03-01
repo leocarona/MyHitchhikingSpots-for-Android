@@ -19,7 +19,7 @@
 
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/location_toggle_fab"
+        android:id="@+id/fab_locate_user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|left"
@@ -46,29 +46,27 @@
         android:layout_marginLeft="10dp"
         android:layout_marginTop="65dp"
         app:backgroundTint="?attr/colorAccent"
-        app:srcCompat="@drawable/ic_zoom_out_map_white_24dp"
+        app:srcCompat="@drawable/ic_zoom_out_map_white_24dp_vector"
         tools:ignore="VectorDrawableCompat"
         app:fabSize="mini" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fab_spot_action_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        app:backgroundTint="@color/ic_regular_spot_color"
         app:srcCompat="@drawable/ic_regular_spot_icon"
         android:layout_marginLeft="-40dp" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fabSecondary"
+        android:id="@+id/fab_spot_action_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        app:backgroundTint="@color/ic_arrival_color"
         app:srcCompat="@drawable/ic_arrival_icon"
         android:layout_marginLeft="100dp" />
 

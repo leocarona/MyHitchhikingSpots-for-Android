@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -51,7 +52,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private LocationServices locationServices;
     private static final int PERMISSIONS_LOCATION = 0;
     private FloatingActionButton fabLocateUser, fabShowAll;
-    private FloatingActionButton fabMainActionButton, fabSecondaryActionButton;
+    private FloatingActionButton fabSpotAction1, fabSpotAction2;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
 
@@ -65,7 +66,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-        fabLocateUser = (FloatingActionButton) findViewById(R.id.location_toggle_fab);
+        fabLocateUser = (FloatingActionButton) findViewById(R.id.fab_locate_user);
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -85,7 +86,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         if (!mapboxMap.isMyLocationEnabled())
                             enableLocation(true);
                         else
-                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(locationServices.getLastLocation()), 16));
+                            moveCamera(new LatLng(locationServices.getLastLocation()));
                     }
                 }
             }
@@ -101,8 +102,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
         });
 
-        fabMainActionButton = (FloatingActionButton) findViewById(R.id.fab);
-        fabMainActionButton.setOnClickListener(new View.OnClickListener() {
+        fabSpotAction1 = (FloatingActionButton) findViewById(R.id.fab_spot_action_1);
+        fabSpotAction1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //While waiting for a ride, MainActionButton is a "Got a ride" button
@@ -120,8 +121,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
         });
 
-        fabSecondaryActionButton = (FloatingActionButton) findViewById(R.id.fabSecondary);
-        fabSecondaryActionButton.setOnClickListener(new View.OnClickListener() {
+        fabSpotAction2 = (FloatingActionButton) findViewById(R.id.fab_spot_action_2);
+        fabSpotAction2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //While waiting for a ride, SecondaryActionButton is a "Arrived to destination" button
@@ -223,33 +224,33 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     protected void showCurrentPage() {
         if (currentPage == pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE || currentPage == pageType.WILL_BE_REGULAR_SPOT) {
-            fabMainActionButton.setImageResource(R.drawable.ic_regular_spot_icon);
-            fabMainActionButton.setBackgroundColor(getResources().getColor(R.color.ic_regular_spot_color));
-            fabMainActionButton.setVisibility(View.VISIBLE);
+            fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
+            fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_regular_spot_color)));
+            fabSpotAction1.setVisibility(View.VISIBLE);
         }
 
 
         switch (currentPage) {
             case NOT_FETCHING_LOCATION:
             default:
-                fabMainActionButton.setVisibility(View.GONE);
-                fabSecondaryActionButton.setVisibility(View.GONE);
+                fabSpotAction1.setVisibility(View.GONE);
+                fabSpotAction2.setVisibility(View.GONE);
                 break;
             case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
-                fabSecondaryActionButton.setVisibility(View.GONE);
+                fabSpotAction2.setVisibility(View.GONE);
                 break;
             case WILL_BE_REGULAR_SPOT:
-                fabSecondaryActionButton.setImageResource(R.drawable.ic_arrival_icon);
-                fabSecondaryActionButton.setBackgroundColor(getResources().getColor(R.color.ic_arrival_color));
-                fabSecondaryActionButton.setVisibility(View.VISIBLE);
+                fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
+                fabSpotAction2.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_arrival_color)));
+                fabSpotAction2.setVisibility(View.VISIBLE);
                 break;
             case WAITING_FOR_A_RIDE:
-                fabMainActionButton.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
-                fabMainActionButton.setBackgroundColor(getResources().getColor(R.color.ic_got_a_ride_color));
-                fabSecondaryActionButton.setImageResource(R.drawable.ic_break_spot_icon);
-                fabSecondaryActionButton.setBackgroundColor(getResources().getColor(R.color.ic_break_color));
-                fabMainActionButton.setVisibility(View.VISIBLE);
-                fabSecondaryActionButton.setVisibility(View.VISIBLE);
+                fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
+                fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_got_a_ride_color)));
+                fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
+                fabSpotAction2.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_break_color)));
+                fabSpotAction1.setVisibility(View.VISIBLE);
+                fabSpotAction2.setVisibility(View.VISIBLE);
                 break;
         }
     }
@@ -309,7 +310,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             // listener so the camera isn't constantly updating when the user location
                             // changes. When the user disables and then enables the location again, this
                             // listener is registered again and will adjust the camera once again.
-                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location), 16));
+                            moveCamera(new LatLng(location));
                             locationServices.removeLocationListener(this);
                         }
                     }
@@ -404,10 +405,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         //Load polylines
         new DrawAnnotations().execute();
-        isMapReady = true;
     }
 
-    boolean isMapReady = false;
+    protected boolean drawannotationsIsExecuting = false;
 
 
     @NonNull
@@ -467,8 +467,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         loadValues();
         updateUISaveButtons();
 
-        if (isMapReady)
+        if (!drawannotationsIsExecuting) {
+            drawannotationsIsExecuting = true;
             new DrawAnnotations().execute();
+        }
     }
 
     Icon ic_got_a_ride_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
@@ -539,15 +541,24 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             //Add current location to camera bounds
             if (mapboxMap.getMarkers().size() == 0) {
                 if (mCurrentLocation != null)
-                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(locationServices.getLastLocation()), 16));
+                    moveCamera(new LatLng(locationServices.getLastLocation()));
             } else {
                 if (mCurrentLocation != null)
                     builder.include(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
 
                 LatLngBounds bounds = builder.build();
-                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100), 5000);
+                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120), 5000);
             }
         }
+    }
+
+    private LatLng positionAt = null;
+    private boolean isCameraPositionChangingByCodeRequest = false;
+
+    private void moveCamera(LatLng position) {
+        positionAt = position;
+        isCameraPositionChangingByCodeRequest = true;
+        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionAt, 16));
     }
 
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
@@ -576,7 +587,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     markerViewOptions.icon(ic_arrival_spot);
 
                     //Center icon
-                    markerViewOptions.anchor((float)0.5,(float) 0.5);
+                    markerViewOptions.anchor((float) 0.5, (float) 0.5);
                 } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                     //AT THIS SPOT USER IS WAITING FOR A RIDE
 
@@ -591,7 +602,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             markerViewOptions.icon(ic_took_a_break_spot);
 
                             //Center icon
-                            markerViewOptions.anchor((float)0.5,(float) 0.5);
+                            markerViewOptions.anchor((float) 0.5, (float) 0.5);
                         } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
                             //AT THIS SPOT USER GOT A RIDE
 
@@ -642,6 +653,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
 
             zoomOutToFitAllMarkers();
+            drawannotationsIsExecuting = false;
         }
     }
 
