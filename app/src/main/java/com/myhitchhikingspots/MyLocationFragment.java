@@ -310,7 +310,6 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
         }
 
-        //Todo: show Save Spot button even when not fetching location
         switch (currentPage) {
             case NOT_FETCHING_LOCATION:
             default:

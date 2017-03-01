@@ -106,6 +106,7 @@
     <string name="spot_form_title_evaluate">Evaluate spot</string>
     <string name="spot_form_title_edit">Edit spot</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
+    <string name="spot_form_location_selected_label">Location selected.</string>
 
     <string name="waiting_for_connection">Waiting connection to be established..</string>
     <string name="unable_to_find_location">Unable to fetch location with Google api client :(</string>

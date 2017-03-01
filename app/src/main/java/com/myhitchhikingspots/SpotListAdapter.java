@@ -242,14 +242,14 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         ArrayList<String> loc = new ArrayList();
         try {
-
-            if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                loc.add(spot.getCity().trim());
-            if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                loc.add(spot.getState().trim());
-            if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                loc.add(spot.getCountry().trim());
-
+            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
+                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
+                    loc.add(spot.getCity().trim());
+                if (spot.getState() != null && !spot.getState().trim().isEmpty())
+                    loc.add(spot.getState().trim());
+                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
+                    loc.add(spot.getCountry().trim());
+            }
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Log.w("spotLocationToString", "Err msg: " + ex.getMessage());

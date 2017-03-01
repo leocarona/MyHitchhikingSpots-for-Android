@@ -8,32 +8,20 @@ import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerView;
+import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
 
 /**
  * Created by leoboaventura on 25/02/2017.
  */
 
-public class ExtendedMarkerView extends Marker {
+public class ExtendedMarkerView extends MarkerView {
 
     private String tag;
 
-    public ExtendedMarkerView(BaseMarkerOptions baseMarkerOptions, String tag) {
+    public ExtendedMarkerView(BaseMarkerViewOptions baseMarkerOptions, String tag) {
         super(baseMarkerOptions);
         this.tag = tag;
     }
-
-   /* public ExtendedMarkerView() {
-        super(new MarkerViewOptions());
-        /this.alpha = baseMarkerViewOptions.getAlpha();
-        this.anchorU = baseMarkerViewOptions.getAnchorU();
-        this.anchorV = baseMarkerViewOptions.getAnchorV();
-        this.infoWindowAnchorU = baseMarkerViewOptions.getInfoWindowAnchorU();
-        this.infoWindowAnchorV = baseMarkerViewOptions.getInfoWindowAnchorV();
-        this.flat = baseMarkerViewOptions.isFlat();
-        this.rotation = baseMarkerViewOptions.getRotation();
-        this.selected = baseMarkerViewOptions.selected;
-        this.tag =;/
-    }*/
 
     public String getTag() {
         return tag;
