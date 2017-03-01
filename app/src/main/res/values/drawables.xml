@@ -18,8 +18,6 @@
     <item name="ic_got_a_ride_spot_icon" type="drawable">@android:drawable/ic_media_pause</item>
     <item name="ic_break_spot_icon" type="drawable">@drawable/ic_local_cafe_white_24dp</item><!--previous icon used as break spot icon: @android:drawable/ic_menu_recent_history-->
 
-    <item name="ic_waiting_for_a_ride_icon" type="drawable">@drawable/ic_marker_stroked_15</item>
-
-    <item name="ic_target" type="drawable">@drawable/ic_border_inner_black_24dp</item>
+    <item name="ic_target_location" type="drawable">@drawable/ic_marker_target_location_24dp</item>
 
 </resources>
