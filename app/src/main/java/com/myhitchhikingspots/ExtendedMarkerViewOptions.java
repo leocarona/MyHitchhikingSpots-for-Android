@@ -17,71 +17,11 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
  * Created by leoboaventura on 25/02/2017.
  */
 
-/*
-public class ExtendedMarkerViewOptions extends BaseMarkerOptions<ExtendedMarkerView, ExtendedMarkerViewOptions> {
-
-    private String url;
-
-    public ExtendedMarkerViewOptions url(String name) {
-        url = name;
-        return getThis();
-    }
-
-    public ExtendedMarkerViewOptions() {
-    }
-
-    private ExtendedMarkerViewOptions(Parcel in) {
-        position((LatLng) in.readParcelable(LatLng.class.getClassLoader()));
-        snippet(in.readString());
-        String iconId = in.readString();
-        Bitmap iconBitmap = in.readParcelable(Bitmap.class.getClassLoader());
-        Icon icon = IconFactory.recreate(iconId, iconBitmap);
-        icon(icon);
-        url(in.readString());
-    }
-
-    @Override
-    public ExtendedMarkerViewOptions getThis() {
-        return this;
-    }
-
-    @Override
-    public ExtendedMarkerView getMarker() {
-        return new ExtendedMarkerView(this, url);
-    }
-
-    public static final Parcelable.Creator<ExtendedMarkerViewOptions> CREATOR
-            = new Parcelable.Creator<ExtendedMarkerViewOptions>() {
-        public ExtendedMarkerViewOptions createFromParcel(Parcel in) {
-            return new ExtendedMarkerViewOptions(in);
-        }
-
-        public ExtendedMarkerViewOptions[] newArray(int size) {
-            return new ExtendedMarkerViewOptions[size];
-        }
-    };
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeParcelable(position, flags);
-        out.writeString(snippet);
-        out.writeString(icon.getId());
-        out.writeParcelable(icon.getBitmap(), flags);
-        out.writeString(url);
-    }
-
-}
-*/
-public class ExtendedMarkerViewOptions extends BaseMarkerOptions<ExtendedMarkerView, ExtendedMarkerViewOptions> {
+public class ExtendedMarkerViewOptions extends BaseMarkerViewOptions<ExtendedMarkerView, ExtendedMarkerViewOptions> {
 
     private String tag;
-    //private ExtendedMarkerView marker;
 
+    private ExtendedMarkerView marker;
 
     public String getTag() {
         return this.tag;
@@ -93,25 +33,26 @@ public class ExtendedMarkerViewOptions extends BaseMarkerOptions<ExtendedMarkerV
     }
 
     public ExtendedMarkerViewOptions() {
-       // marker = new ExtendedMarkerView(this, tag);
+        marker = new ExtendedMarkerView(this,"");
     }
 
     private ExtendedMarkerViewOptions(Parcel in) {
-       // marker = new ExtendedMarkerView();
+        marker = new ExtendedMarkerView(this,"");
         position((LatLng) in.readParcelable(LatLng.class.getClassLoader()));
         snippet(in.readString());
         title(in.readString());
-        /*flat(in.readByte() != 0);
+        flat(in.readByte() != 0);
         anchor(in.readFloat(), in.readFloat());
         infoWindowAnchor(in.readFloat(), in.readFloat());
         rotation(in.readFloat());
         visible(in.readByte() != 0);
-        alpha(in.readFloat());*/
+        alpha(in.readFloat());
         if (in.readByte() != 0) {
             // this means we have an icon
             String iconId = in.readString();
             Bitmap iconBitmap = in.readParcelable(Bitmap.class.getClassLoader());
-            Icon icon = IconFactory.recreate(iconId, iconBitmap);//new Icon(iconId, iconBitmap);
+            Icon icon = IconFactory.recreate(iconId, iconBitmap);
+
             icon(icon);
         }
 
@@ -130,32 +71,29 @@ public class ExtendedMarkerViewOptions extends BaseMarkerOptions<ExtendedMarkerV
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
-        out.writeParcelable(position, flags);
-        out.writeString(snippet);
-        out.writeString(title);
-        /*out.writeByte((byte) (flat ? 1 : 0));
-        out.writeFloat(anchorU());
-        out.writeFloat(anchorV());
-        out.writeFloat(infoWindowAnchorU);
-        out.writeFloat(infoWindowAnchorV);
-        out.writeFloat(rotation);
+        out.writeParcelable(getPosition(), flags);
+        out.writeString(getSnippet());
+        out.writeString(getTitle());
+        out.writeByte((byte) (isFlat() ? 1 : 0));
+        out.writeFloat(getAnchorU());
+        out.writeFloat(getAnchorV());
+        out.writeFloat(getInfoWindowAnchorU());
+        out.writeFloat(getInfoWindowAnchorV());
+        out.writeFloat(getRotation());
         out.writeByte((byte) (isVisible() ? 1 : 0));
-        out.writeFloat(alpha);*/
-        out.writeParcelable(icon.getBitmap(), flags);
-        /*Icon icon = super.icon;
+        out.writeFloat(alpha);
+        Icon icon = getIcon();
         out.writeByte((byte) (icon != null ? 1 : 0));
         if (icon != null) {
-            out.writeString(super.icon.getId());
-            out.writeParcelable(super.icon.getBitmap(), flags);
-        }*/
-
+            out.writeString(getIcon().getId());
+            out.writeParcelable(getIcon().getBitmap(), flags);
+        }
         out.writeString(tag);
     }
 
     @Override
     public ExtendedMarkerView getMarker() {
-        return new ExtendedMarkerView(this, tag);
-        /*if (position == null) {
+        if (position == null) {
             throw new InvalidMarkerPositionException();
         }
 
@@ -170,9 +108,7 @@ public class ExtendedMarkerViewOptions extends BaseMarkerOptions<ExtendedMarkerV
         marker.setVisible(visible);
         marker.setAlpha(alpha);
         marker.setTag(tag);
-
-        return marker;*/
-    }
+        return marker; }
 
 
 
@@ -187,8 +123,7 @@ public class ExtendedMarkerViewOptions extends BaseMarkerOptions<ExtendedMarkerV
         }
     };
 
-
-   /* @Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -199,5 +134,5 @@ public class ExtendedMarkerViewOptions extends BaseMarkerOptions<ExtendedMarkerV
     @Override
     public int hashCode() {
         return marker != null ? marker.hashCode() : 0;
-    }*/
+    }
 }

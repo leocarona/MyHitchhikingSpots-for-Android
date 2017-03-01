@@ -14,8 +14,6 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,10 +23,10 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.mapbox.mapboxsdk.MapboxAccountManager;
-import com.mapbox.mapboxsdk.annotations.BaseMarkerOptions;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
+import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -84,7 +82,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                     }
                                 }).show();
                     } else {
-                        if (!mRequestingLocationUpdates)
+                        if (!mapboxMap.isMyLocationEnabled())
                             enableLocation(true);
                         else
                             mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(locationServices.getLastLocation()), 16));
@@ -224,15 +222,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private pageType currentPage;
 
     protected void showCurrentPage() {
-        /*if (!mRequestingLocationUpdates)
-            fabLocateUser.setImageResource(R.drawable.ic_my_location_24dp);
-        else
-            fabLocateUser.setImageResource(R.drawable.ic_location_disabled_24dp);*/
-
         if (currentPage == pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE || currentPage == pageType.WILL_BE_REGULAR_SPOT) {
-            //mWaitingToGetCurrentLocationTextView.setVisibility(View.INVISIBLE);
-            //fabLocateUser.setVisibility(View.GONE);
-
             fabMainActionButton.setImageResource(R.drawable.ic_regular_spot_icon);
             fabMainActionButton.setBackgroundColor(getResources().getColor(R.color.ic_regular_spot_color));
             fabMainActionButton.setVisibility(View.VISIBLE);
@@ -242,10 +232,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         switch (currentPage) {
             case NOT_FETCHING_LOCATION:
             default:
-                //mWaitingToGetCurrentLocationTextView.setVisibility(View.VISIBLE);
                 fabMainActionButton.setVisibility(View.GONE);
                 fabSecondaryActionButton.setVisibility(View.GONE);
-                //fabLocateUser.setVisibility(View.VISIBLE);
                 break;
             case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
                 fabSecondaryActionButton.setVisibility(View.GONE);
@@ -301,10 +289,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private void enableLocation(boolean enabled) {
         // Enable or disable the location layer on the map
         mapboxMap.setMyLocationEnabled(enabled);
-        mRequestingLocationUpdates = enabled;
     }
-
-    private boolean mRequestingLocationUpdates;
 
     @Override
     public void onRequestPermissionsResult(
@@ -411,6 +396,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 return true;
             }
         });
+
+        final MarkerViewManager markerViewManager = mapboxMap.getMarkerViewManager();
+        // if you want to customise a ViewMarker you need to extend ViewMarker and provide an adapter implementation
+        // set adapters for child classes of ViewMarker
+        markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(MapViewActivity.this));
 
         //Load polylines
         new DrawAnnotations().execute();
@@ -571,47 +561,47 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
             for (int i = spotList.size() - 1; i >= 0; i--) {
                 Spot spot = spotList.get(i);
-                String title = getString(spot);
                 String snippet = "";
-                Icon icon = null;
+
+                ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
+                        .tag(spot.getId().toString())
+                        .title(getString(spot))
+                        .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
+
 
                 if (spot.getIsDestination() != null && spot.getIsDestination()) {
                     //AT THIS SPOT USER HAS ARRIVED TO HIS DESTINATION
 
                     snippet = "(DESTINATION)";
-                    icon = ic_arrival_spot;
+                    markerViewOptions.icon(ic_arrival_spot);
+
+                    //Center icon
+                    markerViewOptions.anchor((float)0.5,(float) 0.5);
                 } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                     //AT THIS SPOT USER IS WAITING FOR A RIDE
 
                     snippet = "(WAITING)";
-                    icon = ic_waiting_spot;
+                    markerViewOptions.icon(ic_waiting_spot);
                 } else {
                     if (spot.getAttemptResult() != null)
                         if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
                             //AT THIS SPOT USER TOOK A BREAK SPOT
 
                             snippet = "(BREAK)";
-                            icon = ic_took_a_break_spot;
+                            markerViewOptions.icon(ic_took_a_break_spot);
+
+                            //Center icon
+                            markerViewOptions.anchor((float)0.5,(float) 0.5);
                         } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
                             //AT THIS SPOT USER GOT A RIDE
 
                             snippet = "(" + spot.getWaitingTime() + "min)";
-                            icon = ic_got_a_ride_spot;
+                            markerViewOptions.icon(ic_got_a_ride_spot);
                         }
                 }
 
-                snippet = dateTimeToString(spot.getStartDateTime()) + " - " + snippet + " " + spot.getNote();
-
                 // Customize map with markers, polylines, etc.
-                ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
-                        .position(new LatLng(spot.getLatitude(), spot.getLongitude()))
-                        .title(title)
-                        .snippet(snippet)
-                        .tag(spot.getId().toString());
-
-                //TODO: find out how to place the icons beter - currently the center of the icon is the spot position but they don't look correct with pins
-                if (icon != null)
-                    markerViewOptions.icon(icon);
+                markerViewOptions.snippet(dateTimeToString(spot.getStartDateTime()) + " - " + snippet + " " + spot.getNote());
 
                 spots.add(markerViewOptions);
 
@@ -636,7 +626,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         .width(2)
                         .color(Color.parseColor(getPolylineColor(lc)));
 
-                for (BaseMarkerOptions spot : spots) {
+                for (ExtendedMarkerViewOptions spot : spots) {
 
                     //Add marker to map
                     mapboxMap.addMarker(spot);
