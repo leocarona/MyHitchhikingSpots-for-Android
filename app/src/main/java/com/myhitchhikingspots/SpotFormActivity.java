@@ -125,7 +125,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private ImageView dropPinView;
 
     private CoordinatorLayout coordinatorLayout;
-    private FloatingActionButton fabLocateUser;
+    private android.support.design.widget.FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -238,6 +238,26 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                             else
                                 moveCamera(new LatLng(locationServices.getLastLocation()));
                         }
+                    }
+                }
+            });
+
+            fabZoomIn = (FloatingActionButton) findViewById(R.id.fab_zoom_in);
+            fabZoomIn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mapboxMap != null) {
+                        mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
+                    }
+                }
+            });
+
+            fabZoomOut = (FloatingActionButton) findViewById(R.id.fab_zoom_out);
+            fabZoomOut.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mapboxMap != null) {
+                        mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
                     }
                 }
             });

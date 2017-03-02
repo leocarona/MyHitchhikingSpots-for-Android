@@ -46,7 +46,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginTop="65dp"
         app:backgroundTint="?attr/colorAccent"
-        app:srcCompat="@drawable/ic_zoom_out_map_white_24dp_vector"
+        app:srcCompat="@drawable/ic_zoom_out_map_white_24dp"
         tools:ignore="VectorDrawableCompat"
         app:fabSize="mini" />
 
