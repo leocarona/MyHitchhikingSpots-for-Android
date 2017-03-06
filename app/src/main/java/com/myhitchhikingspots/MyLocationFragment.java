@@ -211,10 +211,12 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         if (!mIsWaitingForARide) {
             spot = new Spot();
             spot.setIsDestination(isDestination);
-            spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
-            spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());
-            spot.setAccuracy(parentActivity.mCurrentLocation.getAccuracy());
-            spot.setHasAccuracy(parentActivity.mCurrentLocation.hasAccuracy());
+            if (parentActivity.mCurrentLocation != null) {
+                spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
+                spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());
+                spot.setAccuracy(parentActivity.mCurrentLocation.getAccuracy());
+                spot.setHasAccuracy(parentActivity.mCurrentLocation.hasAccuracy());
+            }
             Log.i(TAG, "Save spot button handler: a new spot is being created.");
         } else {
             spot = mCurrentWaitingSpot;
