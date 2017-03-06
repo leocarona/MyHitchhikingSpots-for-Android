@@ -1,7 +1,10 @@
 package com.myhitchhikingspots;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -128,4 +131,11 @@ public class BaseActivity extends AppCompatActivity
                 .show();
     }
 
+    protected boolean isNetworkAvailable() {
+        //Method copied from http://stackoverflow.com/a/4239019/1094261
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 }
