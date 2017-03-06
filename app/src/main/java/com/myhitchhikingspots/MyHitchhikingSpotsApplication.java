@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
@@ -61,6 +62,18 @@ public class MyHitchhikingSpotsApplication extends Application {
 
     public Spot getCurrentSpot() {
         return currentSpot;
+    }
+
+    public LatLng getLastAddedSpotPosition() {
+        SpotDao spotDao = daoSession.getSpotDao();
+        Spot spot = spotDao.queryBuilder()
+                .orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).limit(1).unique();
+
+        if (spot != null && spot.getLatitude() != null && spot.getLongitude() != null
+                && spot.getLatitude() != 0.0 && spot.getLongitude() != 0.0)
+            return new LatLng(spot.getLatitude(), spot.getLongitude());
+        else
+            return null;
     }
 
     public void setCurrentSpot(Spot currentSpot) {
