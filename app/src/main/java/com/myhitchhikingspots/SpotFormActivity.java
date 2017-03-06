@@ -235,8 +235,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                         } else {
                             if (!mapboxMap.isMyLocationEnabled())
                                 enableLocation(true);
-                            else
+                            else if (locationServices.getLastLocation() != null)
                                 moveCamera(new LatLng(locationServices.getLastLocation()));
+                            else
+                                Toast.makeText(getBaseContext(), getResources().getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                         }
                     }
                 }
@@ -276,11 +278,18 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
-
         if (mCurrentSpot != null && mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
+            //Set start position for map camera: set it to the current waiting spot
             moveCamera(new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude()));
             mLocationAddressTextView.setText(getString((Spot) mCurrentSpot));
         } else {
+            //Set start position for map camera: set it to the last spot saved
+            if (mFormType == FormType.Basic || mFormType == FormType.Destination) {
+                //Set zoom level to 6 to make it easier for the user to find his new position easier
+                LatLng spot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedSpotPosition();
+                if (spot != null)
+                    moveCamera(spot, 6);
+            }
 
             locationServices.addLocationListener(new LocationListener() {
                 @Override
@@ -329,10 +338,27 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private boolean isCameraPositionChangingByCodeRequest = false;
     private boolean locationManuallyChanged = false;
 
-    private void moveCamera(LatLng position) {
-        positionAt = position;
-        isCameraPositionChangingByCodeRequest = true;
-        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionAt, 16));
+    /**
+     * Move the map camera to the given position with zoom 16
+     *
+     * @param latLng Target location to change to
+     * @param zoom   Zoom level to change to
+     */
+    private void moveCamera(LatLng latLng, long zoom) {
+        if (latLng != null) {
+            positionAt = latLng;
+            isCameraPositionChangingByCodeRequest = true;
+            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        }
+    }
+
+    /**
+     * Move the map camera to the given position with zoom 17
+     *
+     * @param latLng Target location to change to
+     */
+    private void moveCamera(LatLng latLng) {
+        moveCamera(latLng, 17);
     }
 
     private LatLng getPinPosition() {
