@@ -409,6 +409,28 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     protected boolean drawannotationsIsExecuting = false;
 
+    static String locationSeparator = ", ";
+
+    private static String spotLocationToString(Spot spot) {
+
+        ArrayList<String> loc = new ArrayList();
+        try {
+            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
+                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
+                    loc.add(spot.getCity().trim());
+                if (spot.getState() != null && !spot.getState().trim().isEmpty())
+                    loc.add(spot.getState().trim());
+                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
+                    loc.add(spot.getCountry().trim());
+            }
+
+            return TextUtils.join(locationSeparator, loc);
+        } catch (Exception ex) {
+            Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
+
+        }
+        return "";
+    }
 
     @NonNull
     private static String getString(Spot mCurrentSpot) {
@@ -417,28 +439,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         } else if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null)
             spotLoc = "(" + mCurrentSpot.getLatitude() + ", " + mCurrentSpot.getLongitude() + ")";
         return spotLoc;
-    }
-
-    static String locationSeparator = ", ";
-
-    private static String spotLocationToString(Spot spot) {
-
-        ArrayList<String> loc = new ArrayList();
-        try {
-
-            if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                loc.add(spot.getCity().trim());
-            if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                loc.add(spot.getState().trim());
-            if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                loc.add(spot.getCountry().trim());
-
-            return TextUtils.join(locationSeparator, loc);
-        } catch (Exception ex) {
-            Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
-
-        }
-        return "";
     }
 
     private static String dateTimeToString(Date dt) {
