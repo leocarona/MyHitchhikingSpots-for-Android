@@ -317,6 +317,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                                         mCurrentSpot.setGpsResolved(false);
                                                         mLocationAddressTextView.setText(getResources().getString(R.string.spot_form_location_selected_label));
                                                         //location_changed.setVisibility(View.VISIBLE);
+                                                        locationManuallyChanged = true;
                                                     }
                                                 }
                                             }
@@ -326,6 +327,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     private LatLng positionAt = null;
     private boolean isCameraPositionChangingByCodeRequest = false;
+    private boolean locationManuallyChanged = false;
 
     private void moveCamera(LatLng position) {
         positionAt = position;
@@ -391,14 +393,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
                 .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
-                .setPositiveButton(getResources().getString(R.string.spot_form_delete_dialog_yes_option), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         finish();
                     }
 
                 })
-                .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
+                .setNegativeButton(getResources().getString(R.string.general_no_option), null)
                 .show();
 
     }
@@ -541,8 +543,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             if (mFormType == FormType.Unknown) {
                 mSaveButton.setEnabled(false);
-                Log.e(TAG, "Something went wrong - mCurrentSpot is null");
-                Toast.makeText(this, getResources().getString(R.string.generall_error_message) + " Please open your spot again.", Toast.LENGTH_LONG).show();
+                showErrorAlert(getResources().getString(R.string.general_error_dialog_title), "Please try opening your spot again.");
             }
 
             //Show delete button when the spot is been edited and it's not of type Evaluate
@@ -651,7 +652,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         } catch (Exception ex) {
             Log.e(TAG, "updateUI", ex);
-            Toast.makeText(getApplicationContext(), getResources().getString(R.string.generall_error_message), Toast.LENGTH_LONG).show();
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message), ex.getMessage()));
         }
     }
 
@@ -700,14 +701,18 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     public void saveButtonHandler(View view) {
         try {
-            DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
-            mCurrentSpot.setStartDateTime(dateTime.toDate());
-
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
-                LatLng selectedLocation = mapboxMap.getCameraPosition().target;
+                if (locationManuallyChanged) {
+                    if (mapboxMap.getCameraPosition() == null || mapboxMap.getCameraPosition().target == null) {
+                        showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_map_not_loaded));
+                        return;
+                    } else {
+                        LatLng selectedLocation = mapboxMap.getCameraPosition().target;
 
-                mCurrentSpot.setLatitude(selectedLocation.getLatitude());
-                mCurrentSpot.setLongitude(selectedLocation.getLongitude());
+                        mCurrentSpot.setLatitude(selectedLocation.getLatitude());
+                        mCurrentSpot.setLongitude(selectedLocation.getLongitude());
+                    }
+                }
 
                 mCurrentSpot.setNote(note_edittext.getText().toString());
 
@@ -726,13 +731,22 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
             if (mFormType == FormType.Evaluate || mFormType == FormType.All) {
                 String vals = waiting_time_edittext.getText().toString();
-                if (vals != null && !vals.isEmpty())
+                if (!vals.isEmpty())
                     mCurrentSpot.setWaitingTime(Integer.parseInt(vals));
                 mCurrentSpot.setAttemptResult(attempt_results_spinner.getSelectedItemPosition());
                 mCurrentSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
 
                 if (mFormType == FormType.Evaluate)
                     mCurrentSpot.setIsWaitingForARide(false);
+            }
+
+            DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
+            mCurrentSpot.setStartDateTime(dateTime.toDate());
+
+
+            if (mCurrentSpot.getLatitude() == null || mCurrentSpot.getLongitude() == null) {
+                showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_coordinate_not_informed_error_message));
+                return;
             }
 
             new Thread() {
@@ -756,7 +770,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         } catch (Exception ex) {
             Log.e(TAG, "saveButtonHandler", ex);
-            Toast.makeText(getApplicationContext(), getResources().getString(R.string.generall_error_message), Toast.LENGTH_LONG).show();
+            showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
     }
 
@@ -1051,6 +1065,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
     }
 
-    //----END: Part related to reverse geocoding
+//----END: Part related to reverse geocoding
 
 }

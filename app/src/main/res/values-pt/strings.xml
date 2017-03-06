@@ -65,6 +65,8 @@
 
     <string name="mapview_master_title">Mapa</string>
 
+    <string name="menu_home">Sem 3G? Use esse</string>
+
     <string name="settings_master_title">Ferramentas</string>
     <string name="settings_importdb_button_label">importar banco de dados</string>
     <string name="settings_exportdb_button_label">exportar banco de dados</string>
@@ -81,7 +83,7 @@
     <string name="spot_form_time_label">Horário</string>
     <string name="spot_form_waiting_time_label">Tempo de espera (em minutos)</string>
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
-    <string name="spot_form_more_options_label">Mais opçōes</string>
+    <string name="spot_form_more_options_label">Quando (editar)</string>
 
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo!</string>
@@ -100,8 +102,8 @@
     <string name="spot_form_delete_button_text">deletar</string>
     <string name="spot_form_delete_dialog_title_text">Deletar local</string>
     <string name="spot_form_delete_dialog_message_text">Você tem certeza que deseja deletar esse local permanentemente?</string>
-    <string name="spot_form_delete_dialog_no_option">Não</string>
-    <string name="spot_form_delete_dialog_yes_option">Sim</string>
+    <string name="spot_form_delete_dialog_no_option">Cancelar</string>
+    <string name="spot_form_delete_dialog_yes_option">Deletar</string>
     <string name="spot_form_is_destination_checkbox_text">Este é meu destino nesta viagem</string>
     <string name="spot_form_title_evaluate">Avaliar ponto</string>
     <string name="spot_form_title_edit">Editar ponto</string>
@@ -117,6 +119,12 @@
     <string name="break_spot_state_label">PAUSA</string>
     <string name="waiting_for_gps">Aguardando atualização da sua localizaçāo..</string>
 
+    <string name="general_ok_option">Ok</string>
+    <string name="general_yes_option">Sim</string>
+    <string name="general_no_option">Não</string>
+    <string name="general_cancel_option">Cancelar</string>
+    <string name="general_error_dialog_title">Houve uma falha :(</string>
+
     <string name="fetch_address">obter endereço</string>
     <string name="no_geocoder_available">Serviço indisponível</string>
     <string name="address_found">Endereço encontrado</string>
@@ -128,7 +136,14 @@
     <string name="spot_form_save_while_requesting_addr_dialog_text">Você tem certeza que deseja salvar antes que o endereço tenha sido obtido?</string>
     <string name="spot_form_location_info_copied">Texto copiado.</string>
 
-    <string name="generall_error_message">Houve uma falha :(</string>
     <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
 
+    <string name="save_spot_error_map_not_loaded">Parece que você ajustou a posição do local sem o mapa carregado.\\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
+    <string name="save_spot_error_coordinate_not_informed_error_message">Não conseguimos obter as coordenadas geográficas do local que você está tentando salvar.\\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
+    <string name="save_spot_error_general">Houve uma falha :(\\n%s</string>
+
+    <string name="map_infoview_spot_type_destination">(DESTINO)</string>
+    <string name="map_infoview_spot_type_waiting">(AGUARDANDO)</string>
+    <string name="map_infoview_spot_type_break">(PAUSA)</string>
+    <string name="map_infoview_spot_type_regular">(%dmin)</string>
 </resources>

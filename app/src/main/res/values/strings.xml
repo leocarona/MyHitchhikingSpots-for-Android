@@ -63,6 +63,8 @@
     </string-array>
     <string name="sample_basic_master_title">Basic Master Layout</string>
 
+    <string name="menu_home">No 3G? Use this</string>
+
     <string name="settings_master_title">Tools</string>
     <string name="settings_importdb_button_label">import database</string>
     <string name="settings_exportdb_button_label">export database</string>
@@ -79,7 +81,7 @@
     <string name="spot_form_time_label">Time</string>
     <string name="spot_form_waiting_time_label">Waiting time (in minutes)</string>
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
-    <string name="spot_form_more_options_label">More options</string>
+    <string name="spot_form_more_options_label">When (edit)</string>
 
     <string name="mapview_master_title">Map</string>
 
@@ -100,8 +102,8 @@
     <string name="spot_form_delete_button_text">delete</string>
     <string name="spot_form_delete_dialog_title_text">Delete spot</string>
     <string name="spot_form_delete_dialog_message_text">Are you sure you want to permanently delete this spot?</string>
-    <string name="spot_form_delete_dialog_no_option">No</string>
-    <string name="spot_form_delete_dialog_yes_option">Yes</string>
+    <string name="spot_form_delete_dialog_no_option">Cancel</string>
+    <string name="spot_form_delete_dialog_yes_option">Delete</string>
     <string name="spot_form_is_destination_checkbox_text">This is my destination by now</string>
     <string name="spot_form_title_evaluate">Evaluate spot</string>
     <string name="spot_form_title_edit">Edit spot</string>
@@ -117,6 +119,12 @@
     <string name="break_spot_state_label">BREAK</string>
     <string name="waiting_for_gps">Waiting to receive your current location..</string>
 
+    <string name="general_ok_option">Ok</string>
+    <string name="general_yes_option">Yes</string>
+    <string name="general_no_option">No</string>
+    <string name="general_cancel_option">Cancel</string>
+    <string name="general_error_dialog_title">Something went wrong :(</string>
+    <string name="general_error_dialog_message" translatable="false">"%s"</string>
 
     <string name="fetch_address">fetch address</string>
     <string name="no_geocoder_available">No geocoder available</string>
@@ -129,6 +137,14 @@
     <string name="spot_form_save_while_requesting_addr_dialog_text">Are you sure you want to save before the address is fetched?</string>
     <string name="spot_form_location_info_copied">Text copied to clipboard.</string>
 
-    <string name="generall_error_message">Something went wrong :(</string>
     <string name="shortcut_save_button_failed">It was not possible to update your spot through the shortcut :(</string>
+
+    <string name="save_spot_error_map_not_loaded">It seems like you\'ve manually adjusted the location of your spot location but the map is not loaded.\\nYou might need an internet connection to save this change.</string>
+    <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\\nYou might need an internet connection to save this change.</string>
+    <string name="save_spot_error_general">Something went wrong :(\\n%s</string>
+
+    <string name="map_infoview_spot_type_destination">(DESTINATION)</string>
+    <string name="map_infoview_spot_type_waiting">(WAITING)</string>
+    <string name="map_infoview_spot_type_break">(BREAK)</string>
+    <string name="map_infoview_spot_type_regular">(%dmin)</string>
 </resources>
