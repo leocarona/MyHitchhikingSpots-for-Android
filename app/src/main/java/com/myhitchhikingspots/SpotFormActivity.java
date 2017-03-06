@@ -171,32 +171,27 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         hitchabilityLabel.setText("");
         mLocationAddressTextView.setText("");
 
-        try {
-            if (savedInstanceState != null)
-                updateValuesFromBundle(savedInstanceState);
-            else
-                mCurrentSpot = (Spot) getIntent().getSerializableExtra("Spot");
+        if (savedInstanceState != null)
+            updateValuesFromBundle(savedInstanceState);
+        else
+            mCurrentSpot = (Spot) getIntent().getSerializableExtra("Spot");
 
-            // If user is currently waiting for a ride at the current spot, show him the Evaluate form. If he is not,
-            // that means he's saving a new spot so we need to show him the Basic form instead.
-            if (mCurrentSpot == null)
-                mFormType = FormType.Unknown;
+        // If user is currently waiting for a ride at the current spot, show him the Evaluate form. If he is not,
+        // that means he's saving a new spot so we need to show him the Basic form instead.
+        if (mCurrentSpot == null)
+            mFormType = FormType.Unknown;
+        else {
+            if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
+                mFormType = FormType.Evaluate;
+            else if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination())
+                mFormType = FormType.Destination;
             else {
-                if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
-                    mFormType = FormType.Evaluate;
-                else if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination())
-                    mFormType = FormType.Destination;
-                else {
-                    // If Id greater than zero, this means the user is editing a spot that was already saved in the database. So show full form.
-                    if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0)
-                        mFormType = FormType.All;
-                    else
-                        mFormType = FormType.Basic;
-                }
+                // If Id greater than zero, this means the user is editing a spot that was already saved in the database. So show full form.
+                if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0)
+                    mFormType = FormType.All;
+                else
+                    mFormType = FormType.Basic;
             }
-        } catch (Exception ex) {
-            Log.e(TAG, "onCreate", ex);
-            Toast.makeText(getApplicationContext(), getResources().getString(R.string.generall_error_message), Toast.LENGTH_LONG).show();
         }
 
         if (mFormType != FormType.Evaluate) {
