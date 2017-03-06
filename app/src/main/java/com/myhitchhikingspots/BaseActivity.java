@@ -3,14 +3,23 @@ package com.myhitchhikingspots;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.myhitchhikingspots.model.Spot;
+
+import java.util.ArrayList;
 
 /**
  * Created by leoboaventura on 07/03/2016.
@@ -24,17 +33,17 @@ public class BaseActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if(mShouldShowLeftMenu)
+        if (mShouldShowLeftMenu)
             ShowMenu();
     }
 
     protected void ShowMenu() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if(toolbar != null) {
+        if (toolbar != null) {
             setSupportActionBar(toolbar);
 
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-            if(drawer != null) {
+            if (drawer != null) {
                 ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                         this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
                 drawer.setDrawerListener(toggle);
@@ -42,7 +51,7 @@ public class BaseActivity extends AppCompatActivity
 
                 //Set listener to the menu icon click (the icon placed on the top left side of the screen)
                 NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-                if(navigationView != null)
+                if (navigationView != null)
                     navigationView.setNavigationItemSelectedListener(this);
             }
         }
@@ -101,7 +110,7 @@ public class BaseActivity extends AppCompatActivity
         } else */
         if (id == R.id.nav_manage) {
             startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-        }else if (id == R.id.nav_home) {
+        } else if (id == R.id.nav_home) {
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
         }
 
@@ -109,4 +118,14 @@ public class BaseActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    protected void showErrorAlert(String title, String msg) {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
+                .show();
+    }
+
 }
