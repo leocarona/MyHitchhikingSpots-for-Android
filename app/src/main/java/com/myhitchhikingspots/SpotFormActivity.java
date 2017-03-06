@@ -207,7 +207,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mapView.onCreate(savedInstanceState);
             mapView.getMapAsync(this);
 
-            useMap = true;
+            mapIsDisplayed = true;
 
             coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
@@ -265,8 +265,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         super.onCreate(savedInstanceState);
     }
-
-    protected boolean locationWasManuallyChanged = false;
 
     @Override
     public void onMapReady(final MapboxMap mapboxMap) {
@@ -357,7 +355,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     private LatLng getPinPosition() {
-        if (!useMap)
+        if (!mapIsDisplayed)
             return null;
 
         //Copied from: https://github.com/mapbox/mapbox-gl-native/blob/e2da260a8ee0dd0b213ec0e30db2c6e3188c7c9b/platform/android/MapboxGLAndroidSDKTestApp/src/main/java/com/mapbox/mapboxsdk/testapp/GeocoderActivity.java
@@ -367,7 +365,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     private PointF getCenterPoint() {
-        if (!useMap)
+        if (!mapIsDisplayed)
             return null;
 
         final int width = mapView.getMeasuredWidth();
@@ -380,7 +378,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     public void onResume() {
         super.onResume();
 
-        if (useMap)
+        if (mapIsDisplayed)
             mapView.onResume();
 
     }
@@ -388,25 +386,25 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     @Override
     public void onPause() {
         super.onPause();
-        if (useMap)
+        if (mapIsDisplayed)
             mapView.onPause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (useMap)
+        if (mapIsDisplayed)
             mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        if (useMap)
+        if (mapIsDisplayed)
             mapView.onLowMemory();
     }
 
-    private boolean useMap = false;
+    private boolean mapIsDisplayed = false;
 
     @Override
     public void onBackPressed() {
@@ -455,7 +453,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     private void addPinToCenter() {
-        if (!useMap)
+        if (!mapIsDisplayed)
             return;
 
         Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
@@ -893,7 +891,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         //----END: Part related to reverse geocoding
 
 
-        if (useMap)
+        if (mapIsDisplayed)
             mapView.onSaveInstanceState(savedInstanceState);
 
         super.onSaveInstanceState(savedInstanceState);
@@ -908,7 +906,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      * GoogleApiClient is connected.
      */
     public void fetchAddressButtonHandler(View view) {
-        if (!useMap || mapboxMap == null)
+        if (!mapIsDisplayed || mapboxMap == null)
             return;
 
         LatLng pinPosition = mapboxMap.getCameraPosition().target;
