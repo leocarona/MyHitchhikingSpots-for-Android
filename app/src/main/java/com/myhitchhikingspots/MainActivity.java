@@ -24,8 +24,6 @@ import com.myhitchhikingspots.model.SpotDao;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -60,10 +58,6 @@ public class MainActivity extends TrackLocationBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.main_activity_layout);
 
-        /*Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);*/
-
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -74,36 +68,6 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-
-      /*  mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        ComponentName rec = new ComponentName(getPackageName(), RemoteControlReceiver.class.getName());
-        mAudioManager.registerMediaButtonEventReceiver(rec);
-        Intent i = new Intent(Intent.ACTION_MEDIA_BUTTON);
-        i.setComponent(rec);
-        PendingIntent pi = PendingIntent.getBroadcast(this , 0 , i , 0 );
-        mRemoteControlClient = new RemoteControlClient(pi);
-        mAudioManager.registerRemoteControlClient(mRemoteControlClient);
-        int flags = RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS
-                | RemoteControlClient.FLAG_KEY_MEDIA_NEXT
-                | RemoteControlClient.FLAG_KEY_MEDIA_PLAY
-                | RemoteControlClient.FLAG_KEY_MEDIA_PAUSE
-                | RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE
-                | RemoteControlClient.FLAG_KEY_MEDIA_STOP;//  
-        mRemoteControlClient.setTransportControlFlags(flags);
-
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-                                                         */
-        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-            }
-        });*/
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -132,7 +96,8 @@ public class MainActivity extends TrackLocationBaseActivity {
     protected void GotARideShortcut() {
         try {
             //Get currentSpot and update it
-            Spot mCurrentSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
+            mCurrentSpot = appContext.getCurrentSpot();
 
             if (mCurrentSpot == null || mCurrentSpot.getIsWaitingForARide() == null || !mCurrentSpot.getIsWaitingForARide()) {
                 if (mCurrentLocation == null)
@@ -156,27 +121,36 @@ public class MainActivity extends TrackLocationBaseActivity {
             }
 
             //Persist on DB
-            DaoSession daoSession = ((MyHitchhikingSpotsApplication) getApplicationContext()).getDaoSession();
+            DaoSession daoSession = appContext.getDaoSession();
             SpotDao spotDao = daoSession.getSpotDao();
             spotDao.insertOrReplace(mCurrentSpot);
             ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
             Toast.makeText(getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
 
-            if (mSectionsPagerAdapter != null)
-                mSectionsPagerAdapter.loadValues();
+            mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
-            //finish();
+            if (mSectionsPagerAdapter != null)
+                mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
+
         } catch (Exception ex) {
-            Log.e(TAG, "GotARideShortcut", ex);
+            Log.e(TAG, "Shortcut event handler failed", ex);
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.shortcut_save_button_failed), Toast.LENGTH_LONG).show();
         }
     }
 
+    List<Spot> mSpotList;
+    Spot mCurrentSpot;
+
+
     @Override
     public void onResume() {
         super.onResume();
-        if (mSectionsPagerAdapter != null)
-            mSectionsPagerAdapter.loadValues();
+
+        MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
+        DaoSession daoSession = appContext.getDaoSession();
+        SpotDao spotDao = daoSession.getSpotDao();
+        mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
+        mCurrentSpot = appContext.getCurrentSpot();
     }
 
     @Override
@@ -230,6 +204,26 @@ public class MainActivity extends TrackLocationBaseActivity {
             super(fm);
         }
 
+        //Called before instantiateItem(..)
+        @Override
+        public Fragment getItem(int position) {
+            // getItem is called to instantiate the fragment for the given page.
+            // Return a PlaceholderFragment (defined as a static inner class below).
+            switch (position) {
+                case 0:
+                    MyLocationFragment frag = new MyLocationFragment();
+                    Bundle args = new Bundle();
+                    frag.setArguments(args);
+                    return frag;
+                case 1:
+                    SpotListFragment frag2 = new SpotListFragment();
+                    Bundle args2 = new Bundle();
+                    frag2.setArguments(args2);
+                    return frag2;
+            }
+            return null;
+        }
+
         // Here we can finally safely save a reference to the created
         // Fragment, no matter where it came from (either getItem() or
         // FragmentManger). Simply save the returned Fragment from
@@ -242,53 +236,17 @@ public class MainActivity extends TrackLocationBaseActivity {
             // save the appropriate reference depending on position
             switch (position) {
                 case 0:
-                    fragment = (MyLocationFragment) createdFragment;
+                    MyLocationFragment f = (MyLocationFragment) createdFragment;
+                    f.setValues(mSpotList, mCurrentSpot);
+                    fragment = f;
                     break;
                 case 1:
-                    fragment2 = (SpotListFragment) createdFragment;
+                    SpotListFragment f2 = (SpotListFragment) createdFragment;
+                    f2.setValues(mSpotList);
+                    fragment2 = f2;
                     break;
             }
             return createdFragment;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            switch (position) {
-                case 0:
-                    MyLocationFragment frag = new MyLocationFragment();
-                    Bundle args = new Bundle();
-                    frag.setArguments(args);
-                    frag.setValues(spotList, currentSpot);
-                    return frag;
-                case 1:
-                    SpotListFragment frag2 = new SpotListFragment();
-                    Bundle args2 = new Bundle();
-                    frag2.setArguments(args2);
-                    frag2.setValues(spotList);
-                    return frag2;
-            }
-            return null;
-        }
-
-        protected List<Spot> getSpotListWithCurrentLocation() {
-            //If user isn't waiting for a ride, add the the current location to the list so that it's included on the map
-            List<Spot> newList = new ArrayList<>();
-            Spot mCurrentSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
-
-            //As of December 2016, if the user is waiting for a ride we stop fetching his location. So we better don't try to add it to the map.
-            if (mCurrentSpot == null || mCurrentSpot.getIsWaitingForARide() == null || !mCurrentSpot.getIsWaitingForARide()) {
-                if (mCurrentLocation != null) {
-                    Spot myLocationSpot = new Spot();
-                    myLocationSpot.setId(Constants.USER_CURRENT_LOCATION_SPOTLIST_ID);
-                    myLocationSpot.setLatitude(mCurrentLocation.getLatitude());
-                    myLocationSpot.setLongitude(mCurrentLocation.getLongitude());
-                    newList.add(myLocationSpot);
-                }
-            }
-            newList.addAll(spotList);
-            return newList;
         }
 
         @Override
@@ -329,33 +287,16 @@ public class MainActivity extends TrackLocationBaseActivity {
                 return fragment.getSelectedHitchability();
         }
 
-        public void resumeFragments() {
-            if (fragment != null)
-                fragment.onResume();
+        public void setValues(List<Spot> lst, Spot spot) {
+            try {
+                if (fragment != null)
+                    fragment.setValues(lst, spot);
 
-            if (fragment2 != null)
-                fragment2.onResume();
-        }
-
-        List<Spot> spotList;
-        Spot currentSpot;
-
-        public void loadValues() {
-            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
-            DaoSession daoSession = appContext.getDaoSession();
-            SpotDao spotDao = daoSession.getSpotDao();
-            spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
-            currentSpot = appContext.getCurrentSpot();
-
-            if (fragment != null)
-                fragment.setValues(spotList, currentSpot);
-
-            if (fragment2 != null)
-                fragment2.setValues(spotList);
-
-            resumeFragments();
+                if (fragment2 != null)
+                    fragment2.setValues(lst);
+            } catch (Exception ex) {
+                Log.e(TAG, "Calling fragments has failed", ex);
+            }
         }
     }
-
-
 }
