@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
@@ -15,6 +16,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
@@ -150,6 +152,21 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         mapView.getMapAsync(this);
 
         loadMarkerIcons();
+
+        if (!isNetworkAvailable()) {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))
+                    .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
+                    .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                        }
+                    })
+                    .setNegativeButton(getResources().getString(R.string.map_error_alert_map_not_loaded_negative_button), null)
+                    .show();
+        }
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -674,6 +691,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             zoomOutToFitAllMarkers();
             drawannotationsIsExecuting = false;
         }
+
     }
 
 

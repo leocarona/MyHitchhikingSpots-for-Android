@@ -147,4 +147,9 @@
     <string name="map_infoview_spot_type_waiting">(WAITING)</string>
     <string name="map_infoview_spot_type_break">(BREAK)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
+
+    <string name="map_error_alert_map_not_loaded_title">Internet unavailable</string>
+    <string name="map_error_alert_map_not_loaded_message">Hey. :-) Your device seems to be disconnected from the internet at the moment. You can still save your locations, but the maps might not load as expected. You may try the app without map.</string>
+    <string name="map_error_alert_map_not_loaded_positive_button">Try without map</string>
+    <string name="map_error_alert_map_not_loaded_negative_button">View map</string>
 </resources>

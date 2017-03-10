@@ -146,4 +146,9 @@
     <string name="map_infoview_spot_type_waiting">(AGUARDANDO)</string>
     <string name="map_infoview_spot_type_break">(PAUSA)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
+
+    <string name="map_error_alert_map_not_loaded_title">Internet indisponível</string>
+    <string name="map_error_alert_map_not_loaded_message">Olá. :-) Seu celular parece estar desconectado da internet no momento. Ainda assim você pode salvar novos locais, porém talvez o mapa não carregue como esperado. Você pode experimentar usar sem mapa.</string>
+    <string name="map_error_alert_map_not_loaded_positive_button">Usar sem mapa</string>
+    <string name="map_error_alert_map_not_loaded_negative_button">Ver mapa</string>
 </resources>
