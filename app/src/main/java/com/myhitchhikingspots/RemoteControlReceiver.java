@@ -49,7 +49,7 @@ public class RemoteControlReceiver extends BroadcastReceiver {
                 Log.i(TAG_MEDIA, "no media button information");
                 return;
             }
-            KeyEvent event = (KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+            KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
             if (event == null) {
                 Log.i(TAG_MEDIA, "no keypress");
                 return;

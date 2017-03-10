@@ -224,10 +224,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
 
-        if (spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()))
-            mWillItBeFirstSpotOfARoute = true;
-        else
-            mWillItBeFirstSpotOfARoute = false;
+        mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
     }
 
     public enum pageType {
@@ -435,7 +432,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         new DrawAnnotations().execute();
     }
 
-    protected boolean drawannotationsIsExecuting = false;
+    protected boolean isDrawingAnnotations = false;
 
     static String locationSeparator = ", ";
 
@@ -603,6 +600,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
             List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
             ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
+                isDrawingAnnotations = true;
 
             //The spots are ordered from the last saved ones to the first saved ones, so we need to
             // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
@@ -689,7 +687,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
 
             zoomOutToFitAllMarkers();
-            drawannotationsIsExecuting = false;
+            isDrawingAnnotations = false;
         }
 
     }

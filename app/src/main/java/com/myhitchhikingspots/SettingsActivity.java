@@ -165,10 +165,7 @@ public class SettingsActivity extends BaseActivity {
     public void exportButtonHandler(View view) {
         try {
             String dbExportResult = exportDB(getBaseContext());
-            if (dbExportResult.isEmpty())
-                dbExported = false;
-            else
-                dbExported = true;
+            dbExported = !dbExportResult.isEmpty();
             mfeedbacklabel.setText(dbExportResult);
 
             //copyDataBase2(Constants.dbName);
