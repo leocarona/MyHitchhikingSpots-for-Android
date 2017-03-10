@@ -167,8 +167,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
             Intent intent = new Intent(spotListFragment.getActivity(), SpotFormActivity.class);
             //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-            intent.putExtra("Spot", spot);
-            spotListFragment.startActivityForResult(intent, 1);
+            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+            spotListFragment.startActivity(intent);
         }
 
         public void setFields(Spot spot) {
