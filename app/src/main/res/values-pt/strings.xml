@@ -138,9 +138,9 @@
 
     <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
 
-    <string name="save_spot_error_map_not_loaded">Parece que você ajustou a posição do local sem o mapa carregado.\\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
-    <string name="save_spot_error_coordinate_not_informed_error_message">Não conseguimos obter as coordenadas geográficas do local que você está tentando salvar.\\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
-    <string name="save_spot_error_general">Houve uma falha :(\\n%s</string>
+    <string name="save_spot_error_map_not_loaded">Parece que você ajustou a posição do local sem o mapa carregado.\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
+    <string name="save_spot_error_coordinate_not_informed_error_message">Não conseguimos obter as coordenadas geográficas do local que você está tentando salvar.\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
+    <string name="save_spot_error_general">Houve uma falha :(\n%s</string>
 
     <string name="map_infoview_spot_type_destination">(DESTINO)</string>
     <string name="map_infoview_spot_type_waiting">(AGUARDANDO)</string>

@@ -87,8 +87,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     } else {
                         if (!mapboxMap.isMyLocationEnabled())
                             enableLocation(true);
-                        else
+                        else if (locationServices.getLastLocation() != null)
                             moveCamera(new LatLng(locationServices.getLastLocation()));
+                        else
+                            Toast.makeText(getBaseContext(), getResources().getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -563,131 +565,179 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     protected void zoomOutToFitAllMarkers() {
-        if (mapboxMap != null) {
-            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            for (Marker marker : mapboxMap.getMarkers()) {
-                builder.include(marker.getPosition());
+        try {
+            if (mapboxMap != null) {
+                Location mCurrentLocation = locationServices.getLastLocation();
+                List<LatLng> lst = new ArrayList<>();
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                for (Marker marker : mapboxMap.getMarkers()) {
+                    lst.add(marker.getPosition());
+                }
+
+                if (mCurrentLocation != null)
+                    lst.add(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+
+                //Add current location to camera bounds
+                if (lst.size() == 1)
+                    moveCamera(new LatLng(lst.get(0).getLatitude(), lst.get(0).getLongitude()), Constants.ZOOM_TO_SEE_FARTHER_DISTANCE);
+                else if (lst.size() > 1) {
+                    builder.includes(lst);
+                    LatLngBounds bounds = builder.build();
+                    mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120), 5000);
+                }
             }
 
-            Location mCurrentLocation = locationServices.getLastLocation();
-
-            //Add current location to camera bounds
-            if (mapboxMap.getMarkers().size() == 0) {
-                if (mCurrentLocation != null)
-                    moveCamera(new LatLng(locationServices.getLastLocation()));
-            } else {
-                if (mCurrentLocation != null)
-                    builder.include(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
-
-                LatLngBounds bounds = builder.build();
-                mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120), 5000);
-            }
+        } catch (Exception ex) {
+            Log.e(TAG, "Show all markers failed", ex);
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+                    "Show all markers failed - " + ex.getMessage()));
         }
     }
 
     private LatLng positionAt = null;
     private boolean isCameraPositionChangingByCodeRequest = false;
 
-    private void moveCamera(LatLng position) {
-        positionAt = position;
-        isCameraPositionChangingByCodeRequest = true;
-        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(positionAt, 16));
+
+    /**
+     * Move the map camera to the given position
+     *
+     * @param latLng Target location to change to
+     * @param zoom   Zoom level to change to
+     */
+    private void moveCamera(LatLng latLng, long zoom) {
+        if (latLng != null) {
+            positionAt = latLng;
+            isCameraPositionChangingByCodeRequest = true;
+            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        }
+    }
+
+    /**
+     * Move the map camera to the given position with zoom Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT
+     *
+     * @param latLng Target location to change to
+     */
+    private void moveCamera(LatLng latLng) {
+        moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
 
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
 
         @Override
         protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
-            List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
-            ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
+            try {
                 isDrawingAnnotations = true;
 
-            //The spots are ordered from the last saved ones to the first saved ones, so we need to
-            // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
-            for (int i = spotList.size() - 1; i >= 0; i--) {
-                Spot spot = spotList.get(i);
-                String snippet = "";
+                List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
+                ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
 
-                ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
-                        .tag(spot.getId().toString())
-                        .title(getString(spot))
-                        .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
+                //The spots are ordered from the last saved ones to the first saved ones, so we need to
+                // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
+                for (int i = spotList.size() - 1; i >= 0; i--) {
+                    Spot spot = spotList.get(i);
+                    String snippet = "";
+
+                    ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
+                            .tag(spot.getId().toString())
+                            .title(getString(spot))
+                            .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
 
 
-                if (spot.getIsDestination() != null && spot.getIsDestination()) {
-                    //AT THIS SPOT USER HAS ARRIVED TO HIS DESTINATION
+                    if (spot.getIsDestination() != null && spot.getIsDestination()) {
+                        //AT THIS SPOT USER HAS ARRIVED TO HIS DESTINATION
 
-                    snippet = "(DESTINATION)";
-                    markerViewOptions.icon(ic_arrival_spot);
+                        snippet = getResources().getString(R.string.map_infoview_spot_type_destination);
+                        markerViewOptions.icon(ic_arrival_spot);
 
-                    //Center icon
-                    markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
-                    //AT THIS SPOT USER IS WAITING FOR A RIDE
+                        //Center icon
+                        markerViewOptions.anchor((float) 0.5, (float) 0.5);
+                    } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
+                        //AT THIS SPOT USER IS WAITING FOR A RIDE
 
-                    snippet = "(WAITING)";
-                    markerViewOptions.icon(ic_waiting_spot);
-                } else {
-                    if (spot.getAttemptResult() != null)
-                        if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
-                            //AT THIS SPOT USER TOOK A BREAK SPOT
+                        snippet = getResources().getString(R.string.map_infoview_spot_type_waiting);
+                        markerViewOptions.icon(ic_waiting_spot);
+                    } else {
+                        if (spot.getAttemptResult() != null)
+                            if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
+                                //AT THIS SPOT USER TOOK A BREAK SPOT
 
-                            snippet = "(BREAK)";
-                            markerViewOptions.icon(ic_took_a_break_spot);
+                                snippet = getResources().getString(R.string.map_infoview_spot_type_break);
+                                markerViewOptions.icon(ic_took_a_break_spot);
 
-                            //Center icon
-                            markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                        } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
-                            //AT THIS SPOT USER GOT A RIDE
+                                //Center icon
+                                markerViewOptions.anchor((float) 0.5, (float) 0.5);
+                            } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                                //AT THIS SPOT USER GOT A RIDE
 
-                            snippet = "(" + spot.getWaitingTime() + "min)";
-                            markerViewOptions.icon(ic_got_a_ride_spot);
-                        }
+                                int waitingTime = 0;
+                                if (spot.getWaitingTime() != null)
+                                    spot.getWaitingTime();
+                                snippet = String.format(getResources().getString(R.string.map_infoview_spot_type_regular), waitingTime);
+                                markerViewOptions.icon(ic_got_a_ride_spot);
+                            }
+                    }
+
+                    String note = "";
+                    if (spot.getNote() != null)
+                        note = " " + spot.getNote();
+
+                    // Customize map with markers, polylines, etc.
+                    markerViewOptions.snippet(dateTimeToString(spot.getStartDateTime()) + " - " + snippet + note);
+
+                    spots.add(markerViewOptions);
+
+                    if (spot.getIsDestination() != null && spot.getIsDestination() || i == 0) {
+                        trips.add(spots);
+                        spots = new ArrayList<>();
+                    }
                 }
 
-                // Customize map with markers, polylines, etc.
-                markerViewOptions.snippet(dateTimeToString(spot.getStartDateTime()) + " - " + snippet + " " + spot.getNote());
-
-                spots.add(markerViewOptions);
-
-                if (spot.getIsDestination() != null && spot.getIsDestination() || i == 0) {
-                    trips.add(spots);
-                    spots = new ArrayList<>();
-                }
+                return trips;
+            } catch (Exception ex) {
+                Log.e(TAG, "Loaded spots failed", ex);
+                showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+                        "Loading spots failed - " + ex.getMessage()));
             }
-
-            return trips;
+            return new ArrayList<>();
         }
 
         @Override
         protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
             super.onPostExecute(trips);
-            mapboxMap.clear();
+            try {
+                mapboxMap.clear();
 
-            for (int lc = 0; lc < trips.size(); lc++) {
-                List<ExtendedMarkerViewOptions> spots = trips.get(lc);
+                for (int lc = 0; lc < trips.size(); lc++) {
+                    List<ExtendedMarkerViewOptions> spots = trips.get(lc);
 
-                PolylineOptions line = new PolylineOptions()
-                        .width(2)
-                        .color(Color.parseColor(getPolylineColor(lc)));
+                    PolylineOptions line = new PolylineOptions()
+                            .width(2)
+                            .color(Color.parseColor(getPolylineColor(lc)));
 
-                for (ExtendedMarkerViewOptions spot : spots) {
+                    for (ExtendedMarkerViewOptions spot : spots) {
 
-                    //Add marker to map
-                    mapboxMap.addMarker(spot);
+                        //Add marker to map
+                        mapboxMap.addMarker(spot);
 
-                    //Add polyline connecting this marker
-                    line.add(spot.getMarker().getPosition());
+                        //Add polyline connecting this marker
+                        line.add(spot.getPosition());
+                    }
+
+                    if (spotList.size() > 1) {
+                        //Add polylines to map
+                        mapboxMap.addPolyline(line);
+                    }
                 }
 
-                if (spotList.size() > 1) {
-                    //Add polylines to map
-                    mapboxMap.addPolyline(line);
-                }
+                zoomOutToFitAllMarkers();
+            } catch (Exception ex) {
+                Log.e(TAG, "Adding markers failed", ex);
+                showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+                        "Adding markers failed - " + ex.getMessage()));
             }
 
-            zoomOutToFitAllMarkers();
             isDrawingAnnotations = false;
+
         }
 
     }

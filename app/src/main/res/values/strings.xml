@@ -139,9 +139,9 @@
 
     <string name="shortcut_save_button_failed">It was not possible to update your spot through the shortcut :(</string>
 
-    <string name="save_spot_error_map_not_loaded">It seems like you\'ve manually adjusted the location of your spot location but the map is not loaded.\\nYou might need an internet connection to save this change.</string>
-    <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\\nYou might need an internet connection to save this change.</string>
-    <string name="save_spot_error_general">Something went wrong :(\\n%s</string>
+    <string name="save_spot_error_map_not_loaded">It seems like you\'ve manually adjusted the location of your spot location but the map is not loaded.\nYou might need an internet connection to save this change.</string>
+    <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\nYou might need an internet connection to save this change.</string>
+    <string name="save_spot_error_general">Something went wrong :(\n%s</string>
 
     <string name="map_infoview_spot_type_destination">(DESTINATION)</string>
     <string name="map_infoview_spot_type_waiting">(WAITING)</string>
