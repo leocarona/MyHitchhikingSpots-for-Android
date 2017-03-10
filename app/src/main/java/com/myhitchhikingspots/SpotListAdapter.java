@@ -22,7 +22,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Dictionary;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.List;
@@ -32,6 +31,7 @@ import java.util.Locale;
  * Created by leocarona on 04/03/2016.
  */
 public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHolder> {
+    protected static final String TAG = "spot-list-adapter";
     private List<Spot> mData;
     private SpotListFragment spotListFragment;
     public static Hashtable<Long, String> totalsToDestinations;
@@ -86,12 +86,67 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         startDate = data.get(i - 1).getStartDateTime();
                 }
             } catch (Exception ex) {
-                Log.w("SumRouteTotals..", "Err msg: " + ex.getMessage());
-
+                Log.e(TAG, "Summing up the total of rides gotten and hours traveling has failed", ex);
             }
         }
     }
 
+    @Override
+    public SpotListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // create a new view
+        View itemLayoutView = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.spot_list_item, null);
+
+        // create ViewHolder
+
+        ViewHolder viewHolder = new SpotListAdapter.ViewHolder(itemLayoutView, spotListFragment);
+        return viewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder viewHolder, int position) {
+        Spot spot = mData.get(position);
+        viewHolder.setFields(spot);
+    }
+
+    static String locationSeparator = ", ";
+
+    private static String spotLocationToString(Spot spot) {
+
+        ArrayList<String> loc = new ArrayList();
+        try {
+            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
+                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
+                    loc.add(spot.getCity().trim());
+                if (spot.getState() != null && !spot.getState().trim().isEmpty())
+                    loc.add(spot.getState().trim());
+                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
+                    loc.add(spot.getCountry().trim());
+            }
+            return TextUtils.join(locationSeparator, loc);
+        } catch (Exception ex) {
+            Log.w(TAG, "Generating spot location string failed", ex);
+
+        }
+        return "";
+    }
+
+    private static String dateTimeToString(Date dt) {
+        SimpleDateFormat res;
+
+        String dateFormat = "dd/MM'\n'HH:mm";
+        if (Locale.getDefault() == Locale.US)
+            dateFormat = "MM/dd'\n'HH:mm";
+
+        try {
+            res = new SimpleDateFormat(dateFormat);
+            return res.format(dt);
+        } catch (Exception ex) {
+            Log.w(TAG, "Formatting date failed", ex);
+        }
+
+        return "";
+    }
 
     @NonNull
     public static String getWaitingTimeAsString(Integer waitingTime) {
@@ -146,7 +201,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             arrivalIcon = (ImageView) itemLayoutView.findViewById(R.id.arrival_icon_layout_imageview);
             pauseIcon = (ImageView) itemLayoutView.findViewById(R.id.break_icon_layout_imageview);
 
-            viewParent = (View) itemLayoutView.findViewById(R.id.spot_list_item_parent);
+            viewParent = itemLayoutView.findViewById(R.id.spot_list_item_parent);
             viewParent.setOnClickListener(this);
         }
 
@@ -157,6 +212,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
             if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
                     mCurrentWaitingSpot.getIsWaitingForARide()) {
+
                 if (mCurrentWaitingSpot.getId() == spot.getId())
                     spot.setAttemptResult(null);
                 else {
@@ -172,55 +228,57 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         }
 
         public void setFields(Spot spot) {
-            this.spot = spot;
+            try {
+                this.spot = spot;
 
-            String captilizedNote = "";
-            if (spot.getNote() != null)
-                captilizedNote = spot.getNote();
+                String captilizedNote = "";
+                if (spot.getNote() != null)
+                    captilizedNote = spot.getNote();
 
-            if (spot.getIsDestination() != null && spot.getIsDestination()) {
-                //ARRIVAL SPOT
-                viewParent.setBackgroundColor(viewParent.getResources().getColor(R.color.ic_arrival_color));
-                arrivalIcon.setVisibility(View.VISIBLE);
-                waitingTimeText.setVisibility(View.GONE);
-                waitingIcon.setVisibility(View.GONE);
-                captilizedNote = totalsToDestinations.get(spot.getId());
-            } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
-                //USER IS WAITING FOR A RIDE
-                viewParent.setBackgroundColor(viewParent.getResources().getColor(R.color.ic_regular_spot_color));
-                arrivalIcon.setVisibility(View.GONE);
-                waitingTimeText.setVisibility(View.GONE);
-                waitingIcon.setVisibility(View.VISIBLE);
-            } else {
-                viewParent.setBackgroundColor(Color.TRANSPARENT);
-                Integer waitingTime = 0;
-                if (spot.getWaitingTime() != null)
-                    waitingTime = spot.getWaitingTime();
-                waitingTimeText.setText(getWaitingTimeAsString(waitingTime));
-                arrivalIcon.setVisibility(View.GONE);
-                waitingTimeText.setVisibility(View.VISIBLE);
-                waitingIcon.setVisibility(View.GONE);
+                if (spot.getIsDestination() != null && spot.getIsDestination()) {
+                    //ARRIVAL SPOT
+                    viewParent.setBackgroundColor(viewParent.getResources().getColor(R.color.ic_arrival_color));
+                    arrivalIcon.setVisibility(View.VISIBLE);
+                    waitingTimeText.setVisibility(View.GONE);
+                    waitingIcon.setVisibility(View.GONE);
+                    captilizedNote = totalsToDestinations.get(spot.getId());
+                } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
+                    //USER IS WAITING FOR A RIDE
+                    viewParent.setBackgroundColor(viewParent.getResources().getColor(R.color.ic_regular_spot_color));
+                    arrivalIcon.setVisibility(View.GONE);
+                    waitingTimeText.setVisibility(View.GONE);
+                    waitingIcon.setVisibility(View.VISIBLE);
+                } else {
+                    viewParent.setBackgroundColor(Color.TRANSPARENT);
+                    Integer waitingTime = 0;
+                    if (spot.getWaitingTime() != null)
+                        waitingTime = spot.getWaitingTime();
+                    waitingTimeText.setText(getWaitingTimeAsString(waitingTime));
+                    arrivalIcon.setVisibility(View.GONE);
+                    waitingTimeText.setVisibility(View.VISIBLE);
+                    waitingIcon.setVisibility(View.GONE);
+                }
+
+                if (spot.getStartDateTime() != null)
+                    dateTime.setText(dateTimeToString(spot.getStartDateTime()));
+
+                String spotLoc = getString(spot);
+                cityNameText.setText(spotLoc);
+
+                if (captilizedNote != null && !captilizedNote.isEmpty())
+                    captilizedNote = captilizedNote.substring(0, 1).toUpperCase() + captilizedNote.substring(1);
+
+                if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK
+                        && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide()))
+                    pauseIcon.setVisibility(View.VISIBLE);
+                else
+                    pauseIcon.setVisibility(View.GONE);
+                //captilizedNote = viewParent.getResources().getString(R.string.break_spot_state_label) + " - " + captilizedNote;
+
+                notesText.setText(captilizedNote);
+            } catch (Exception ex) {
+                Log.e(TAG, "Setting UI values failed", ex);
             }
-
-            if (spot.getStartDateTime() != null)
-                dateTime.setText(dateTimeToString(spot.getStartDateTime()));
-
-            String spotLoc = getString(spot);
-            cityNameText.setText(spotLoc);
-
-            if (captilizedNote != null && !captilizedNote.isEmpty())
-                captilizedNote = captilizedNote.substring(0, 1).toUpperCase() + captilizedNote.substring(1);
-
-            if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK
-                    && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide()))
-                pauseIcon.setVisibility(View.VISIBLE);
-            else
-                pauseIcon.setVisibility(View.GONE);
-            //captilizedNote = viewParent.getResources().getString(R.string.break_spot_state_label) + " - " + captilizedNote;
-
-            notesText.setText(captilizedNote);
-
-
         }
 
 
@@ -232,69 +290,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             else if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null)
                 spotLoc = "- (" + mCurrentSpot.getLatitude() + "," + mCurrentSpot.getLongitude() + ")";
             return spotLoc;
-        }
-    }
-
-
-    static String locationSeparator = ", ";
-
-    private static String spotLocationToString(Spot spot) {
-
-        ArrayList<String> loc = new ArrayList();
-        try {
-            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
-                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                    loc.add(spot.getCity().trim());
-                if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                    loc.add(spot.getState().trim());
-                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                    loc.add(spot.getCountry().trim());
-            }
-            return TextUtils.join(locationSeparator, loc);
-        } catch (Exception ex) {
-            Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
-
-        }
-        return "";
-    }
-
-    private static String dateTimeToString(Date dt) {
-        SimpleDateFormat res;
-
-        String dateFormat = "dd/MM'\n'HH:mm";
-        if (Locale.getDefault() == Locale.US)
-            dateFormat = "MM/dd'\n'HH:mm";
-
-        try {
-            res = new SimpleDateFormat(dateFormat);
-            return res.format(dt);
-        } catch (Exception ex) {
-            Log.w("dateTimeToString", "Err msg: " + ex.getMessage());
-        }
-
-        return "";
-    }
-
-    @Override
-    public SpotListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // create a new view
-        View itemLayoutView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.spot_list_item, null);
-
-        // create ViewHolder
-
-        ViewHolder viewHolder = new SpotListAdapter.ViewHolder(itemLayoutView, spotListFragment);
-        return viewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position) {
-        try {
-            Spot spot = mData.get(position);
-            viewHolder.setFields(spot);
-        } catch (Exception ex) {
-            Log.w("onBindViewHolder", "Err msg: " + ex.getMessage());
-
         }
     }
 }
