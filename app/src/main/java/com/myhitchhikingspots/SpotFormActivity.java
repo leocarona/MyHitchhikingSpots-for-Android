@@ -274,14 +274,22 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         if (mCurrentSpot != null && mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
             //Set start position for map camera: set it to the current waiting spot
             moveCamera(new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude()));
-            mLocationAddressTextView.setText(getString((Spot) mCurrentSpot));
+            mLocationAddressTextView.setText(getString(mCurrentSpot));
         } else {
             //Set start position for map camera: set it to the last spot saved
             if (mFormType == FormType.Basic || mFormType == FormType.Destination) {
-                //Set zoom level to 6 to make it easier for the user to find his new position easier
-                LatLng spot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedSpotPosition();
-                if (spot != null)
-                    moveCamera(spot, 6);
+
+                Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedSpot();
+                if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
+                        && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
+                    LatLng pos = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+
+                    //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
+                    if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
+                        moveCamera(pos, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
+                    else
+                        moveCamera(pos, Constants.ZOOM_TO_SEE_FARTHER_DISTANCE);
+                }
             }
 
             locationServices.addLocationListener(new LocationListener() {
@@ -332,7 +340,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private boolean locationManuallyChanged = false;
 
     /**
-     * Move the map camera to the given position with zoom 16
+     * Move the map camera to the given position
      *
      * @param latLng Target location to change to
      * @param zoom   Zoom level to change to
@@ -346,12 +354,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     /**
-     * Move the map camera to the given position with zoom 17
+     * Move the map camera to the given position with zoom Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT
      *
      * @param latLng Target location to change to
      */
     private void moveCamera(LatLng latLng) {
-        moveCamera(latLng, 17);
+        moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
 
     private LatLng getPinPosition() {
@@ -1000,7 +1008,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mCurrentSpot.setGpsResolved(false);
         }
 
-        mLocationAddressTextView.setText(getString((Spot) mCurrentSpot));
+        mLocationAddressTextView.setText(getString(mCurrentSpot));
 
     }
 
