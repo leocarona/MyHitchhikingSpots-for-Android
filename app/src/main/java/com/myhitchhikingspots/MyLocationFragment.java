@@ -208,7 +208,9 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      */
     public void saveSpotButtonHandler(boolean isDestination) {
         Spot spot = null;
+        int requestCode = BaseActivity.EDIT_SPOT_REQUEST;
         if (!mIsWaitingForARide) {
+            requestCode = BaseActivity.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsDestination(isDestination);
             if (parentActivity.mCurrentLocation != null) {
@@ -224,8 +226,8 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         }
 
         Intent intent = new Intent(getContext(), SpotFormActivity.class);
-        intent.putExtra("Spot", spot);
-        startActivityForResult(intent, 1);
+        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+        startActivityForResult(intent, requestCode);
     }
 
     public void gotARideButtonHandler() {
@@ -247,10 +249,8 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
         if (mIsWaitingForARide) {
             Intent intent = new Intent(parentActivity.getApplicationContext(), SpotFormActivity.class);
-            intent.putExtra("Spot", mCurrentWaitingSpot);
-            startActivityForResult(intent, 1);
-            //mIsWaitingForARide = false;
-            //updateUISaveButtons();
+            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
+            startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
         }
     }
 

@@ -32,6 +32,11 @@ public class BaseActivity extends AppCompatActivity
 
     protected boolean mShouldShowLeftMenu = false;
 
+    public static final int SAVE_SPOT_REQUEST = 2, EDIT_SPOT_REQUEST = 3;
+    public static final int RESULT_OBJECT_ADDED = 2;
+    public static final int RESULT_OBJECT_EDITED = 3;
+    public static final int RESULT_OBJECT_DELETED = 4;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,29 +75,16 @@ public class BaseActivity extends AppCompatActivity
         }
     }
 
+    //Todo: consider using onActivityResult to information about new spots added/edited/deleted to update them in the spotList instead of fetching the whole list again from database
    /* @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.master, menu);
-        return true;
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Check which request we're responding to
+        if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST)
+            setResult(resultCode);
     }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }*/
+*/
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -100,22 +92,10 @@ public class BaseActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        /*if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        }  else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        } else */
-        if (id == R.id.nav_manage) {
+        if (id == R.id.nav_manage)
             startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-        } else if (id == R.id.nav_home) {
+        else if (id == R.id.nav_home)
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
-        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

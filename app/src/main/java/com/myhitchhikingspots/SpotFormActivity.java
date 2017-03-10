@@ -174,7 +174,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         if (savedInstanceState != null)
             updateValuesFromBundle(savedInstanceState);
         else
-            mCurrentSpot = (Spot) getIntent().getSerializableExtra("Spot");
+            mCurrentSpot = (Spot) getIntent().getSerializableExtra(Constants.SPOT_BUNDLE_EXTRA_KEY);
 
         // If user is currently waiting for a ride at the current spot, show him the Evaluate form. If he is not,
         // that means he's saving a new spot so we need to show him the Basic form instead.
@@ -415,7 +415,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        finish();
+                        //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
+                        finishSuccessful(RESULT_CANCELED);
                     }
 
                 })
@@ -768,29 +769,34 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 return;
             }
 
-            new Thread() {
-                @Override
-                public void run() {
-                    DaoSession daoSession = ((MyHitchhikingSpotsApplication) getApplicationContext()).getDaoSession();
-                    SpotDao spotDao = daoSession.getSpotDao();
-                    spotDao.insertOrReplace(mCurrentSpot);
-                    ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
-
-                    // code runs in a thread
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
-                            finish();
-                        }
-                    });
-                }
-            }.start();
-
         } catch (Exception ex) {
             Log.e(TAG, "saveButtonHandler", ex);
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
+
+        new Thread() {
+            @Override
+            public void run() {
+                DaoSession daoSession = ((MyHitchhikingSpotsApplication) getApplicationContext()).getDaoSession();
+                SpotDao spotDao = daoSession.getSpotDao();
+                spotDao.insertOrReplace(mCurrentSpot);
+                ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
+
+                // code runs in a thread
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
+
+                        int result = RESULT_OBJECT_ADDED;
+                        if (mFormType == FormType.Evaluate || mFormType == FormType.All)
+                            result = RESULT_OBJECT_EDITED;
+
+                        finishSuccessful(result);
+                    }
+                });
+            }
+        }.start();
     }
 
     public void deleteButtonHandler(View view) {
@@ -814,7 +820,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                     @Override
                                     public void run() {
                                         Toast.makeText(getApplicationContext(), R.string.spot_deleted_successfuly, Toast.LENGTH_LONG).show();
-                                        finish();
+                                        finishSuccessful(RESULT_OBJECT_DELETED);
                                     }
                                 });
                             }
@@ -824,7 +830,24 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 })
                 .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
                 .show();
+    }
 
+    private void finishSuccessful(int result) {
+        Intent intent = new Intent();
+
+        //If action was canceled means that nothing changed in the object and therefore we don't need to use processing time serializing the object here
+        if (result != RESULT_CANCELED) {
+            Bundle conData = new Bundle();
+            conData.putString(Constants.SPOT_BUNDLE_EXTRA_ID_KEY, mCurrentSpot.getId().toString());
+            conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentSpot);
+
+            intent.putExtras(conData);
+        }
+
+        //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+        setResult(result, intent);
+
+        finish();
     }
 
     public void moreOptionsButtonHandler(View view) {

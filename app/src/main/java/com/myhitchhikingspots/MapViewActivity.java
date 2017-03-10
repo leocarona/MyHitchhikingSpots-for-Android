@@ -390,8 +390,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                     Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
                     //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-                    intent.putExtra("Spot", spot);
-                    startActivityForResult(intent, 1);
+                    intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+                    startActivityForResult(intent, EDIT_SPOT_REQUEST);
                 }
 
                 return true;
@@ -472,6 +472,17 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             new DrawAnnotations().execute();
         }
     }
+
+  /*  @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Check which request we're responding to
+        if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode > RESULT_FIRST_USER)
+                updateUI();
+        }
+    }*/
 
     Icon ic_got_a_ride_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     List<Spot> spotList = new ArrayList<Spot>();
@@ -690,8 +701,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }
 
         Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-        intent.putExtra("Spot", spot);
-        startActivityForResult(intent, 1);
+        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+        startActivityForResult(intent, SAVE_SPOT_REQUEST);
     }
 
     public void gotARideButtonHandler() {
@@ -713,10 +724,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         if (mIsWaitingForARide) {
             Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-            intent.putExtra("Spot", mCurrentWaitingSpot);
-            startActivityForResult(intent, 1);
-            //mIsWaitingForARide = false;
-            //updateUISaveButtons();
+            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
+            startActivityForResult(intent, EDIT_SPOT_REQUEST);
         }
     }
 

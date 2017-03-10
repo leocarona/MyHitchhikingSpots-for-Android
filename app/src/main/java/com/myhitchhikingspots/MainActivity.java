@@ -153,6 +153,23 @@ public class MainActivity extends TrackLocationBaseActivity {
         mCurrentSpot = appContext.getCurrentSpot();
     }
 
+  /*  @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Check which request we're responding to
+        if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode > RESULT_FIRST_USER) {
+                loadValues();
+
+                //Update fragments
+                if (mSectionsPagerAdapter != null)
+                    mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
+            }
+        }
+    }*/
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
