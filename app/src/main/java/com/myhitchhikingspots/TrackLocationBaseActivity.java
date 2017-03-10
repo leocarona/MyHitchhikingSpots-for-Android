@@ -18,7 +18,7 @@ import java.util.Date;
 public class TrackLocationBaseActivity extends BaseActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    protected static final String TAG = "location-updates-sample";
+    protected static final String TAG = "track-location-base";
 
 
     /**
@@ -113,7 +113,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
                     mLastUpdateTime = (Date) savedInstanceState.getSerializable(LAST_UPDATED_TIME_STRING_KEY);
                 }
             } catch (Exception ex) {
-                Log.e(TAG, ex.getMessage());
+                Log.e(TAG, "Updating values from bundle has failed", ex);
                 Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
             }
         }
@@ -322,7 +322,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
             savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
             savedInstanceState.putSerializable(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
         } catch (Exception ex) {
-            Log.e(TAG, ex.getMessage());
+            Log.e(TAG, "Saving instance state has failed", ex);
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
         }
         super.onSaveInstanceState(savedInstanceState);

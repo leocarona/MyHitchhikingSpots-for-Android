@@ -75,7 +75,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private LinearLayout spot_form_evaluate, spot_form_basic, spot_form_more_options, hitchability_options, attempt_result_panel;
     private RatingBar hitchability_ratingbar;
 
-    protected static final String TAG = "save_spot";
+    protected static final String TAG = "spot-form-activity";
     protected final static String CURRENT_SPOT_KEY = "current-spot-key";
 
     //----BEGIN: Part related to reverse geocoding
@@ -562,6 +562,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             spot_form_evaluate.setVisibility(View.GONE);
 
             if (mFormType == FormType.Unknown) {
+                Log.wtf(TAG, "mFormType is Unkonwn");
                 mSaveButton.setEnabled(false);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), "Please try opening your spot again.");
             }
@@ -724,6 +725,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
                 if (locationManuallyChanged) {
                     if (mapboxMap.getCameraPosition() == null || mapboxMap.getCameraPosition().target == null) {
+                        Log.i(TAG, "Location was manually changed when map was unloaded");
                         showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_map_not_loaded));
                         return;
                     } else {
@@ -765,12 +767,13 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
             if (mCurrentSpot.getLatitude() == null || mCurrentSpot.getLongitude() == null) {
+                Log.wtf(TAG, "User tried to save a spot without coordinates?");
                 showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_coordinate_not_informed_error_message));
                 return;
             }
 
         } catch (Exception ex) {
-            Log.e(TAG, "saveButtonHandler", ex);
+            Log.e(TAG, "Something went wrong when setting the spot values", ex);
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
 
@@ -1011,7 +1014,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             spotLoc = String.format(getResources().getString(R.string.spot_form_lat_lng_label),
                         mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());*/
         } catch (Exception ex) {
-            Log.w("getString", "Err msg: " + ex.getMessage());
+            Log.wtf(TAG, "getString failed", ex);
         }
         return spotLoc;
     }
@@ -1034,8 +1037,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
-
+            Log.w(TAG, "Generating a string for the spot's address has failed", ex);
         }
         return "";
     }
