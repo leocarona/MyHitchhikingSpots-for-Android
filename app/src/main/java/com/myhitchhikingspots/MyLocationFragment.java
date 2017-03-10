@@ -127,20 +127,17 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mArrivedButton.setOnClickListener(this);
         mGotARideButton.setOnClickListener(this);
         mTookABreakButton.setOnClickListener(this);
-        //extra_image_button.setOnClickListener(this);
 
-
-      /*   mAudioManager =  (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);
-        mReceiverComponent = new ComponentName(getContext(), RemoteControlReceiver.class);
-
-       receiver = new RemoteControlReceiver(new Handler()); // Create the receiver
-        getActivity().registerReceiver(receiver, new IntentFilter("some.action")); // Register receiver
-
-        getActivity().sendBroadcast(new Intent("some.action")); // Send an example Intent
-*/
         return rootView;
     }
 
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.i("tracking-MyLocationFrag", "onResume was called");
+        updateUI();
+    }
 
     //RemoteControlReceiver receiver;
     Spot mCurrentWaitingSpot;
@@ -148,46 +145,41 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     boolean mWillItBeFirstSpotOfARoute;
 
     public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
-        mCurrentWaitingSpot = currentWaitingSpot;
+        Log.i("tracking-MyLocationFrag", "setValues was called");
+        try {
+            mCurrentWaitingSpot = currentWaitingSpot;
 
-        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
-            mIsWaitingForARide = false;
-        else
-            mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
+            if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
+                mIsWaitingForARide = false;
+            else
+                mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
 
-        if (spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()))
-            mWillItBeFirstSpotOfARoute = true;
-        else
-            mWillItBeFirstSpotOfARoute = false;
+            mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+
+        } catch (Exception ex) {
+            Log.e(TAG, "Setting values of fragment 1", ex);
+            parentActivity.showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+                    "Setting values of fragment 1 - " + ex.getMessage()));
+        }
+
+        if (this.isResumed())
+            updateUI();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        //extra_image_button.setImageAlpha(127);
+    void updateUI() {
+        Log.i("tracking-MyLocationFrag", "updateUI was called");
+        try {
+            if (!mIsWaitingForARide)
+                hitchability_ratingbar.setRating(0);
 
-        /*if(mIsWaitingForARide) {
-        if (Build.VERSION.SDK_INT >= 21 )
-        {
-            MediaSession mSession =  new MediaSession(getContext(), getContext().getPackageName());
-        Intent intent = new Intent(getContext(), RemoteControlReceiver.class);
-        PendingIntent pintent = PendingIntent.getBroadcast(getContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mSession.setMediaButtonReceiver(pintent);
-        mSession.setActive(true);
-        //mediaHandler.postDelayed(this, 1000L);
+            updateUILocationSwitch();
+            updateUISaveButtons();
+        } catch (Exception ex) {
+            Log.e(TAG, "Updating UI on fragment 1", ex);
+            parentActivity.showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+                    "Updating UI on fragment 1 - " + ex.getMessage()));
         }
-        else
-            mAudioManager.registerMediaButtonEventReceiver(mReceiverComponent);
-        } else {
-            mAudioManager.unregisterMediaButtonEventReceiver(mReceiverComponent);
-        }*/
-
-        if (!mIsWaitingForARide)
-            hitchability_ratingbar.setRating(0);
-
-        updateUILocationSwitch();
-        updateUISaveButtons();
     }
 
     public Integer getSelectedHitchability() {
@@ -335,20 +327,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    /**
-     * Ensures that only one button is enabled at any time. The Start Updates button is enabled
-     * if the user is not requesting location updates. The Stop Updates button is enabled if the
-     * user is requesting location updates.
-     */
-    //This method should be called when the following variables change:
-    // mIsWaitingForARide, mWillItBeFirstSpotOfARoute, parentActivity.mCurrentLocation, parentActivity.mGoogleApiClient, parentActivity.mGoogleApiClient.isConnected()
     protected void updateUISaveButtons() {
-        //If it's not waiting for a ride, show only ('get location' switch, 'current location' panel and 'save spot' button)
-        // { If it's first spot of route, hide 'arrived' button
-        //   else, show 'arrived' button }
-        //If it's waiting for a ride, show only ('rating' panel, 'got a ride' and 'take a break' buttons)
-        //If 'get location' switch is set to Off or (googleApiClient is null or disconnected, or currentLocation is null)
-
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
            /* if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()

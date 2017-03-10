@@ -127,10 +127,7 @@ public class MainActivity extends TrackLocationBaseActivity {
             ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
             Toast.makeText(getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
 
-            mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
-
-            if (mSectionsPagerAdapter != null)
-                mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
+            loadValues();
 
         } catch (Exception ex) {
             Log.e(TAG, "Shortcut event handler failed", ex);
@@ -145,12 +142,22 @@ public class MainActivity extends TrackLocationBaseActivity {
     @Override
     public void onResume() {
         super.onResume();
+        Log.i("tracking-main-activity", "onResume called");
 
+        loadValues();
+    }
+
+    void loadValues() {
+        Log.i("tracking-main-activity", "loadValues called");
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
         mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
         mCurrentSpot = appContext.getCurrentSpot();
+
+        //Update fragments
+        if (mSectionsPagerAdapter != null)
+            mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
     }
 
   /*  @Override
@@ -249,6 +256,8 @@ public class MainActivity extends TrackLocationBaseActivity {
         // http://stackoverflow.com/a/29288093/1094261
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
+            Log.i("tracking-main-activity", "SectionsPagerAdapter.instantiateItem called for position " + position);
+
             Fragment createdFragment = (Fragment) super.instantiateItem(container, position);
             // save the appropriate reference depending on position
             switch (position) {
@@ -305,6 +314,7 @@ public class MainActivity extends TrackLocationBaseActivity {
         }
 
         public void setValues(List<Spot> lst, Spot spot) {
+            Log.i("tracking-main-activity", "SectionsPagerAdapter.setValues called");
             try {
                 if (fragment != null)
                     fragment.setValues(lst, spot);

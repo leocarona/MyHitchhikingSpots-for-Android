@@ -353,8 +353,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         setValues(getSpotListWithCurrentLocation());
     }
 
+    //onMapReady is called after onResume()
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
+        Log.i("tracking-map", "mapReady called");
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
@@ -403,6 +405,15 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         // set adapters for child classes of ViewMarker
         markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(MapViewActivity.this));
 
+        updateUI();
+    }
+
+    void updateUI() {
+        Log.i("tracking-map", "updateUI was called");
+
+        loadValues();
+        updateUISaveButtons();
+
         //Load polylines
         new DrawAnnotations().execute();
     }
@@ -426,8 +437,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
-
+            Log.w(TAG, "Generating a string for the spot's address has failed", ex);
         }
         return "";
     }
@@ -462,15 +472,13 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     @Override
     public void onResume() {
         super.onResume();
+        Log.i("tracking-map", "onResume called");
         mapView.onResume();
 
-        loadValues();
-        updateUISaveButtons();
 
-        if (!drawannotationsIsExecuting) {
-            drawannotationsIsExecuting = true;
-            new DrawAnnotations().execute();
-        }
+        //If mapbox was already loaded, we should call updateUI() here in order to update its data
+        if (mapboxMap != null)
+            updateUI();
     }
 
   /*  @Override
@@ -690,10 +698,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             spot = new Spot();
             spot.setIsDestination(isDestination);
             Location mCurrentLocation = locationServices.getLastLocation();
-            spot.setLatitude(mCurrentLocation.getLatitude());
-            spot.setLongitude(mCurrentLocation.getLongitude());
-            spot.setAccuracy(mCurrentLocation.getAccuracy());
-            spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
+            if (mCurrentLocation != null) {
+                spot.setLatitude(mCurrentLocation.getLatitude());
+                spot.setLongitude(mCurrentLocation.getLongitude());
+                spot.setAccuracy(mCurrentLocation.getAccuracy());
+                spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
+            }
             Log.i(TAG, "Save spot button handler: a new spot is being created.");
         } else {
             spot = mCurrentWaitingSpot;
