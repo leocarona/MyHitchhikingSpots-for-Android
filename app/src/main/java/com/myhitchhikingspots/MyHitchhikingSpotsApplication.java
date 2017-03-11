@@ -3,6 +3,7 @@ package com.myhitchhikingspots;
 import android.app.Application;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Debug;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
@@ -11,6 +12,8 @@ import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
+
+import org.joda.time.DateTime;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -39,7 +42,7 @@ public class MyHitchhikingSpotsApplication extends Application {
         DaoMaster daoMaster = new DaoMaster(db);
         daoSession = daoMaster.newSession();
 
-        //insertSampleData(daoSession);
+        //insertSampleData2(daoSession);
 
         LoadCurrentWaitingSpot();
     }
@@ -76,8 +79,215 @@ public class MyHitchhikingSpotsApplication extends Application {
         this.currentSpot = currentSpot;
     }
 
+    final String TAG = "application-class";
+
+    public void insertSampleData2(DaoSession daoSession) {
+        //To prevent shit happening, don't execute this method unless it's not DEBUG mode
+        if (!BuildConfig.DEBUG)
+            return;
+
+        SpotDao spotDao = daoSession.getSpotDao();
+
+        //WARNING: Clear database here
+        spotDao.deleteAll();
+        Log.w(TAG, "Spot list cleared");
+
+        //Start hitchhiking at 8am
+        GregorianCalendar spotStartDateTime = new GregorianCalendar(2016, 03, 10, 8, 00, 00);
+
+        Spot spot;
+
+        //FIRST DAY - Odense to Copenhagen
+        spot = new Spot();
+        spot.setCity("Odense");
+        spot.setCountry("Denmark");
+        spot.setLatitude(55.351012);
+        spot.setLongitude(10.409609);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(2);
+        spotDao.insertOrReplace(spot);
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Slagelse");
+        spot.setCountry("Denmark");
+        spot.setLatitude(55.389869);
+        spot.setLongitude(11.359358);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(25);
+        spotDao.insertOrReplace(spot);
+
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Copenhagen");
+        spot.setCountry("Denmark");
+        spot.setLatitude(55.668537);
+        spot.setLongitude(12.556718);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(true);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(45);
+        spotDao.insertOrReplace(spot);
+
+
+        //NEXT DAY - Copenhagen to Skagen
+        spotStartDateTime = new GregorianCalendar(2016, 03, 11, 8, 00, 00);
+
+        spot = new Spot();
+        spot.setCity("Copenhagen");
+        spot.setCountry("Denmark");
+        spot.setLatitude(55.650766);
+        spot.setLongitude(12.507314);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(6);
+        spotDao.insertOrReplace(spot);
+
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Holbæk");
+        spot.setCountry("Denmark");
+        spot.setLatitude(55.659183);
+        spot.setLongitude(11.675878);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(23);
+        spotDao.insertOrReplace(spot);
+
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Sjællands Odde");
+        spot.setCountry("Denmark");
+        spot.setLatitude(55.978212);
+        spot.setLongitude(11.301391);
+        spot.setNote("Decided to pay for the ferry, didn't get a ride.");
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(5);
+        spotDao.insertOrReplace(spot);
+
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Aarhus");
+        spot.setCountry("Denmark");
+        spot.setLatitude(56.161744);
+        spot.setLongitude(10.220832);
+        spot.setNote("Hitchhiked a car leaving the ferry.");
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(10);
+        spotDao.insertOrReplace(spot);
+
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Skagen");
+        spot.setCountry("Denmark");
+        spot.setLatitude(57.738293);
+        spot.setLongitude(10.632600);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(true);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(15);
+        spotDao.insertOrReplace(spot);
+
+
+        //NEXT DAY - Skagen to Odense
+        spotStartDateTime = new GregorianCalendar(2016, 03, 12, 8, 00, 00);
+
+        spot = new Spot();
+        spot.setCity("Skagen");
+        spot.setCountry("Denmark");
+        spot.setLatitude(57.725531);
+        spot.setLongitude(10.559977);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(67);
+        spotDao.insertOrReplace(spot);
+
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Viborg");
+        spot.setCountry("Denmark");
+        spot.setLatitude(56.426606);
+        spot.setLongitude(9.389536);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(2);
+        spotDao.insertOrReplace(spot);
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Herning");
+        spot.setCountry("Denmark");
+        spot.setLatitude(56.153862);
+        spot.setLongitude(9.009223);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(30);
+        spotDao.insertOrReplace(spot);
+
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Vejle");
+        spot.setCountry("Denmark");
+        spot.setLatitude(55.683155);
+        spot.setLongitude(9.562681);
+        spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setGpsResolved(true);
+        spot.setWaitingTime(15);
+        spotDao.insertOrReplace(spot);
+
+
+        spotStartDateTime.add(Calendar.HOUR, 1);
+        spot = new Spot();
+        spot.setCity("Fredericia");
+        spot.setCountry("Denmark");
+        spot.setLatitude(55.556310);
+        spot.setLongitude(9.728092);
+        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setIsDestination(false);
+        spot.setIsWaitingForARide(true);
+        spot.setGpsResolved(true);
+        spotDao.insertOrReplace(spot);
+
+    }
 
     public void insertSampleData(DaoSession daoSession) {
+        //To prevent shit happening, don't execute this method unless it's not DEBUG mode
+        if (!BuildConfig.DEBUG)
+            return;
+        
         Spot spot1 = new Spot();
         spot1.setId(new Long(1));
         spot1.setNote("My first spot");
