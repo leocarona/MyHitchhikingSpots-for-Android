@@ -144,6 +144,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
         });
 
+        fabSpotAction1.setVisibility(View.INVISIBLE);
+        fabSpotAction2.setVisibility(View.INVISIBLE);
+
         locationServices = LocationServices.getLocationServices(MapViewActivity.this);
 
         // Mapbox access token is configured here. This needs to be called either in your application
@@ -244,25 +247,26 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private pageType currentPage;
 
     protected void showCurrentPage() {
-        if (currentPage == pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE || currentPage == pageType.WILL_BE_REGULAR_SPOT) {
-            fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-            fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_regular_spot_color)));
-            fabSpotAction1.setVisibility(View.VISIBLE);
-        }
-
-
         switch (currentPage) {
             case NOT_FETCHING_LOCATION:
             default:
-                fabSpotAction1.setVisibility(View.GONE);
-                fabSpotAction2.setVisibility(View.GONE);
+                fabSpotAction1.setVisibility(View.INVISIBLE);
+                fabSpotAction2.setVisibility(View.INVISIBLE);
                 break;
             case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
-                fabSpotAction2.setVisibility(View.GONE);
+                fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
+                fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_regular_spot_color)));
+
+                fabSpotAction1.setVisibility(View.VISIBLE);
+                fabSpotAction2.setVisibility(View.INVISIBLE);
                 break;
             case WILL_BE_REGULAR_SPOT:
+                fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
+                fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_regular_spot_color)));
                 fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
                 fabSpotAction2.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_arrival_color)));
+
+                fabSpotAction1.setVisibility(View.VISIBLE);
                 fabSpotAction2.setVisibility(View.VISIBLE);
                 break;
             case WAITING_FOR_A_RIDE:
@@ -270,6 +274,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_got_a_ride_color)));
                 fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
                 fabSpotAction2.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_break_color)));
+
                 fabSpotAction1.setVisibility(View.VISIBLE);
                 fabSpotAction2.setVisibility(View.VISIBLE);
                 break;
