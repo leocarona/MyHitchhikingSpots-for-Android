@@ -466,18 +466,22 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         if (!mapIsDisplayed)
             return;
 
-        Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
-        IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
-        //DrawableCompat.setTint(iconDrawable, Color.WHITE);
-        FloatingActionButton img = new FloatingActionButton(context);
-        img.setImageResource(R.drawable.ic_target_location);
+        try {
+            Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
+            IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
+            //DrawableCompat.setTint(iconDrawable, Color.WHITE);
+            FloatingActionButton img = new FloatingActionButton(context);
+            img.setImageResource(R.drawable.ic_target_location);
 
 
-        dropPinView = new ImageView(this);
-        dropPinView.setImageDrawable(img.getDrawable());
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
-        dropPinView.setLayoutParams(params);
-        mapView.addView(dropPinView);
+            dropPinView = new ImageView(this);
+            dropPinView.setImageDrawable(img.getDrawable());
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
+            dropPinView.setLayoutParams(params);
+            mapView.addView(dropPinView);
+        } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
+        }
     }
 
     @Override

@@ -187,6 +187,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_got_a_ride_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
         }
 
         try {
@@ -195,6 +196,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_took_a_break_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
         }
 
         try {
@@ -203,6 +205,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_waiting_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
         }
 
         try {
@@ -211,6 +214,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_arrival_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
         }
     }
 
