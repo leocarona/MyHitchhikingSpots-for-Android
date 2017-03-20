@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 
 import org.joda.time.DateTime;
@@ -86,7 +87,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         startDate = data.get(i - 1).getStartDateTime();
                 }
             } catch (Exception ex) {
-                Log.e(TAG, "Summing up the total of rides gotten and hours traveling has failed", ex);
+                Crashlytics.log(Log.ERROR, TAG, "Summing up the total of rides gotten and hours traveling has failed" + '\n' + Log.getStackTraceString(ex));
             }
         }
     }
@@ -125,7 +126,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             }
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Log.w(TAG, "Generating spot location string failed", ex);
+            Crashlytics.log(Log.WARN, TAG, "Generating spot location string failed" + '\n' + Log.getStackTraceString(ex));
 
         }
         return "";
@@ -142,7 +143,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             res = new SimpleDateFormat(dateFormat);
             return res.format(dt);
         } catch (Exception ex) {
-            Log.w(TAG, "Formatting date failed", ex);
+            Crashlytics.log(Log.WARN, TAG, "Formatting date failed" + '\n' + Log.getStackTraceString(ex));
         }
 
         return "";
@@ -277,7 +278,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                 notesText.setText(captilizedNote);
             } catch (Exception ex) {
-                Log.e(TAG, "Setting UI values failed", ex);
+                Crashlytics.log(Log.ERROR, TAG, "Setting UI values failed" + '\n' + Log.getStackTraceString(ex));
             }
         }
 

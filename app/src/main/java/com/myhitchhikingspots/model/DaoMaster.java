@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
+
 import org.greenrobot.greendao.AbstractDaoMaster;
 import org.greenrobot.greendao.database.StandardDatabase;
 import org.greenrobot.greendao.database.Database;
@@ -70,7 +72,7 @@ public class DaoMaster extends AbstractDaoMaster {
 
         @Override
         public void onCreate(Database db) {
-            Log.i("greenDAO", "Creating tables for schema version " + SCHEMA_VERSION);
+            Crashlytics.log(Log.INFO, "greenDAO", "Creating tables for schema version " + SCHEMA_VERSION);
             createAllTables(db, false);
         }
     }
@@ -87,7 +89,7 @@ public class DaoMaster extends AbstractDaoMaster {
 
         @Override
         public void onUpgrade(Database db, int oldVersion, int newVersion) {
-            Log.i("greenDAO", "Upgrading schema from version " + oldVersion + " to " + newVersion + ".");
+            Crashlytics.log(Log.INFO, "greenDAO", "Upgrading schema from version " + oldVersion + " to " + newVersion + ".");
 
             switch (newVersion) {
                 case 3: //Version created on November 06, 2016
@@ -101,14 +103,14 @@ public class DaoMaster extends AbstractDaoMaster {
                 default:
                     dropAllTables(db, true);
                     onCreate(db);
-                    Log.i("greenDAO", "All tables dropped.");
+                    Crashlytics.log(Log.INFO, "greenDAO", "All tables dropped.");
                     break;
             }
         }
 
         private void execSQL(Database db, String sql) {
             db.execSQL(sql);
-            Log.i("greenDAO", sql);
+            Crashlytics.log(Log.INFO, "greenDAO", sql);
         }
     }
 

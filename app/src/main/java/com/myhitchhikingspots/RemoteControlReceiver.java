@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -44,14 +45,14 @@ public class RemoteControlReceiver extends BroadcastReceiver {
             /* of EXTRA_KEY_EVENT to know which key was pressed    */
 
             String intentAction = intent.getAction();
-            Log.i(TAG_MEDIA, intentAction.toString() + " happended");
+            Crashlytics.log(Log.INFO, TAG_MEDIA, intentAction.toString() + " happended");
             if (!Intent.ACTION_MEDIA_BUTTON.equals(intentAction)) {
-                Log.i(TAG_MEDIA, "no media button information");
+                Crashlytics.log(Log.INFO, TAG_MEDIA, "no media button information");
                 return;
             }
             KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
             if (event == null) {
-                Log.i(TAG_MEDIA, "no keypress");
+                Crashlytics.log(Log.INFO, TAG_MEDIA, "no keypress");
                 return;
             }
             // other stuff you want to do
@@ -75,7 +76,7 @@ public class RemoteControlReceiver extends BroadcastReceiver {
                 Toast.makeText(context.getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
                 //finish();
             } catch (Exception ex) {
-                Log.e(TAG_MEDIA, "saveButtonHandler", ex);
+                Crashlytics.log(Log.ERROR, TAG_MEDIA, "saveButtonHandler" + '\n' + Log.getStackTraceString(ex));
                 //Toast.makeText(getApplicationContext(), "Something went wrong :(", Toast.LENGTH_LONG).show();
             }
 

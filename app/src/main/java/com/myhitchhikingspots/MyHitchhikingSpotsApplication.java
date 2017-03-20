@@ -7,12 +7,14 @@ import android.os.Debug;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 
+import io.fabric.sdk.android.Fabric;
 import org.joda.time.DateTime;
 
 import java.util.Calendar;
@@ -30,6 +32,7 @@ public class MyHitchhikingSpotsApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Fabric.with(this, new Crashlytics());
 
         loadDatabase();
     }
@@ -53,7 +56,7 @@ public class MyHitchhikingSpotsApplication extends Application {
                 .orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
         if (areWaitingForARide.size() > 1)
-            Log.i("LoadCurrentWaitingSpot", "More than 1 spot was found with IsWaitingForARide set to true! This should never happen - Please be aware of this.");
+            Crashlytics.log(Log.INFO, "LoadCurrentWaitingSpot", "More than 1 spot was found with IsWaitingForARide set to true! This should never happen - Please be aware of this.");
         else if (areWaitingForARide.size() == 1)
             currentSpot = areWaitingForARide.get(0);
     }
@@ -90,7 +93,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         //WARNING: Clear database here
         spotDao.deleteAll();
-        Log.w(TAG, "Spot list cleared");
+        Crashlytics.log(Log.WARN, TAG, "Spot list cleared");
 
         //Start hitchhiking at 8am
         GregorianCalendar spotStartDateTime = new GregorianCalendar(2016, 03, 10, 8, 00, 00);
