@@ -61,6 +61,7 @@
                     app:backgroundTint="?attr/colorAccent"
                     app:srcCompat="@drawable/ic_my_location_24dp"
                     tools:ignore="VectorDrawableCompat"
+                    app:useCompatPadding="true"
                     app:fabSize="mini" />
 
                 <android.support.design.widget.FloatingActionButton
@@ -74,6 +75,7 @@
                     app:backgroundTint="?attr/colorAccent"
                     app:srcCompat="@drawable/ic_zoom_in_white_24dp"
                     tools:ignore="VectorDrawableCompat"
+                    app:useCompatPadding="true"
                     app:fabSize="mini" />
 
                 <android.support.design.widget.FloatingActionButton
@@ -86,6 +88,7 @@
                     app:backgroundTint="?attr/colorAccent"
                     app:srcCompat="@drawable/ic_zoom_out_white_24dp"
                     tools:ignore="VectorDrawableCompat"
+                    app:useCompatPadding="true"
                     app:fabSize="mini" />
 
                 <TextView
@@ -145,6 +148,7 @@
                     android:layout_alignParentRight="true"
                     app:fabSize="mini"
                     tools:ignore="VectorDrawableCompat"
+                    app:useCompatPadding="true"
                     android:layout_gravity="center_vertical" />
 
             </RelativeLayout>
