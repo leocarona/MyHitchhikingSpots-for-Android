@@ -95,7 +95,7 @@ limitations under the License.
             android:exported="false" />
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="@string/fabricApiKey" />
+            android:value="${fabricApiKey}" />
     </application>
 
 </manifest>

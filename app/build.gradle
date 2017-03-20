@@ -34,6 +34,7 @@ android {
     compileSdkVersion 23
     buildToolsVersion '25.0.0'
     defaultConfig {
+        manifestPlaceholders = [fabricApiKey:keystoreProperties['fabricApiKey']]
         applicationId 'com.myhitchhikingspots'
         minSdkVersion minSdk
         targetSdkVersion 22
