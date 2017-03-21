@@ -158,20 +158,19 @@
 
             </RelativeLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/text_margin"
-                android:text="@string/spot_form_note_label" />
-
-            <EditText
-                android:id="@+id/spot_form_note_edittext"
+            <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:ems="10"
-                android:inputType="textMultiLine" />
+                android:layout_height="wrap_content">
 
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/spot_form_note_edittext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:ems="10"
+                    android:hint="@string/spot_form_note_label"
+                    android:inputType="textMultiLine" />
+            </android.support.design.widget.TextInputLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -227,20 +226,20 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/text_margin"
-                android:text="@string/spot_form_waiting_time_label" />
 
-            <EditText
-                android:id="@+id/spot_form_waiting_time_edittext"
+            <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:ems="10"
-                android:inputType="number" />
+                android:layout_height="wrap_content">
 
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/spot_form_waiting_time_edittext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:ems="10"
+                    android:inputType="number"
+                    android:hint="@string/spot_form_waiting_time_label" />
+            </android.support.design.widget.TextInputLayout>
 
             <LinearLayout
                 android:id="@+id/save_spot_form_attempt_result_panel"
