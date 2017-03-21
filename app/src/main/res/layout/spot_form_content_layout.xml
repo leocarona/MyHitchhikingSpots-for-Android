@@ -319,6 +319,7 @@
                 android:onClick="saveButtonHandler"
                 android:padding="15dp"
                 android:text="@string/spot_form_save_button_text"
+                style="@style/roundButtonTextStyle" />
 
             <Button
                 android:id="@+id/fetch_address_button"
@@ -330,6 +331,7 @@
                 android:paddingBottom="15dp"
                 android:paddingTop="15dp"
                 android:text="@string/fetch_address"
+                style="@style/roundButtonTextStyle" />
 
 
             <Button
@@ -342,6 +344,7 @@
                 android:paddingBottom="15dp"
                 android:paddingTop="15dp"
                 android:text="@string/spot_form_delete_button_text"
+                style="@style/roundButtonTextStyle" />
         </LinearLayout>
     </LinearLayout>
 </android.support.v4.widget.NestedScrollView>
