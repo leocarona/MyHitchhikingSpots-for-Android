@@ -1,17 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetBottom="@dimen/roundButtonInsetTopAndBottom"
+    android:insetTop="@dimen/roundButtonInsetTopAndBottom"
+    android:insetLeft="@dimen/roundButtonPaddingLeftAndRight"
+    android:insetRight="@dimen/roundButtonPaddingLeftAndRight">
+    <selector>
+        <!--Button pressed style-->
+        <item android:state_pressed="true">
+            <shape android:shape="rectangle">
+                <solid android:color="@color/ic_break_color_lighter" />
 
-android:insetLeft="4dp"
-android:insetTop="6dp"
-android:insetRight="4dp"
-android:insetBottom="6dp">
-<shape android:shape="rectangle" >
-    <corners android:radius="10dp" />
-    <solid android:color="@color/ic_break_color" /> <!-- @android:color/white -->
-    <padding android:left="8dp"
-        android:top="4dp"
-        android:right="8dp"
-        android:bottom="4dp" />
-</shape>
+                <corners android:radius="@dimen/roundButtonRadius" />
+                <padding
+                    android:bottom="@dimen/roundButtonPaddingTopAndBottom"
+                    android:left="@dimen/roundButtonPaddingLeftAndRight"
+                    android:right="@dimen/roundButtonPaddingLeftAndRight"
+                    android:top="@dimen/roundButtonPaddingTopAndBottom" />
+            </shape>
+        </item>
+
+        <!--Button style-->
+        <item>
+            <shape android:shape="rectangle">
+                <solid android:color="@color/ic_break_color" />
+
+                <corners android:radius="@dimen/roundButtonRadius" />
+                <padding
+                    android:bottom="@dimen/roundButtonPaddingTopAndBottom"
+                    android:left="@dimen/roundButtonPaddingLeftAndRight"
+                    android:right="@dimen/roundButtonPaddingLeftAndRight"
+                    android:top="@dimen/roundButtonPaddingTopAndBottom" />
+            </shape>
+        </item>
+    </selector>
 </inset>

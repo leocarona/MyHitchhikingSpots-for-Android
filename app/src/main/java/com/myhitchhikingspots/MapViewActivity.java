@@ -16,6 +16,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
@@ -255,25 +256,30 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 break;
             case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
                 fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_regular_spot_color)));
+                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_regular_spot_color));
+                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color_lighter));
 
                 fabSpotAction1.setVisibility(View.VISIBLE);
                 fabSpotAction2.setVisibility(View.INVISIBLE);
                 break;
             case WILL_BE_REGULAR_SPOT:
                 fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_regular_spot_color)));
+                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_regular_spot_color));
+                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color_lighter));
                 fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
-                fabSpotAction2.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_arrival_color)));
+                fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_arrival_color));
+                fabSpotAction2.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_arrival_color_lighter));
 
                 fabSpotAction1.setVisibility(View.VISIBLE);
                 fabSpotAction2.setVisibility(View.VISIBLE);
                 break;
             case WAITING_FOR_A_RIDE:
                 fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_got_a_ride_color)));
+                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_got_a_ride_color));
+                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_got_a_ride_color_lighter));
                 fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
-                fabSpotAction2.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_break_color)));
+                fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_break_color));
+                fabSpotAction2.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_break_color_lighter));
 
                 fabSpotAction1.setVisibility(View.VISIBLE);
                 fabSpotAction2.setVisibility(View.VISIBLE);
@@ -282,12 +288,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     protected void updateUISaveButtons() {
-        //If it's not waiting for a ride, show only ('get location' switch, 'current location' panel and 'save spot' button)
-        // { If it's first spot of route, hide 'arrived' button
-        //   else, show 'arrived' button }
-        //If it's waiting for a ride, show only ('rating' panel, 'got a ride' and 'take a break' buttons)
-        //If 'get location' switch is set to Off or (googleApiClient is null or disconnected, or currentLocation is null)
-
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
             /*if (!locationServices.areLocationPermissionsGranted() || locationServices.getLastLocation() == null

@@ -3,6 +3,7 @@ package com.myhitchhikingspots;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
@@ -238,14 +239,14 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                 if (spot.getIsDestination() != null && spot.getIsDestination()) {
                     //ARRIVAL SPOT
-                    viewParent.setBackgroundColor(viewParent.getResources().getColor(R.color.ic_arrival_color));
+                    viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_arrival_color));
                     arrivalIcon.setVisibility(View.VISIBLE);
                     waitingTimeText.setVisibility(View.GONE);
                     waitingIcon.setVisibility(View.GONE);
                     captilizedNote = totalsToDestinations.get(spot.getId());
                 } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                     //USER IS WAITING FOR A RIDE
-                    viewParent.setBackgroundColor(viewParent.getResources().getColor(R.color.ic_regular_spot_color));
+                    viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_regular_spot_color));
                     arrivalIcon.setVisibility(View.GONE);
                     waitingTimeText.setVisibility(View.GONE);
                     waitingIcon.setVisibility(View.VISIBLE);

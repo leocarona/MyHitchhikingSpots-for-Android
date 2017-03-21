@@ -1,4 +1,4 @@
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources>
     <item name="ic_menu_camera" type="drawable">@android:drawable/ic_menu_camera</item>
     <item name="ic_menu_gallery" type="drawable">@android:drawable/ic_menu_gallery</item>
     <item name="ic_menu_slideshow" type="drawable">@android:drawable/ic_menu_slideshow</item>
@@ -6,11 +6,17 @@
     <item name="ic_menu_share" type="drawable">@android:drawable/ic_menu_share</item>
     <item name="ic_menu_send" type="drawable">@android:drawable/ic_menu_send</item>
 
+    <item name="ic_regular_spot_color" type="color">#33b5e5</item>
     <item name="ic_arrival_color" type="color">#66009688</item>
-    <item name="ic_regular_spot_color" type="color">#ff33b5e5</item>
-    <item name="ic_break_color" type="color">#ffffbb33</item>
-    <item name="ic_got_a_ride_color" type="color">#ff99cc00</item>
+    <item name="ic_got_a_ride_color" type="color">#99cc00</item>
+    <item name="ic_break_color" type="color">#ffbb33</item>
     <item name="wallet_link_text_light" type="color">#0000ee</item>
+
+    <!--lightened with http://www.hexcolortool.com/ -->
+    <item name="ic_regular_spot_color_lighter" type="color">#4DCFFF</item>
+    <item name="ic_arrival_color_lighter" type="color">#33C7B8</item>
+    <item name="ic_got_a_ride_color_lighter" type="color">#B3E61A</item>
+    <item name="ic_break_color_lighter" type="color">#FFD54D</item>
 
     <!--TODO: should replace png images for vector drawables-->
     <item name="ic_arrival_icon" type="drawable">@android:drawable/ic_menu_myplaces</item>
@@ -20,4 +26,6 @@
 
     <item name="ic_target_location" type="drawable">@drawable/ic_marker_target_location_24dp</item>
 
+    <color name="ic_standard_fab_color">#009688</color>
+    <color name="ic_standard_fab_color_lighter">#33C9BB</color>
 </resources>

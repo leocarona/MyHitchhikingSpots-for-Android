@@ -58,7 +58,8 @@
                     android:layout_margin="10dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:backgroundTint="?attr/colorAccent"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
                     app:srcCompat="@drawable/ic_my_location_24dp"
                     tools:ignore="VectorDrawableCompat"
                     app:useCompatPadding="true"
@@ -72,7 +73,8 @@
                     android:layout_gravity="top|left"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="65dp"
-                    app:backgroundTint="?attr/colorAccent"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
                     app:srcCompat="@drawable/ic_zoom_in_white_24dp"
                     tools:ignore="VectorDrawableCompat"
                     app:useCompatPadding="true"
@@ -85,7 +87,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="120dp"
-                    app:backgroundTint="?attr/colorAccent"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
                     app:srcCompat="@drawable/ic_zoom_out_white_24dp"
                     tools:ignore="VectorDrawableCompat"
                     app:useCompatPadding="true"
@@ -147,6 +150,8 @@
                     android:gravity="center_vertical"
                     android:layout_alignParentRight="true"
                     app:fabSize="mini"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
                     tools:ignore="VectorDrawableCompat"
                     app:useCompatPadding="true"
                     android:layout_gravity="center_vertical" />
@@ -290,7 +295,7 @@
                 </LinearLayout>
 
                 <RatingBar
-                    android:progressTint="?attr/colorAccent"
+                    android:progressTint="@color/ic_standard_fab_color"
                     android:id="@+id/spot_form_hitchability_ratingbar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -310,36 +315,33 @@
                 android:id="@+id/save_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:background="@drawable/save_spot_button"
                 android:onClick="saveButtonHandler"
                 android:padding="15dp"
-                android:text="@string/spot_form_save_button_text" />
+                android:text="@string/spot_form_save_button_text"
 
             <Button
                 android:id="@+id/fetch_address_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:background="@drawable/arrived_button"
                 android:onClick="fetchAddressButtonHandler"
                 android:padding="13dp"
                 android:paddingBottom="15dp"
                 android:paddingTop="15dp"
-                android:text="@string/fetch_address" />
+                android:text="@string/fetch_address"
 
 
             <Button
                 android:id="@+id/delete_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:background="@drawable/break_button"
                 android:onClick="deleteButtonHandler"
                 android:padding="13dp"
                 android:paddingBottom="15dp"
                 android:paddingTop="15dp"
-                android:text="@string/spot_form_delete_button_text" />
+                android:text="@string/spot_form_delete_button_text"
         </LinearLayout>
     </LinearLayout>
 </android.support.v4.widget.NestedScrollView>
