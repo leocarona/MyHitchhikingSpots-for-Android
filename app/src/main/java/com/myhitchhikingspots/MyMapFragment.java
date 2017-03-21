@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.MapboxAccountManager;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
@@ -96,7 +97,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Log.w("spotLocationToString", "Err msg: " + ex.getMessage());
+            Crashlytics.log(Log.WARN, "spotLocationToString", "Err msg: " + ex.getMessage());
 
         }
         return "";
@@ -113,7 +114,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
             res = new SimpleDateFormat(dateFormat);
             return res.format(dt);
         } catch (Exception ex) {
-            Log.w("dateTimeToString", "Err msg: " + ex.getMessage());
+            Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
         }
 
         return "";

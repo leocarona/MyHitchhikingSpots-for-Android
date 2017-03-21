@@ -38,6 +38,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 
+import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.MapboxAccountManager;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -465,18 +466,22 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         if (!mapIsDisplayed)
             return;
 
-        Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
-        IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
-        //DrawableCompat.setTint(iconDrawable, Color.WHITE);
-        FloatingActionButton img = new FloatingActionButton(context);
-        img.setImageResource(R.drawable.ic_target_location);
+        try {
+            Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
+            IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
+            //DrawableCompat.setTint(iconDrawable, Color.WHITE);
+            FloatingActionButton img = new FloatingActionButton(context);
+            img.setImageResource(R.drawable.ic_target_location);
 
 
-        dropPinView = new ImageView(this);
-        dropPinView.setImageDrawable(img.getDrawable());
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
-        dropPinView.setLayoutParams(params);
-        mapView.addView(dropPinView);
+            dropPinView = new ImageView(this);
+            dropPinView.setImageDrawable(img.getDrawable());
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
+            dropPinView.setLayoutParams(params);
+            mapView.addView(dropPinView);
+        } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
+        }
     }
 
     @Override
@@ -496,7 +501,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      * @param savedInstanceState The activity state saved in the Bundle.
      */
     private void updateValuesFromBundle(Bundle savedInstanceState) {
-        Log.i(TAG, "Updating values from bundle");
+        Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
         if (savedInstanceState != null) {
 
             // Update the value of mCurrentSpot from the Bundle
@@ -570,7 +575,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             spot_form_evaluate.setVisibility(View.GONE);
 
             if (mFormType == FormType.Unknown) {
-                Log.wtf(TAG, "mFormType is Unkonwn");
+                Crashlytics.log(Log.ERROR, TAG, "mFormType is Unkonwn");
                 mSaveButton.setEnabled(false);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), "Please try opening your spot again.");
             }
@@ -680,7 +685,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
 
         } catch (Exception ex) {
-            Log.e(TAG, "updateUI", ex);
+            Crashlytics.log(Log.ERROR, TAG, "updateUI" + '\n' + Log.getStackTraceString(ex));
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message), ex.getMessage()));
         }
     }
@@ -733,7 +738,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
                 if (locationManuallyChanged) {
                     if (mapboxMap.getCameraPosition() == null || mapboxMap.getCameraPosition().target == null) {
-                        Log.i(TAG, "Location was manually changed when map was unloaded");
+                        Crashlytics.log(Log.INFO, TAG, "Location was manually changed when map was unloaded");
                         showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_map_not_loaded));
                         return;
                     } else {
@@ -775,13 +780,13 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
             if (mCurrentSpot.getLatitude() == null || mCurrentSpot.getLongitude() == null) {
-                Log.wtf(TAG, "User tried to save a spot without coordinates?");
+                Crashlytics.log(Log.ERROR, TAG, "User tried to save a spot without coordinates?");
                 showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_coordinate_not_informed_error_message));
                 return;
             }
 
         } catch (Exception ex) {
-            Log.e(TAG, "Something went wrong when setting the spot values", ex);
+            Crashlytics.log(Log.ERROR, TAG, "Something went wrong when setting the spot values" + '\n' + Log.getStackTraceString(ex));
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
 
@@ -1022,7 +1027,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             spotLoc = String.format(getResources().getString(R.string.spot_form_lat_lng_label),
                         mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());*/
         } catch (Exception ex) {
-            Log.wtf(TAG, "getString failed", ex);
+            Crashlytics.log(Log.ERROR, TAG, "getString failed" + '\n' + Log.getStackTraceString(ex));
         }
         return spotLoc;
     }
@@ -1045,7 +1050,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Log.w(TAG, "Generating a string for the spot's address has failed", ex);
+            Crashlytics.log(Log.WARN, TAG, "Generating a string for the spot's address has failed" + '\n' + Log.getStackTraceString(ex));
         }
         return "";
     }

@@ -3,6 +3,7 @@ package com.myhitchhikingspots;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 
 import org.joda.time.DateTime;
@@ -86,7 +88,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         startDate = data.get(i - 1).getStartDateTime();
                 }
             } catch (Exception ex) {
-                Log.e(TAG, "Summing up the total of rides gotten and hours traveling has failed", ex);
+                Crashlytics.log(Log.ERROR, TAG, "Summing up the total of rides gotten and hours traveling has failed" + '\n' + Log.getStackTraceString(ex));
             }
         }
     }
@@ -125,7 +127,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             }
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Log.w(TAG, "Generating spot location string failed", ex);
+            Crashlytics.log(Log.WARN, TAG, "Generating spot location string failed" + '\n' + Log.getStackTraceString(ex));
 
         }
         return "";
@@ -142,7 +144,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             res = new SimpleDateFormat(dateFormat);
             return res.format(dt);
         } catch (Exception ex) {
-            Log.w(TAG, "Formatting date failed", ex);
+            Crashlytics.log(Log.WARN, TAG, "Formatting date failed" + '\n' + Log.getStackTraceString(ex));
         }
 
         return "";
@@ -237,14 +239,14 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                 if (spot.getIsDestination() != null && spot.getIsDestination()) {
                     //ARRIVAL SPOT
-                    viewParent.setBackgroundColor(viewParent.getResources().getColor(R.color.ic_arrival_color));
+                    viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_arrival_color));
                     arrivalIcon.setVisibility(View.VISIBLE);
                     waitingTimeText.setVisibility(View.GONE);
                     waitingIcon.setVisibility(View.GONE);
                     captilizedNote = totalsToDestinations.get(spot.getId());
                 } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                     //USER IS WAITING FOR A RIDE
-                    viewParent.setBackgroundColor(viewParent.getResources().getColor(R.color.ic_regular_spot_color));
+                    viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_regular_spot_color));
                     arrivalIcon.setVisibility(View.GONE);
                     waitingTimeText.setVisibility(View.GONE);
                     waitingIcon.setVisibility(View.VISIBLE);
@@ -277,7 +279,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                 notesText.setText(captilizedNote);
             } catch (Exception ex) {
-                Log.e(TAG, "Setting UI values failed", ex);
+                Crashlytics.log(Log.ERROR, TAG, "Setting UI values failed" + '\n' + Log.getStackTraceString(ex));
             }
         }
 

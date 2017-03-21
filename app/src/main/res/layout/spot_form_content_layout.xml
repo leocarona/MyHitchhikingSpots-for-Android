@@ -55,38 +55,44 @@
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_locate_user"
-                    android:layout_margin="10dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:backgroundTint="?attr/colorAccent"
+                    android:layout_margin="10dp"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:fabSize="mini"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
                     app:srcCompat="@drawable/ic_my_location_24dp"
-                    tools:ignore="VectorDrawableCompat"
-                    app:fabSize="mini" />
+                    app:useCompatPadding="true"
+                    tools:ignore="VectorDrawableCompat" />
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_zoom_in"
-                    android:alpha="0.5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|left"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="65dp"
-                    app:backgroundTint="?attr/colorAccent"
+                    android:alpha="0.5"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:fabSize="mini"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
                     app:srcCompat="@drawable/ic_zoom_in_white_24dp"
-                    tools:ignore="VectorDrawableCompat"
-                    app:fabSize="mini" />
+                    app:useCompatPadding="true"
+                    tools:ignore="VectorDrawableCompat" />
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_zoom_out"
-                    android:alpha="0.5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:layout_marginTop="120dp"
-                    app:backgroundTint="?attr/colorAccent"
+                    android:alpha="0.5"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:fabSize="mini"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
                     app:srcCompat="@drawable/ic_zoom_out_white_24dp"
-                    tools:ignore="VectorDrawableCompat"
-                    app:fabSize="mini" />
+                    app:useCompatPadding="true"
+                    tools:ignore="VectorDrawableCompat" />
 
                 <TextView
                     android:id="@+id/location_changed_text_view"
@@ -107,62 +113,64 @@
                 <ProgressBar
                     android:id="@+id/progress_bar"
                     android:layout_width="match_parent"
-                    android:visibility="gone"
                     android:layout_height="match_parent"
-                    android:gravity="center_vertical"
-                    android:layout_centerInParent="true"
-                    android:layout_alignParentStart="true"
+                    android:layout_alignLeft="@+id/imageView2"
                     android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerInParent="true"
                     android:layout_marginRight="45dp"
-                    android:layout_alignLeft="@+id/imageView2"/>
+                    android:gravity="center_vertical"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/location_address_view"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:layout_alignLeft="@+id/imageView2"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerInParent="true"
+                    android:layout_marginRight="60dp"
                     android:clickable="true"
+                    android:gravity="center_vertical|end"
                     android:lines="2"
                     android:onClick="locationAddressButtonHandler"
                     android:paddingLeft="10dp"
                     android:paddingRight="5dp"
                     android:text="City, State, Country"
-                    android:gravity="center_vertical|end"
-                    android:textStyle="normal|bold"
-                    android:layout_centerInParent="true"
-                    android:layout_alignParentStart="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_marginRight="60dp"
-                    android:layout_alignLeft="@+id/imageView2"/>
+                    android:textStyle="normal|bold" />
 
                 <android.support.design.widget.FloatingActionButton
-                    android:layout_width="wrap_content"
-                    android:onClick="locationAddressButtonHandler"
-                    android:layout_height="wrap_content"
-                    mapbox:srcCompat="@drawable/ic_content_copy_black_24dp"
                     android:id="@+id/imageView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:gravity="center_vertical"
                     android:layout_alignParentRight="true"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_vertical"
+                    android:onClick="locationAddressButtonHandler"
+                    app:backgroundTint="@color/ic_standard_fab_color"
                     app:fabSize="mini"
-                    tools:ignore="VectorDrawableCompat"
-                    android:layout_gravity="center_vertical" />
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
+                    app:useCompatPadding="true"
+                    mapbox:srcCompat="@drawable/ic_content_copy_black_24dp"
+                    tools:ignore="VectorDrawableCompat" />
 
             </RelativeLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/text_margin"
-                android:text="@string/spot_form_note_label" />
-
-            <EditText
-                android:id="@+id/spot_form_note_edittext"
+            <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:ems="10"
-                android:inputType="textMultiLine" />
+                android:layout_height="wrap_content">
 
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/spot_form_note_edittext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:ems="10"
+                    android:hint="@string/spot_form_note_label"
+                    android:inputType="textMultiLine" />
+            </android.support.design.widget.TextInputLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -218,20 +226,20 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/text_margin"
-                android:text="@string/spot_form_waiting_time_label" />
 
-            <EditText
-                android:id="@+id/spot_form_waiting_time_edittext"
+            <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:ems="10"
-                android:inputType="number" />
+                android:layout_height="wrap_content">
 
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/spot_form_waiting_time_edittext"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:ems="10"
+                    android:inputType="number"
+                    android:hint="@string/spot_form_waiting_time_label" />
+            </android.support.design.widget.TextInputLayout>
 
             <LinearLayout
                 android:id="@+id/save_spot_form_attempt_result_panel"
@@ -286,11 +294,11 @@
                 </LinearLayout>
 
                 <RatingBar
-                    android:progressTint="?attr/colorAccent"
                     android:id="@+id/spot_form_hitchability_ratingbar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal" />
+                    android:layout_gravity="center_horizontal"
+                    android:progressTint="@color/ic_standard_fab_color" />
 
             </LinearLayout>
         </LinearLayout>
@@ -304,9 +312,9 @@
 
             <Button
                 android:id="@+id/save_button"
+                style="@style/roundButtonTextStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:background="@drawable/save_spot_button"
                 android:onClick="saveButtonHandler"
                 android:padding="15dp"
@@ -314,9 +322,9 @@
 
             <Button
                 android:id="@+id/fetch_address_button"
+                style="@style/roundButtonTextStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:background="@drawable/arrived_button"
                 android:onClick="fetchAddressButtonHandler"
                 android:padding="13dp"
@@ -327,9 +335,9 @@
 
             <Button
                 android:id="@+id/delete_button"
+                style="@style/roundButtonTextStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:background="@drawable/break_button"
                 android:onClick="deleteButtonHandler"
                 android:padding="13dp"

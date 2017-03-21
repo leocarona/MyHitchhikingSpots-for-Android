@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.SpotDao;
 
@@ -92,7 +93,7 @@ public class SettingsActivity extends BaseActivity {
         }*/
         String filePath = null;
         Uri _uri = uri;
-        Log.d("", "URI = " + _uri);
+        Crashlytics.log(Log.DEBUG, "", "URI = " + _uri);
         if (_uri != null && "content".equals(_uri.getScheme())) {
             Cursor cursor = context.getContentResolver().query(_uri, new String[]{android.provider.MediaStore.Files.FileColumns.DATA}, null, null, null);
             cursor.moveToFirst();
@@ -101,7 +102,7 @@ public class SettingsActivity extends BaseActivity {
         } else {
             filePath = _uri.getPath();
         }
-        Log.d("", "Chosen path = " + filePath);
+        Crashlytics.log(Log.DEBUG, "", "Chosen path = " + filePath);
         return filePath;
     }
 

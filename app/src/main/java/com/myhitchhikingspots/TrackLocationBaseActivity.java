@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -90,7 +91,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
      * @param savedInstanceState The activity state saved in the Bundle.
      */
     private void updateValuesFromBundle(Bundle savedInstanceState) {
-        Log.i(TAG, "Updating values from bundle");
+        Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
 
         if (savedInstanceState != null) {
             try {
@@ -113,7 +114,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
                     mLastUpdateTime = (Date) savedInstanceState.getSerializable(LAST_UPDATED_TIME_STRING_KEY);
                 }
             } catch (Exception ex) {
-                Log.e(TAG, "Updating values from bundle has failed", ex);
+                Crashlytics.log(Log.ERROR, TAG, "Updating values from bundle has failed" + '\n' + Log.getStackTraceString(ex));
                 Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
             }
         }
@@ -125,7 +126,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
      * LocationServices API.
      */
     protected synchronized void buildGoogleApiClient() {
-        Log.i(TAG, "Building GoogleApiClient");
+        Crashlytics.log(Log.INFO, TAG, "Building GoogleApiClient");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -186,8 +187,8 @@ public class TrackLocationBaseActivity extends BaseActivity implements
 
         // The final argument to {@code requestLocationUpdates()} is a LocationListener
         // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        Log.i(TAG, mGoogleApiClient != null ? "mGoogleApiClient is NOT null" : "mGoogleApiClient is null");
-        Log.i(TAG, mGoogleApiClient.isConnected() ? "mGoogleApiClient is connected" : "mGoogleApiClient is NOT connected");
+        Crashlytics.log(Log.INFO, TAG, mGoogleApiClient != null ? "mGoogleApiClient is NOT null" : "mGoogleApiClient is null");
+        Crashlytics.log(Log.INFO, TAG, mGoogleApiClient.isConnected() ? "mGoogleApiClient is connected" : "mGoogleApiClient is NOT connected");
 
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
@@ -253,7 +254,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
-        Log.i(TAG, "Connected to GoogleApiClient");
+        Crashlytics.log(Log.INFO, TAG, "Connected to GoogleApiClient");
 
         updateUILocationSwitch();
         updateUISaveButtons();
@@ -287,7 +288,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
     public void onConnectionSuspended(int cause) {
         // The connection to Google Play services was lost for some reason. We call connect() to
         // attempt to re-establish the connection.
-        Log.w(TAG, "Connection suspended");
+        Crashlytics.log(Log.WARN, TAG, "Connection suspended");
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.trying_to_reconnect_to_provider_of_location), Toast.LENGTH_LONG).show();
         updateUILocationSwitch();
         updateUISaveButtons();
@@ -298,7 +299,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
     public void onConnectionFailed(ConnectionResult result) {
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
         // onConnectionFailed.
-        Log.e(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+        Crashlytics.log(Log.ERROR, TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.unable_to_find_location), Toast.LENGTH_LONG).show();
         updateUILocationSwitch();
         updateUISaveButtons();
@@ -322,7 +323,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
             savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
             savedInstanceState.putSerializable(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
         } catch (Exception ex) {
-            Log.e(TAG, "Saving instance state has failed", ex);
+            Crashlytics.log(Log.ERROR, TAG, "Saving instance state has failed" + '\n' + Log.getStackTraceString(ex));
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
         }
         super.onSaveInstanceState(savedInstanceState);

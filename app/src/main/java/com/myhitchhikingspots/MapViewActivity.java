@@ -16,6 +16,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
@@ -25,6 +26,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.MapboxAccountManager;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -143,6 +145,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
         });
 
+        fabSpotAction1.setVisibility(View.INVISIBLE);
+        fabSpotAction2.setVisibility(View.INVISIBLE);
+
         locationServices = LocationServices.getLocationServices(MapViewActivity.this);
 
         // Mapbox access token is configured here. This needs to be called either in your application
@@ -186,6 +191,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_got_a_ride_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
         }
 
         try {
@@ -194,6 +200,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_took_a_break_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
         }
 
         try {
@@ -202,6 +209,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_waiting_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
         }
 
         try {
@@ -210,6 +218,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_arrival_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
+            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
         }
     }
 
@@ -239,32 +248,39 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private pageType currentPage;
 
     protected void showCurrentPage() {
-        if (currentPage == pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE || currentPage == pageType.WILL_BE_REGULAR_SPOT) {
-            fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-            fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_regular_spot_color)));
-            fabSpotAction1.setVisibility(View.VISIBLE);
-        }
-
-
         switch (currentPage) {
             case NOT_FETCHING_LOCATION:
             default:
-                fabSpotAction1.setVisibility(View.GONE);
-                fabSpotAction2.setVisibility(View.GONE);
+                fabSpotAction1.setVisibility(View.INVISIBLE);
+                fabSpotAction2.setVisibility(View.INVISIBLE);
                 break;
             case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
-                fabSpotAction2.setVisibility(View.GONE);
+                fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
+                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_regular_spot_color));
+                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color_lighter));
+
+                fabSpotAction1.setVisibility(View.VISIBLE);
+                fabSpotAction2.setVisibility(View.INVISIBLE);
                 break;
             case WILL_BE_REGULAR_SPOT:
+                fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
+                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_regular_spot_color));
+                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color_lighter));
                 fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
-                fabSpotAction2.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_arrival_color)));
+                fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_arrival_color));
+                fabSpotAction2.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_arrival_color_lighter));
+
+                fabSpotAction1.setVisibility(View.VISIBLE);
                 fabSpotAction2.setVisibility(View.VISIBLE);
                 break;
             case WAITING_FOR_A_RIDE:
                 fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_got_a_ride_color)));
+                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_got_a_ride_color));
+                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_got_a_ride_color_lighter));
                 fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
-                fabSpotAction2.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ic_break_color)));
+                fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_break_color));
+                fabSpotAction2.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_break_color_lighter));
+
                 fabSpotAction1.setVisibility(View.VISIBLE);
                 fabSpotAction2.setVisibility(View.VISIBLE);
                 break;
@@ -272,12 +288,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     protected void updateUISaveButtons() {
-        //If it's not waiting for a ride, show only ('get location' switch, 'current location' panel and 'save spot' button)
-        // { If it's first spot of route, hide 'arrived' button
-        //   else, show 'arrived' button }
-        //If it's waiting for a ride, show only ('rating' panel, 'got a ride' and 'take a break' buttons)
-        //If 'get location' switch is set to Off or (googleApiClient is null or disconnected, or currentLocation is null)
-
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
             /*if (!locationServices.areLocationPermissionsGranted() || locationServices.getLastLocation() == null
@@ -372,7 +382,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     //onMapReady is called after onResume()
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
-        Log.i("tracking-map", "mapReady called");
+        Crashlytics.log(Log.INFO, "tracking-map", "mapReady called");
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
@@ -425,7 +435,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     void updateUI() {
-        Log.i("tracking-map", "updateUI was called");
+        Crashlytics.log(Log.INFO, "tracking-map", "updateUI was called");
 
         loadValues();
         updateUISaveButtons();
@@ -453,7 +463,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Log.w(TAG, "Generating a string for the spot's address has failed", ex);
+            Crashlytics.log(Log.WARN, TAG, "Generating a string for the spot's address has failed" + '\n' + Log.getStackTraceString(ex));
         }
         return "";
     }
@@ -478,7 +488,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             res = new SimpleDateFormat(dateFormat);
             return res.format(dt);
         } catch (Exception ex) {
-            Log.w("dateTimeToString", "Err msg: " + ex.getMessage());
+            Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
         }
 
         return "";
@@ -488,7 +498,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("tracking-map", "onResume called");
+        Crashlytics.log(Log.INFO, "tracking-map", "onResume called");
         mapView.onResume();
 
 
@@ -588,7 +598,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
 
         } catch (Exception ex) {
-            Log.e(TAG, "Show all markers failed", ex);
+            Crashlytics.log(Log.ERROR, TAG, "Show all markers failed" + '\n' + Log.getStackTraceString(ex));
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Show all markers failed - " + ex.getMessage()));
         }
@@ -694,7 +704,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                 return trips;
             } catch (Exception ex) {
-                Log.e(TAG, "Loaded spots failed", ex);
+                Crashlytics.log(Log.ERROR, TAG, "Loaded spots failed" + '\n' + Log.getStackTraceString(ex));
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                         "Loading spots failed - " + ex.getMessage()));
             }
@@ -731,7 +741,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                 zoomOutToFitAllMarkers();
             } catch (Exception ex) {
-                Log.e(TAG, "Adding markers failed", ex);
+                Crashlytics.log(Log.ERROR, TAG, "Adding markers failed" + '\n' + Log.getStackTraceString(ex));
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                         "Adding markers failed - " + ex.getMessage()));
             }
@@ -770,10 +780,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 spot.setAccuracy(mCurrentLocation.getAccuracy());
                 spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
             }
-            Log.i(TAG, "Save spot button handler: a new spot is being created.");
+            Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a new spot is being created.");
         } else {
             spot = mCurrentWaitingSpot;
-            Log.i(TAG, "Save spot button handler: a spot is being edited.");
+            Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
         Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);

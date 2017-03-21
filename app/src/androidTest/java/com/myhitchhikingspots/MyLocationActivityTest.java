@@ -22,6 +22,7 @@ import android.os.SystemClock;
 import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationServices;
@@ -72,7 +73,7 @@ public class MyLocationActivityTest extends ActivityInstrumentationTestCase2<Tra
      * Tests location using a mock location object.
      */
     public void testUsingMockLocation() {
-        Log.v(TAG, "Testing current location");
+        Crashlytics.log(Log.VERBOSE, TAG, "Testing current location");
 
         // Use a Location object set to the coordinates of the North Pole to set the mock location.
         setMockLocation(createNorthPoleLocation());
@@ -148,7 +149,7 @@ public class MyLocationActivityTest extends ActivityInstrumentationTestCase2<Tra
                     @Override
                     public void onResult(Status status) {
                         if (status.isSuccess()) {
-                            Log.v(TAG, "Mock mode set");
+                            Crashlytics.log(Log.VERBOSE, TAG, "Mock mode set");
                             // Set the mock location to be used for the location provider. This
                             // location is used in place of any actual locations from the underlying
                             // providers (network or gps).
@@ -159,28 +160,28 @@ public class MyLocationActivityTest extends ActivityInstrumentationTestCase2<Tra
                                 @Override
                                 public void onResult(Status status) {
                                     if (status.isSuccess()) {
-                                        Log.v(TAG, "Mock location set");
+                                        Crashlytics.log(Log.VERBOSE, TAG, "Mock location set");
                                         // Decrement the count of the latch, releasing the waiting
                                         // thread. This permits lock.await() to return.
-                                        Log.v(TAG, "Decrementing latch count");
+                                        Crashlytics.log(Log.VERBOSE, TAG, "Decrementing latch count");
                                         lock.countDown();
                                     } else {
-                                        Log.e(TAG, "Mock location not set");
+                                        Crashlytics.log(Log.ERROR, TAG, "Mock location not set");
                                     }
                                 }
                             });
                         } else {
-                            Log.e(TAG, "Mock mode not set");
+                            Crashlytics.log(Log.ERROR, TAG, "Mock mode not set");
                         }
                     }
                 });
 
         try {
             // Make the current thread wait until the latch has counted down to zero.
-            Log.v(TAG, "Waiting until the latch has counted down to zero");
+            Crashlytics.log(Log.VERBOSE, TAG, "Waiting until the latch has counted down to zero");
             lock.await(AWAIT_TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
         } catch (InterruptedException exception) {
-            Log.i(TAG, "Waiting thread awakened prematurely", exception);
+            Crashlytics.log(Log.INFO, TAG, "Waiting thread awakened prematurely" + '\n' + Log.getStackTraceString(exception));
         }
     }
 

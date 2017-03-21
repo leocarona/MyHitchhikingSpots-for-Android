@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -130,7 +131,7 @@ public class MainActivity extends TrackLocationBaseActivity {
             loadValues();
 
         } catch (Exception ex) {
-            Log.e(TAG, "Shortcut event handler failed", ex);
+            Crashlytics.log(Log.ERROR, TAG, "Shortcut event handler failed" + '\n' + Log.getStackTraceString(ex));
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.shortcut_save_button_failed), Toast.LENGTH_LONG).show();
         }
     }
@@ -142,13 +143,13 @@ public class MainActivity extends TrackLocationBaseActivity {
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("tracking-main-activity", "onResume called");
+        Crashlytics.log(Log.INFO, "tracking-main-activity", "onResume called");
 
         loadValues();
     }
 
     void loadValues() {
-        Log.i("tracking-main-activity", "loadValues called");
+        Crashlytics.log(Log.INFO, "tracking-main-activity", "loadValues called");
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
@@ -256,7 +257,7 @@ public class MainActivity extends TrackLocationBaseActivity {
         // http://stackoverflow.com/a/29288093/1094261
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-            Log.i("tracking-main-activity", "SectionsPagerAdapter.instantiateItem called for position " + position);
+            Crashlytics.log(Log.INFO, "tracking-main-activity", "SectionsPagerAdapter.instantiateItem called for position " + position);
 
             Fragment createdFragment = (Fragment) super.instantiateItem(container, position);
             // save the appropriate reference depending on position
@@ -314,7 +315,7 @@ public class MainActivity extends TrackLocationBaseActivity {
         }
 
         public void setValues(List<Spot> lst, Spot spot) {
-            Log.i("tracking-main-activity", "SectionsPagerAdapter.setValues called");
+            Crashlytics.log(Log.INFO, "tracking-main-activity", "SectionsPagerAdapter.setValues called");
             try {
                 if (fragment != null)
                     fragment.setValues(lst, spot);
@@ -322,7 +323,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 if (fragment2 != null)
                     fragment2.setValues(lst);
             } catch (Exception ex) {
-                Log.e(TAG, "Calling fragments has failed", ex);
+                Crashlytics.log(Log.ERROR, TAG, "Calling fragments has failed" + '\n' + Log.getStackTraceString(ex));
             }
         }
     }

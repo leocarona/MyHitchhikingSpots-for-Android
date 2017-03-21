@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -51,7 +53,7 @@ public class FetchAddressIntentService extends IntentService {
 
         // Check if receiver was properly registered.
         if (mReceiver == null) {
-            Log.wtf(TAG, "No receiver received. There is nowhere to send the results.");
+            Crashlytics.log(Log.ERROR, TAG, "No receiver received. There is nowhere to send the results.");
             return;
         }
 
@@ -62,7 +64,7 @@ public class FetchAddressIntentService extends IntentService {
         // send an error error message and return.
         if (location == null) {
             errorMessage = getString(R.string.no_location_data_provided);
-            Log.wtf(TAG, errorMessage);
+            Crashlytics.log(Log.ERROR, TAG, errorMessage);
             deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage);
             return;
         }
@@ -94,20 +96,20 @@ public class FetchAddressIntentService extends IntentService {
         } catch (IOException ioException) {
             // Catch network or other I/O problems.
             errorMessage = getString(R.string.service_not_available);
-            Log.e(TAG, errorMessage, ioException);
+            Crashlytics.log(Log.ERROR, TAG, errorMessage + '\n' + Log.getStackTraceString(ioException));
         } catch (IllegalArgumentException illegalArgumentException) {
             // Catch invalid latitude or longitude values.
             errorMessage = getString(R.string.invalid_lat_long_used);
-            Log.e(TAG, errorMessage + ". " +
+            Crashlytics.log(Log.ERROR, TAG, errorMessage + ". " +
                     "Latitude = " + location.getLatitude() +
-                    ", Longitude = " + location.getLongitude(), illegalArgumentException);
+                    ", Longitude = " + location.getLongitude() + '\n' + Log.getStackTraceString(illegalArgumentException));
         }
 
         // Handle case where no address was found.
         if (addresses == null || addresses.size() == 0) {
             if (errorMessage.isEmpty()) {
                 errorMessage = getString(R.string.no_address_found);
-                Log.e(TAG, errorMessage);
+                Crashlytics.log(Log.ERROR, TAG, errorMessage);
             }
             deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage);
         } else {
@@ -126,7 +128,7 @@ public class FetchAddressIntentService extends IntentService {
             for(int i = 0; i < address.getMaxAddressLineIndex(); i++) {
                 addressFragments.add(address.getAddressLine(i));
             }*/
-            Log.i(TAG, getString(R.string.address_found));
+            Crashlytics.log(Log.INFO, TAG, getString(R.string.address_found));
             deliverResultToReceiver(Constants.SUCCESS_RESULT,
                     address);
             //TextUtils.join(System.getProperty("line.separator"), addressFragments));

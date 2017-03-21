@@ -1,4 +1,14 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
 
 // Create a variable called keystorePropertiesFile, and initialize it to your
 // keystore.properties file, in the rootProject folder. Copied from: https://developer.android.com/studio/publish/app-signing.html#secure-shared-keystore
@@ -22,13 +32,14 @@ android {
         }
     }
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion '25.0.0'
     defaultConfig {
+        manifestPlaceholders = [fabricApiKey:keystoreProperties['fabricApiKey']]
         applicationId 'com.myhitchhikingspots'
         minSdkVersion minSdk
         targetSdkVersion 22
-        versionCode 3
-        versionName "1.3"
+        versionCode 4
+        versionName "1.3.1"
         // Stops the Gradle plugin’s automatic rasterization of vectors
         generatedDensities = []
 
@@ -54,6 +65,7 @@ android {
 
 repositories {
     mavenCentral()
+    maven { url 'https://maven.fabric.io/public' }
 }
 
 dependencies {
@@ -76,4 +88,7 @@ dependencies {
     compile 'joda-time:joda-time:2.9.2'
     compile 'com.android.support:multidex:1.0.1'
     //compile 'com.github.clans:fab:1.6.4'
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.7@aar') {
+        transitive = true;
+    }
 }

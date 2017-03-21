@@ -29,9 +29,11 @@
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
-        app:backgroundTint="?attr/colorAccent"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
         app:srcCompat="@drawable/ic_my_location_24dp"
         tools:ignore="VectorDrawableCompat"
+        app:useCompatPadding="true"
         app:fabSize="mini"/>
 
     <android.support.design.widget.FloatingActionButton
@@ -45,9 +47,11 @@
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="65dp"
-        app:backgroundTint="?attr/colorAccent"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
         app:srcCompat="@drawable/ic_zoom_out_map_white_24dp"
         tools:ignore="VectorDrawableCompat"
+        app:useCompatPadding="true"
         app:fabSize="mini" />
 
     <android.support.design.widget.FloatingActionButton
@@ -59,6 +63,7 @@
         android:layout_marginBottom="10dp"
         android:layout_alignParentRight="true"
         app:srcCompat="@drawable/ic_regular_spot_icon"
+        app:useCompatPadding="true"
         android:layout_marginLeft="-40dp" />
 
     <android.support.design.widget.FloatingActionButton
@@ -70,6 +75,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         app:srcCompat="@drawable/ic_arrival_icon"
+        app:useCompatPadding="true"
         android:layout_marginLeft="100dp" />
 
 </android.support.design.widget.CoordinatorLayout>

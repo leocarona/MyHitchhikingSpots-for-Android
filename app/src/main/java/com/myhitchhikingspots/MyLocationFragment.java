@@ -32,6 +32,7 @@ import android.widget.TextView;
 import android.support.v4.app.Fragment;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 
 import java.text.DateFormat;
@@ -135,7 +136,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("tracking-MyLocationFrag", "onResume was called");
+        Crashlytics.log(Log.INFO, "tracking-MyLocationFrag", "onResume was called");
         updateUI();
     }
 
@@ -145,7 +146,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     boolean mWillItBeFirstSpotOfARoute;
 
     public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
-        Log.i("tracking-MyLocationFrag", "setValues was called");
+        Crashlytics.log(Log.INFO, "tracking-MyLocationFrag", "setValues was called");
         try {
             mCurrentWaitingSpot = currentWaitingSpot;
 
@@ -158,7 +159,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
 
         } catch (Exception ex) {
-            Log.e(TAG, "Setting values of fragment 1", ex);
+            Crashlytics.log(Log.ERROR, TAG, "Setting values of fragment 1" + '\n' + Log.getStackTraceString(ex));
             parentActivity.showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Setting values of fragment 1 - " + ex.getMessage()));
         }
@@ -168,7 +169,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     }
 
     void updateUI() {
-        Log.i("tracking-MyLocationFrag", "updateUI was called");
+        Crashlytics.log(Log.INFO, "tracking-MyLocationFrag", "updateUI was called");
         try {
             if (!mIsWaitingForARide)
                 hitchability_ratingbar.setRating(0);
@@ -176,7 +177,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             updateUILocationSwitch();
             updateUISaveButtons();
         } catch (Exception ex) {
-            Log.e(TAG, "Updating UI on fragment 1", ex);
+            Crashlytics.log(Log.ERROR, TAG, "Updating UI on fragment 1" + '\n' + Log.getStackTraceString(ex));
             parentActivity.showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Updating UI on fragment 1 - " + ex.getMessage()));
         }
@@ -211,10 +212,10 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
                 spot.setAccuracy(parentActivity.mCurrentLocation.getAccuracy());
                 spot.setHasAccuracy(parentActivity.mCurrentLocation.hasAccuracy());
             }
-            Log.i(TAG, "Save spot button handler: a new spot is being created.");
+            Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a new spot is being created.");
         } else {
             spot = mCurrentWaitingSpot;
-            Log.i(TAG, "Save spot button handler: a spot is being edited.");
+            Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
         Intent intent = new Intent(getContext(), SpotFormActivity.class);

@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
@@ -41,28 +42,28 @@ public class SpotListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.i("tracking-SpotListFrag", "onResume was called");
+        Crashlytics.log(Log.INFO, "tracking-SpotListFrag", "onResume was called");
         updateUI();
     }
 
     protected static final String TAG = "spot-list-fragment";
 
     void updateUI() {
-        Log.i("tracking-SpotListFrag", "updateUI was called");
+        Crashlytics.log(Log.INFO, "tracking-SpotListFrag", "updateUI was called");
         try {
             if (recyclerView != null) {
                 SpotListAdapter adapter = new SpotListAdapter(spotList, this);
                 recyclerView.setAdapter(adapter);
             }
         } catch (Exception ex) {
-            Log.e(TAG, "Updating UI on fragment 2", ex);
+            Crashlytics.log(Log.ERROR, TAG, "Updating UI on fragment 2" + '\n' + Log.getStackTraceString(ex));
             ((TrackLocationBaseActivity) getActivity()).showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Updating UI on fragment 2 - " + ex.getMessage()));
         }
     }
 
     public void setValues(List list) {
-        Log.i("tracking-SpotListFrag", "setValues was called");
+        Crashlytics.log(Log.INFO, "tracking-SpotListFrag", "setValues was called");
         spotList = list;
 
         if (this.isResumed())
