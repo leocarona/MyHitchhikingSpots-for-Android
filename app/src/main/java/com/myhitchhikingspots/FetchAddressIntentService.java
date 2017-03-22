@@ -64,7 +64,7 @@ public class FetchAddressIntentService extends IntentService {
         // send an error error message and return.
         if (location == null) {
             errorMessage = getString(R.string.no_location_data_provided);
-            Crashlytics.log(Log.ERROR, TAG, errorMessage);
+            Crashlytics.logException(new Exception(errorMessage));
             deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage);
             return;
         }
@@ -96,20 +96,18 @@ public class FetchAddressIntentService extends IntentService {
         } catch (IOException ioException) {
             // Catch network or other I/O problems.
             errorMessage = getString(R.string.service_not_available);
-            Crashlytics.log(Log.ERROR, TAG, errorMessage + '\n' + Log.getStackTraceString(ioException));
+            Crashlytics.logException(ioException);
         } catch (IllegalArgumentException illegalArgumentException) {
             // Catch invalid latitude or longitude values.
             errorMessage = getString(R.string.invalid_lat_long_used);
-            Crashlytics.log(Log.ERROR, TAG, errorMessage + ". " +
-                    "Latitude = " + location.getLatitude() +
-                    ", Longitude = " + location.getLongitude() + '\n' + Log.getStackTraceString(illegalArgumentException));
+            Crashlytics.logException(illegalArgumentException);
         }
 
         // Handle case where no address was found.
         if (addresses == null || addresses.size() == 0) {
             if (errorMessage.isEmpty()) {
                 errorMessage = getString(R.string.no_address_found);
-                Crashlytics.log(Log.ERROR, TAG, errorMessage);
+                Crashlytics.logException(new Exception(errorMessage));
             }
             deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage);
         } else {

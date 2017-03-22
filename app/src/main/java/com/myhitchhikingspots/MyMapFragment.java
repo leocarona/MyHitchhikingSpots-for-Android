@@ -97,8 +97,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Crashlytics.log(Log.WARN, "spotLocationToString", "Err msg: " + ex.getMessage());
-
+            Crashlytics.logException(ex);
         }
         return "";
     }
@@ -114,7 +113,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
             res = new SimpleDateFormat(dateFormat);
             return res.format(dt);
         } catch (Exception ex) {
-            Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
+            Crashlytics.logException(ex);
         }
 
         return "";

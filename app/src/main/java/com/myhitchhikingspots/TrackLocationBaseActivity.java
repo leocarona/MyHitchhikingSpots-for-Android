@@ -114,7 +114,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
                     mLastUpdateTime = (Date) savedInstanceState.getSerializable(LAST_UPDATED_TIME_STRING_KEY);
                 }
             } catch (Exception ex) {
-                Crashlytics.log(Log.ERROR, TAG, "Updating values from bundle has failed" + '\n' + Log.getStackTraceString(ex));
+                Crashlytics.logException(ex);
                 Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
             }
         }
@@ -323,7 +323,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
             savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
             savedInstanceState.putSerializable(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "Saving instance state has failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG);
         }
         super.onSaveInstanceState(savedInstanceState);

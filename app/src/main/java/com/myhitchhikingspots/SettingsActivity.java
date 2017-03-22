@@ -66,6 +66,7 @@ public class SettingsActivity extends BaseActivity {
                     File mFile = new File(getPath(this, data.getData()));
                     CopyChosenFile(mFile, getDatabasePath(Constants.dbName).getPath());
                 } catch (Exception e) {
+                    Crashlytics.logException(e);
                     Toast.makeText(getBaseContext(), "Can't read file.",
                             Toast.LENGTH_LONG).show();
                 }
@@ -175,6 +176,7 @@ public class SettingsActivity extends BaseActivity {
             ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
         } catch (Exception e) {
+            Crashlytics.logException(e);
         }
     }
 
@@ -214,6 +216,7 @@ public class SettingsActivity extends BaseActivity {
                         Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
+            Crashlytics.logException(e);
 
             Toast.makeText(getBaseContext(), e.toString(), Toast.LENGTH_LONG)
                     .show();
@@ -281,6 +284,7 @@ public class SettingsActivity extends BaseActivity {
                         Toast.LENGTH_LONG).show();
 
         } catch (Exception e) {
+            Crashlytics.logException(e);
 
             Toast.makeText(context, e.toString(), Toast.LENGTH_LONG)
                     .show();

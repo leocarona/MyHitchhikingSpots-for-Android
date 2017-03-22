@@ -480,7 +480,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             dropPinView.setLayoutParams(params);
             mapView.addView(dropPinView);
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
     }
 
@@ -575,7 +575,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             spot_form_evaluate.setVisibility(View.GONE);
 
             if (mFormType == FormType.Unknown) {
-                Crashlytics.log(Log.ERROR, TAG, "mFormType is Unkonwn");
+                Crashlytics.logException(new Exception("mFormType is Unkonwn"));
                 mSaveButton.setEnabled(false);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), "Please try opening your spot again.");
             }
@@ -685,7 +685,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
 
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "updateUI" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message), ex.getMessage()));
         }
     }
@@ -780,13 +780,13 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
             if (mCurrentSpot.getLatitude() == null || mCurrentSpot.getLongitude() == null) {
-                Crashlytics.log(Log.ERROR, TAG, "User tried to save a spot without coordinates?");
+                Crashlytics.logException(new Exception("User tried to save a spot without coordinates?"));
                 showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_coordinate_not_informed_error_message));
                 return;
             }
 
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "Something went wrong when setting the spot values" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
 
@@ -1027,7 +1027,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             spotLoc = String.format(getResources().getString(R.string.spot_form_lat_lng_label),
                         mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());*/
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "getString failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
         return spotLoc;
     }
@@ -1036,6 +1036,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     static String locationSeparator = ", ";
 
     private static String spotLocationToString(Spot spot) {
+        Crashlytics.log(Log.INFO, TAG, "Generating a string for the spot's address");
 
         ArrayList<String> loc = new ArrayList();
         try {
@@ -1050,7 +1051,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Crashlytics.log(Log.WARN, TAG, "Generating a string for the spot's address has failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
         return "";
     }
