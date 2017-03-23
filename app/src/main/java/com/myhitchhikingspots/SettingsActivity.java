@@ -1,10 +1,12 @@
 package com.myhitchhikingspots;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -24,9 +26,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
@@ -166,13 +171,14 @@ public class SettingsActivity extends BaseActivity {
 
     public void exportButtonHandler(View view) {
         try {
-            String dbExportResult = exportDB(getBaseContext());
+            new ExportDatabaseCSVTask().execute();
+
+            /*String dbExportResult = exportDB(getBaseContext());
             dbExported = !dbExportResult.isEmpty();
-            mfeedbacklabel.setText(dbExportResult);
+            mfeedbacklabel.setText(dbExportResult);*/
 
             //copyDataBase2(Constants.dbName);
 
-            dbExported = true;
             ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
         } catch (Exception e) {
@@ -228,7 +234,8 @@ public class SettingsActivity extends BaseActivity {
     final static String DBBackupSubdirectory = "/backup";
 
     //exporting database
-    public static String exportDB(Context context) {
+    public String exportDB(Context context) {
+        //HERE'S A CODE FOUND LATER THAT CODE BE SIMPLER THAN THIS CURRENT METHOD WE'RE USING: http://www.techrepublic.com/blog/software-engineer/export-sqlite-data-from-your-android-device/
 
         String currentDBPath = "";
         String destinationPath = "";
@@ -292,6 +299,259 @@ public class SettingsActivity extends BaseActivity {
         }
 
         return destinationPath;
+    }
+
+    final String TAG = "settings-activity";
+
+
+    public class ExportDatabaseCSVTask extends AsyncTask<String, Void, Boolean> {
+        private final ProgressDialog dialog = new ProgressDialog(SettingsActivity.this);
+
+        @Override
+        protected void onPreExecute() {
+            this.dialog.setMessage("Exporting database...");
+            this.dialog.show();
+        }
+
+        protected Boolean doInBackground(final String... args) {
+            Crashlytics.log(Log.INFO, TAG, "ExportDatabaseCSVTask started executing..");
+            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
+
+            File db = getDatabasePath(Constants.dbName);
+            String currentDBPath = db.getPath();//"/data/"+ Constants.PACKAGE_NAME +"/databases/"+ Constants.dbName +".db";
+            File dbFile = getDatabasePath("" + currentDBPath);
+            System.out.println(dbFile);  // displays the data base path in your logcat
+            File exportDir = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/");
+
+            if (!exportDir.exists()) {
+                Crashlytics.log(Log.INFO, TAG, "Directory created. " + exportDir.getPath());
+                exportDir.mkdirs();
+            }
+
+            String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
+            String fileName = sdf.format(new Date()) + Constants.dbName + ".csv";
+
+            File file = new File(exportDir, fileName);
+            try {
+                file.createNewFile();
+                CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
+                Cursor curCSV = appContext.rawQuery("select * from " + SpotDao.TABLENAME, null);
+                csvWrite.writeNext(curCSV.getColumnNames());
+                while (curCSV.moveToNext()) {
+                    String arrStr[] = null;
+                    String[] mySecondStringArray = new String[curCSV.getColumnNames().length];
+                    for (int i = 0; i < curCSV.getColumnNames().length; i++) {
+                        mySecondStringArray[i] = curCSV.getString(i);
+                    }
+                    csvWrite.writeNext(mySecondStringArray);
+                }
+                csvWrite.close();
+                curCSV.close();
+
+                result = "Copied to: " + file.getPath();
+                Crashlytics.log(Log.DEBUG, TAG, result);
+
+                return true;
+            } catch (IOException e) {
+                dbExported = false;
+                Crashlytics.logException(e);
+                return false;
+            }
+        }
+
+        String result = "";
+
+        protected void onPostExecute(final Boolean success) {
+            dbExported = success;
+
+            if (this.dialog.isShowing()) {
+                this.dialog.dismiss();
+            }
+            if (success) {
+                mfeedbacklabel.setText(result);
+
+                Toast.makeText(SettingsActivity.this, "Export successful!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(SettingsActivity.this, "Export failed", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public class CSVWriter {
+
+        private PrintWriter pw;
+
+        private char separator;
+
+        private char quotechar;
+
+        private char escapechar;
+
+        private String lineEnd;
+
+        /**
+         * The character used for escaping quotes.
+         */
+        public static final char DEFAULT_ESCAPE_CHARACTER = '"';
+
+        /**
+         * The default separator to use if none is supplied to the constructor.
+         */
+        public static final char DEFAULT_SEPARATOR = ',';
+
+        /**
+         * The default quote character to use if none is supplied to the
+         * constructor.
+         */
+        public static final char DEFAULT_QUOTE_CHARACTER = '"';
+
+        /**
+         * The quote constant to use when you wish to suppress all quoting.
+         */
+        public static final char NO_QUOTE_CHARACTER = '\u0000';
+
+        /**
+         * The escape constant to use when you wish to suppress all escaping.
+         */
+        public static final char NO_ESCAPE_CHARACTER = '\u0000';
+
+        /**
+         * Default line terminator uses platform encoding.
+         */
+        public static final String DEFAULT_LINE_END = "\n";
+
+        /**
+         * Constructs CSVWriter using a comma for the separator.
+         *
+         * @param writer the writer to an underlying CSV source.
+         */
+        public CSVWriter(Writer writer) {
+            this(writer, DEFAULT_SEPARATOR, DEFAULT_QUOTE_CHARACTER,
+                    DEFAULT_ESCAPE_CHARACTER, DEFAULT_LINE_END);
+        }
+
+        /**
+         * Constructs CSVWriter with supplied separator, quote char, escape char and line ending.
+         *
+         * @param writer     the writer to an underlying CSV source.
+         * @param separator  the delimiter to use for separating entries
+         * @param quotechar  the character to use for quoted elements
+         * @param escapechar the character to use for escaping quotechars or escapechars
+         * @param lineEnd    the line feed terminator to use
+         */
+        public CSVWriter(Writer writer, char separator, char quotechar, char escapechar, String lineEnd) {
+            this.pw = new PrintWriter(writer);
+            this.separator = separator;
+            this.quotechar = quotechar;
+            this.escapechar = escapechar;
+            this.lineEnd = lineEnd;
+        }
+
+        /**
+         * Writes the next line to the file.
+         *
+         * @param nextLine a string array with each comma-separated element as a separate
+         *                 entry.
+         */
+        public void writeNext(String[] nextLine) {
+
+            if (nextLine == null)
+                return;
+
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < nextLine.length; i++) {
+
+                if (i != 0) {
+                    sb.append(separator);
+                }
+
+                String nextElement = nextLine[i];
+                if (nextElement == null)
+                    continue;
+                if (quotechar != NO_QUOTE_CHARACTER)
+                    sb.append(quotechar);
+                for (int j = 0; j < nextElement.length(); j++) {
+                    char nextChar = nextElement.charAt(j);
+                    if (escapechar != NO_ESCAPE_CHARACTER && nextChar == quotechar) {
+                        sb.append(escapechar).append(nextChar);
+                    } else if (escapechar != NO_ESCAPE_CHARACTER && nextChar == escapechar) {
+                        sb.append(escapechar).append(nextChar);
+                    } else {
+                        sb.append(nextChar);
+                    }
+                }
+                if (quotechar != NO_QUOTE_CHARACTER)
+                    sb.append(quotechar);
+            }
+
+            sb.append(lineEnd);
+            pw.write(sb.toString());
+
+        }
+
+        /**
+         * Flush underlying stream to writer.
+         *
+         * @throws IOException if bad things happen
+         */
+        public void flush() throws IOException {
+
+            pw.flush();
+
+        }
+
+        /**
+         * Close the underlying stream writer flushing any buffered content.
+         *
+         * @throws IOException if bad things happen
+         */
+        public void close() throws IOException {
+            pw.flush();
+            pw.close();
+        }
+
+    }
+
+
+    void exportDBToCSV() {
+        //Send email with CSV attached. Copied from: http://stackoverflow.com/a/5403357/1094261
+        String columnString = "\"PersonName\",\"Gender\",\"Street1\",\"postOffice\",\"Age\"";
+        String dataString = "\"";// + currentUser.userName + "\",\"" + currentUser.gender + "\",\"" + currentUser.street1 + "\",\"" + currentUser.postOFfice.toString() + "\",\"" + currentUser.age.toString() + "\"";
+        String combinedString = columnString + "\n" + dataString;
+
+        File file = null;
+        File root = Environment.getExternalStorageDirectory();
+        if (root.canWrite()) {
+            File dir = new File(root.getAbsolutePath() + "/PersonData");
+            dir.mkdirs();
+            file = new File(dir, "Data.csv");
+            FileOutputStream out = null;
+            try {
+                out = new FileOutputStream(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                out.write(combinedString.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        Uri u1 = null;
+        u1 = Uri.fromFile(file);
+
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Person Details");
+        sendIntent.putExtra(Intent.EXTRA_STREAM, u1);
+        sendIntent.setType("text/html");
+        startActivity(sendIntent);
     }
 
     /**
