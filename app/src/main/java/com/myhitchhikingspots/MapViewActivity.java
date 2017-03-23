@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -638,6 +639,13 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
+        private final ProgressDialog dialog = new ProgressDialog(MapViewActivity.this);
+
+        @Override
+        protected void onPreExecute() {
+            this.dialog.setMessage(getResources().getString(R.string.map_loading_dialog));
+            this.dialog.show();
+        }
 
         @Override
         protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
@@ -745,7 +753,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     }
                 }
 
+                if (this.dialog.isShowing()) {
+                    this.dialog.dismiss();
+                }
+
                 zoomOutToFitAllMarkers();
+
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
