@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Build;
@@ -16,6 +17,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.view.ContextThemeWrapper;
@@ -134,6 +136,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.spot_form_master_layout);
+
+        //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         mSaveButton = (Button) findViewById(R.id.save_button);
         mDeleteButton = (Button) findViewById(R.id.delete_button);
@@ -485,18 +490,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             return;
 
         try {
-            Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
-            IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
-            //DrawableCompat.setTint(iconDrawable, Color.WHITE);
-            FloatingActionButton img = new FloatingActionButton(context);
-            img.setImageResource(R.drawable.ic_target_location);
-
+            //Drawable d = ContextCompat.getDrawable(this, R.drawable.ic_add);
 
             dropPinView = new ImageView(this);
-            dropPinView.setImageDrawable(img.getDrawable());
+            dropPinView.setImageResource(R.drawable.ic_add);
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
             dropPinView.setLayoutParams(params);
             mapView.addView(dropPinView);
+
         } catch (Exception ex) {
             Crashlytics.logException(ex);
         }

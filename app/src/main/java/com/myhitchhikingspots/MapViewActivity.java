@@ -18,6 +18,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
@@ -66,6 +67,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     // Please always make sure this is been done!
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.mapview_master_layout);
+
+        //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
