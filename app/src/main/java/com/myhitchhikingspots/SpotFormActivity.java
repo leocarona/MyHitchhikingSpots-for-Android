@@ -17,10 +17,12 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -124,6 +126,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private com.mapbox.mapboxsdk.location.LocationServices locationServices;
     private static final int PERMISSIONS_LOCATION = 0;
     private ImageView dropPinView;
+    private android.support.v4.widget.NestedScrollView sv;
 
     private CoordinatorLayout coordinatorLayout;
     private android.support.design.widget.FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
@@ -203,10 +206,25 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             // object or in the same activity which contains the mapview.
             MapboxAccountManager.start(getApplicationContext(), getResources().getString(R.string.mapBoxKey));
 
-
+            sv = (android.support.v4.widget.NestedScrollView) findViewById(R.id.spot_form_scrollview);
             mapView = (MapView) findViewById(R.id.mapview2);
             mapView.onCreate(savedInstanceState);
             mapView.getMapAsync(this);
+            mapView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_MOVE:
+                            sv.requestDisallowInterceptTouchEvent(true);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL:
+                            sv.requestDisallowInterceptTouchEvent(false);
+                            break;
+                    }
+                    return mapView.onTouchEvent(event);
+                }
+            });
 
             mapIsDisplayed = true;
 
