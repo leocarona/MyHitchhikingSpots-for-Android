@@ -136,7 +136,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     @Override
     public void onResume() {
         super.onResume();
-        Crashlytics.log(Log.INFO, "tracking-MyLocationFrag", "onResume was called");
+        Crashlytics.log(Log.INFO, TAG, "onResume was called");
         updateUI();
     }
 
@@ -146,7 +146,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     boolean mWillItBeFirstSpotOfARoute;
 
     public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
-        Crashlytics.log(Log.INFO, "tracking-MyLocationFrag", "setValues was called");
+        Crashlytics.log(Log.INFO, TAG, "setValues was called");
         try {
             mCurrentWaitingSpot = currentWaitingSpot;
 
@@ -159,7 +159,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
 
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "Setting values of fragment 1" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             parentActivity.showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Setting values of fragment 1 - " + ex.getMessage()));
         }
@@ -169,7 +169,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     }
 
     void updateUI() {
-        Crashlytics.log(Log.INFO, "tracking-MyLocationFrag", "updateUI was called");
+        Crashlytics.log(Log.INFO, TAG, "updateUI");
         try {
             if (!mIsWaitingForARide)
                 hitchability_ratingbar.setRating(0);
@@ -177,7 +177,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             updateUILocationSwitch();
             updateUISaveButtons();
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "Updating UI on fragment 1" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             parentActivity.showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Updating UI on fragment 1 - " + ex.getMessage()));
         }

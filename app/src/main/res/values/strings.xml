@@ -15,7 +15,6 @@
 -->
 <resources>
     <string name="app_name">MyHitchhikingSpots</string>
-    <string name="spot_list_title">Saved spots</string>
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
@@ -29,7 +28,6 @@
     <string name="evaluate_running_spot_required">You must select \'Got a ride\' or \'Take a break\' before you create/edit another spot.</string>
 
     <string name="location_updated_message">Location updated</string>
-    <string name="save_spot_location_disabled_message">Please enable "Get current location" in order to save a spot.</string>
     <string name="update_location_switch">Get my current location</string>
 
     <string name="hitchability">Hitchability</string>
@@ -42,7 +40,7 @@
     <string name="hitchability_no_answer">No Answer</string>
 
     <string name="attempt_result">Attempt Result</string>
-    <string name="attempt_result_unknown">Unknown</string>
+    <string name="attempt_result_unknown">@string/hitchability_unknown</string>
     <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
     <string name="attempt_result_gave_up">@string/break_button_text</string>
 
@@ -61,7 +59,7 @@
         <item>@string/attempt_result_successful</item>
         <item>@string/attempt_result_gave_up</item>
     </string-array>
-    <string name="sample_basic_master_title">Basic Master Layout</string>
+    <string name="sample_basic_master_title" translatable="false">Basic Master Layout</string>
 
     <string name="menu_home">No 3G? Use this</string>
 
@@ -71,7 +69,6 @@
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
 
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
@@ -89,7 +86,6 @@
     <string name="spot_saved_successfuly">Spot saved</string>
     <string name="spot_deleted_successfuly">Spot deleted</string>
     <string name="title_activity_main">@string/app_name</string>
-    <string name="section_format">Hello World from section: %1$d</string>
 
     <string name="confirm_back_button_click_dialog_title">Navigate back</string>
     <string name="confirm_back_button_click_dialog_message">Are you sure you want to leave this page without saving your changes?</string>
@@ -127,14 +123,11 @@
     <string name="general_error_dialog_message" translatable="false">"%s"</string>
 
     <string name="fetch_address">fetch address</string>
-    <string name="no_geocoder_available">No geocoder available</string>
     <string name="address_found">Address found</string>
     <string name="no_address_found">Sorry, no address found</string>
     <string name="no_location_data_provided">No location data provided</string>
     <string name="service_not_available">Sorry, the service is not available</string>
     <string name="invalid_lat_long_used">Invalid latitude or longitude used</string>
-    <string name="spot_form_save_while_requesting_addr_dialog_title">Fetching address</string>
-    <string name="spot_form_save_while_requesting_addr_dialog_text">Are you sure you want to save before the address is fetched?</string>
     <string name="spot_form_location_info_copied">Text copied to clipboard.</string>
 
     <string name="shortcut_save_button_failed">It was not possible to update your spot through the shortcut :(</string>
@@ -152,4 +145,6 @@
     <string name="map_error_alert_map_not_loaded_message">Hey. :-) Your device seems to be disconnected from the internet at the moment. You can still save your locations, but the maps might not load as expected. You may try the app without map.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Try without map</string>
     <string name="map_error_alert_map_not_loaded_negative_button">View map</string>
+
+    <string name="map_loading_dialog">Loading spots...</string>
 </resources>

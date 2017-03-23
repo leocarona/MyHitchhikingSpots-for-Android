@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.app.Application;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Debug;
 import android.support.multidex.MultiDex;
@@ -48,6 +49,12 @@ public class MyHitchhikingSpotsApplication extends Application {
         //insertSampleData2(daoSession);
 
         LoadCurrentWaitingSpot();
+    }
+
+    public Cursor rawQuery(String sql, String[] selectionArgs){
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.dbName, null);
+        SQLiteDatabase db = helper.getWritableDatabase();
+       return db.rawQuery(sql,selectionArgs);
     }
 
     private void LoadCurrentWaitingSpot() {

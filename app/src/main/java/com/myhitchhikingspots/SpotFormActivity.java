@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Build;
@@ -16,11 +17,14 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -124,6 +128,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private com.mapbox.mapboxsdk.location.LocationServices locationServices;
     private static final int PERMISSIONS_LOCATION = 0;
     private ImageView dropPinView;
+    private android.support.v4.widget.NestedScrollView sv;
 
     private CoordinatorLayout coordinatorLayout;
     private android.support.design.widget.FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
@@ -131,6 +136,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.spot_form_master_layout);
+
+        //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         mSaveButton = (Button) findViewById(R.id.save_button);
         mDeleteButton = (Button) findViewById(R.id.delete_button);
@@ -203,10 +211,25 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             // object or in the same activity which contains the mapview.
             MapboxAccountManager.start(getApplicationContext(), getResources().getString(R.string.mapBoxKey));
 
-
+            sv = (android.support.v4.widget.NestedScrollView) findViewById(R.id.spot_form_scrollview);
             mapView = (MapView) findViewById(R.id.mapview2);
             mapView.onCreate(savedInstanceState);
             mapView.getMapAsync(this);
+            mapView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_MOVE:
+                            sv.requestDisallowInterceptTouchEvent(true);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL:
+                            sv.requestDisallowInterceptTouchEvent(false);
+                            break;
+                    }
+                    return mapView.onTouchEvent(event);
+                }
+            });
 
             mapIsDisplayed = true;
 
@@ -467,20 +490,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             return;
 
         try {
-            Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
-            IconFactory iconFactory = IconFactory.getInstance(SpotFormActivity.this);
-            //DrawableCompat.setTint(iconDrawable, Color.WHITE);
-            FloatingActionButton img = new FloatingActionButton(context);
-            img.setImageResource(R.drawable.ic_target_location);
-
+            //Drawable d = ContextCompat.getDrawable(this, R.drawable.ic_add);
 
             dropPinView = new ImageView(this);
-            dropPinView.setImageDrawable(img.getDrawable());
+            dropPinView.setImageResource(R.drawable.ic_add);
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
             dropPinView.setLayoutParams(params);
             mapView.addView(dropPinView);
+
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
     }
 
@@ -575,7 +594,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             spot_form_evaluate.setVisibility(View.GONE);
 
             if (mFormType == FormType.Unknown) {
-                Crashlytics.log(Log.ERROR, TAG, "mFormType is Unkonwn");
+                Crashlytics.logException(new Exception("mFormType is Unkonwn"));
                 mSaveButton.setEnabled(false);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), "Please try opening your spot again.");
             }
@@ -685,7 +704,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
 
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "updateUI" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message), ex.getMessage()));
         }
     }
@@ -780,13 +799,13 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
             if (mCurrentSpot.getLatitude() == null || mCurrentSpot.getLongitude() == null) {
-                Crashlytics.log(Log.ERROR, TAG, "User tried to save a spot without coordinates?");
+                Crashlytics.logException(new Exception("User tried to save a spot without coordinates?"));
                 showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_coordinate_not_informed_error_message));
                 return;
             }
 
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "Something went wrong when setting the spot values" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
 
@@ -1027,7 +1046,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             spotLoc = String.format(getResources().getString(R.string.spot_form_lat_lng_label),
                         mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());*/
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "getString failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
         return spotLoc;
     }
@@ -1036,6 +1055,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     static String locationSeparator = ", ";
 
     private static String spotLocationToString(Spot spot) {
+        Crashlytics.log(Log.INFO, TAG, "Generating a string for the spot's address");
 
         ArrayList<String> loc = new ArrayList();
         try {
@@ -1050,7 +1070,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Crashlytics.log(Log.WARN, TAG, "Generating a string for the spot's address has failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
         return "";
     }

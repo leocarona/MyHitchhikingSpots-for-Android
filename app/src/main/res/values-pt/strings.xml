@@ -15,7 +15,6 @@
 -->
 <resources>
     <string name="app_name">MyHitchhikingSpots</string>
-    <string name="spot_list_title">Locais salvos</string>
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
@@ -29,7 +28,6 @@
     <string name="evaluate_running_spot_required">Você deve selecionar \'Peguei carona\' ou \'Fazer uma pausa\' antes de criar/editar outro ponto.</string>
 
     <string name="location_updated_message">Localização atualizada</string>
-    <string name="save_spot_location_disabled_message">Por favor habilite a opção "Atualizar minha localização" para que sua localização por ser salva.</string>
     <string name="update_location_switch">Atualizar minha localização</string>
 
     <string name="hitchability">Facilidade de carona</string>
@@ -42,7 +40,7 @@
     <string name="hitchability_no_answer">N/A</string>
 
     <string name="attempt_result">Resultado da tentativa</string>
-    <string name="attempt_result_unknown">Desconhecido</string>
+    <string name="attempt_result_unknown">@string/hitchability_unknown</string>
     <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
     <string name="attempt_result_gave_up">@string/break_button_text</string>
 
@@ -61,7 +59,6 @@
         <item>@string/attempt_result_successful</item>
         <item>@string/attempt_result_gave_up</item>
     </string-array>
-    <string name="sample_basic_master_title">Basic Master Layout</string>
 
     <string name="mapview_master_title">Mapa</string>
 
@@ -89,7 +86,6 @@
     <string name="spot_saved_successfuly">Local salvo!</string>
     <string name="spot_deleted_successfuly">Local deletado</string>
     <string name="title_activity_main">@string/app_name</string>
-    <string name="section_format">Hello World from section: %1$d</string>
 
     <string name="confirm_back_button_click_dialog_title">Voltar</string>
     <string name="confirm_back_button_click_dialog_message">Tem certeza que deseja sair desta página sem salvar suas alteraçōes?</string>
@@ -126,14 +122,11 @@
     <string name="general_error_dialog_title">Houve uma falha :(</string>
 
     <string name="fetch_address">obter endereço</string>
-    <string name="no_geocoder_available">Serviço indisponível</string>
     <string name="address_found">Endereço encontrado</string>
     <string name="no_address_found">Infelizmente um endereço nāo foi encontrado</string>
     <string name="no_location_data_provided">As coordenadas nāo foram informadas</string>
     <string name="service_not_available">Infelizmente o serviço nāo se encontra disponível</string>
     <string name="invalid_lat_long_used">A latitude ou longitude utilizada nāo é válida</string>
-    <string name="spot_form_save_while_requesting_addr_dialog_title">Obtendo endereço</string>
-    <string name="spot_form_save_while_requesting_addr_dialog_text">Você tem certeza que deseja salvar antes que o endereço tenha sido obtido?</string>
     <string name="spot_form_location_info_copied">Texto copiado.</string>
 
     <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
@@ -151,4 +144,7 @@
     <string name="map_error_alert_map_not_loaded_message">Olá. :-) Seu celular parece estar desconectado da internet no momento. Ainda assim você pode salvar novos locais, porém talvez o mapa não carregue como esperado. Você pode experimentar usar sem mapa.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Usar sem mapa</string>
     <string name="map_error_alert_map_not_loaded_negative_button">Ver mapa</string>
+
+    <string name="map_loading_dialog">Carregando locais...</string>
+
 </resources>

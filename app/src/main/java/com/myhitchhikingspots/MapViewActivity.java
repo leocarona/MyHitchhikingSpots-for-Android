@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
@@ -66,6 +68,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     // Please always make sure this is been done!
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.mapview_master_layout);
+
+        //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
@@ -191,7 +196,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_got_a_ride_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
 
         try {
@@ -200,7 +205,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_took_a_break_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
 
         try {
@@ -209,7 +214,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_waiting_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
 
         try {
@@ -218,7 +223,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             Drawable d1 = img.getDrawable();
             ic_arrival_spot = iconFactory.fromDrawable(d1);
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
     }
 
@@ -463,7 +468,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Crashlytics.log(Log.WARN, TAG, "Generating a string for the spot's address has failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.log(Log.WARN, TAG, "Generating a string for the spot's address has failed");
+            Crashlytics.logException(ex);
         }
         return "";
     }
@@ -489,6 +495,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             return res.format(dt);
         } catch (Exception ex) {
             Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
+            Crashlytics.logException(ex);
         }
 
         return "";
@@ -598,7 +605,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
 
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "Show all markers failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Show all markers failed - " + ex.getMessage()));
         }
@@ -632,6 +639,13 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
+        private final ProgressDialog dialog = new ProgressDialog(MapViewActivity.this);
+
+        @Override
+        protected void onPreExecute() {
+            this.dialog.setMessage(getResources().getString(R.string.map_loading_dialog));
+            this.dialog.show();
+        }
 
         @Override
         protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
@@ -704,7 +718,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                 return trips;
             } catch (Exception ex) {
-                Crashlytics.log(Log.ERROR, TAG, "Loaded spots failed" + '\n' + Log.getStackTraceString(ex));
+                Crashlytics.logException(ex);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                         "Loading spots failed - " + ex.getMessage()));
             }
@@ -739,9 +753,14 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     }
                 }
 
+                if (this.dialog.isShowing()) {
+                    this.dialog.dismiss();
+                }
+
                 zoomOutToFitAllMarkers();
+
             } catch (Exception ex) {
-                Crashlytics.log(Log.ERROR, TAG, "Adding markers failed" + '\n' + Log.getStackTraceString(ex));
+                Crashlytics.logException(ex);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                         "Adding markers failed - " + ex.getMessage()));
             }

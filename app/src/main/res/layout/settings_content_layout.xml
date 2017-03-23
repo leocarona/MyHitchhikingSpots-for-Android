@@ -23,6 +23,7 @@
             android:layout_height="wrap_content"
             android:text="pick file"
             android:onClick="pickFileButtonHandler"
+            android:visibility="gone"
             />
 
         <Button
@@ -32,6 +33,7 @@
             android:layout_marginTop="140dp"
             android:layout_gravity="center"
             android:onClick="importButtonHandler"
+            android:visibility="gone"
             />
 
         <Button

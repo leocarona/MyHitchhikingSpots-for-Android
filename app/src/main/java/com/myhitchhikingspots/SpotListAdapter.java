@@ -47,6 +47,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
 
     private void SumRouteTotalsAndUpdateTheirDestinationNotes(List<Spot> data) {
+        Crashlytics.log(Log.INFO, TAG, "Summing up the total of rides gotten and hours traveling");
         totalsToDestinations = new Hashtable<>();
         //Integer totalWaitingTimeMinutes = 0;
         Integer totalRides = 0;
@@ -88,7 +89,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         startDate = data.get(i - 1).getStartDateTime();
                 }
             } catch (Exception ex) {
-                Crashlytics.log(Log.ERROR, TAG, "Summing up the total of rides gotten and hours traveling has failed" + '\n' + Log.getStackTraceString(ex));
+                Crashlytics.logException(ex);
             }
         }
     }
@@ -127,8 +128,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             }
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
-            Crashlytics.log(Log.WARN, TAG, "Generating spot location string failed" + '\n' + Log.getStackTraceString(ex));
-
+            Crashlytics.logException(ex);
         }
         return "";
     }
@@ -144,7 +144,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             res = new SimpleDateFormat(dateFormat);
             return res.format(dt);
         } catch (Exception ex) {
-            Crashlytics.log(Log.WARN, TAG, "Formatting date failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
         }
 
         return "";
@@ -279,7 +279,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                 notesText.setText(captilizedNote);
             } catch (Exception ex) {
-                Crashlytics.log(Log.ERROR, TAG, "Setting UI values failed" + '\n' + Log.getStackTraceString(ex));
+                Crashlytics.logException(ex);
             }
         }
 

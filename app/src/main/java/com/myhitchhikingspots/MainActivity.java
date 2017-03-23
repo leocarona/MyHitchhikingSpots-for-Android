@@ -131,7 +131,7 @@ public class MainActivity extends TrackLocationBaseActivity {
             loadValues();
 
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "Shortcut event handler failed" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             Toast.makeText(getApplicationContext(), getResources().getString(R.string.shortcut_save_button_failed), Toast.LENGTH_LONG).show();
         }
     }
@@ -323,7 +323,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 if (fragment2 != null)
                     fragment2.setValues(lst);
             } catch (Exception ex) {
-                Crashlytics.log(Log.ERROR, TAG, "Calling fragments has failed" + '\n' + Log.getStackTraceString(ex));
+                Crashlytics.logException(ex);
             }
         }
     }

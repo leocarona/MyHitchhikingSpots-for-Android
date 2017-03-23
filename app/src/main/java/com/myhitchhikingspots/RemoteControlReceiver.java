@@ -76,8 +76,7 @@ public class RemoteControlReceiver extends BroadcastReceiver {
                 Toast.makeText(context.getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
                 //finish();
             } catch (Exception ex) {
-                Crashlytics.log(Log.ERROR, TAG_MEDIA, "saveButtonHandler" + '\n' + Log.getStackTraceString(ex));
-                //Toast.makeText(getApplicationContext(), "Something went wrong :(", Toast.LENGTH_LONG).show();
+                Crashlytics.logException(ex);
             }
 
             /*

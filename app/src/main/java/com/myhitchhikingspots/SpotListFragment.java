@@ -42,28 +42,28 @@ public class SpotListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Crashlytics.log(Log.INFO, "tracking-SpotListFrag", "onResume was called");
+        Crashlytics.log(Log.INFO,TAG, "onResume was called");
         updateUI();
     }
 
     protected static final String TAG = "spot-list-fragment";
 
     void updateUI() {
-        Crashlytics.log(Log.INFO, "tracking-SpotListFrag", "updateUI was called");
+        Crashlytics.log(Log.INFO, TAG, "updateUI was called");
         try {
             if (recyclerView != null) {
                 SpotListAdapter adapter = new SpotListAdapter(spotList, this);
                 recyclerView.setAdapter(adapter);
             }
         } catch (Exception ex) {
-            Crashlytics.log(Log.ERROR, TAG, "Updating UI on fragment 2" + '\n' + Log.getStackTraceString(ex));
+            Crashlytics.logException(ex);
             ((TrackLocationBaseActivity) getActivity()).showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Updating UI on fragment 2 - " + ex.getMessage()));
         }
     }
 
     public void setValues(List list) {
-        Crashlytics.log(Log.INFO, "tracking-SpotListFrag", "setValues was called");
+        Crashlytics.log(Log.INFO, TAG, "setValues was called");
         spotList = list;
 
         if (this.isResumed())
