@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  Copyright 2014 Google, Inc
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<resources>
+    <string name="app_name">MyHitchhikingSpots</string>
+
+    <string name="latitude_label">Breitengrad</string>
+    <string name="longitude_label">Längengrad</string>
+    <string name="accuracy_label">Genauigkeit</string>
+    <string name="last_update_time_label">Zeit des letzten Standort-Updates</string>
+
+    <string name="save_spot_button_text">Standort speichern</string>
+    <string name="got_a_ride_button_text">Mitfahrgelegenheit gefunden</string>
+    <string name="arrived_button_text">Ziel erreicht</string>
+    <string name="break_button_text">Pause</string>
+    <string name="evaluate_running_spot_required">Wähle \'Mitfahrgelegenheit gefunden\' oder \'Pause\' bevor du einen anderen Standort erstellen / bearbeiten kannst.</string>
+
+    <string name="location_updated_message">Standort wurde aktualisiert</string>
+    <string name="update_location_switch">Standort aktualisieren</string>
+
+    <string name="hitchability">Hitchability</string>
+    <string name="hitchability_unknown">Unbekannt</string>
+    <string name="hitchability_very_good">Sehr Gut</string>
+    <string name="hitchability_good">Gut</string>
+    <string name="hitchability_average">Ausreichend</string>
+    <string name="hitchability_bad">Schlecht</string>
+    <string name="hitchability_senseless">Sinnlos</string>
+    <string name="hitchability_no_answer">Keine Antwort</string>
+
+    <string name="attempt_result">Resultat</string>
+    <string name="attempt_result_unknown">@string/hitchability_unknown</string>
+    <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
+    <string name="attempt_result_gave_up">@string/break_button_text</string>
+
+    <string-array name="hitchabilities">
+        <item>@string/hitchability_unknown</item>
+        <item>@string/hitchability_very_good</item>
+        <item>@string/hitchability_good</item>
+        <item>@string/hitchability_average</item>
+        <item>@string/hitchability_bad</item>
+        <item>@string/hitchability_senseless</item>
+        <item>@string/hitchability_no_answer</item>
+    </string-array>
+
+    <string-array name="attempt_results">
+        <item>@string/attempt_result_unknown</item>
+        <item>@string/attempt_result_successful</item>
+        <item>@string/attempt_result_gave_up</item>
+    </string-array>
+
+    <string name="menu_home">Keine 3G? Benutze das</string>
+
+    <string name="settings_master_title">Werkzeuge</string>
+    <string name="settings_importdb_button_label">import database</string>
+    <string name="settings_exportdb_button_label">export database</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="title_activity_scrolling">@string/save_spot_button_text</string>
+
+    <string name="spot_form_note_label">Notiz</string>
+    <string name="spot_form_hitchability_label">@string/hitchability</string>
+    <string name="spot_form_date_label">Datum</string>
+    <string name="spot_form_time_label">Zeit</string>
+    <string name="spot_form_waiting_time_label">Warte Zeit (in minuten)</string>
+    <string name="spot_form_attempt_result_label">@string/attempt_result</string>
+    <string name="spot_form_more_options_label">Wann (bearbeiten)</string>
+
+    <string name="mapview_master_title">Karte</string>
+
+    <string name="action_settings">Einstellungen</string>
+    <string name="spot_saved_successfuly">Standort gespeichert</string>
+    <string name="spot_deleted_successfuly">Standort gelöscht</string>
+    <string name="title_activity_main">@string/app_name</string>
+
+    <string name="confirm_back_button_click_dialog_title">Zurück</string>
+    <string name="confirm_back_button_click_dialog_message">Möchtest du diese Seite wirklich ohne Speichern verlassen?</string>
+
+    <string name="main_activity_you_tab">Du</string>
+    <string name="main_activity_list_tab">Liste</string>
+    <string name="spot_list_item_arrival_label">Ankunft</string>
+    <string name="spot_list_item_waiting_label">Wartezeit</string>
+    <string name="spot_form_save_button_text">Speichern</string>
+    <string name="spot_form_delete_button_text">Löschen</string>
+    <string name="spot_form_delete_dialog_title_text">Ort Löschen</string>
+    <string name="spot_form_delete_dialog_message_text">Möchtest du diesen Ort wirklich für immer Löschen?</string>
+    <string name="spot_form_delete_dialog_no_option">Abbrechen</string>
+    <string name="spot_form_delete_dialog_yes_option">Löschen</string>
+    <string name="spot_form_is_destination_checkbox_text">Das ist mein bisheriges Ziel</string>
+    <string name="spot_form_title_evaluate">Ort beurteilen</string>
+    <string name="spot_form_title_edit">Standort bearbeiten</string>
+    <string name="spot_form_lat_lng_label">Bg %1$s Lg %2$s</string>
+    <string name="spot_form_location_selected_label">Standort auswählen.</string>
+
+    <string name="waiting_for_connection">Verbindung wird hergestellt..</string>
+    <string name="unable_to_find_location">Nicht in der Lage, den Standort mit Google api abzurufen :(</string>
+    <string name="trying_to_reconnect_to_provider_of_location">Versuchen, sich wider mit dem Server zu verbinden..</string>
+
+    <string name="destination_spot_totals_format">INSGESAMMT | %1$d Fahrten | %2$s</string>
+
+    <string name="break_spot_state_label">PAUSE</string>
+    <string name="waiting_for_gps">Warte auf deine Standorterkennung..</string>
+
+    <string name="general_ok_option">Ok</string>
+    <string name="general_yes_option">Ja</string>
+    <string name="general_no_option">Nein</string>
+    <string name="general_cancel_option">Beenden</string>
+    <string name="general_error_dialog_title">Irgendetwas ging schief :(</string>
+
+    <string name="fetch_address">Adresse abrufen</string>
+    <string name="address_found">Adresse gefunden</string>
+    <string name="no_address_found">Sorry, keine Adresse gefunden</string>
+    <string name="no_location_data_provided">Keine Standortinformationen vorhanden</string>
+    <string name="service_not_available">Sorry, dieser Service ist nicht verfügbar</string>
+    <string name="invalid_lat_long_used">Ungültige Koordinaten</string>
+    <string name="spot_form_location_info_copied">Text in Zwischenablage kopiert.</string>
+
+    <string name="shortcut_save_button_failed">Es war nicht möglich deinen Standort durch die Schnelltaste zu akutalisieren :(</string>
+
+    <string name="save_spot_error_map_not_loaded">Es scheint als hättest du\ deinen Standort manuell angepasst, aber die Karte wurde nicht geladen.\Du brauchst eine Internetverbindung um die Veränderung zu speichern.</string>
+    <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\nYou might need an internet connection to save this change.</string>
+    <string name="save_spot_error_general">Irgendetwas ging schief :(\n%s</string>
+
+    <string name="map_infoview_spot_type_destination">(REISEZIEL)</string>
+    <string name="map_infoview_spot_type_waiting">(WARTEN)</string>
+    <string name="map_infoview_spot_type_break">(PAUSE)</string>
+    <string name="map_infoview_spot_type_regular">(%dmin)</string>
+
+    <string name="map_error_alert_map_not_loaded_title">Internet nicht verfügbar</string>
+    <string name="map_error_alert_map_not_loaded_message">Griaß di. :-) Dein Gerät scheint im Moment nicht mit dem Internet verbunden zu sein. Du kannst deinen Standort speichern, aber die Karte wird möglicherweise nicht geladen. Probiere die App ohne Karte aus.</string>
+    <string name="map_error_alert_map_not_loaded_positive_button">Probiere ohne Karte</string>
+    <string name="map_error_alert_map_not_loaded_negative_button">Karte anzeigen</string>
+
+    <string name="map_loading_dialog">Laden von Standorten...</string>
+
+</resources>
