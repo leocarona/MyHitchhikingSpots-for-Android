@@ -38,7 +38,7 @@ android {
     buildToolsVersion '25.0.0'
     defaultConfig {
         vectorDrawables.useSupportLibrary = true
-        manifestPlaceholders = [fabricApiKey:otherPrivateProperties['fabricApiKey']]
+        manifestPlaceholders = [fabricApiKey: otherPrivateProperties['fabricApiKey']]
         applicationId 'com.myhitchhikingspots'
         minSdkVersion minSdk
         targetSdkVersion 22
@@ -75,24 +75,24 @@ repositories {
 dependencies {
     //Begin: Dependencies for MapBox
     //compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
     // add the Mapbox SDK dependency below
-    compile ('com.mapbox.mapboxsdk:mapbox-android-sdk:4.2.0-beta.5@aar'){
-        transitive=true
+    compile('com.mapbox.mapboxsdk:mapbox-android-sdk:4.2.0-beta.5@aar') {
+        transitive = true
     }
     //End: Dependencies for MapBox
 
     //compile fileTree(include: ['*.jar'], dir: 'libs')
+    //compile 'com.google.android.gms:play-services:8.4.0'
+    //compile 'com.github.clans:fab:1.6.4'
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.7@aar') {
+        transitive = true;
+    }
     compile 'org.greenrobot:greendao:3.2.0'
     compile 'com.android.support:appcompat-v7:25.3.0'
-    //compile 'com.google.android.gms:play-services:8.4.0'
     compile 'com.google.android.gms:play-services-location:10.2.0'
     compile 'com.android.support:recyclerview-v7:25.3.0'
     compile 'com.android.support:design:25.3.0'
     compile 'joda-time:joda-time:2.9.2'
     compile 'com.android.support:multidex:1.0.1'
-    //compile 'com.github.clans:fab:1.6.4'
-    compile('com.crashlytics.sdk.android:crashlytics:2.6.7@aar') {
-        transitive = true;
-    }
+    compile 'com.android.support.constraint:constraint-layout:+'
 }
