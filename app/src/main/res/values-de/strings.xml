@@ -21,7 +21,7 @@
     <string name="accuracy_label">Genauigkeit</string>
     <string name="last_update_time_label">Zeit des letzten Standort-Updates</string>
 
-    <string name="save_spot_button_text">Standort speichern</string>
+    <string name="save_spot_button_text">Neuen Standort</string>
     <string name="got_a_ride_button_text">Mitfahrgelegenheit gefunden</string>
     <string name="arrived_button_text">Ziel erreicht</string>
     <string name="break_button_text">Pause</string>
@@ -77,7 +77,8 @@
     <string name="spot_form_time_label">Zeit</string>
     <string name="spot_form_waiting_time_label">Warte Zeit (in minuten)</string>
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
-    <string name="spot_form_more_options_label">Wann (bearbeiten)</string>
+    <string name="spot_form_more_options_label">Wann</string>
+    <string name="spot_form_more_options_edit_label">(bearbeiten)</string>
 
     <string name="mapview_master_title">Karte</string>
 

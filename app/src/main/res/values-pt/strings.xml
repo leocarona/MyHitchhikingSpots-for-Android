@@ -21,7 +21,7 @@
     <string name="accuracy_label">Precisāo</string>
     <string name="last_update_time_label">Última atualização de GPS</string>
 
-    <string name="save_spot_button_text">Salvar local</string>
+    <string name="save_spot_button_text">Novo local</string>
     <string name="got_a_ride_button_text">Peguei carona</string>
     <string name="arrived_button_text">Cheguei ao destino</string>
     <string name="break_button_text">Fazer uma pausa</string>
@@ -80,7 +80,8 @@
     <string name="spot_form_time_label">Horário</string>
     <string name="spot_form_waiting_time_label">Tempo de espera (em minutos)</string>
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
-    <string name="spot_form_more_options_label">Quando (editar)</string>
+    <string name="spot_form_more_options_label">Quando</string>
+    <string name="spot_form_more_options_edit_label">(editar)</string>
 
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo!</string>
