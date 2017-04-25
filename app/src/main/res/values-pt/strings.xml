@@ -146,6 +146,9 @@
     <string name="map_error_alert_map_not_loaded_positive_button">Usar sem mapa</string>
     <string name="map_error_alert_map_not_loaded_negative_button">Ver mapa</string>
 
-    <string name="map_loading_dialog">Carregando locais...</string>
+    <string name="map_loading_dialog">Carregando locais&#8230;</string>
 
+    <string name="spot_form_bottommenu_map_tile">Local</string>
+    <string name="spot_form_bottommenu_basic_tile">Local</string>
+    <string name="spot_form_bottommenu_evaluate_tile">Avaliação</string>
 </resources>

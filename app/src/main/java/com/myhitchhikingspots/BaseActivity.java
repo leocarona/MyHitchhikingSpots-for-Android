@@ -14,6 +14,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
 
 /**
  * Created by leoboaventura on 07/03/2016.
@@ -50,8 +51,10 @@ public class BaseActivity extends AppCompatActivity
 
                 //Set listener to the menu icon click (the icon placed on the top left side of the screen)
                 NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-                if (navigationView != null)
+                if (navigationView != null) {
+                    navigationView.setVisibility(View.VISIBLE);
                     navigationView.setNavigationItemSelectedListener(this);
+                }
             }
         }
     }

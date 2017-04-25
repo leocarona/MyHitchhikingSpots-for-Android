@@ -29,7 +29,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.MapboxAccountManager;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
@@ -38,11 +38,13 @@ import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
-import com.mapbox.mapboxsdk.location.LocationListener;
-import com.mapbox.mapboxsdk.location.LocationServices;
+import com.mapbox.mapboxsdk.location.LocationSource;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.services.android.telemetry.location.LocationEngine;
+import com.mapbox.services.android.telemetry.location.LocationEngineListener;
+import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -55,7 +57,8 @@ import java.util.List;
 public class MapViewActivity extends BaseActivity implements OnMapReadyCallback {
     private MapView mapView;
     private MapboxMap mapboxMap;
-    private LocationServices locationServices;
+    private LocationEngine locationEngine;
+    private LocationEngineListener locationEngineListener;
     private static final int PERMISSIONS_LOCATION = 0;
     private FloatingActionButton fabLocateUser, fabShowAll;
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
@@ -67,6 +70,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     // and then calling super.onCreate AFTER setContentView.
     // Please always make sure this is been done!
     protected void onCreate(Bundle savedInstanceState) {
+
+        // Mapbox access token is configured here. This needs to be called either in your application
+        // object or in the same activity which contains the mapview.
+        Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
+
         setContentView(R.layout.mapview_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
@@ -81,7 +89,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             public void onClick(View view) {
                 if (mapboxMap != null) {
                     // Check if user has granted location permission
-                    if (!locationServices.areLocationPermissionsGranted()) {
+                    if (!PermissionsManager.areLocationPermissionsGranted(MapViewActivity.this)) {
                         Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
                                 .setAction("enable", new View.OnClickListener() {
                                     @Override
@@ -92,12 +100,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                     }
                                 }).show();
                     } else {
-                        if (!mapboxMap.isMyLocationEnabled())
-                            enableLocation(true);
-                        else if (locationServices.getLastLocation() != null)
-                            moveCamera(new LatLng(locationServices.getLastLocation()));
+                        if (locationEngine.getLastLocation() != null)
+                            moveCamera(new LatLng(locationEngine.getLastLocation()));
                         else
-                            Toast.makeText(getBaseContext(), getResources().getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
+                            enableLocation(true);
+                        //Toast.makeText(getBaseContext(), getResources().getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                     }
                 }
             }
@@ -153,11 +160,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         fabSpotAction1.setVisibility(View.INVISIBLE);
         fabSpotAction2.setVisibility(View.INVISIBLE);
 
-        locationServices = LocationServices.getLocationServices(MapViewActivity.this);
-
-        // Mapbox access token is configured here. This needs to be called either in your application
-        // object or in the same activity which contains the mapview.
-        MapboxAccountManager.start(getApplicationContext(), getResources().getString(R.string.mapBoxKey));
+        // Get the location engine object for later use.
+        locationEngine = LocationSource.getLocationEngine(this);
+        locationEngine.activate();
 
         mapView = (MapView) findViewById(R.id.mapview2);
         mapView.onCreate(savedInstanceState);
@@ -185,43 +190,27 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     private void loadMarkerIcons() {
-        Context context = new ContextThemeWrapper(getBaseContext(), R.style.Theme_Base_NoActionBar);
-        IconFactory iconFactory = IconFactory.getInstance(MapViewActivity.this);
-        //DrawableCompat.setTint(iconDrawable, Color.WHITE);
-        FloatingActionButton img = new FloatingActionButton(context);
 
         try {
-            //Got a ride at this spot
-            img.setImageResource(R.drawable.ic_marker_got_a_ride_24dp);
-            Drawable d1 = img.getDrawable();
-            ic_got_a_ride_spot = iconFactory.fromDrawable(d1);
+            ic_got_a_ride_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
         }
 
         try {
-            //Took a break at this spot
-            img.setImageResource(R.drawable.ic_break_spot_icon);
-            Drawable d1 = img.getDrawable();
-            ic_took_a_break_spot = iconFactory.fromDrawable(d1);
+            ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
         }
 
         try {
-            //Is waiting at this spot
-            img.setImageResource(R.drawable.ic_marker_waiting_for_a_ride_24dp);
-            Drawable d1 = img.getDrawable();
-            ic_waiting_spot = iconFactory.fromDrawable(d1);
+            ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
         }
 
         try {
-            //Arrival spot
-            img.setImageResource(R.drawable.ic_arrival_icon);
-            Drawable d1 = img.getDrawable();
-            ic_arrival_spot = iconFactory.fromDrawable(d1);
+            ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
         }
@@ -295,7 +284,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     protected void updateUISaveButtons() {
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
-            /*if (!locationServices.areLocationPermissionsGranted() || locationServices.getLastLocation() == null
+            /*if (!locationEngine.areLocationPermissionsGranted() || locationEngine.getLastLocation() == null
                     || !mRequestingLocationUpdates) {
                 currentPage = pageType.NOT_FETCHING_LOCATION;
             } else {*/
@@ -318,9 +307,37 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
      */
     boolean wasFirstLocationReceived = false;
 
-    private void enableLocation(boolean enabled) {
+    private void enableLocation(boolean shouldMoveToFirstLocation) {
+        if (shouldMoveToFirstLocation) {
+            locationEngineListener = new LocationEngineListener() {
+                @Override
+                public void onConnected() {
+                    // No action needed here.
+                }
+
+                @Override
+                public void onLocationChanged(Location location) {
+                    if (location != null) {
+                        if (!wasFirstLocationReceived) {
+                            updateUISaveButtons();
+                            wasFirstLocationReceived = true;
+                        }
+
+                        // Move the map camera to where the user location is and then remove the
+                        // listener so the camera isn't constantly updating when the user location
+                        // changes. When the user disables and then enables the location again, this
+                        // listener is registered again and will adjust the camera once again.
+                        moveCamera(new LatLng(location));
+                        locationEngine.removeLocationEngineListener(this);
+                    }
+                }
+            };
+
+            locationEngine.addLocationEngineListener(locationEngineListener);
+        }
+
         // Enable or disable the location layer on the map
-        mapboxMap.setMyLocationEnabled(enabled);
+        mapboxMap.setMyLocationEnabled(true);
     }
 
     @Override
@@ -328,24 +345,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locationServices.addLocationListener(new LocationListener() {
-                    @Override
-                    public void onLocationChanged(Location location) {
-                        if (location != null) {
-                            if (!wasFirstLocationReceived) {
-                                updateUISaveButtons();
-                                wasFirstLocationReceived = true;
-                            }
-
-                            // Move the map camera to where the user location is and then remove the
-                            // listener so the camera isn't constantly updating when the user location
-                            // changes. When the user disables and then enables the location again, this
-                            // listener is registered again and will adjust the camera once again.
-                            moveCamera(new LatLng(location));
-                            locationServices.removeLocationListener(this);
-                        }
-                    }
-                });
                 enableLocation(true);
             }
         }
@@ -391,8 +390,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
-        if (locationServices.areLocationPermissionsGranted())
-            enableLocation(true);
+        // Customize the user location icon using the getMyLocationViewSettings object.
+        //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
+        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(Color.parseColor("#56B881"));
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
@@ -401,7 +401,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 Spot spot = null;
                 for (Spot spot2 :
                         spotList) {
-                    if (spot2.getId().toString() == myMarker.getTag()) {
+                    String id = spot2.getId().toString();
+                    if (id == myMarker.getTag()) {
                         spot = spot2;
                         break;
                     }
@@ -425,7 +426,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
                     intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
                     startActivityForResult(intent, EDIT_SPOT_REQUEST);
-                }
+                } else
+                    Crashlytics.log(Log.WARN, TAG,
+                            "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + myMarker.getTag());
+
 
                 return true;
             }
@@ -437,6 +441,24 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(MapViewActivity.this));
 
         updateUI();
+
+        showLocation(false);
+    }
+
+    protected void showLocation(boolean shouldMoveToFirstLocation) {
+        // Check if user has granted location permission
+        if (!PermissionsManager.areLocationPermissionsGranted(this)) {
+            /*Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
+                    .setAction("enable", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {*/
+            ActivityCompat.requestPermissions(MapViewActivity.this, new String[]{
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_LOCATION);
+            //            }
+            //        }).show();
+        } else
+            enableLocation(shouldMoveToFirstLocation);
     }
 
     void updateUI() {
@@ -501,6 +523,17 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         return "";
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
 
     @Override
     public void onResume() {
@@ -584,7 +617,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     protected void zoomOutToFitAllMarkers() {
         try {
             if (mapboxMap != null) {
-                Location mCurrentLocation = locationServices.getLastLocation();
+                Location mCurrentLocation = locationEngine.getLastLocation();
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
                 for (Marker marker : mapboxMap.getMarkers()) {
@@ -600,7 +633,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 else if (lst.size() > 1) {
                     builder.includes(lst);
                     LatLngBounds bounds = builder.build();
-                    mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120), 5000);
+
+                    //If there's only 2 points in the list and the currentlocation is known, that means only one of them is a saved spot
+                    if (mCurrentLocation != null && lst.size() == 2)
+                        mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150), 5000);
+                    else
+                        mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120), 5000);
                 }
             }
 
@@ -695,7 +733,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                                 int waitingTime = 0;
                                 if (spot.getWaitingTime() != null)
-                                    spot.getWaitingTime();
+                                    waitingTime = spot.getWaitingTime();
                                 snippet = String.format(getResources().getString(R.string.map_infoview_spot_type_regular), waitingTime);
                                 markerViewOptions.icon(ic_got_a_ride_spot);
                             }
@@ -792,7 +830,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         if (!mIsWaitingForARide) {
             spot = new Spot();
             spot.setIsDestination(isDestination);
-            Location mCurrentLocation = locationServices.getLastLocation();
+            Location mCurrentLocation = locationEngine.getLastLocation();
             if (mCurrentLocation != null) {
                 spot.setLatitude(mCurrentLocation.getLatitude());
                 spot.setLongitude(mCurrentLocation.getLongitude());
@@ -807,7 +845,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
         intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        startActivityForResult(intent, SAVE_SPOT_REQUEST);
+        startActivity(intent);
     }
 
     public void gotARideButtonHandler() {
@@ -830,7 +868,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         if (mIsWaitingForARide) {
             Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
             intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
-            startActivityForResult(intent, EDIT_SPOT_REQUEST);
+            startActivity(intent);
         }
     }
 

@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.MapboxAccountManager;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
@@ -39,9 +39,10 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Mapbox.getInstance(getContext(), getResources().getString(R.string.mapBoxKey));
+
         View rootView = inflater.inflate(R.layout.my_map_fragment_layout, container, false);
 
-        MapboxAccountManager.start(getContext(), getResources().getString(R.string.mapBoxKey));
         mapView = (MapView) rootView.findViewById(R.id.mapview);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -119,6 +120,18 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
         return "";
     }
 
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
 
     @Override
     public void onResume() {

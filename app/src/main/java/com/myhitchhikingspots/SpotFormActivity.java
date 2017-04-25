@@ -3,28 +3,34 @@ package com.myhitchhikingspots;
 import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.PointF;
-import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.internal.BottomNavigationItemView;
+import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.view.ContextThemeWrapper;
+import android.support.v7.widget.AppCompatImageButton;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.MotionEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -36,22 +42,23 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
 
 import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.MapboxAccountManager;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.location.LocationListener;
+import com.mapbox.mapboxsdk.location.LocationSource;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.services.android.telemetry.location.LocationEngine;
+import com.mapbox.services.android.telemetry.location.LocationEngineListener;
+import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -59,6 +66,7 @@ import com.myhitchhikingspots.model.SpotDao;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -66,19 +74,21 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.ResultReceiver;
 
-public class SpotFormActivity extends BaseActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback {
+public class SpotFormActivity extends BaseActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback, View.OnClickListener {
 
 
     private Button mSaveButton, mDeleteButton;
     private EditText note_edittext, waiting_time_edittext;
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
-    private Spinner attempt_results_spinner;
     private Spot mCurrentSpot;
     private CheckBox is_destination_check_box;
-    private TextView form_title, hitchabilityLabel, location_changed;
-    private LinearLayout spot_form_evaluate, spot_form_basic, spot_form_more_options, hitchability_options, attempt_result_panel;
+    private TextView hitchabilityLabel, location_changed, selected_date;
+    private LinearLayout spot_form_evaluate, spot_form_location, spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
+    private BottomNavigationView menu_bottom;
+
+    private BottomNavigationItemView spot_menuitem, evaluate_menuitem;
 
     protected static final String TAG = "spot-form-activity";
     protected final static String CURRENT_SPOT_KEY = "current-spot-key";
@@ -86,6 +96,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     //----BEGIN: Part related to reverse geocoding
     protected static final String ADDRESS_REQUESTED_KEY = "address-request-pending";
     protected static final String LOCATION_ADDRESS_KEY = "location-address";
+    protected static final String PAGE_TYPE_KEY = "page-type";
+    protected static final String SELECTED_ATTEMPT_RESULT_KEY = "selected-attempt-result";
+
 
     /**
      * Tracks whether the user has requested an address. Becomes true when the user requests an
@@ -125,16 +138,26 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     private MapView mapView;
     protected MapboxMap mapboxMap;
-    private com.mapbox.mapboxsdk.location.LocationServices locationServices;
+    private LocationEngine locationEngine;
+    private LocationEngineListener locationEngineListener;
     private static final int PERMISSIONS_LOCATION = 0;
     private ImageView dropPinView;
-    private android.support.v4.widget.NestedScrollView sv;
+    //private android.support.v4.widget.NestedScrollView sv;
 
-    private CoordinatorLayout coordinatorLayout;
+    private CoordinatorLayout coordinatorLayout, spot_form_basic;
     private android.support.design.widget.FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
+
+    private NestedScrollView scrollView;
+    BottomSheetBehavior mBottomSheetBehavior;
+    public AppCompatImageButton mGotARideButton, mTookABreakButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // Mapbox access token is configured here. This needs to be called either in your application
+        // object or in the same activity which contains the mapview.
+        Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
+
         setContentView(R.layout.spot_form_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
@@ -146,18 +169,31 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         date_datepicker = (DatePicker) findViewById(R.id.spot_form_date_datepicker);
         time_timepicker = (TimePicker) findViewById(R.id.spot_form_time_timepicker);
         waiting_time_edittext = (EditText) findViewById(R.id.spot_form_waiting_time_edittext);
-        attempt_results_spinner = (Spinner) findViewById(R.id.spot_form_attempt_result_spinner);
-        spot_form_basic = (LinearLayout) findViewById(R.id.save_spot_form_basic);
-        spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
         spot_form_more_options = (LinearLayout) findViewById(R.id.save_spot_form_more_options);
         is_destination_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_destination_check_box);
-        attempt_result_panel = (LinearLayout) findViewById(R.id.save_spot_form_attempt_result_panel);
-        form_title = (TextView) findViewById(R.id.save_spot_form_title);
         hitchability_ratingbar = (RatingBar) findViewById(R.id.spot_form_hitchability_ratingbar);
         hitchability_options = (LinearLayout) findViewById(R.id.save_spot_form_hitchability_options);
         hitchabilityLabel = (TextView) findViewById(R.id.spot_form_hitchability_selectedvalue);
         location_changed = (TextView) findViewById(R.id.location_changed_text_view);
+        selected_date = (TextView) findViewById(R.id.spot_form_selected_date);
 
+        spot_form_location = (LinearLayout) findViewById(R.id.save_spot_form_location);
+        spot_form_basic = (CoordinatorLayout) findViewById(R.id.save_spot_form_basic);
+        spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
+
+        menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
+
+        spot_menuitem = (BottomNavigationItemView) findViewById(R.id.action_basic);
+        evaluate_menuitem = (BottomNavigationItemView) findViewById(R.id.action_evaluate);
+
+        scrollView = (NestedScrollView) findViewById(R.id.spot_form_scrollview);
+
+        mBottomSheetBehavior = BottomSheetBehavior.from(scrollView);
+
+        mGotARideButton = (AppCompatImageButton) findViewById(R.id.got_a_ride_button);
+        mTookABreakButton = (AppCompatImageButton) findViewById(R.id.break_button);
+        mGotARideButton.setOnClickListener(this);
+        mTookABreakButton.setOnClickListener(this);
 
         //----BEGIN: Part related to reverse geocoding
         mResultReceiver = new AddressResultReceiver(new Handler());
@@ -180,6 +216,41 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         hitchabilityLabel.setText("");
         mLocationAddressTextView.setText("");
 
+        // Get the location engine object for later use.
+        locationEngine = LocationSource.getLocationEngine(this);
+        locationEngine.activate();
+
+        mapView = (MapView) findViewById(R.id.mapview2);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
+        setupMap();
+
+
+        BottomNavigationView bottomNavigationView = (BottomNavigationView)
+                findViewById(R.id.bottom_navigation);
+
+        bottomNavigationView.setOnNavigationItemSelectedListener(
+                new BottomNavigationView.OnNavigationItemSelectedListener() {
+                    @Override
+                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+
+                        switch (item.getItemId()) {
+                            case R.id.action_basic:
+                                spot_form_basic.setVisibility(View.VISIBLE);
+                                spot_form_evaluate.setVisibility(View.GONE);
+
+                                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                                break;
+                            case R.id.action_evaluate:
+                                spot_form_basic.setVisibility(View.GONE);
+                                spot_form_evaluate.setVisibility(View.VISIBLE);
+
+                                break;
+                        }
+                        return true;
+                    }
+                });
+
         if (savedInstanceState != null)
             updateValuesFromBundle(savedInstanceState);
         else
@@ -187,51 +258,41 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         // If user is currently waiting for a ride at the current spot, show him the Evaluate form. If he is not,
         // that means he's saving a new spot so we need to show him the Basic form instead.
-        if (mCurrentSpot == null)
-            mFormType = FormType.Unknown;
-        else {
-            if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
-                mFormType = FormType.Evaluate;
-            else if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination())
-                mFormType = FormType.Destination;
-            else {
-                // If Id greater than zero, this means the user is editing a spot that was already saved in the database. So show full form.
-                if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0)
-                    mFormType = FormType.All;
-                else
-                    mFormType = FormType.Basic;
-            }
+        if (mCurrentSpot == null) {
+            mCurrentSpot = new Spot();
+            mCurrentSpot.setStartDateTime(new Date());
+            //mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
         }
 
-        if (mFormType != FormType.Evaluate) {
-            //----BEGIN: Map related stuff ----
-            locationServices = com.mapbox.mapboxsdk.location.LocationServices.getLocationServices(SpotFormActivity.this);
+        if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
+            mFormType = FormType.Evaluate;
+        else if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination())
+            mFormType = FormType.Destination;
+        else {
+            // If Id greater than zero, this means the user is editing a spot that was already saved in the database. So show full form.
+            if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0)
+                mFormType = FormType.All;
+            else
+                mFormType = FormType.Basic;
+        }
 
-            // Mapbox access token is configured here. This needs to be called either in your application
-            // object or in the same activity which contains the mapview.
-            MapboxAccountManager.start(getApplicationContext(), getResources().getString(R.string.mapBoxKey));
 
-            sv = (android.support.v4.widget.NestedScrollView) findViewById(R.id.spot_form_scrollview);
-            mapView = (MapView) findViewById(R.id.mapview2);
-            mapView.onCreate(savedInstanceState);
-            mapView.getMapAsync(this);
-            mapView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_MOVE:
-                            sv.requestDisallowInterceptTouchEvent(true);
-                            break;
-                        case MotionEvent.ACTION_UP:
-                        case MotionEvent.ACTION_CANCEL:
-                            sv.requestDisallowInterceptTouchEvent(false);
-                            break;
-                    }
-                    return mapView.onTouchEvent(event);
-                }
-            });
+        if (mFormType == FormType.Evaluate)
+            menu_bottom.setSelectedItemId(R.id.action_evaluate);
+        else
+            menu_bottom.setSelectedItemId(R.id.action_basic);
 
-            mapIsDisplayed = true;
+        updateUI();
+
+        mShouldShowLeftMenu = true;
+        super.onCreate(savedInstanceState);
+
+    }
+
+    protected void setupMap() {
+        //----BEGIN: Map related stuff ----
+        if (!mapWasSetUp) {
+            mapWasSetUp = true;
 
             coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
@@ -241,7 +302,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 public void onClick(View view) {
                     if (mapboxMap != null) {
                         // Check if user has granted location permission
-                        if (!locationServices.areLocationPermissionsGranted()) {
+                        if (!PermissionsManager.areLocationPermissionsGranted(SpotFormActivity.this)) {
                             Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
                                     .setAction("enable", new View.OnClickListener() {
                                         @Override
@@ -252,12 +313,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                         }
                                     }).show();
                         } else {
-                            if (!mapboxMap.isMyLocationEnabled())
-                                enableLocation(true);
-                            else if (locationServices.getLastLocation() != null)
-                                moveCamera(new LatLng(locationServices.getLastLocation()));
+                            if (locationEngine.getLastLocation() != null)
+                                moveCamera(new LatLng(locationEngine.getLastLocation()));
                             else
-                                Toast.makeText(getBaseContext(), getResources().getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
+                                enableLocation(true);
+                            //Toast.makeText(getBaseContext(), getResources().getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                         }
                     }
                 }
@@ -282,12 +342,87 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     }
                 }
             });
-            //----END: Map related stuff ----
+        }
+        //----END: Map related stuff ----
+    }
+
+    private static String dateTimeToString(Date dt) {
+        SimpleDateFormat res;
+
+        String dateFormat = "dd/MMM', 'HH:mm";
+        /*if (Locale.getDefault() == Locale.US)
+            dateFormat = "MMM/dd', 'HH:mm";*/
+
+        try {
+            res = new SimpleDateFormat(dateFormat);
+            return res.format(dt);
+        } catch (Exception ex) {
+            Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
+            Crashlytics.logException(ex);
         }
 
-        updateUI();
+        return "";
+    }
 
-        super.onCreate(savedInstanceState);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.spot_form_menu, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_save) {
+            saveButtonHandler(null);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    int attemptResult = Constants.ATTEMPT_RESULT_UNKNOWN;
+
+    @Override
+    public void onClick(View v) {
+        //Automatically calculate the waiting time if the spot is still on Evaluate phase (if calculating when editing a spot already evaluated it could mess the waiting time without the user expecting/noticing)
+        if (mFormType == FormType.Evaluate)
+            calculateWaitingTime(null);
+
+        switch (v.getId()) {
+            case R.id.got_a_ride_button:
+                attemptResult = Constants.ATTEMPT_RESULT_GOT_A_RIDE;
+                break;
+            case R.id.break_button:
+                attemptResult = Constants.ATTEMPT_RESULT_TOOK_A_BREAK;
+                break;
+            default:
+                attemptResult = Constants.ATTEMPT_RESULT_UNKNOWN;
+                break;
+        }
+
+        updateAttemptResultButtonsState();
+    }
+
+    void updateAttemptResultButtonsState() {
+        mGotARideButton.setAlpha((float) 0.5);
+        mTookABreakButton.setAlpha((float) 0.5);
+
+        switch (attemptResult) {
+            case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
+                mGotARideButton.setAlpha((float) 1);
+                break;
+            case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
+                mTookABreakButton.setAlpha((float) 1);
+                break;
+        }
     }
 
     @Override
@@ -295,48 +430,40 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
+        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(Color.parseColor("#56B881"));
+
         if (mCurrentSpot != null && mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
             //Set start position for map camera: set it to the current waiting spot
             moveCamera(new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude()));
-            mLocationAddressTextView.setText(getString(mCurrentSpot));
+
+            showLocation(false);
+
         } else {
             //Set start position for map camera: set it to the last spot saved
-            if (mFormType == FormType.Basic || mFormType == FormType.Destination) {
 
-                Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedSpot();
-                if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
-                        && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
-                    LatLng pos = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedSpot();
+            if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
+                    && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
+                LatLng pos = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
 
-                    //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
-                    if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
-                        moveCamera(pos, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
-                    else
-                        moveCamera(pos, Constants.ZOOM_TO_SEE_FARTHER_DISTANCE);
-                }
-            }
+                //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
+                if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
+                    moveCamera(pos, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
+                else
+                    moveCamera(pos, Constants.ZOOM_TO_SEE_FARTHER_DISTANCE);
+            } else if (locationEngine.getLastLocation() != null)
+                moveCamera(new LatLng(locationEngine.getLastLocation()));
 
-            locationServices.addLocationListener(new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    if (location != null) {
-                        // Move the map camera to where the user location is and then remove the
-                        // listener so the camera isn't constantly updating when the user location
-                        // changes. When the user disables and then enables the location again, this
-                        // listener is registered again and will adjust the camera once again.
-                        moveCamera(new LatLng(location));
-                        locationServices.removeLocationListener(this);
-                    }
-                }
-            });
+            showLocation(true);
         }
 
-        showLocation();
 
         addPinToCenter();
 
         // Camera change listener
-        mapboxMap.setOnCameraChangeListener(new MapboxMap.OnCameraChangeListener() {
+        mapboxMap.setOnCameraChangeListener(new MapboxMap.OnCameraChangeListener()
+
+                                            {
                                                 @Override
                                                 public void onCameraChange(@NonNull CameraPosition point) {
 
@@ -371,9 +498,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      */
     private void moveCamera(LatLng latLng, long zoom) {
         if (latLng != null) {
-            positionAt = latLng;
-            isCameraPositionChangingByCodeRequest = true;
-            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+            if (mapboxMap == null)
+                Crashlytics.log(Log.INFO, TAG, "For some reason map was not loaded, therefore mapboxMap.moveCamera() was skipped to avoid crash. Shouldn't the map be loaded at this point?");
+            else {
+                positionAt = latLng;
+                isCameraPositionChangingByCodeRequest = true;
+
+                mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+            }
         }
     }
 
@@ -387,7 +519,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     private LatLng getPinPosition() {
-        if (!mapIsDisplayed)
+        if (!mapWasSetUp)
             return null;
 
         //Copied from: https://github.com/mapbox/mapbox-gl-native/blob/e2da260a8ee0dd0b213ec0e30db2c6e3188c7c9b/platform/android/MapboxGLAndroidSDKTestApp/src/main/java/com/mapbox/mapboxsdk/testapp/GeocoderActivity.java
@@ -397,7 +529,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     private PointF getCenterPoint() {
-        if (!mapIsDisplayed)
+        if (!mapWasSetUp)
             return null;
 
         final int width = mapView.getMeasuredWidth();
@@ -407,59 +539,85 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
-        if (mapIsDisplayed)
-            mapView.onResume();
 
+        if (mapWasSetUp)
+            mapView.onResume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mapIsDisplayed)
+        if (mapWasSetUp)
             mapView.onPause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mapIsDisplayed)
+        if (mapWasSetUp) {
             mapView.onDestroy();
+
+            // Ensure no memory leak occurs if we register the location listener but the call hasn't
+            // been made yet.
+            if (locationEngineListener != null)
+                locationEngine.removeLocationEngineListener(locationEngineListener);
+        }
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        if (mapIsDisplayed)
+        if (mapWasSetUp)
             mapView.onLowMemory();
     }
 
-    private boolean mapIsDisplayed = false;
+    private boolean mapWasSetUp = false;
 
     @Override
     public void onBackPressed() {
-        new AlertDialog.Builder(this)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
-                .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
-                .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
-                        finishSuccessful(RESULT_CANCELED);
-                    }
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START))
+            drawer.closeDrawer(GravityCompat.START);
+        else {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
+                    .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
+                    .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
+                            //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+                            Intent intent = new Intent();
+                            setResult(RESULT_CANCELED, intent);
+                            finish();
+                        }
 
-                })
-                .setNegativeButton(getResources().getString(R.string.general_no_option), null)
-                .show();
-
+                    })
+                    .setNegativeButton(getResources().getString(R.string.general_no_option), null)
+                    .show();
+        }
     }
 
-    protected void showLocation() {
+
+    protected void showLocation(boolean shouldMoveToFirstLocation) {
         // Check if user has granted location permission
-        if (!locationServices.areLocationPermissionsGranted()) {
+        if (!PermissionsManager.areLocationPermissionsGranted(this)) {
             /*Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
                     .setAction("enable", new View.OnClickListener() {
                         @Override
@@ -470,7 +628,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             //            }
             //        }).show();
         } else
-            enableLocation(true);
+            enableLocation(shouldMoveToFirstLocation);
     }
 
     /**
@@ -480,13 +638,42 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      * boolean wasFirstLocationReceived = false;
      */
 
-    private void enableLocation(boolean enabled) {
+    private void enableLocation(boolean shouldMoveToFirstLocation) {
+        if (shouldMoveToFirstLocation) {
+            locationEngineListener = new LocationEngineListener() {
+                @Override
+                public void onConnected() {
+                    // No action needed here.
+                }
+
+                @Override
+                public void onLocationChanged(Location location) {
+                    // Move the map camera to where the user location is and then remove the
+                    // listener so the camera isn't constantly updating when the user location
+                    // changes. When the user disables and then enables the location again, this
+                    // listener is registered again and will adjust the camera once again.
+                    if (location != null) {
+                        //Fetch address for the first location found
+                        if ((mCurrentSpot.getId() == null || mCurrentSpot.getId() == 0)
+                                && mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved())
+                            fetchAddress(new MyLocation(location.getLatitude(), location.getLongitude()));
+
+
+                        moveCamera(new LatLng(location));
+                        locationEngine.removeLocationEngineListener(this);
+                    }
+                }
+            };
+
+            locationEngine.addLocationEngineListener(locationEngineListener);
+        }
+
         // Enable or disable the location layer on the map
-        mapboxMap.setMyLocationEnabled(enabled);
+        mapboxMap.setMyLocationEnabled(true);
     }
 
     private void addPinToCenter() {
-        if (!mapIsDisplayed)
+        if (!mapWasSetUp)
             return;
 
         try {
@@ -542,6 +729,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 displayAddressOutput();
             }
             //----END: Part related to reverse geocoding
+
+            if (savedInstanceState.keySet().contains(PAGE_TYPE_KEY)) {
+                mFormType = savedInstanceState.getParcelable(PAGE_TYPE_KEY);
+                //updateUI();
+            }
+
+            if (savedInstanceState.keySet().contains(SELECTED_ATTEMPT_RESULT_KEY)) {
+                attemptResult = savedInstanceState.getParcelable(SELECTED_ATTEMPT_RESULT_KEY);
+                updateAttemptResultButtonsState();
+            }
         }
     }
 
@@ -585,13 +782,49 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     private FormType mFormType = FormType.Unknown;
+    private boolean updateUIFirstCalled = false;
 
     private void updateUI() {
         try {
             // If user is currently waiting for a ride at the current spot, who him the Evaluate form. If he is not,
             // that means he's saving a new spot so we need to show him the Basic form instead.
-            spot_form_basic.setVisibility(View.GONE);
-            spot_form_evaluate.setVisibility(View.GONE);
+
+            attemptResult = Constants.ATTEMPT_RESULT_UNKNOWN;
+            if (mCurrentSpot.getAttemptResult() != null)
+                attemptResult = mCurrentSpot.getAttemptResult();
+            updateAttemptResultButtonsState();
+
+            String title = "";
+            if (mFormType == FormType.Basic)
+                title = getResources().getString(R.string.save_spot_button_text);
+            else if (mFormType == FormType.Destination)
+                title = getResources().getString(R.string.arrived_button_text);
+            else {
+                switch (attemptResult) {
+                    case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
+                        title = getResources().getString(R.string.got_a_ride_button_text);
+                        break;
+                    case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
+                        title = getResources().getString(R.string.break_button_text);
+                        break;
+                    default:
+                        //Should actually never fall in this case!
+                        title = getResources().getString(R.string.spot_form_title_evaluate);
+                        break;
+                }
+            }
+
+            if (mCurrentSpot != null && mCurrentSpot.getGpsResolved() != null && mCurrentSpot.getGpsResolved())
+                mLocationAddressTextView.setText(getString(mCurrentSpot));
+            else
+                mLocationAddressTextView.setText(getResources().getString(R.string.spot_form_location_selected_label));
+
+            //Automatically calculate the waiting time if the spot is still on Evaluate phase (if calculating when editing a spot already evaluated it could mess the waiting time without the user expecting/noticing)
+            if (getCallingActivity() != null && mFormType == FormType.Evaluate)
+                calculateWaitingTime(null);
+
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            toolbar.setTitle(title.toUpperCase());
 
             if (mFormType == FormType.Unknown) {
                 Crashlytics.logException(new Exception("mFormType is Unkonwn"));
@@ -600,115 +833,67 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
 
             //Show delete button when the spot is been edited and it's not of type Evaluate
-            if ((mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0) && mFormType != FormType.Evaluate) {
+            if ((mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0) && mFormType != FormType.Evaluate)
                 mDeleteButton.setVisibility(View.VISIBLE);
-                is_destination_check_box.setVisibility(View.VISIBLE);
-            } else {
-                mDeleteButton.setVisibility(View.GONE);
-                is_destination_check_box.setVisibility(View.GONE);
-            }
-
-            if (mFormType == FormType.Evaluate || mFormType == FormType.All) {
-                spot_form_evaluate.setVisibility(View.VISIBLE);
-
-                Integer h = 0;
-                if (mCurrentSpot.getHitchability() != null)
-                    h = mCurrentSpot.getHitchability();
-                hitchability_ratingbar.setRating(findTheOpposit(h));
-            } else if (mFormType == FormType.Destination)
-                spot_form_evaluate.setVisibility(View.GONE);
-
-
-            if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
-                spot_form_basic.setVisibility(View.VISIBLE);
-
-
-                if ((mFormType == FormType.Basic) &&
-                        (mCurrentSpot.getGpsResolved() == null || !mCurrentSpot.getGpsResolved())) // || mFormType == FormType.Destination
-                    fetchAddressButtonHandler(null);
-            }
-
-            if (mFormType == FormType.All)
-                attempt_result_panel.setVisibility(View.VISIBLE);
             else
-                attempt_result_panel.setVisibility(View.GONE);
+                mDeleteButton.setVisibility(View.GONE);
 
-            Date spotStartDT = new Date();
-            if (mCurrentSpot.getStartDateTime() != null)
-                spotStartDT = mCurrentSpot.getStartDateTime();
-            SetDateTime(date_datepicker, time_timepicker, spotStartDT);
+            if (mFormType == FormType.Basic)
+                evaluate_menuitem.setEnabled(false);
+            else
+                evaluate_menuitem.setEnabled(true);
 
-            //If mFormType == FormType.Destination || mFormType == FormType.All this means the spot is a destination or it was already evaluated and now it's being edited.
-            if (mFormType == FormType.Destination || mFormType == FormType.All) {
-                if (mCurrentSpot.getNote() != null)
-                    note_edittext.setText(mCurrentSpot.getNote());
-
-                if (mFormType == FormType.All && mCurrentSpot.getWaitingTime() != null) {
-                    String val = mCurrentSpot.getWaitingTime().toString();
-                    waiting_time_edittext.setText(val);
-                }
-
-                if (mFormType == FormType.Destination) {
-                    is_destination_check_box.setChecked(true);
-                    hitchability_options.setVisibility(View.GONE);
-                } else {
-                    is_destination_check_box.setChecked(false);
-                    hitchability_options.setVisibility(View.VISIBLE);
-                }
-
-                is_destination_check_box.setEnabled(false);
-
-
-                if (mFormType == FormType.All) {
-                    if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() >= 0 &&
-                            mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount())
-                        attempt_results_spinner.setSelection(mCurrentSpot.getAttemptResult());
-
-                    form_title.setText(getResources().getString(R.string.spot_form_title_edit));
-                } else {
-                    form_title.setText(getResources().getString(R.string.arrived_button_text));
-                }
-            } else if (mFormType == FormType.Evaluate) {
-                DateTime date = new DateTime(mCurrentSpot.getStartDateTime());
-                Integer minutes = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
-                waiting_time_edittext.setText(minutes.toString());
-
-                mFetchAddressButton.setVisibility(View.GONE);
-
-
-                if (mCurrentSpot.getAttemptResult() != null && mCurrentSpot.getAttemptResult() != Constants.ATTEMPT_RESULT_UNKNOWN
-                        && mCurrentSpot.getAttemptResult() < attempt_results_spinner.getCount()) {
-                    attempt_results_spinner.setSelection(mCurrentSpot.getAttemptResult());
-
-                    switch (mCurrentSpot.getAttemptResult()) {
-                        case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
-                            form_title.setText(getResources().getString(R.string.got_a_ride_button_text));
-                            attempt_result_panel.setVisibility(View.GONE);
-                            break;
-                        case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
-                            form_title.setText(getResources().getString(R.string.break_button_text));
-                            attempt_result_panel.setVisibility(View.GONE);
-                            break;
-                        default:
-                            //Should actually never fall in this case!
-                            form_title.setText(getResources().getString(R.string.spot_form_title_evaluate));
-                            attempt_result_panel.setVisibility(View.VISIBLE);
-                            break;
-                    }
-                } else {
-                    form_title.setText(getResources().getString(R.string.spot_form_title_evaluate));
-                    attempt_result_panel.setVisibility(View.VISIBLE);
-                }
-            } else if (mFormType == FormType.Basic) {
-                form_title.setText(getResources().getString(R.string.save_spot_button_text));
+            //To prevent the values and listeners of datepicker and timepicker been set more than once, call SetDateTime only when !updateUIFirstCalled
+            if (!updateUIFirstCalled) {
+                Date spotStartDT = new Date();
+                if (mCurrentSpot.getStartDateTime() != null)
+                    spotStartDT = mCurrentSpot.getStartDateTime();
+                SetDateTime(date_datepicker, time_timepicker, spotStartDT);
             }
+
+            if (mCurrentSpot.getWaitingTime() != null) {
+                String val = mCurrentSpot.getWaitingTime().toString();
+                waiting_time_edittext.setText(val);
+            }
+
+            if (mCurrentSpot.getNote() != null)
+                note_edittext.setText(mCurrentSpot.getNote());
+
+
+            if (mFormType == FormType.Destination)
+                is_destination_check_box.setChecked(true);
+            else
+                is_destination_check_box.setChecked(false);
+
+            int h = 0;
+            if (mCurrentSpot.getHitchability() != null) {
+                //getHitchability() is always the position of the selected star on the ratingbar.
+                if (mCurrentSpot.getHitchability() >= hitchability_ratingbar.getNumStars() || mCurrentSpot.getHitchability() < 0) {
+                    h = 0;
+                    Crashlytics.log(Log.WARN, TAG, "getHitchability() of a Spot was (" + mCurrentSpot.getHitchability() + ") but the max number of stars of hitchability_ratingbar is (" + hitchability_ratingbar.getNumStars() + "). Nothing was selected, but this is a very unexpected bug that should never happens.");
+                } else
+                    h = mCurrentSpot.getHitchability();
+            }
+            hitchability_ratingbar.setRating(findTheOpposit(h));
 
         } catch (Exception ex) {
+            //setTitle(getResources().getString(R.string.spot_form_bottommenu_map_tile));
             Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message), ex.getMessage()));
         }
+
+        updateUIFirstCalled = true;
     }
 
+    boolean waitingTimeCalculated = false;
+
+    public void calculateWaitingTime(View view) {
+        DateTime date = new DateTime(mCurrentSpot.getStartDateTime());
+        Integer minutes = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
+        waiting_time_edittext.setText(minutes.toString());
+        waitingTimeCalculated = true;
+        Toast.makeText(this, getResources().getString(R.string.spot_form_waiting_time_label) + ": " + minutes, Toast.LENGTH_LONG).show();
+    }
 
     private static Integer findTheOpposit(Integer rating) {
         //NOTE: For sure there should be a math formula to find this result, I just didn't feel like using
@@ -753,45 +938,65 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void saveButtonHandler(View view) {
+        if (mFormType != FormType.Basic && !is_destination_check_box.isChecked() &&
+                !waitingTimeCalculated && mCurrentSpot.getWaitingTime() == null) {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle("Waiting time not calculated") //getResources().getString(R.string.confirm_back_button_click_dialog_title)
+                    .setMessage("Want to calculate it before saving?")
+                    .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            calculateWaitingTime(null);
+                            saveSpot();
+                        }
+
+                    })
+                    .setNegativeButton(getResources().getString(R.string.general_no_option), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            saveSpot();
+                        }
+
+                    })
+                    .show();
+        } else
+            saveSpot();
+    }
+
+    void saveSpot() {
         try {
-            if (mFormType == FormType.Basic || mFormType == FormType.Destination || mFormType == FormType.All) {
-                if (locationManuallyChanged) {
-                    if (mapboxMap.getCameraPosition() == null || mapboxMap.getCameraPosition().target == null) {
-                        Crashlytics.log(Log.INFO, TAG, "Location was manually changed when map was unloaded");
-                        showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_map_not_loaded));
-                        return;
-                    } else {
-                        LatLng selectedLocation = mapboxMap.getCameraPosition().target;
+            if (!mapWasSetUp || mapboxMap == null ||
+                    mapboxMap.getCameraPosition() == null || mapboxMap.getCameraPosition().target == null) {
+                Crashlytics.log(Log.INFO, TAG, "For some reason map was not loaded, so we couldn't get the chosen location");
+                showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_map_not_loaded));
+                return;
+            } else {
+                LatLng selectedLocation = mapboxMap.getCameraPosition().target;
 
-                        mCurrentSpot.setLatitude(selectedLocation.getLatitude());
-                        mCurrentSpot.setLongitude(selectedLocation.getLongitude());
-                    }
-                }
-
-                mCurrentSpot.setNote(note_edittext.getText().toString());
-
-                if (is_destination_check_box.isChecked()) {
-                    mCurrentSpot.setIsDestination(true);
-                    mCurrentSpot.setHitchability(0);
-                    mCurrentSpot.setIsWaitingForARide(false);
-                } else {
-                    mCurrentSpot.setIsDestination(false);
-                    mCurrentSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
-                    if (mFormType == FormType.Basic)
-                        mCurrentSpot.setIsWaitingForARide(true);
-                    else if (mFormType == FormType.Destination)
-                        mCurrentSpot.setIsWaitingForARide(false);
-                }
+                mCurrentSpot.setLatitude(selectedLocation.getLatitude());
+                mCurrentSpot.setLongitude(selectedLocation.getLongitude());
             }
-            if (mFormType == FormType.Evaluate || mFormType == FormType.All) {
+
+            mCurrentSpot.setNote(note_edittext.getText().toString());
+
+            if (is_destination_check_box.isChecked()) {
+                mCurrentSpot.setIsDestination(true);
+                mCurrentSpot.setHitchability(0);
+                mCurrentSpot.setIsWaitingForARide(false);
+                mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_UNKNOWN);
+            } else {
+                mCurrentSpot.setIsDestination(false);
+                mCurrentSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
+                if (mFormType == FormType.Basic)
+                    mCurrentSpot.setIsWaitingForARide(true);
+                else
+                    mCurrentSpot.setIsWaitingForARide(false);
+
                 String vals = waiting_time_edittext.getText().toString();
                 if (!vals.isEmpty())
                     mCurrentSpot.setWaitingTime(Integer.parseInt(vals));
-                mCurrentSpot.setAttemptResult(attempt_results_spinner.getSelectedItemPosition());
-                mCurrentSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
-
-                if (mFormType == FormType.Evaluate)
-                    mCurrentSpot.setIsWaitingForARide(false);
+                mCurrentSpot.setAttemptResult(attemptResult);
             }
 
             DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
@@ -821,13 +1026,13 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
-
                         int result = RESULT_OBJECT_ADDED;
                         if (mFormType == FormType.Evaluate || mFormType == FormType.All)
                             result = RESULT_OBJECT_EDITED;
 
-                        finishSuccessful(result);
+                        finishSaving(result);
+
+
                     }
                 });
             }
@@ -855,7 +1060,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                     @Override
                                     public void run() {
                                         Toast.makeText(getApplicationContext(), R.string.spot_deleted_successfuly, Toast.LENGTH_LONG).show();
-                                        finishSuccessful(RESULT_OBJECT_DELETED);
+                                        finish();
+                                        startActivity(new Intent(getBaseContext(), MapViewActivity.class));
                                     }
                                 });
                             }
@@ -867,22 +1073,59 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 .show();
     }
 
-    private void finishSuccessful(int result) {
-        Intent intent = new Intent();
+    private void finishSaving(int result) {
+        if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination()) {
+            finish();
+            startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+        } else {
+            boolean shouldShowSnackbar = true;
 
-        //If action was canceled means that nothing changed in the object and therefore we don't need to use processing time serializing the object here
-        if (result != RESULT_CANCELED) {
-            Bundle conData = new Bundle();
-            conData.putString(Constants.SPOT_BUNDLE_EXTRA_ID_KEY, mCurrentSpot.getId().toString());
-            conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentSpot);
+            //If SpotFormActivity was called by StartActivityForResult then getCallingActivity won't be null and we should call finish() to return to the calling activity
+            if (getCallingActivity() != null) {
+                Intent intent = new Intent();
 
-            intent.putExtras(conData);
+                //If action was canceled means that nothing changed in the object and therefore we don't need to use processing time serializing the object here
+                if (result != RESULT_CANCELED) {
+                    Bundle conData = new Bundle();
+                    conData.putString(Constants.SPOT_BUNDLE_EXTRA_ID_KEY, mCurrentSpot.getId().toString());
+                    conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentSpot);
+
+                    intent.putExtras(conData);
+                }
+
+                //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+                setResult(result, intent);
+                finish();
+
+                if (getCallingActivity().getClassName() != null
+                        && getCallingActivity().getClassName().equals(MapViewActivity.class.getName()))
+                    shouldShowSnackbar = false;
+            } else {
+                Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+
+                if (mFormType == FormType.Basic)
+                    intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentSpot);
+
+                finish();
+                startActivity(intent);
+            }
+
+            if (shouldShowSnackbar) {
+                final SnackbarWrapper snackbarWrapper = SnackbarWrapper.make(getApplicationContext(),
+                        getResources().getString(R.string.spot_saved_successfuly), Snackbar.LENGTH_LONG);
+
+                snackbarWrapper.setAction(getString(R.string.map_error_alert_map_not_loaded_negative_button),
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+
+                            }
+                        });
+
+                snackbarWrapper.show();
+            }
         }
-
-        //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-        setResult(result, intent);
-
-        finish();
     }
 
     public void moreOptionsButtonHandler(View view) {
@@ -894,29 +1137,50 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void isDestinationHandleChecked(View view) {
-        if (is_destination_check_box.isChecked()) {
-            hitchability_options.setVisibility(View.GONE);
-            spot_form_evaluate.setVisibility(View.GONE);
-        } else {
-            hitchability_options.setVisibility(View.VISIBLE);
-
-            if (mFormType == FormType.Destination || mFormType == FormType.All)
-                spot_form_evaluate.setVisibility(View.VISIBLE);
-        }
+        if (is_destination_check_box.isChecked())
+            evaluate_menuitem.setEnabled(false);
+        else if (mFormType != FormType.Basic)
+            evaluate_menuitem.setEnabled(true);
     }
 
     public void SetDateTime(DatePicker datePicker, TimePicker timePicker, Date date) {
-        DateTime dateTime = new DateTime(date);
-        datePicker.updateDate(dateTime.getYear(), dateTime.getMonthOfYear() - 1, dateTime.getDayOfMonth()); // Must always subtract 1 here as DatePicker month is 0 based
+        selected_date.setText(dateTimeToString(date));
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            timePicker.setHour(dateTime.getHourOfDay());
-            timePicker.setMinute(dateTime.getMinuteOfHour());
-        } else {
-            timePicker.setCurrentHour(dateTime.getHourOfDay());
-            timePicker.setCurrentMinute(dateTime.getMinuteOfHour());
-        }
+        DateTime dateTime = new DateTime(date);
+
+        // Must always subtract 1 here as DatePicker month is 0 based
+        date_datepicker.init(dateTime.getYear(), dateTime.getMonthOfYear() - 1, dateTime.getDayOfMonth(), new DatePicker.OnDateChangedListener() {
+
+            @Override
+            public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
+                DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
+                selected_date.setText(dateTimeToString(selectedDateTime.toDate()));
+            }
+        });
+
+        timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+
+            @Override
+            public void onTimeChanged(TimePicker var1, int var2, int var3) {
+                DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
+                selected_date.setText(dateTimeToString(selectedDateTime.toDate()));
+            }
+        });
+
+        /*
+            // Must always subtract 1 here as DatePicker month is 0 based
+            datePicker.updateDate(dateTime.getYear(), dateTime.getMonthOfYear() - 1, dateTime.getDayOfMonth());
+
+            if (Build.VERSION.SDK_INT >= 23) {
+                timePicker.setHour(dateTime.getHourOfDay());
+                timePicker.setMinute(dateTime.getMinuteOfHour());
+            } else {
+                timePicker.setCurrentHour(dateTime.getHourOfDay());
+                timePicker.setCurrentMinute(dateTime.getMinuteOfHour());
+            }
+        */
     }
+
 
     public DateTime GetDateTime(DatePicker datePicker, TimePicker timePicker) {
         Integer hour, minute;
@@ -948,8 +1212,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         savedInstanceState.putParcelable(LOCATION_ADDRESS_KEY, mAddressOutput);
         //----END: Part related to reverse geocoding
 
+        savedInstanceState.putSerializable(PAGE_TYPE_KEY, mFormType);
 
-        if (mapIsDisplayed)
+        savedInstanceState.putSerializable(SELECTED_ATTEMPT_RESULT_KEY, attemptResult);
+
+
+        if (mapWasSetUp)
             mapView.onSaveInstanceState(savedInstanceState);
 
         super.onSaveInstanceState(savedInstanceState);
@@ -964,7 +1232,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      * GoogleApiClient is connected.
      */
     public void fetchAddressButtonHandler(View view) {
-        if (!mapIsDisplayed || mapboxMap == null)
+        if (!mapWasSetUp || mapboxMap == null)
             return;
 
         LatLng pinPosition = mapboxMap.getCameraPosition().target;
@@ -973,7 +1241,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         if (pinPosition == null)
             return;
 
-        startIntentService(new MyLocation(pinPosition.getLatitude(), pinPosition.getLongitude()));
+        fetchAddress(new MyLocation(pinPosition.getLatitude(), pinPosition.getLongitude()));
+    }
+
+    public void fetchAddress(MyLocation loc) {
+        startIntentService(loc);
 
         // If GoogleApiClient isn't connected, we process the user's request by setting
         // mAddressRequested to true. Later, when GoogleApiClient connects, we launch the service to

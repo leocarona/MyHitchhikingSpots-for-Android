@@ -42,8 +42,8 @@ android {
         applicationId 'com.myhitchhikingspots'
         minSdkVersion minSdk
         targetSdkVersion 22
-        versionCode 5
-        versionName "1.3.2"
+        versionCode 6
+        versionName "1.3.3"
         // Stops the Gradle plugin’s automatic rasterization of vectors
         generatedDensities = []
 
@@ -76,8 +76,8 @@ dependencies {
     //Begin: Dependencies for MapBox
     //compile fileTree(dir: 'libs', include: ['*.jar'])
     // add the Mapbox SDK dependency below
-    compile('com.mapbox.mapboxsdk:mapbox-android-sdk:4.2.0-beta.5@aar') {
-        transitive = true
+    compile ('com.mapbox.mapboxsdk:mapbox-android-sdk:5.0.2@aar'){
+        transitive=true
     }
     //End: Dependencies for MapBox
 
@@ -95,4 +95,5 @@ dependencies {
     compile 'joda-time:joda-time:2.9.2'
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.android.support.constraint:constraint-layout:+'
+    //testCompile 'junit:junit:4.12'
 }

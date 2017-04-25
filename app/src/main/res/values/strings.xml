@@ -147,5 +147,10 @@
     <string name="map_error_alert_map_not_loaded_positive_button">Try without map</string>
     <string name="map_error_alert_map_not_loaded_negative_button">View map</string>
 
-    <string name="map_loading_dialog">Loading spots...</string>
+    <string name="map_loading_dialog">Loading spots&#8230;</string>
+
+    <string name="spot_form_bottommenu_map_tile">Location</string>
+    <string name="spot_form_bottommenu_basic_tile">Spot</string>
+    <string name="spot_form_bottommenu_evaluate_tile">Evaluate</string>
+
 </resources>

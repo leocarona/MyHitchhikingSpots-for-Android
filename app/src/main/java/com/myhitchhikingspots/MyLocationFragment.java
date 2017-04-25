@@ -220,6 +220,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
         Intent intent = new Intent(getContext(), SpotFormActivity.class);
         intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+
         startActivityForResult(intent, requestCode);
     }
 

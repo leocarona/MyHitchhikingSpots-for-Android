@@ -16,4 +16,11 @@
     <color name="ic_standard_fab_color_lighter">#33C9BB</color>
 
 
+    <!--BEGIN: SpotForm bottom menu-->
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="white">#FFFFFF</color>
+    <!--END: SpotForm bottom menu-->
 </resources>

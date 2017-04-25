@@ -145,6 +145,9 @@
     <string name="map_error_alert_map_not_loaded_positive_button">Probiere ohne Karte</string>
     <string name="map_error_alert_map_not_loaded_negative_button">Karte anzeigen</string>
 
-    <string name="map_loading_dialog">Laden von Standorten...</string>
+    <string name="map_loading_dialog">Laden von Standorten&#8230;</string>
 
+    <string name="spot_form_bottommenu_map_tile">Location</string>
+    <string name="spot_form_bottommenu_basic_tile">Standort</string>
+    <string name="spot_form_bottommenu_evaluate_tile">Evaluate</string>
 </resources>
