@@ -792,23 +792,22 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             updateAttemptResultButtonsState();
 
             String title = "";
-            if (mFormType == FormType.Basic)
+            if (mFormType == FormType.Basic || mCurrentSpot == null || mCurrentSpot.getId() == null || mCurrentSpot.getId() == 0)
                 title = getResources().getString(R.string.save_spot_button_text);
             else if (mFormType == FormType.Destination || mFormType == FormType.All)
                 title = getResources().getString(R.string.spot_form_title_edit);
             else {
-                switch (attemptResult) {
+               /* switch (attemptResult) {
                     case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                         title = getResources().getString(R.string.got_a_ride_button_text);
                         break;
                     case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                         title = getResources().getString(R.string.break_button_text);
                         break;
-                    default:
-                        //Should actually never fall in this case!
-                        title = getResources().getString(R.string.spot_form_title_evaluate);
-                        break;
-                }
+                    default:*/
+                title = getResources().getString(R.string.spot_form_title_evaluate);
+                       /* break;
+                }*/
             }
 
             if (shouldShowButtonsPanel) {
