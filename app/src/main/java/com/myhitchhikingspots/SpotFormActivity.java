@@ -863,7 +863,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             else
                 mDeleteButton.setVisibility(View.GONE);
 
-            if (mFormType == FormType.Basic)
+            if (mFormType == FormType.Basic || mFormType == FormType.Destination)
                 evaluate_menuitem.setEnabled(false);
             else
                 evaluate_menuitem.setEnabled(true);
