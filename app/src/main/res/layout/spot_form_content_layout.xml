@@ -109,6 +109,40 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:id="@+id/panel_buttons">
+
+                    <Button
+                        android:id="@+id/view_map_button"
+                        style="@style/roundButtonTextStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/break_button"
+                        android:onClick="newSpotButtonHandler"
+                        android:padding="15dp"
+                        android:text="@string/map_error_alert_map_not_loaded_negative_button"
+                         />
+
+                    <Button
+                        android:id="@+id/new_spot_button"
+                        style="@style/roundButtonTextStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/save_spot_button"
+                        android:onClick="viewMapButtonHandler"
+                        android:padding="15dp"
+                        android:text="@string/save_spot_button_text"
+                        />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:id="@+id/panel_info">
 
                     <android.support.design.widget.TextInputLayout
                         android:layout_width="match_parent"
@@ -325,6 +359,7 @@
                             android:paddingTop="15dp"
                             android:text="@string/spot_form_delete_button_text" />
                     </LinearLayout>
+                </LinearLayout>
                 </LinearLayout>
             </android.support.v4.widget.NestedScrollView>
         </android.support.design.widget.CoordinatorLayout>

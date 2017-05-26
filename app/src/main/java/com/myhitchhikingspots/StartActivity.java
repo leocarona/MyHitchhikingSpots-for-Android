@@ -27,6 +27,7 @@ public class StartActivity extends Activity {
                 spot = lastAdded;
 
             Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+            intent.putExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
             intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
             finish();
             startActivity(intent);

@@ -11,7 +11,6 @@ import android.location.Address;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.widget.BottomNavigationView;
@@ -73,7 +72,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.Exchanger;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -83,6 +81,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
     private Button mSaveButton, mDeleteButton;
+    private Button mNewSpotButton, mViewMapButton;
     private EditText note_edittext, waiting_time_edittext;
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
@@ -143,7 +142,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private MapView mapView;
     protected MapboxMap mapboxMap;
     private LocationEngine locationEngine;
-    private LocationEngineListener locationEngineListener;
+    private LocationEngineListener locationEngineListener, locationEngineListener2;
     private static final int PERMISSIONS_LOCATION = 0;
     private ImageView dropPinView;
     //private android.support.v4.widget.NestedScrollView sv;
@@ -155,7 +154,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     BottomSheetBehavior mBottomSheetBehavior;
     public AppCompatImageButton mGotARideButton, mTookABreakButton;
 
-    boolean shouldGoBackToPreviousActivity;
+    boolean shouldGoBackToPreviousActivity, shouldShowButtonsPanel;
+
+    LinearLayout panel_buttons, panel_info;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,6 +179,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             updateValuesFromBundle(savedInstanceState);
         else {
             mCurrentSpot = (Spot) getIntent().getSerializableExtra(Constants.SPOT_BUNDLE_EXTRA_KEY);
+            shouldShowButtonsPanel = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
 
             if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false))
                 showViewMapSnackbar();
@@ -187,6 +189,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         mSaveButton = (Button) findViewById(R.id.save_button);
         mDeleteButton = (Button) findViewById(R.id.delete_button);
+        mNewSpotButton = (Button) findViewById(R.id.new_spot_button);
+        mViewMapButton = (Button) findViewById(R.id.view_map_button);
         note_edittext = (EditText) findViewById(R.id.spot_form_note_edittext);
         date_datepicker = (DatePicker) findViewById(R.id.spot_form_date_datepicker);
         time_timepicker = (TimePicker) findViewById(R.id.spot_form_time_timepicker);
@@ -202,6 +206,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         spot_form_location = (LinearLayout) findViewById(R.id.save_spot_form_location);
         spot_form_basic = (CoordinatorLayout) findViewById(R.id.save_spot_form_basic);
         spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
+        panel_buttons = (LinearLayout) findViewById(R.id.panel_new_spot);
+        panel_info = (LinearLayout) findViewById(R.id.panel_new_spot_saved);
 
         menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
 
@@ -805,6 +811,34 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 }
             }
 
+            if (shouldShowButtonsPanel) {
+                panel_buttons.setVisibility(View.VISIBLE);
+                panel_info.setVisibility(View.GONE);
+
+                locationEngineListener2 = new LocationEngineListener() {
+                    @Override
+                    public void onConnected() {
+                        // No action needed here.
+                    }
+
+                    @Override
+                    public void onLocationChanged(Location location) {
+                        // Move the map camera to where the user location is and then remove the
+                        // listener so the camera isn't constantly updating when the user location
+                        // changes. When the user disables and then enables the location again, this
+                        // listener is registered again and will adjust the camera once again.
+                        if (location != null)
+                            moveCamera(new LatLng(location));
+                    }
+                };
+
+                locationEngine.addLocationEngineListener(locationEngineListener2);
+            } else {
+                panel_buttons.setVisibility(View.GONE);
+                panel_info.setVisibility(View.VISIBLE);
+                locationEngine.removeLocationEngineListener(locationEngineListener2);
+            }
+
             if (mCurrentSpot != null && mCurrentSpot.getGpsResolved() != null && mCurrentSpot.getGpsResolved())
                 mLocationAddressTextView.setText(getString(mCurrentSpot));
             else
@@ -927,6 +961,17 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     }
 
+    public void newSpotButtonHandler(View view) {
+        SetDateTime(date_datepicker, time_timepicker, new Date());
+        locationEngine.removeLocationEngineListener(locationEngineListener2);
+        panel_buttons.setVisibility(View.GONE);
+        panel_info.setVisibility(View.VISIBLE);
+    }
+
+    public void viewMapButtonHandler(View view) {
+        startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+    }
+
     public void saveButtonHandler(View view) {
         if (mFormType != FormType.Basic && !is_destination_check_box.isChecked() &&
                 waiting_time_edittext.getText().toString().isEmpty()) {
@@ -1021,8 +1066,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                             result = RESULT_OBJECT_EDITED;
 
                         finishSaving(result);
-
-
                     }
                 });
             }
@@ -1099,6 +1142,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             Bundle conData = new Bundle();
             if (mFormType == FormType.Basic)
                 conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentSpot);
+
+            if (mFormType != FormType.Basic)
+                conData.putBoolean(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
 
             conData.putBoolean(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, true);
             intent.putExtras(conData);
