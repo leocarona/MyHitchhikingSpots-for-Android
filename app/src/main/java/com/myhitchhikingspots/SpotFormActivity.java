@@ -157,6 +157,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     boolean shouldGoBackToPreviousActivity, shouldShowButtonsPanel;
 
     LinearLayout panel_buttons, panel_info;
+MenuItem saveMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,9 +207,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         spot_form_location = (LinearLayout) findViewById(R.id.save_spot_form_location);
         spot_form_basic = (CoordinatorLayout) findViewById(R.id.save_spot_form_basic);
         spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
-        panel_buttons = (LinearLayout) findViewById(R.id.panel_new_spot);
-        panel_info = (LinearLayout) findViewById(R.id.panel_new_spot_saved);
+        panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
+        panel_info = (LinearLayout) findViewById(R.id.panel_info);
 
+        saveMenuItem = (MenuItem)findViewById(R.id.action_save);
         menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
 
         spot_menuitem = (BottomNavigationItemView) findViewById(R.id.action_basic);
@@ -812,6 +814,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
 
             if (shouldShowButtonsPanel) {
+                saveMenuItem.setEnabled(false);
                 panel_buttons.setVisibility(View.VISIBLE);
                 panel_info.setVisibility(View.GONE);
 
@@ -834,6 +837,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                 locationEngine.addLocationEngineListener(locationEngineListener2);
             } else {
+                saveMenuItem.setEnabled(true);
                 panel_buttons.setVisibility(View.GONE);
                 panel_info.setVisibility(View.VISIBLE);
                 locationEngine.removeLocationEngineListener(locationEngineListener2);
@@ -966,6 +970,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         locationEngine.removeLocationEngineListener(locationEngineListener2);
         panel_buttons.setVisibility(View.GONE);
         panel_info.setVisibility(View.VISIBLE);
+        saveMenuItem.setEnabled(true);
     }
 
     public void viewMapButtonHandler(View view) {
@@ -1275,6 +1280,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (savedInstanceState.keySet().contains(SELECTED_ATTEMPT_RESULT_KEY)) {
                 attemptResult = savedInstanceState.getInt(SELECTED_ATTEMPT_RESULT_KEY);
             }
+
         }
     }
 
