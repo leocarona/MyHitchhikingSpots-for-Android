@@ -428,7 +428,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         //Calculate the waiting time if the spot is still on Evaluate phase (if calculating when editing a spot already evaluated it could mess the waiting time without the user expecting/noticing)
-        calculateWaitingTime(null);
+        if (mFormType != FormType.All)
+            calculateWaitingTime(null);
 
         updateAttemptResultButtonsState();
     }
