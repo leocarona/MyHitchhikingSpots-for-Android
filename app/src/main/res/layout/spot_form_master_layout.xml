@@ -29,7 +29,6 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <include layout="@layout/spot_form_content_layout" />
 
         <android.support.design.widget.BottomNavigationView
             android:id="@+id/bottom_navigation"
@@ -44,6 +43,8 @@
             app:itemTextColor="@drawable/menu_bottom_selector"
             app:menu="@menu/menu_spot_form_bottom" />
 
+
+        <include layout="@layout/spot_form_content_layout" />
 
     </android.support.design.widget.CoordinatorLayout>
 

@@ -104,19 +104,21 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private static String dateTimeToString(Date dt) {
-        SimpleDateFormat res;
+        if (dt != null) {
+            SimpleDateFormat res;
+            String dateFormat = "dd/MMM', 'HH:mm";
 
-        String dateFormat = "dd/MM', 'HH:mm";
-        if (Locale.getDefault() == Locale.US)
-            dateFormat = "MM/dd', 'HH:mm";
+            if (Locale.getDefault() == Locale.US)
+                dateFormat = "MMM/dd', 'HH:mm";
 
-        try {
-            res = new SimpleDateFormat(dateFormat);
-            return res.format(dt);
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
+            try {
+                res = new SimpleDateFormat(dateFormat);
+                return res.format(dt);
+            } catch (Exception ex) {
+                Crashlytics.setString("date", dt.toString());
+                Crashlytics.logException(ex);
+            }
         }
-
         return "";
     }
 

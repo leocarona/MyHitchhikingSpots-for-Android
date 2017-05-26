@@ -134,19 +134,22 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     }
 
     private static String dateTimeToString(Date dt) {
-        SimpleDateFormat res;
+        if (dt != null) {
+            SimpleDateFormat res;
+            String dateFormat = "dd/MMM', 'HH:mm";
 
-        String dateFormat = "dd/MM'\n'HH:mm";
-        if (Locale.getDefault() == Locale.US)
-            dateFormat = "MM/dd'\n'HH:mm";
+            if (Locale.getDefault() == Locale.US)
+                dateFormat = "MMM/dd', 'HH:mm";
 
-        try {
-            res = new SimpleDateFormat(dateFormat);
-            return res.format(dt);
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
+            try {
+                res = new SimpleDateFormat(dateFormat);
+                return res.format(dt);
+            } catch (Exception ex) {
+                Crashlytics.setString("date", dt.toString());
+                Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
+                Crashlytics.logException(ex);
+            }
         }
-
         return "";
     }
 
@@ -226,7 +229,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             Intent intent = new Intent(spotListFragment.getActivity(), SpotFormActivity.class);
             //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
             intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-            spotListFragment.startActivity(intent);
+            spotListFragment.startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
         }
 
         public void setFields(Spot spot) {

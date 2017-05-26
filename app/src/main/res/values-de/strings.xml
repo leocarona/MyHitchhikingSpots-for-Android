@@ -150,4 +150,7 @@
     <string name="spot_form_bottommenu_map_tile">Location</string>
     <string name="spot_form_bottommenu_basic_tile">Standort</string>
     <string name="spot_form_bottommenu_evaluate_tile">Evaluate</string>
+
+    <string name="waiting_time_missing_dialog_title">Waiting time not informed</string>
+    <string name="waiting_time_missing_dialog_message">Want to calculate it before saving?</string>
 </resources>

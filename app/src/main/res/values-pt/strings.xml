@@ -151,4 +151,7 @@
     <string name="spot_form_bottommenu_map_tile">Local</string>
     <string name="spot_form_bottommenu_basic_tile">Local</string>
     <string name="spot_form_bottommenu_evaluate_tile">Avaliação</string>
+
+    <string name="waiting_time_missing_dialog_title">Tempo de espera não informado</string>
+    <string name="waiting_time_missing_dialog_message">Deseja que o tempo de espera seja calculado automaticamente antes de salvar?</string>
 </resources>

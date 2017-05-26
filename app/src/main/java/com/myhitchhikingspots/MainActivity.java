@@ -1,6 +1,9 @@
 package com.myhitchhikingspots;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
@@ -14,6 +17,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
@@ -46,6 +50,8 @@ public class MainActivity extends TrackLocationBaseActivity {
      */
     private ViewPager mViewPager;
 
+    CoordinatorLayout coordinatorLayout;
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -70,8 +76,29 @@ public class MainActivity extends TrackLocationBaseActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false))
+            showViewMapSnackbar();
+
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
+    }
+
+    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
+        Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
+                .setAction(action, listener)
+                .show();
+    }
+
+    void showViewMapSnackbar() {
+        showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
+                getString(R.string.map_error_alert_map_not_loaded_negative_button), new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+                    }
+                });
     }
 
     @Override
@@ -161,22 +188,18 @@ public class MainActivity extends TrackLocationBaseActivity {
             mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
     }
 
-  /*  @Override
+   @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         // Check which request we're responding to
-        if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
+        //if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
             // Make sure the request was successful
-            if (resultCode > RESULT_FIRST_USER) {
-                loadValues();
-
-                //Update fragments
-                if (mSectionsPagerAdapter != null)
-                    mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
+            if (resultCode != RESULT_CANCELED) {
+                showViewMapSnackbar();
             }
-        }
-    }*/
+       // }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

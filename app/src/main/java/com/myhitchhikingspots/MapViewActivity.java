@@ -2,13 +2,10 @@ package com.myhitchhikingspots;
 
 import android.Manifest;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -20,7 +17,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.view.ContextThemeWrapper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -31,7 +27,6 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
@@ -53,6 +48,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MapViewActivity extends BaseActivity implements OnMapReadyCallback {
     private MapView mapView;
@@ -80,6 +76,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
+        if (savedInstanceState != null)
+            updateValuesFromBundle(savedInstanceState);
+
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
@@ -90,15 +89,15 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 if (mapboxMap != null) {
                     // Check if user has granted location permission
                     if (!PermissionsManager.areLocationPermissionsGranted(MapViewActivity.this)) {
-                        Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
-                                .setAction("enable", new View.OnClickListener() {
+                        showSnackbar(getString(R.string.waiting_for_gps),
+                                "enable", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View view) {
                                         ActivityCompat.requestPermissions(MapViewActivity.this, new String[]{
                                                 Manifest.permission.ACCESS_COARSE_LOCATION,
                                                 Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_LOCATION);
                                     }
-                                }).show();
+                                });
                     } else {
                         if (locationEngine.getLastLocation() != null)
                             moveCamera(new LatLng(locationEngine.getLastLocation()));
@@ -170,7 +169,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         loadMarkerIcons();
 
-        if (!isNetworkAvailable()) {
+        if (!isNetworkAvailable() && !no_internet_dialog_showed) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))
@@ -183,37 +182,26 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     })
                     .setNegativeButton(getResources().getString(R.string.map_error_alert_map_not_loaded_negative_button), null)
                     .show();
+            no_internet_dialog_showed = true;
         }
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
     }
 
+    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
+        Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
+                .setAction(action, listener)
+                .show();
+    }
+
+    boolean no_internet_dialog_showed = false;
+
     private void loadMarkerIcons() {
-
-        try {
-            ic_got_a_ride_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
-        }
-
-        try {
-            ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
-        }
-
-        try {
-            ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
-        }
-
-        try {
-            ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
-        }
+        ic_got_a_ride_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
+        ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
+        ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
+        ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
     }
 
     Spot mCurrentWaitingSpot;
@@ -392,17 +380,18 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         // Customize the user location icon using the getMyLocationViewSettings object.
         //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
-        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(Color.parseColor("#56B881"));
+        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring));//Color.parseColor("#56B881")
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
             public boolean onInfoWindowClick(@NonNull Marker marker) {
                 ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
+                Crashlytics.setString("Clicked marker tag", myMarker.getTag());
                 Spot spot = null;
                 for (Spot spot2 :
                         spotList) {
                     String id = spot2.getId().toString();
-                    if (id == myMarker.getTag()) {
+                    if (id.equals(myMarker.getTag())) {
                         spot = spot2;
                         break;
                     }
@@ -506,20 +495,21 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     private static String dateTimeToString(Date dt) {
-        SimpleDateFormat res;
+        if (dt != null) {
+            SimpleDateFormat res;
+            String dateFormat = "dd/MMM', 'HH:mm";
 
-        String dateFormat = "dd/MMM', 'HH:mm";
-        /*if (Locale.getDefault() == Locale.US)
-            dateFormat = "MMM/dd', 'HH:mm";*/
+            if (Locale.getDefault() == Locale.US)
+                dateFormat = "MMM/dd', 'HH:mm";
 
-        try {
-            res = new SimpleDateFormat(dateFormat);
-            return res.format(dt);
-        } catch (Exception ex) {
-            Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
-            Crashlytics.logException(ex);
+            try {
+                res = new SimpleDateFormat(dateFormat);
+                return res.format(dt);
+            } catch (Exception ex) {
+                Crashlytics.setString("date", dt.toString());
+                Crashlytics.logException(ex);
+            }
         }
-
         return "";
     }
 
@@ -572,10 +562,29 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         mapView.onPause();
     }
 
+    protected static final String NO_INTERNET_DIALOG_SHOWED_KEY = "no-internet-dialog-showed";
+
+
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        mapView.onSaveInstanceState(outState);
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        mapView.onSaveInstanceState(savedInstanceState);
+
+        savedInstanceState.putBoolean(NO_INTERNET_DIALOG_SHOWED_KEY, no_internet_dialog_showed);
+    }
+
+
+    /**
+     * Updates fields based on data stored in the bundle.
+     *
+     * @param savedInstanceState The activity state saved in the Bundle.
+     */
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
+        if (savedInstanceState != null) {
+            if (savedInstanceState.keySet().contains(NO_INTERNET_DIALOG_SHOWED_KEY))
+                no_internet_dialog_showed = savedInstanceState.getBoolean(NO_INTERNET_DIALOG_SHOWED_KEY);
+        }
     }
 
     @Override

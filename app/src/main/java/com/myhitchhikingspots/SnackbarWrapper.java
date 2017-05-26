@@ -19,100 +19,103 @@ import android.widget.FrameLayout;
  * Created by leoboaventura on 23/04/2017.
  */
 
-public class SnackbarWrapper
-{
+public class SnackbarWrapper {
     private final CharSequence text;
     private final int duration;
     private final WindowManager windowManager;
     private final Context appplicationContext;
+    CoordinatorLayout snackbarContainer;
+    FrameLayout frameLayout;
+    Snackbar snackbar;
+
     @Nullable
     private Snackbar.Callback externalCallback;
     @Nullable
     private Action action;
 
     @NonNull
-    public static SnackbarWrapper make(@NonNull Context applicationContext, @NonNull CharSequence text, @Snackbar.Duration int duration)
-    {
+    public static SnackbarWrapper make(@NonNull Context applicationContext, @NonNull CharSequence text, @Snackbar.Duration int duration) {
         return new SnackbarWrapper(applicationContext, text, duration);
     }
 
-    private SnackbarWrapper(@NonNull final Context appplicationContext, @NonNull CharSequence text, @Snackbar.Duration int duration)
-    {
+    private SnackbarWrapper(@NonNull final Context appplicationContext, @NonNull CharSequence text, @Snackbar.Duration int duration) {
         this.appplicationContext = appplicationContext;
         this.windowManager = (WindowManager) appplicationContext.getSystemService(Context.WINDOW_SERVICE);
         this.text = text;
         this.duration = duration;
     }
 
-    public void show()
-    {
+    public void show() {
         WindowManager.LayoutParams layoutParams = createDefaultLayoutParams(WindowManager.LayoutParams.TYPE_TOAST, null);
-        windowManager.addView(new FrameLayout(appplicationContext)
-        {
+        if (snackbarContainer != null) {
+            windowManager.removeView(snackbarContainer);
+            snackbarContainer = null;
+        }
+        if (frameLayout != null) {
+            windowManager.removeView(frameLayout);
+        }
+        if(snackbar!=null && snackbar.isShown())
+            snackbar.dismiss();
+
+        windowManager.addView(new FrameLayout(appplicationContext) {
             @Override
-            protected void onAttachedToWindow()
-            {
+            protected void onAttachedToWindow() {
                 super.onAttachedToWindow();
+                frameLayout = this;
                 onRootViewAvailable(this);
             }
 
         }, layoutParams);
     }
 
-    private void onRootViewAvailable(final FrameLayout rootView)
-    {
-        final CoordinatorLayout snackbarContainer = new CoordinatorLayout(new ContextThemeWrapper(appplicationContext, R.style.FOL_Theme_SnackbarWrapper))
-        {
+    public void dismiss(){
+        if(snackbar!=null && snackbar.isShown())
+            snackbar.dismiss();
+    }
+
+    private void onRootViewAvailable(final FrameLayout rootView) {
+        CoordinatorLayout snackbarContainer2 = new CoordinatorLayout(new ContextThemeWrapper(appplicationContext, R.style.FOL_Theme_SnackbarWrapper)) {
             @Override
-            public void onAttachedToWindow()
-            {
+            public void onAttachedToWindow() {
                 super.onAttachedToWindow();
+                snackbarContainer = this;
                 onSnackbarContainerAttached(rootView, this);
             }
         };
-        windowManager.addView(snackbarContainer, createDefaultLayoutParams(WindowManager.LayoutParams.TYPE_APPLICATION_PANEL, rootView.getWindowToken()));
+        windowManager.addView(snackbarContainer2, createDefaultLayoutParams(WindowManager.LayoutParams.TYPE_APPLICATION_PANEL, rootView.getWindowToken()));
     }
 
-    private void onSnackbarContainerAttached(final View rootView, final CoordinatorLayout snackbarContainer)
-    {
-        Snackbar snackbar = Snackbar.make(snackbarContainer, text, duration);
-        snackbar.setCallback(new Snackbar.Callback()
-        {
+    private void onSnackbarContainerAttached(final View rootView, final CoordinatorLayout snackbarContainer) {
+        if(snackbar==null){ snackbar = Snackbar.make(snackbarContainer, text, duration);
+        snackbar.setCallback(new Snackbar.Callback() {
             @Override
-            public void onDismissed(Snackbar snackbar, int event)
-            {
+            public void onDismissed(Snackbar snackbar, int event) {
                 super.onDismissed(snackbar, event);
                 // Clean up (NOTE! This callback can be called multiple times)
-                if (snackbarContainer.getParent() != null && rootView.getParent() != null)
-                {
+                if (snackbarContainer.getParent() != null && rootView.getParent() != null) {
                     windowManager.removeView(snackbarContainer);
                     windowManager.removeView(rootView);
                 }
-                if (externalCallback != null)
-                {
+                if (externalCallback != null) {
                     externalCallback.onDismissed(snackbar, event);
                 }
             }
 
             @Override
-            public void onShown(Snackbar snackbar)
-            {
+            public void onShown(Snackbar snackbar) {
                 super.onShown(snackbar);
-                if (externalCallback != null)
-                {
+                if (externalCallback != null) {
                     externalCallback.onShown(snackbar);
                 }
             }
         });
-        if (action != null)
-        {
+        if (action != null) {
             snackbar.setAction(action.text, action.listener);
-        }
+        }}
         snackbar.show();
     }
 
-    private WindowManager.LayoutParams createDefaultLayoutParams(int type, @Nullable IBinder windowToken)
-    {
+    private WindowManager.LayoutParams createDefaultLayoutParams(int type, @Nullable IBinder windowToken) {
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
         layoutParams.format = PixelFormat.TRANSLUCENT;
         layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
@@ -125,26 +128,22 @@ public class SnackbarWrapper
     }
 
     @NonNull
-    public SnackbarWrapper setCallback(@Nullable Snackbar.Callback callback)
-    {
+    public SnackbarWrapper setCallback(@Nullable Snackbar.Callback callback) {
         this.externalCallback = callback;
         return this;
     }
 
     @NonNull
-    public SnackbarWrapper setAction(CharSequence text, final View.OnClickListener listener)
-    {
+    public SnackbarWrapper setAction(CharSequence text, final View.OnClickListener listener) {
         action = new Action(text, listener);
         return this;
     }
 
-    private static class Action
-    {
+    private static class Action {
         private final CharSequence text;
         private final View.OnClickListener listener;
 
-        public Action(CharSequence text, View.OnClickListener listener)
-        {
+        public Action(CharSequence text, View.OnClickListener listener) {
             this.text = text;
             this.listener = listener;
         }
