@@ -184,7 +184,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false))
                 showViewMapSnackbar();
 
-            shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false);
+            shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
         }
 
         mSaveButton = (Button) findViewById(R.id.save_button);
