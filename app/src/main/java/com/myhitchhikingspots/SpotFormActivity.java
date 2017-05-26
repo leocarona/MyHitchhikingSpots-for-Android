@@ -1031,6 +1031,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 String vals = waiting_time_edittext.getText().toString();
                 if (!vals.isEmpty())
                     mCurrentSpot.setWaitingTime(Integer.parseInt(vals));
+                else
+                    mCurrentSpot.setWaitingTime(0);
                 mCurrentSpot.setAttemptResult(attemptResult);
             }
 
