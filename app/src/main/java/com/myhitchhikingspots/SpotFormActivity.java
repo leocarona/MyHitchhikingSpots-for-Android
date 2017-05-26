@@ -861,8 +861,8 @@ MenuItem saveMenuItem;
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), "Please try opening your spot again.");
             }
 
-            //Show delete button when the spot is been edited and it's not of type Evaluate
-            if ((mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0) && mFormType != FormType.Evaluate)
+            //Show delete button when the spot is been edited
+            if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0)
                 mDeleteButton.setVisibility(View.VISIBLE);
             else
                 mDeleteButton.setVisibility(View.GONE);
