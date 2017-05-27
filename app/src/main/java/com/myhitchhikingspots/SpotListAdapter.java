@@ -159,8 +159,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         myDate.add(GregorianCalendar.MINUTE, waitingTime);
         String dateFormated = "";
 
-       /* if (myDate.get(Calendar.DAY_OF_WEEK_IN_MONTH) > 0) {
+        if (myDate.get(Calendar.DAY_OF_WEEK_IN_MONTH) > 0)
             dateFormated += myDate.get(Calendar.DAY_OF_WEEK_IN_MONTH) + "d";
+       /*
             if (myDate.get(Calendar.HOUR_OF_DAY) > 0 || myDate.get(Calendar.MINUTE) > 0)
                 dateFormated += myDate.get(Calendar.HOUR_OF_DAY) + "h";
         } else */
