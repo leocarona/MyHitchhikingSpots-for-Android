@@ -25,6 +25,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.view.menu.MenuView;
 import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -157,7 +158,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     boolean shouldGoBackToPreviousActivity, shouldShowButtonsPanel;
 
     LinearLayout panel_buttons, panel_info;
-MenuItem saveMenuItem;
+    MenuItem saveMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -210,7 +211,6 @@ MenuItem saveMenuItem;
         panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
         panel_info = (LinearLayout) findViewById(R.id.panel_info);
 
-        saveMenuItem = (MenuItem)findViewById(R.id.action_save);
         menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
 
         spot_menuitem = (BottomNavigationItemView) findViewById(R.id.action_basic);
@@ -392,6 +392,8 @@ MenuItem saveMenuItem;
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.spot_form_menu, menu);
+        saveMenuItem = menu.findItem(R.id.action_save);
+        saveMenuItem.setEnabled(!shouldShowButtonsPanel);
         return true;
     }
 
@@ -814,7 +816,6 @@ MenuItem saveMenuItem;
             }
 
             if (shouldShowButtonsPanel) {
-                saveMenuItem.setEnabled(false);
                 panel_buttons.setVisibility(View.VISIBLE);
                 panel_info.setVisibility(View.GONE);
 
@@ -837,7 +838,6 @@ MenuItem saveMenuItem;
 
                 locationEngine.addLocationEngineListener(locationEngineListener2);
             } else {
-                saveMenuItem.setEnabled(true);
                 panel_buttons.setVisibility(View.GONE);
                 panel_info.setVisibility(View.VISIBLE);
                 locationEngine.removeLocationEngineListener(locationEngineListener2);
@@ -970,7 +970,9 @@ MenuItem saveMenuItem;
         locationEngine.removeLocationEngineListener(locationEngineListener2);
         panel_buttons.setVisibility(View.GONE);
         panel_info.setVisibility(View.VISIBLE);
-        saveMenuItem.setEnabled(true);
+
+        if (saveMenuItem != null)
+            saveMenuItem.setEnabled(true);
     }
 
     public void viewMapButtonHandler(View view) {
