@@ -101,8 +101,8 @@
                 android:id="@+id/spot_form_scrollview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#FFF"
                 android:clipToPadding="true"
+                android:background="#FFF"
                 app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
                 <LinearLayout
@@ -123,7 +123,7 @@
                         android:background="@drawable/break_button"
                         android:onClick="newSpotButtonHandler"
                         android:padding="15dp"
-                        android:text="@string/map_error_alert_map_not_loaded_negative_button"
+                        android:text="@string/save_spot_button_text"
                          />
 
                     <Button
@@ -134,7 +134,7 @@
                         android:background="@drawable/save_spot_button"
                         android:onClick="viewMapButtonHandler"
                         android:padding="15dp"
-                        android:text="@string/save_spot_button_text"
+                        android:text="@string/map_error_alert_map_not_loaded_negative_button"
                         />
                 </LinearLayout>
 
