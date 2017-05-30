@@ -9,7 +9,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".SpotFormActivity"
     tools:showIn="@layout/spot_form_master_layout"
-    android:paddingBottom="80dp"
+    android:paddingBottom="55dp"
     android:descendantFocusability="beforeDescendants">
 
     <android.support.v7.widget.LinearLayoutCompat
