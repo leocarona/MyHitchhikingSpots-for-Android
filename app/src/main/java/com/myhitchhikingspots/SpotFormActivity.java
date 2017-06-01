@@ -4,8 +4,10 @@ import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.location.Address;
 import android.location.Location;
@@ -36,6 +38,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
@@ -182,10 +185,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         else {
             mCurrentSpot = (Spot) getIntent().getSerializableExtra(Constants.SPOT_BUNDLE_EXTRA_KEY);
             shouldShowButtonsPanel = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
-
-            if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false))
-                showViewMapSnackbar();
-
             shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
         }
 
@@ -597,6 +596,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         if (mapWasSetUp)
             mapView.onResume();
+
+        if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false))
+            showViewMapSnackbar();
     }
 
     @Override
@@ -604,9 +606,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         super.onPause();
         if (mapWasSetUp)
             mapView.onPause();
-
-        if (snackbar != null)
-            snackbar.dismiss();
     }
 
     @Override
@@ -1101,13 +1100,27 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast.makeText(getApplicationContext(), R.string.spot_deleted_successfuly, Toast.LENGTH_LONG).show();
-                                        finish();
-
                                         ComponentName callingActivity = getCallingActivity();
-                                        if (!shouldGoBackToPreviousActivity || callingActivity == null || callingActivity.getClassName() == null
-                                                || !callingActivity.getClassName().equals(MapViewActivity.class.getName()))
-                                            startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+
+                                        if (!shouldGoBackToPreviousActivity && (callingActivity == null || callingActivity.getClassName() == null
+                                                || !callingActivity.getClassName().equals(MapViewActivity.class.getName()))) {
+                                            Intent intent = new Intent(getBaseContext(), MapViewActivity.class);
+                                            Bundle conData = new Bundle();
+                                            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
+                                            intent.putExtras(conData);
+                                            setResult(RESULT_OBJECT_EDITED, intent);
+
+                                            finish();
+                                            //startActivity(intent);
+                                        } else {
+                                            Intent intent = new Intent();
+                                            Bundle conData = new Bundle();
+                                            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
+                                            intent.putExtras(conData);
+                                            setResult(RESULT_OBJECT_EDITED, intent);
+
+                                            finish();
+                                        }
                                     }
                                 });
                             }
@@ -1122,6 +1135,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private void finishSaving(int result) {
         ComponentName callingActivity = getCallingActivity();
         if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination()) {
+            setResult(result);
             finish();
             if (callingActivity == null || !shouldGoBackToPreviousActivity)
                 startActivity(new Intent(getBaseContext(), MapViewActivity.class));
@@ -1154,7 +1168,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             if (mFormType != FormType.Basic)
                 conData.putBoolean(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
-
+//            conData.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBackToPreviousActivity);
             conData.putBoolean(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, true);
             intent.putExtras(conData);
 
@@ -1287,12 +1301,26 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     //----BEGIN: Part related to reverse geocoding
-    Snackbar snackbar;
 
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        if (snackbar == null)
-            snackbar = Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
-                    .setAction(action, listener);
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
+                .setAction(action, listener);
+
+        // get snackbar view
+        View snackbarView = snackbar.getView();
+
+        // set action button color
+        snackbar.setActionTextColor(Color.BLACK);
+
+        // change snackbar text color
+        int snackbarTextId = android.support.design.R.id.snackbar_text;
+        TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
+        if (textView != null) textView.setTextColor(Color.WHITE);
+
+
+        // change snackbar background
+        snackbarView.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color));
+
         snackbar.show();
     }
 
@@ -1305,6 +1333,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     }
                 });
     }
+
 
     /**
      * Runs when user clicks the Fetch Address button. Starts the service to fetch the address if

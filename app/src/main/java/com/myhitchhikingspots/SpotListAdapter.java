@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -227,10 +228,13 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 }
             }
 
-            Intent intent = new Intent(spotListFragment.getActivity(), SpotFormActivity.class);
+            Bundle args = new Bundle();
             //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-            intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+            args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+            args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+
+            Intent intent = new Intent(spotListFragment.getActivity(), SpotFormActivity.class);
+            intent.putExtras(args);
             spotListFragment.startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
         }
 

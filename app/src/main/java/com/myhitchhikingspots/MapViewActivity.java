@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -189,10 +190,36 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         super.onCreate(savedInstanceState);
     }
 
+    void showSpotSavedSnackbar() {
+        showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
+                null, null);
+    }
+
+    void showSpotDeletedSnackbar() {
+        showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
+                null, null);
+    }
+
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
-                .setAction(action, listener)
-                .show();
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
+                .setAction(action, listener);
+
+        // get snackbar view
+        View snackbarView = snackbar.getView();
+
+        // set action button color
+        snackbar.setActionTextColor(Color.BLACK);
+
+        // change snackbar text color
+        int snackbarTextId = android.support.design.R.id.snackbar_text;
+        TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
+        if (textView != null) textView.setTextColor(Color.WHITE);
+
+
+        // change snackbar background
+        snackbarView.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color));
+
+        snackbar.show();
     }
 
     boolean no_internet_dialog_showed = false;
@@ -537,16 +564,26 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             updateUI();
     }
 
-  /*  @Override
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+
+        Boolean bundleValue = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false);
+        if (requestCode == RESULT_OBJECT_ADDED || requestCode == RESULT_OBJECT_EDITED || bundleValue)
+            showSpotSavedSnackbar();
+
+        Boolean bundleValue2 = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false);
+        if (resultCode == RESULT_OBJECT_DELETED || bundleValue2)
+            showSpotDeletedSnackbar();
+      /*
         // Check which request we're responding to
         if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
             // Make sure the request was successful
             if (resultCode > RESULT_FIRST_USER)
                 updateUI();
-        }
-    }*/
+        }*/
+    }
 
     Icon ic_got_a_ride_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     List<Spot> spotList = new ArrayList<Spot>();

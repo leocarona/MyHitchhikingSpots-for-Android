@@ -1,11 +1,13 @@
 package com.myhitchhikingspots;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
 
 import android.support.v4.app.Fragment;
@@ -19,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -78,17 +81,30 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-        if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false))
-            showViewMapSnackbar();
-
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
     }
 
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
-                .setAction(action, listener)
-                .show();
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
+                .setAction(action, listener);
+
+        // get snackbar view
+        View snackbarView = snackbar.getView();
+
+        // set action button color
+        snackbar.setActionTextColor(Color.BLACK);
+
+        // change snackbar text color
+        int snackbarTextId = android.support.design.R.id.snackbar_text;
+        TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
+        if (textView != null) textView.setTextColor(Color.WHITE);
+
+
+        // change snackbar background
+        snackbarView.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color));
+
+        snackbar.show();
     }
 
     void showViewMapSnackbar() {
@@ -99,6 +115,11 @@ public class MainActivity extends TrackLocationBaseActivity {
                         startActivity(new Intent(getBaseContext(), MapViewActivity.class));
                     }
                 });
+    }
+
+    void showSpotDeletedSnackbar() {
+        showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
+                null, null);
     }
 
     @Override
@@ -188,17 +209,26 @@ public class MainActivity extends TrackLocationBaseActivity {
             mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
     }
 
-   @Override
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         // Check which request we're responding to
         //if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
-            // Make sure the request was successful
-            if (resultCode != RESULT_CANCELED) {
-                showViewMapSnackbar();
-            }
-       // }
+        // Make sure the request was successful
+       /* if (resultCode != RESULT_CANCELED) {
+            showViewMapSnackbar();
+        }*/
+
+
+        Boolean bundleValue = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false);
+        if (requestCode == RESULT_OBJECT_ADDED || requestCode == RESULT_OBJECT_EDITED || bundleValue)
+            showViewMapSnackbar();
+
+        Boolean bundleValue2 = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false);
+        if (resultCode == RESULT_OBJECT_DELETED || bundleValue2)
+            showSpotDeletedSnackbar();
+        // }
     }
 
     @Override
