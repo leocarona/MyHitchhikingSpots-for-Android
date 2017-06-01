@@ -99,8 +99,7 @@
             <android.support.v4.widget.NestedScrollView
                 android:id="@+id/spot_form_scrollview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipToPadding="true"
+                android:layout_height="match_parent"
                 android:background="#FFF"
                 app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
@@ -108,257 +107,258 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/panel_buttons">
-
-                    <Button
-                        android:id="@+id/view_map_button"
-                        style="@style/roundButtonTextStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/break_button"
-                        android:onClick="newSpotButtonHandler"
-                        android:padding="15dp"
-                        android:text="@string/save_spot_button_text"
-                         />
-
-                    <Button
-                        android:id="@+id/new_spot_button"
-                        style="@style/roundButtonTextStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/save_spot_button"
-                        android:onClick="viewMapButtonHandler"
-                        android:padding="15dp"
-                        android:text="@string/map_error_alert_map_not_loaded_negative_button"
-                        />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/panel_info">
-
-                    <android.support.design.widget.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <android.support.design.widget.TextInputEditText
-                            android:id="@+id/spot_form_note_edittext"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:ems="10"
-                            android:gravity="top"
-                            android:hint="@string/spot_form_note_label"
-                            android:inputType="textMultiLine"
-                            android:focusableInTouchMode="true"/>
-                    </android.support.design.widget.TextInputLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <ProgressBar
-                            android:id="@+id/progress_bar"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_alignLeft="@+id/imageView2"
-                            android:layout_alignParentLeft="true"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerInParent="true"
-                            android:layout_marginRight="45dp"
-                            android:gravity="center_vertical"
-                            android:visibility="gone" />
-
-                        <TextView
-                            android:id="@+id/location_address_view"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_alignLeft="@+id/imageView2"
-                            android:layout_alignParentLeft="true"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerInParent="true"
-                            android:layout_marginRight="60dp"
-                            android:clickable="true"
-                            android:gravity="center_vertical|end"
-                            android:lines="2"
-                            android:onClick="locationAddressButtonHandler"
-                            android:paddingLeft="10dp"
-                            android:paddingRight="5dp"
-                            android:text="City, State, Country"
-                            android:textStyle="normal|bold" />
-
-
-                        <android.support.design.widget.FloatingActionButton
-                            android:id="@+id/imageView3"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_alignParentRight="true"
-                            android:layout_gravity="center_vertical"
-                            android:gravity="center_vertical"
-                            android:onClick="fetchAddressButtonHandler"
-                            app:backgroundTint="@color/ic_standard_fab_color"
-                            app:fabSize="mini"
-                            app:rippleColor="@color/ic_standard_fab_color_lighter"
-                            app:useCompatPadding="true"
-                            mapbox:srcCompat="@drawable/ic_autorenew_black_24dp"
-                            tools:ignore="VectorDrawableCompat" />
-
-                        <android.support.design.widget.FloatingActionButton
-                            android:id="@+id/imageView2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_alignParentRight="true"
-                            android:layout_gravity="center_vertical"
-                            android:gravity="center_vertical"
-                            android:onClick="locationAddressButtonHandler"
-                            android:visibility="gone"
-                            app:backgroundTint="@color/ic_standard_fab_color"
-                            app:fabSize="mini"
-                            app:rippleColor="@color/ic_standard_fab_color_lighter"
-                            app:useCompatPadding="true"
-                            mapbox:srcCompat="@drawable/ic_content_copy_black_24dp"
-                            tools:ignore="VectorDrawableCompat" />
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:id="@+id/spot_form_selected_date"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_alignLeft="@+id/imageView4"
-                            android:layout_alignParentLeft="true"
-                            android:layout_alignParentStart="true"
-                            android:layout_centerInParent="true"
-                            android:layout_marginRight="60dp"
-                            android:clickable="true"
-                            android:gravity="center_vertical|end"
-                            android:lines="2"
-                            android:onClick="moreOptionsButtonHandler"
-                            android:paddingLeft="10dp"
-                            android:paddingRight="5dp"
-                            android:text="dd/MMM, HH:mm"
-                            android:textStyle="normal|bold" />
-
-
-                        <android.support.design.widget.FloatingActionButton
-                            android:id="@+id/imageView4"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            android:layout_alignParentRight="true"
-                            android:layout_gravity="center_vertical"
-                            android:gravity="center_vertical"
-                            android:onClick="moreOptionsButtonHandler"
-                            app:backgroundTint="@color/ic_standard_fab_color"
-                            app:fabSize="mini"
-                            app:rippleColor="@color/ic_standard_fab_color_lighter"
-                            app:useCompatPadding="true"
-                            mapbox:srcCompat="@drawable/ic_date_range_black_24dp"
-                            tools:ignore="VectorDrawableCompat" />
-
-                    </RelativeLayout>
 
                     <LinearLayout
-                        android:id="@+id/save_spot_form_more_options"
+                        android:id="@+id/panel_buttons"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="@dimen/text_margin"
-                            android:text="@string/spot_form_date_label" />
-
-
-                        <DatePicker
-                            android:id="@+id/spot_form_date_datepicker"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_horizontal"
-                            android:calendarViewShown="false"
-                            android:datePickerMode="spinner" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_margin="@dimen/text_margin"
-                            android:text="@string/spot_form_time_label" />
-
-
-                        <TimePicker
-                            android:id="@+id/spot_form_time_timepicker"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_horizontal"
-                            android:layoutMode="clipBounds" />
-                    </LinearLayout>
-
-                    <CheckBox
-                        android:id="@+id/save_spot_form_is_destination_check_box"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="right"
-                        android:button="@null"
-                        android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
-                        android:onClick="isDestinationHandleChecked"
-                        android:text="@string/spot_form_is_destination_checkbox_text" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_horizontal"
-                        android:orientation="horizontal">
+                        android:visibility="visible">
 
                         <Button
-                            android:id="@+id/save_button"
-                            style="@style/roundButtonTextStyle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/save_spot_button"
-                            android:onClick="saveButtonHandler"
-                            android:padding="15dp"
-                            android:text="@string/spot_form_save_button_text"
-                            android:visibility="gone" />
-
-                        <Button
-                            android:id="@+id/fetch_address_button"
-                            style="@style/roundButtonTextStyle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/arrived_button"
-                            android:onClick="fetchAddressButtonHandler"
-                            android:padding="13dp"
-                            android:paddingBottom="15dp"
-                            android:paddingTop="15dp"
-                            android:text="@string/fetch_address"
-                            android:visibility="gone" />
-
-                        <Button
-                            android:id="@+id/delete_button"
+                            android:id="@+id/view_map_button"
                             style="@style/roundButtonTextStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="@drawable/break_button"
-                            android:onClick="deleteButtonHandler"
-                            android:padding="13dp"
-                            android:paddingBottom="15dp"
-                            android:paddingTop="15dp"
-                            android:text="@string/spot_form_delete_button_text" />
+                            android:onClick="newSpotButtonHandler"
+                            android:padding="15dp"
+                            android:text="@string/save_spot_button_text" />
+
+                        <Button
+                            android:id="@+id/new_spot_button"
+                            style="@style/roundButtonTextStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/save_spot_button"
+                            android:onClick="viewMapButtonHandler"
+                            android:padding="15dp"
+                            android:text="@string/map_error_alert_map_not_loaded_negative_button" />
                     </LinearLayout>
-                </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/panel_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <android.support.design.widget.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <android.support.design.widget.TextInputEditText
+                                android:id="@+id/spot_form_note_edittext"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ems="10"
+                                android:focusableInTouchMode="true"
+                                android:gravity="top"
+                                android:hint="@string/spot_form_note_label"
+                                android:inputType="textMultiLine" />
+                        </android.support.design.widget.TextInputLayout>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <ProgressBar
+                                android:id="@+id/progress_bar"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_alignLeft="@+id/imageView2"
+                                android:layout_alignParentLeft="true"
+                                android:layout_alignParentStart="true"
+                                android:layout_centerInParent="true"
+                                android:layout_marginRight="45dp"
+                                android:gravity="center_vertical"
+                                android:visibility="gone" />
+
+                            <TextView
+                                android:id="@+id/location_address_view"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_alignLeft="@+id/imageView2"
+                                android:layout_alignParentLeft="true"
+                                android:layout_alignParentStart="true"
+                                android:layout_centerInParent="true"
+                                android:layout_marginRight="60dp"
+                                android:clickable="true"
+                                android:gravity="center_vertical|end"
+                                android:lines="2"
+                                android:onClick="locationAddressButtonHandler"
+                                android:paddingLeft="10dp"
+                                android:paddingRight="5dp"
+                                android:text="City, State, Country"
+                                android:textStyle="normal|bold" />
+
+
+                            <android.support.design.widget.FloatingActionButton
+                                android:id="@+id/imageView3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentRight="true"
+                                android:layout_gravity="center_vertical"
+                                android:gravity="center_vertical"
+                                android:onClick="fetchAddressButtonHandler"
+                                app:backgroundTint="@color/ic_standard_fab_color"
+                                app:fabSize="mini"
+                                app:rippleColor="@color/ic_standard_fab_color_lighter"
+                                app:useCompatPadding="true"
+                                mapbox:srcCompat="@drawable/ic_autorenew_black_24dp"
+                                tools:ignore="VectorDrawableCompat" />
+
+                            <android.support.design.widget.FloatingActionButton
+                                android:id="@+id/imageView2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentRight="true"
+                                android:layout_gravity="center_vertical"
+                                android:gravity="center_vertical"
+                                android:onClick="locationAddressButtonHandler"
+                                android:visibility="gone"
+                                app:backgroundTint="@color/ic_standard_fab_color"
+                                app:fabSize="mini"
+                                app:rippleColor="@color/ic_standard_fab_color_lighter"
+                                app:useCompatPadding="true"
+                                mapbox:srcCompat="@drawable/ic_content_copy_black_24dp"
+                                tools:ignore="VectorDrawableCompat" />
+
+                        </RelativeLayout>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/spot_form_selected_date"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_alignLeft="@+id/imageView4"
+                                android:layout_alignParentLeft="true"
+                                android:layout_alignParentStart="true"
+                                android:layout_centerInParent="true"
+                                android:layout_marginRight="60dp"
+                                android:clickable="true"
+                                android:gravity="center_vertical|end"
+                                android:lines="2"
+                                android:onClick="moreOptionsButtonHandler"
+                                android:paddingLeft="10dp"
+                                android:paddingRight="5dp"
+                                android:text="dd/MMM, HH:mm"
+                                android:textStyle="normal|bold" />
+
+
+                            <android.support.design.widget.FloatingActionButton
+                                android:id="@+id/imageView4"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentRight="true"
+                                android:layout_gravity="center_vertical"
+                                android:gravity="center_vertical"
+                                android:onClick="moreOptionsButtonHandler"
+                                app:backgroundTint="@color/ic_standard_fab_color"
+                                app:fabSize="mini"
+                                app:rippleColor="@color/ic_standard_fab_color_lighter"
+                                app:useCompatPadding="true"
+                                mapbox:srcCompat="@drawable/ic_date_range_black_24dp"
+                                tools:ignore="VectorDrawableCompat" />
+
+                        </RelativeLayout>
+
+                        <LinearLayout
+                            android:id="@+id/save_spot_form_more_options"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/text_margin"
+                                android:text="@string/spot_form_date_label" />
+
+
+                            <DatePicker
+                                android:id="@+id/spot_form_date_datepicker"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:calendarViewShown="false"
+                                android:datePickerMode="spinner" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="@dimen/text_margin"
+                                android:text="@string/spot_form_time_label" />
+
+
+                            <TimePicker
+                                android:id="@+id/spot_form_time_timepicker"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal"
+                                android:layoutMode="clipBounds" />
+                        </LinearLayout>
+
+                        <CheckBox
+                            android:id="@+id/save_spot_form_is_destination_check_box"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:button="@null"
+                            android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
+                            android:onClick="isDestinationHandleChecked"
+                            android:text="@string/spot_form_is_destination_checkbox_text" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_horizontal"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/save_button"
+                                style="@style/roundButtonTextStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/save_spot_button"
+                                android:onClick="saveButtonHandler"
+                                android:padding="15dp"
+                                android:text="@string/spot_form_save_button_text"
+                                android:visibility="gone" />
+
+                            <Button
+                                android:id="@+id/fetch_address_button"
+                                style="@style/roundButtonTextStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/arrived_button"
+                                android:onClick="fetchAddressButtonHandler"
+                                android:padding="13dp"
+                                android:paddingBottom="15dp"
+                                android:paddingTop="15dp"
+                                android:text="@string/fetch_address"
+                                android:visibility="gone" />
+
+                            <Button
+                                android:id="@+id/delete_button"
+                                style="@style/roundButtonTextStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/break_button"
+                                android:onClick="deleteButtonHandler"
+                                android:padding="13dp"
+                                android:paddingBottom="15dp"
+                                android:paddingTop="15dp"
+                                android:text="@string/spot_form_delete_button_text" />
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </android.support.v4.widget.NestedScrollView>
         </android.support.design.widget.CoordinatorLayout>
@@ -490,9 +490,9 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
                         android:ems="10"
+                        android:focusableInTouchMode="true"
                         android:hint="@string/spot_form_waiting_time_label"
-                        android:inputType="number"
-                        android:focusableInTouchMode="true"/>
+                        android:inputType="number" />
                 </android.support.design.widget.TextInputLayout>
 
 

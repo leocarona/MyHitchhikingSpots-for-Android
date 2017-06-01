@@ -22,12 +22,15 @@ public class StartActivity extends Activity {
         if (lastAdded == null || lastAdded.getIsDestination())
             startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
         else {
-            Spot spot = null;
-            if (lastAdded.getIsWaitingForARide())
-                spot = lastAdded;
-
             Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-            intent.putExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
+
+            Spot spot = null;
+            if (lastAdded.getIsWaitingForARide()) {
+                spot = lastAdded;
+                intent.putExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
+            } else
+                intent.putExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
+
             intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
             finish();
             startActivity(intent);
