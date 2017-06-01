@@ -254,6 +254,15 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         mapView.getMapAsync(this);
         setupMap();
 
+        note_edittext.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    //   Toast.makeText(getBaseContext(), "EXPANDED", Toast.LENGTH_LONG).show();
+                    mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                }
+            }
+        });
 
         BottomNavigationView bottomNavigationView = (BottomNavigationView)
                 findViewById(R.id.bottom_navigation);
@@ -269,6 +278,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                 spot_form_evaluate.setVisibility(View.GONE);
 
                                 mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                                hideMenu();
                                 break;
                             case R.id.action_evaluate:
                                 spot_form_basic.setVisibility(View.GONE);
@@ -311,6 +321,17 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
 
+    }
+
+    void hideMenu() {
+        // Check if no view has focus:
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+
+        note_edittext.clearFocus();
     }
 
     protected void setupMap() {
@@ -458,6 +479,13 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         // Customize the user location icon using the getMyLocationViewSettings object.
         this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring));//Color.parseColor("#56B881")
+
+        mapboxMap.setOnMapClickListener(new MapboxMap.OnMapClickListener() {
+            public void onMapClick(@NonNull LatLng point) {
+                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                hideMenu();
+            }
+        });
 
         if (mCurrentSpot != null && mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null) {
             // Set camera listener only after the camera has been first moved to the location of the spot being edited
@@ -1178,11 +1206,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void moreOptionsButtonHandler(View view) {
-        if (spot_form_more_options.isShown())
+        if (spot_form_more_options.isShown()) {
             spot_form_more_options.setVisibility(View.GONE);
-        else
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            hideMenu();
+        } else {
             spot_form_more_options.setVisibility(View.VISIBLE);
-
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        }
     }
 
     public void isDestinationHandleChecked(View view) {
