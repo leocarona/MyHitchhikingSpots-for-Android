@@ -545,8 +545,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                                         mAddressOutput = null;
                                                         mCurrentSpot.setGpsResolved(false);
                                                         mLocationAddressTextView.setText(getString(R.string.spot_form_location_selected_label));
-                                                        locationManuallyChanged = true;
                                                     }
+
                                                 }
                                             }
 
@@ -554,7 +554,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     private LatLng requestToPositionAt = null;
-    private boolean locationManuallyChanged = false;
 
     /**
      * Move the map camera to the given position
@@ -569,6 +568,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
      *
      * @param latLng Target location to change to
      */
+
     private void moveCamera(LatLng latLng) {
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
@@ -1223,11 +1223,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
                 break;
         }
-
-        String dt = "HH:mm:ss";
-        String res = new SimpleDateFormat(dt).format(new Date());
-        conData.putString(Constants.TEST, res);
-
 
         return conData;
     }
