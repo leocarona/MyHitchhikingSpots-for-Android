@@ -625,7 +625,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         if (mapWasSetUp)
             mapView.onResume();
 
-        if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false))
+        if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
             showViewMapSnackbar();
     }
 
@@ -1181,7 +1181,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentSpot);
             }
 
-            conData.putBoolean(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, true);
+            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
             intent.putExtras(conData);
 
             //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
@@ -1197,7 +1197,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (mFormType != FormType.Basic)
                 conData.putBoolean(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
 //            conData.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBackToPreviousActivity);
-            conData.putBoolean(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, true);
+            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
             intent.putExtras(conData);
 
             finish();

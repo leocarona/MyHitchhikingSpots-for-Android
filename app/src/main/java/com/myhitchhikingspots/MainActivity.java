@@ -221,8 +221,8 @@ public class MainActivity extends TrackLocationBaseActivity {
         }*/
 
 
-        Boolean bundleValue = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false);
         if (requestCode == RESULT_OBJECT_ADDED || requestCode == RESULT_OBJECT_EDITED || bundleValue)
+        Boolean bundleValue = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false);
             showViewMapSnackbar();
 
         Boolean bundleValue2 = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false);

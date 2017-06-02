@@ -569,8 +569,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         super.onActivityResult(requestCode, resultCode, data);
 
 
-        Boolean bundleValue = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_MAPVIEW_SNACKBAR_KEY, false);
         if (requestCode == RESULT_OBJECT_ADDED || requestCode == RESULT_OBJECT_EDITED || bundleValue)
+        Boolean bundleValue = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false);
             showSpotSavedSnackbar();
 
         Boolean bundleValue2 = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false);
