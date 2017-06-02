@@ -170,21 +170,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         loadMarkerIcons();
 
-        if (!isNetworkAvailable() && !no_internet_dialog_showed) {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))
-                    .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
-                    .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                        }
-                    })
-                    .setNegativeButton(getResources().getString(R.string.map_error_alert_map_not_loaded_negative_button), null)
-                    .show();
-            no_internet_dialog_showed = true;
-        }
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -482,6 +467,29 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     void updateUI() {
         Crashlytics.log(Log.INFO, "tracking-map", "updateUI was called");
 
+        if (!isNetworkAvailable() && !no_internet_dialog_showed) {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))
+                    .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
+                    .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                        }
+                    })
+                    .setNegativeButton(getResources().getString(R.string.map_error_alert_map_not_loaded_negative_button), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            loadAll();
+                        }
+                    }).show();
+            no_internet_dialog_showed = true;
+        } else
+            loadAll();
+    }
+
+    void loadAll() {
         loadValues();
         updateUISaveButtons();
 
