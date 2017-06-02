@@ -85,8 +85,10 @@ public class MainActivity extends TrackLocationBaseActivity {
         super.onCreate(savedInstanceState);
     }
 
+    Snackbar snackbar;
+
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        Snackbar snackbar = Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
+        snackbar = Snackbar.make(coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
                 .setAction(action, listener);
 
         // get snackbar view
@@ -194,6 +196,13 @@ public class MainActivity extends TrackLocationBaseActivity {
         Crashlytics.log(Log.INFO, "tracking-main-activity", "onResume called");
 
         loadValues();
+    }
+
+    public void onPause() {
+        super.onPause();
+
+        if (snackbar != null)
+            snackbar.dismiss();
     }
 
     void loadValues() {

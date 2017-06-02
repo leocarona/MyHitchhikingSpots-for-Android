@@ -200,8 +200,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 null, null);
     }
 
+    Snackbar snackbar;
+
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        Snackbar snackbar = Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
+        snackbar = Snackbar.make(coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
                 .setAction(action, listener);
 
         // get snackbar view
@@ -597,6 +599,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     public void onPause() {
         super.onPause();
         mapView.onPause();
+
+        if (snackbar != null)
+            snackbar.dismiss();
     }
 
     protected static final String NO_INTERNET_DIALOG_SHOWED_KEY = "no-internet-dialog-showed";

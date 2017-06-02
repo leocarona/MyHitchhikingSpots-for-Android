@@ -634,6 +634,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         super.onPause();
         if (mapWasSetUp)
             mapView.onPause();
+
+        if (snackbar != null)
+            snackbar.dismiss();
     }
 
     @Override
@@ -1332,9 +1335,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     //----BEGIN: Part related to reverse geocoding
+    Snackbar snackbar;
 
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        Snackbar snackbar = Snackbar.make(coordinatorLayout, text, Snackbar.LENGTH_LONG)
+        snackbar = Snackbar.make(coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
                 .setAction(action, listener);
 
         // get snackbar view
