@@ -77,11 +77,17 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
-        if (savedInstanceState != null)
-            updateValuesFromBundle(savedInstanceState);
-
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
+        if (savedInstanceState == null) {
+            if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
+                showSpotSavedSnackbar();
+            else if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
+                showSpotDeletedSnackbar();
+        } else
+            updateValuesFromBundle(savedInstanceState);
 
         fabLocateUser = (FloatingActionButton) findViewById(R.id.fab_locate_user);
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
@@ -188,7 +194,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     Snackbar snackbar;
 
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        snackbar = Snackbar.make(coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
+        String t = "";
+        if (text != null && text.length() > 0)
+            t = text.toString();
+        snackbar = Snackbar.make(coordinatorLayout, t.toUpperCase(), Snackbar.LENGTH_LONG)
                 .setAction(action, listener);
 
         // get snackbar view
@@ -579,13 +588,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         super.onActivityResult(requestCode, resultCode, data);
 
 
-        if (requestCode == RESULT_OBJECT_ADDED || requestCode == RESULT_OBJECT_EDITED || bundleValue)
-        Boolean bundleValue = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false);
+        if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
             showSpotSavedSnackbar();
 
-        Boolean bundleValue2 = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false);
-        if (resultCode == RESULT_OBJECT_DELETED || bundleValue2)
+        if (resultCode == RESULT_OBJECT_DELETED)
             showSpotDeletedSnackbar();
+
       /*
         // Check which request we're responding to
         if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {

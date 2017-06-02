@@ -29,7 +29,6 @@ public final class Constants {
     public static final int ATTEMPT_RESULT_TOOK_A_BREAK = 2;
 
     public static final String SPOT_BUNDLE_EXTRA_KEY = PACKAGE_NAME + ".SPOT";
-    public static final String SPOT_BUNDLE_EXTRA_ID_KEY = PACKAGE_NAME + ".SPOT_ID";
     public static final String SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY";
     public static final String SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY";
     public static final String SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = PACKAGE_NAME + ".SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY";

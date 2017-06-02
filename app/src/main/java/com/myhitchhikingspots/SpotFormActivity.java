@@ -180,13 +180,13 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-        if (savedInstanceState != null)
-            updateValuesFromBundle(savedInstanceState);
-        else {
+        //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
+        if (savedInstanceState == null) {
             mCurrentSpot = (Spot) getIntent().getSerializableExtra(Constants.SPOT_BUNDLE_EXTRA_KEY);
             shouldShowButtonsPanel = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
             shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
-        }
+        } else
+            updateValuesFromBundle(savedInstanceState);
 
         mSaveButton = (Button) findViewById(R.id.save_button);
         mDeleteButton = (Button) findViewById(R.id.delete_button);
@@ -676,8 +676,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                         public void onClick(DialogInterface dialog, int which) {
                             //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
                             //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-                            Intent intent = new Intent();
-                            setResult(RESULT_CANCELED, intent);
+                            setResult(RESULT_CANCELED);
                             finish();
                         }
 
@@ -1135,21 +1134,18 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                                         if (!shouldGoBackToPreviousActivity && (callingActivity == null || callingActivity.getClassName() == null
                                                 || !callingActivity.getClassName().equals(MapViewActivity.class.getName()))) {
-                                            Intent intent = new Intent(getBaseContext(), MapViewActivity.class);
-                                            Bundle conData = new Bundle();
-                                            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
-                                            intent.putExtras(conData);
-                                            setResult(RESULT_OBJECT_EDITED, intent);
-
+                                            setResult(RESULT_OBJECT_DELETED);
                                             finish();
-                                            //startActivity(intent);
-                                        } else {
-                                            Intent intent = new Intent();
+
+                                            //Bundle conData = getBundle(RESULT_OBJECT_DELETED);
                                             Bundle conData = new Bundle();
                                             conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
-                                            intent.putExtras(conData);
-                                            setResult(RESULT_OBJECT_EDITED, intent);
 
+                                            Intent intent = new Intent(getBaseContext(), MapViewActivity.class);
+                                            intent.putExtras(conData);
+                                            startActivity(intent);
+                                        } else {
+                                            setResult(RESULT_OBJECT_DELETED);
                                             finish();
                                         }
                                     }
@@ -1168,44 +1164,72 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination()) {
             setResult(result);
             finish();
-            if (callingActivity == null || !shouldGoBackToPreviousActivity)
-                startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+
+            if (callingActivity == null || !shouldGoBackToPreviousActivity) {
+                Bundle conData = new Bundle();
+                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
+
+                Intent i = new Intent(getBaseContext(), MapViewActivity.class);
+                i.putExtras(conData);
+                startActivity(i);
+            }
             return;
         }
 
         //If SpotFormActivity was called by StartActivityForResult then getCallingActivity won't be null and we should call finish() to return to the calling activity
         if (callingActivity != null) {
-            Intent intent = new Intent();
-
-            Bundle conData = new Bundle();
-            //If action was canceled means that nothing changed in the object and therefore we don't need to use processing time serializing the object here
-            if (result != RESULT_CANCELED) {
-                conData.putString(Constants.SPOT_BUNDLE_EXTRA_ID_KEY, mCurrentSpot.getId().toString());
-                conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentSpot);
-            }
-
-            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
-            intent.putExtras(conData);
-
             //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-            setResult(result, intent);
+            setResult(result);
             finish();
         } else {
             Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
 
+            //Bundle conData = getBundle(result);
             Bundle conData = new Bundle();
+            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
+
             if (mFormType == FormType.Basic)
                 conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentSpot);
 
             if (mFormType != FormType.Basic)
                 conData.putBoolean(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
 //            conData.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBackToPreviousActivity);
-            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
+
             intent.putExtras(conData);
 
             finish();
             startActivity(intent);
         }
+    }
+
+    Bundle getBundle(int result) {
+        //NOTE: If finish() is called and a new activity is not called, the user will be sent back to the previous
+        //activity that was open. The previous activity will still have the same bundle as before, so if we don't
+        //set all the bundle variables here, the values they had before will be kept.
+        Bundle conData = new Bundle();
+
+        conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, null);
+        conData.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
+        conData.putBoolean(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
+
+        switch (result) {
+            case RESULT_OBJECT_ADDED:
+            case RESULT_OBJECT_EDITED:
+                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
+                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false);
+                break;
+            case RESULT_OBJECT_DELETED:
+                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false);
+                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
+                break;
+        }
+
+        String dt = "HH:mm:ss";
+        String res = new SimpleDateFormat(dt).format(new Date());
+        conData.putString(Constants.TEST, res);
+
+
+        return conData;
     }
 
     public void moreOptionsButtonHandler(View view) {

@@ -68,6 +68,17 @@ public class MainActivity extends TrackLocationBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.main_activity_layout);
 
+        //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
+        if (savedInstanceState == null) {
+            if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
+                showSpotSavedSnackbar();
+            else if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
+                showSpotDeletedSnackbar();
+        }
+
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -78,8 +89,6 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -109,7 +118,7 @@ public class MainActivity extends TrackLocationBaseActivity {
         snackbar.show();
     }
 
-    void showViewMapSnackbar() {
+    void showSpotSavedSnackbar() {
         showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
                 getString(R.string.map_error_alert_map_not_loaded_negative_button), new View.OnClickListener() {
                     @Override
@@ -230,12 +239,10 @@ public class MainActivity extends TrackLocationBaseActivity {
         }*/
 
 
-        if (requestCode == RESULT_OBJECT_ADDED || requestCode == RESULT_OBJECT_EDITED || bundleValue)
-        Boolean bundleValue = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false);
-            showViewMapSnackbar();
+        if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
+            showSpotSavedSnackbar();
 
-        Boolean bundleValue2 = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false);
-        if (resultCode == RESULT_OBJECT_DELETED || bundleValue2)
+        if (resultCode == RESULT_OBJECT_DELETED)
             showSpotDeletedSnackbar();
         // }
     }
