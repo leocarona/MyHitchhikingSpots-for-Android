@@ -84,7 +84,7 @@
     <string name="spot_form_more_options_edit_label">(editar)</string>
 
     <string name="action_settings">Configuraçōes</string>
-    <string name="spot_saved_successfuly">Local salvo!</string>
+    <string name="spot_saved_successfuly">Local salvo</string>
     <string name="spot_deleted_successfuly">Local deletado</string>
     <string name="title_activity_main">@string/app_name</string>
 
