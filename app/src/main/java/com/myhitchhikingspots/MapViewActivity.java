@@ -62,6 +62,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
 
+    boolean wasSnackbarShown;
+
     //WARNING: in order to use BaseActivity the method onCreate must be overridden
     // calling first setContentView to the view you want to use
     // and then calling super.onCreate AFTER setContentView.
@@ -82,10 +84,13 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
-            if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
-                showSpotSavedSnackbar();
-            else if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
-                showSpotDeletedSnackbar();
+            if (!wasSnackbarShown) {
+                if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
+                    showSpotSavedSnackbar();
+                else if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
+                    showSpotDeletedSnackbar();
+            }
+            wasSnackbarShown = true;
         } else
             updateValuesFromBundle(savedInstanceState);
 
@@ -621,6 +626,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     protected static final String NO_INTERNET_DIALOG_SHOWED_KEY = "no-internet-dialog-showed";
+    protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
 
     @Override
@@ -629,6 +635,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         mapView.onSaveInstanceState(savedInstanceState);
 
         savedInstanceState.putBoolean(NO_INTERNET_DIALOG_SHOWED_KEY, no_internet_dialog_showed);
+        savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
     }
 
 
@@ -642,6 +649,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         if (savedInstanceState != null) {
             if (savedInstanceState.keySet().contains(NO_INTERNET_DIALOG_SHOWED_KEY))
                 no_internet_dialog_showed = savedInstanceState.getBoolean(NO_INTERNET_DIALOG_SHOWED_KEY);
+            if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
+                wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
         }
     }
 

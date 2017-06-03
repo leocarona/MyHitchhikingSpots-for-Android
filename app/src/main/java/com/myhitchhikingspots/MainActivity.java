@@ -54,6 +54,8 @@ public class MainActivity extends TrackLocationBaseActivity {
     private ViewPager mViewPager;
 
     CoordinatorLayout coordinatorLayout;
+    boolean wasSnackbarShown;
+    static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -73,11 +75,15 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
-            if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
-                showSpotSavedSnackbar();
-            else if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
-                showSpotDeletedSnackbar();
-        }
+            if (!wasSnackbarShown) {
+                if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
+                    showSpotSavedSnackbar();
+                else if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
+                    showSpotDeletedSnackbar();
+            }
+            wasSnackbarShown = true;
+        } else
+            updateValuesFromBundle(savedInstanceState);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -270,6 +276,27 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
+    }
+
+
+    /**
+     * Updates fields based on data stored in the bundle.
+     *
+     * @param savedInstanceState The activity state saved in the Bundle.
+     */
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
+        if (savedInstanceState != null) {
+            if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
+                wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
+        }
+    }
+
 
     protected void updateUILabels() {
         if (mSectionsPagerAdapter != null)

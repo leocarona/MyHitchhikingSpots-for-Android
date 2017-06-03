@@ -162,6 +162,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     LinearLayout panel_buttons, panel_info;
     MenuItem saveMenuItem;
+    boolean wasSnackbarShown;
+    static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,9 +184,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
+            if (!wasSnackbarShown) {
+                if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
+                    showViewMapSnackbar();
+            }
             mCurrentSpot = (Spot) getIntent().getSerializableExtra(Constants.SPOT_BUNDLE_EXTRA_KEY);
             shouldShowButtonsPanel = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
             shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
+            wasSnackbarShown = true;
         } else
             updateValuesFromBundle(savedInstanceState);
 
@@ -1311,6 +1318,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         savedInstanceState.putInt(SELECTED_ATTEMPT_RESULT_KEY, attemptResult);
 
+        savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
+
         if (mapWasSetUp)
             mapView.onSaveInstanceState(savedInstanceState);
 
@@ -1350,6 +1359,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 attemptResult = savedInstanceState.getInt(SELECTED_ATTEMPT_RESULT_KEY);
             }
 
+            if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
+                wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
         }
     }
 
