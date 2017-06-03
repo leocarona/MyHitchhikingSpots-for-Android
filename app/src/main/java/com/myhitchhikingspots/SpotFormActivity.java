@@ -586,7 +586,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 Crashlytics.log(Log.INFO, TAG, "For some reason map was not loaded, therefore mapboxMap.moveCamera() was skipped to avoid crash. Shouldn't the map be loaded at this point?");
             else {
                 requestToPositionAt = latLng;
-                mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+
+                if (zoom == -1)
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                else
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
             }
         }
     }
