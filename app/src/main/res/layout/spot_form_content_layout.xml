@@ -121,6 +121,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="@drawable/break_button"
+                            android:textAllCaps="true"
                             android:onClick="newSpotButtonHandler"
                             android:padding="15dp"
                             android:text="@string/save_spot_button_text" />
@@ -131,6 +132,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="@drawable/save_spot_button"
+                            android:textAllCaps="true"
                             android:onClick="viewMapButtonHandler"
                             android:padding="15dp"
                             android:text="@string/map_error_alert_map_not_loaded_negative_button" />
