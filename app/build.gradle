@@ -4,7 +4,8 @@ buildscript {
     }
 
     dependencies {
-        classpath 'io.fabric.tools:gradle:1.+'
+        //find the latest io.fabric.tools:gradle here: https://s3.amazonaws.com/fabric-artifacts/public/io/fabric/tools/gradle/maven-metadata.xml
+        classpath 'io.fabric.tools:gradle:1.22.2'
     }
 }
 apply plugin: 'com.android.application'
@@ -94,6 +95,6 @@ dependencies {
     compile 'com.android.support:design:25.3.0'
     compile 'joda-time:joda-time:2.9.2'
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.android.support.constraint:constraint-layout:+'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     //testCompile 'junit:junit:4.12'
 }
