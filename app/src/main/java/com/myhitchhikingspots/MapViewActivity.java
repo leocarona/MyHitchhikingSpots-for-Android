@@ -551,7 +551,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         return spotLoc;
     }
 
-    private static String dateTimeToString(Date dt) {
+   /* private static String dateTimeToString(Date dt) {
         if (dt != null) {
             SimpleDateFormat res;
             String dateFormat = "dd/MMM', 'HH:mm";
@@ -568,7 +568,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
         }
         return "";
-    }
+    }*/
 
     @Override
     protected void onStart() {
@@ -822,8 +822,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                 int waitingTime = 0;
                                 if (spot.getWaitingTime() != null)
                                     waitingTime = spot.getWaitingTime();
-                                snippet = String.format(getResources().getString(R.string.map_infoview_spot_type_regular), waitingTime);
-                                markerViewOptions.icon(ic_got_a_ride_spot);
+                                snippet = SpotListAdapter.getWaitingTimeAsString(waitingTime);
+
                                 int listIndex = trips.size() ;
                                 markerViewOptions.icon(getGotARideIconForRoute(listIndex));
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
@@ -835,7 +835,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         note = " " + spot.getNote();
 
                     // Customize map with markers, polylines, etc.
-                    markerViewOptions.snippet(dateTimeToString(spot.getStartDateTime()) + " - " + snippet + note);
+                    markerViewOptions.snippet(SpotListAdapter.dateTimeToString(spot.getStartDateTime()) + " - " + snippet + note);
 
                     spots.add(markerViewOptions);
 
@@ -868,7 +868,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             .color(getPolylineColor(lc));//Color.parseColor(getPolylineColorAsString(lc)));
 
                     for (ExtendedMarkerViewOptions spot : spots) {
-
                         //Add marker to map
                         mapboxMap.addMarker(spot);
 

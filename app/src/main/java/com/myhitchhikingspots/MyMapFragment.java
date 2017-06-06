@@ -103,7 +103,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
         return "";
     }
 
-    private static String dateTimeToString(Date dt) {
+    /*private static String dateTimeToString(Date dt) {
         if (dt != null) {
             SimpleDateFormat res;
             String dateFormat = "dd/MMM', 'HH:mm";
@@ -120,7 +120,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
             }
         }
         return "";
-    }
+    }*/
 
 
     @Override
@@ -178,7 +178,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
             // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
             for (int i = spotList.size() - 1; i >= 0; i--) {
                 Spot spot = spotList.get(i);
-                String title = dateTimeToString(spot.getStartDateTime()) + getString(spot);
+                String title = SpotListAdapter.dateTimeToString(spot.getStartDateTime()) + getString(spot);
                 String snippet = spot.getNote();
                 float iconAlpha = (float) 1.0;
 

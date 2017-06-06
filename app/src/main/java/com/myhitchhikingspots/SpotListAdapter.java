@@ -134,13 +134,19 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         return "";
     }
 
-    private static String dateTimeToString(Date dt) {
+    @NonNull
+    public static String dateTimeToString(Date dt) {
+        return dateTimeToString(dt, ", ");
+    }
+
+    @NonNull
+    public static String dateTimeToString(Date dt, String separator) {
         if (dt != null) {
             SimpleDateFormat res;
-            String dateFormat = "dd/MMM', 'HH:mm";
+            String dateFormat = "dd/MMM'" + separator + "'HH:mm";
 
             if (Locale.getDefault() == Locale.US)
-                dateFormat = "MMM/dd', 'HH:mm";
+                dateFormat = "MMM/dd'" + separator + "'HH:mm";
 
             try {
                 res = new SimpleDateFormat(dateFormat);
@@ -156,29 +162,36 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
     @NonNull
     public static String getWaitingTimeAsString(Integer waitingTime) {
-        GregorianCalendar myDate = new GregorianCalendar(0, 0, 0, 0, 0, 0);
-        myDate.add(GregorianCalendar.MINUTE, waitingTime);
+        int weeks = waitingTime / 7 / 24 / 60;
+        int days = waitingTime / 24 / 60;
+        int hours = waitingTime / 60 % 24;
+        int minutes = waitingTime % 60;
+        String format = "%02d";
         String dateFormated = "";
 
-        if (myDate.get(Calendar.DAY_OF_WEEK_IN_MONTH) > 0)
-            dateFormated += myDate.get(Calendar.DAY_OF_WEEK_IN_MONTH) + "d";
-       /*
-            if (myDate.get(Calendar.HOUR_OF_DAY) > 0 || myDate.get(Calendar.MINUTE) > 0)
-                dateFormated += myDate.get(Calendar.HOUR_OF_DAY) + "h";
-        } else */
-        if (myDate.get(Calendar.HOUR_OF_DAY) > 0) {
-            /*if (myDate.get(Calendar.HOUR_OF_DAY) <= 9)
-                dateFormated += "0";*/
-            dateFormated += myDate.get(Calendar.HOUR_OF_DAY) + " h";
-        }
+        if (weeks > 0)
+            days = days % 7;
 
-        if (!dateFormated.isEmpty())
+        if (weeks > 0)
+            dateFormated += String.format(format, weeks) + "w";
+
+        if ((days > 0 || hours > 0 || minutes > 0) && !dateFormated.isEmpty())
             dateFormated += " ";
 
-        if (myDate.get(Calendar.MINUTE) <= 9)
-            dateFormated += "0";
+        if (days > 0 || ((hours > 0 || minutes > 0) && !dateFormated.isEmpty()))
+            dateFormated += String.format(format, days) + "d";
 
-        dateFormated += myDate.get(Calendar.MINUTE) + " min";
+        if ((hours > 0 || minutes > 0) && !dateFormated.isEmpty())
+            dateFormated += " ";
+
+        if (hours > 0 || (minutes > 0 && !dateFormated.isEmpty()))
+            dateFormated += String.format(format, hours) + "h";
+
+        if (minutes > 0 && !dateFormated.isEmpty())
+            dateFormated += " ";
+
+        if (minutes > 0 || dateFormated.isEmpty())
+            dateFormated += String.format(format, minutes) + "min";
 
         return dateFormated;
     }
@@ -271,7 +284,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 }
 
                 if (spot.getStartDateTime() != null)
-                    dateTime.setText(dateTimeToString(spot.getStartDateTime()));
+                    dateTime.setText(dateTimeToString(spot.getStartDateTime(), ",\n"));
 
                 String spotLoc = getString(spot);
                 cityNameText.setText(spotLoc);

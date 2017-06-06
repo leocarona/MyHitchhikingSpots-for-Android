@@ -396,7 +396,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         //----END: Map related stuff ----
     }
 
-    private static String dateTimeToString(Date dt) {
+   /* private static String dateTimeToString(Date dt) {
         if (dt != null) {
             SimpleDateFormat res;
             String dateFormat = "dd/MMM', 'HH:mm";
@@ -413,7 +413,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         }
         return "";
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -1257,7 +1257,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void SetDateTime(DatePicker datePicker, TimePicker timePicker, Date date) {
-        selected_date.setText(dateTimeToString(date));
+        selected_date.setText(SpotListAdapter.dateTimeToString(date));
 
         DateTime dateTime = new DateTime(date);
 
@@ -1267,7 +1267,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             @Override
             public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(dateTimeToString(selectedDateTime.toDate()));
+                selected_date.setText(SpotListAdapter.dateTimeToString(selectedDateTime.toDate()));
             }
         });
 
@@ -1284,7 +1284,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             @Override
             public void onTimeChanged(TimePicker var1, int var2, int var3) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(dateTimeToString(selectedDateTime.toDate()));
+                selected_date.setText(SpotListAdapter.dateTimeToString(selectedDateTime.toDate()));
             }
         });
     }
