@@ -882,16 +882,16 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     }
                 }
 
-                if (this.dialog.isShowing()) {
-                    this.dialog.dismiss();
-                }
-
                 zoomOutToFitAllMarkers();
 
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                         "Adding markers failed - " + ex.getMessage()));
+            } finally {
+                if (this.dialog.isShowing()) {
+                    this.dialog.dismiss();
+                }
             }
 
             isDrawingAnnotations = false;
