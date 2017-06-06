@@ -794,6 +794,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                         snippet = getResources().getString(R.string.map_infoview_spot_type_destination);
                         markerViewOptions.icon(ic_arrival_spot);
+                        markerViewOptions.spotType(Constants.SPOT_TYPE_DESTINATION);
 
                         //Center icon
                         markerViewOptions.anchor((float) 0.5, (float) 0.5);
@@ -802,6 +803,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                         snippet = getResources().getString(R.string.map_infoview_spot_type_waiting);
                         markerViewOptions.icon(ic_waiting_spot);
+                        markerViewOptions.spotType(Constants.SPOT_TYPE_WAITING);
+
                     } else {
                         if (spot.getAttemptResult() != null)
                             if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
@@ -809,6 +812,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                                 snippet = getResources().getString(R.string.map_infoview_spot_type_break);
                                 markerViewOptions.icon(ic_took_a_break_spot);
+                                markerViewOptions.spotType(Constants.SPOT_TYPE_TOOK_A_BREAK);
 
                                 //Center icon
                                 markerViewOptions.anchor((float) 0.5, (float) 0.5);
@@ -822,6 +826,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                 markerViewOptions.icon(ic_got_a_ride_spot);
                                 int listIndex = trips.size() ;
                                 markerViewOptions.icon(getGotARideIconForRoute(listIndex));
+                                markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
                             }
                     }
 

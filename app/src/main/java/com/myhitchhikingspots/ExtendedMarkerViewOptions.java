@@ -20,6 +20,7 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 public class ExtendedMarkerViewOptions extends BaseMarkerViewOptions<ExtendedMarkerView, ExtendedMarkerViewOptions> {
 
     private String tag;
+    private int spotType = Constants.SPOT_TYPE_UNKNOWN;
 
     private ExtendedMarkerView marker;
 
@@ -27,17 +28,26 @@ public class ExtendedMarkerViewOptions extends BaseMarkerViewOptions<ExtendedMar
         return this.tag;
     }
 
+    public int getSpotType() {
+        return this.spotType;
+    }
+
     public ExtendedMarkerViewOptions tag(String tag) {
         this.tag = tag;
         return getThis();
     }
 
+    public ExtendedMarkerViewOptions spotType(int spotType) {
+        this.spotType = spotType;
+        return getThis();
+    }
+
     public ExtendedMarkerViewOptions() {
-        marker = new ExtendedMarkerView(this,"");
+        marker = new ExtendedMarkerView(this, "", Constants.SPOT_TYPE_UNKNOWN);
     }
 
     private ExtendedMarkerViewOptions(Parcel in) {
-        marker = new ExtendedMarkerView(this,"");
+        marker = new ExtendedMarkerView(this, "", Constants.SPOT_TYPE_UNKNOWN);
         position((LatLng) in.readParcelable(LatLng.class.getClassLoader()));
         snippet(in.readString());
         title(in.readString());
@@ -57,6 +67,7 @@ public class ExtendedMarkerViewOptions extends BaseMarkerViewOptions<ExtendedMar
         }
 
         tag(in.readString());
+        spotType(in.readInt());
     }
 
     @Override
@@ -89,6 +100,7 @@ public class ExtendedMarkerViewOptions extends BaseMarkerViewOptions<ExtendedMar
             out.writeParcelable(getIcon().getBitmap(), flags);
         }
         out.writeString(tag);
+        out.writeInt(spotType);
     }
 
     @Override
@@ -108,8 +120,9 @@ public class ExtendedMarkerViewOptions extends BaseMarkerViewOptions<ExtendedMar
         marker.setVisible(visible);
         marker.setAlpha(alpha);
         marker.setTag(tag);
-        return marker; }
-
+        marker.setSpotType(spotType);
+        return marker;
+    }
 
 
     public static final Parcelable.Creator<ExtendedMarkerViewOptions> CREATOR

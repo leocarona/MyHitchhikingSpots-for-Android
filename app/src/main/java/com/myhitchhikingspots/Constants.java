@@ -28,6 +28,13 @@ public final class Constants {
     public static final int ATTEMPT_RESULT_GOT_A_RIDE = 1;
     public static final int ATTEMPT_RESULT_TOOK_A_BREAK = 2;
 
+    public static final int SPOT_TYPE_UNKNOWN = 0;
+    public static final int SPOT_TYPE_ORIGIN = 1;
+    public static final int SPOT_TYPE_GOT_A_RIDE = 2;
+    public static final int SPOT_TYPE_TOOK_A_BREAK = 3;
+    public static final int SPOT_TYPE_WAITING = 4;
+    public static final int SPOT_TYPE_DESTINATION = 5;
+
     public static final String SPOT_BUNDLE_EXTRA_KEY = PACKAGE_NAME + ".SPOT";
     public static final String SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY";
     public static final String SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY";
