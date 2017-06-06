@@ -935,7 +935,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 SetDateTime(date_datepicker, time_timepicker, spotStartDT);
             }
 
-            if (mCurrentSpot.getWaitingTime() != null) {
+            //If mFormType is Evaluate or WaitingTime wasn't set, leave the waiting time field empty
+            if (mFormType != FormType.Evaluate && mCurrentSpot.getWaitingTime() != null) {
                 String val = mCurrentSpot.getWaitingTime().toString();
                 waiting_time_edittext.setText(val);
             }
