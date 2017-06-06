@@ -94,7 +94,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null) {
-                    locateUser();
+                    if (mapboxMap.getMyLocation() != null)
+                        moveCamera(new LatLng(mapboxMap.getMyLocation()));
+                    else
+                        locateUser();
                 }
             }
         });

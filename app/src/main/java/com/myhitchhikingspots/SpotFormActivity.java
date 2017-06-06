@@ -267,7 +267,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null) {
-                    locateUser();
+                    if (mapboxMap.getMyLocation() != null)
+                        moveCamera(new LatLng(mapboxMap.getMyLocation()));
+                    else
+                        locateUser();
                 }
             }
         });
@@ -468,10 +471,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                         }
                     }).show();
         } else {
-            Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT).show();
             // Enable the location layer on the map
             if (!mapboxMap.isMyLocationEnabled())
                 mapboxMap.setMyLocationEnabled(true);
+
+            Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT).show();
+
             //Place the map camera at the next GPS position that we receive
             mapboxMap.setOnMyLocationChangeListener(null);
             mapboxMap.setOnMyLocationChangeListener(moveCameraToFirstLocationReceived);
