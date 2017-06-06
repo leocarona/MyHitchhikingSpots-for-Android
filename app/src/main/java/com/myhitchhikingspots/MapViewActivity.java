@@ -230,6 +230,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
+
+        ic_got_a_ride_spot0 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(0));
+        ic_got_a_ride_spot1 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(1));
+        ic_got_a_ride_spot2 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(2));
+        ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(3));
+        ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(4));
     }
 
     Spot mCurrentWaitingSpot;
@@ -609,6 +615,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     Icon ic_got_a_ride_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
+    Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
+
     List<Spot> spotList = new ArrayList<Spot>();
 
     public void setValues(final List<Spot> list) {
@@ -812,6 +820,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                     waitingTime = spot.getWaitingTime();
                                 snippet = String.format(getResources().getString(R.string.map_infoview_spot_type_regular), waitingTime);
                                 markerViewOptions.icon(ic_got_a_ride_spot);
+                                int listIndex = trips.size() ;
+                                markerViewOptions.icon(getGotARideIconForRoute(listIndex));
                             }
                     }
 
@@ -850,7 +860,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                     PolylineOptions line = new PolylineOptions()
                             .width(2)
-                            .color(Color.parseColor(getPolylineColor(lc)));
+                            .color(getPolylineColor(lc));//Color.parseColor(getPolylineColorAsString(lc)));
 
                     for (ExtendedMarkerViewOptions spot : spots) {
 
@@ -948,7 +958,62 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    private String getPolylineColor(int routeIndex) {
+    private Icon getGotARideIconForRoute(int routeIndex) {
+        Icon i = ic_got_a_ride_spot;
+
+        int value = routeIndex;
+        if (value < 5)
+            value += 5;
+
+        switch (value % 5) {
+            case 0:
+                i = ic_got_a_ride_spot0;
+                break;
+            case 1:
+                i = ic_got_a_ride_spot1;
+                break;
+            case 2:
+                i = ic_got_a_ride_spot2;
+                break;
+            case 3:
+                i = ic_got_a_ride_spot3;
+                break;
+            case 4:
+                i = ic_got_a_ride_spot4;
+                break;
+        }
+        return i;
+    }
+
+    private int getPolylineColor(int routeIndex) {
+        int polylineColor = Color.YELLOW;
+
+        int value = routeIndex;
+        if (value < 5)
+            value += 5;
+
+        switch (value % 5) {
+            case 0:
+                polylineColor = Color.BLUE;
+                break;
+            case 1:
+                polylineColor = Color.GREEN;
+                break;
+            case 2:
+                polylineColor = Color.GRAY;
+                break;
+            case 3:
+                polylineColor = Color.MAGENTA;
+                break;
+            case 4:
+                polylineColor = Color.BLACK;
+                break;
+        }
+
+        return polylineColor;
+    }
+
+    private String getPolylineColorAsString(int routeIndex) {
         String polylineColor = "";
 
         if (routeIndex % 2 == 0)
@@ -956,48 +1021,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         else
             polylineColor = "#3bb2d0";
 
-                /*switch (routeIndex) {
-                case 0:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 1:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 2:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 3:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 4:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 5:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 6:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 7:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 8:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 9:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 10:
-                    polylineColor = "#3bb2d0";
-                    break;
-                case 11:
-                    polylineColor = "#3bb2d0";
-                    break;
-                default:
-                    polylineColor = "#000000";
-                    break;
-            }*/
-
         return polylineColor;
     }
+
+
 }
