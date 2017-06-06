@@ -6,6 +6,14 @@
     <color name="ic_break_color">#ffbb33</color>
     <color name="wallet_link_text_light">#0000ee</color>
 
+    <color name="route_color_unknown">#a9a9a9</color>
+    <color name="route_color_0">#85cf3a</color>
+    <color name="route_color_1">#ffbb33</color>
+    <color name="route_color_2">#3a84df</color>
+    <color name="route_color_3">#FF4081</color>
+    <color name="route_color_4">#33C9BB</color>
+
+
     <!--lightened with http://www.hexcolortool.com/ -->
     <color name="ic_regular_spot_color_lighter">#4DCFFF</color>
     <color name="ic_arrival_color_lighter">#33C7B8</color>

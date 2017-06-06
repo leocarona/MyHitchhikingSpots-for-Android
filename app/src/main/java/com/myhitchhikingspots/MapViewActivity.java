@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -243,16 +244,16 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     boolean no_internet_dialog_showed = false;
 
     private void loadMarkerIcons() {
-        ic_got_a_ride_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
+        ic_unknown_spot = IconUtils.drawableToIcon(this, R.drawable.ic_edit_location_black_24dp, getIdentifierColorStateList(-1));
         ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
 
-        ic_got_a_ride_spot0 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(0));
-        ic_got_a_ride_spot1 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(1));
-        ic_got_a_ride_spot2 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(2));
-        ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(3));
-        ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getPolylineColor(4));
+        ic_got_a_ride_spot0 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(0));
+        ic_got_a_ride_spot1 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(1));
+        ic_got_a_ride_spot2 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(2));
+        ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(3));
+        ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(4));
     }
 
     Spot mCurrentWaitingSpot;
@@ -586,7 +587,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }*/
     }
 
-    Icon ic_got_a_ride_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
+    Icon ic_unknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
 
     List<Spot> spotList = new ArrayList<Spot>();
@@ -796,9 +797,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                     waitingTime = spot.getWaitingTime();
                                 snippet = SpotListAdapter.getWaitingTimeAsString(waitingTime);
 
-                                int listIndex = trips.size() ;
-                                markerViewOptions.icon(getGotARideIconForRoute(listIndex));
+                                markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
+                            } else {
+                                markerViewOptions.icon(getGotARideIconForRoute(-1));
                             }
                     }
 
@@ -837,7 +839,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                     PolylineOptions line = new PolylineOptions()
                             .width(2)
-                            .color(getPolylineColor(lc));//Color.parseColor(getPolylineColorAsString(lc)));
+                            .color(Color.parseColor(getResources().getString(getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
 
                     for (ExtendedMarkerViewOptions spot : spots) {
                         //Add marker to map
@@ -935,67 +937,95 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     private Icon getGotARideIconForRoute(int routeIndex) {
-        Icon i = ic_got_a_ride_spot;
+        Icon i = ic_unknown_spot;
 
-        int value = routeIndex;
-        if (value < 5)
-            value += 5;
+        if (routeIndex > -1) {
+            int value = routeIndex;
+            if (value < 5)
+                value += 5;
 
-        switch (value % 5) {
-            case 0:
-                i = ic_got_a_ride_spot0;
-                break;
-            case 1:
-                i = ic_got_a_ride_spot1;
-                break;
-            case 2:
-                i = ic_got_a_ride_spot2;
-                break;
-            case 3:
-                i = ic_got_a_ride_spot3;
-                break;
-            case 4:
-                i = ic_got_a_ride_spot4;
-                break;
+            switch (value % 5) {
+                case 0:
+                    i = ic_got_a_ride_spot0;
+                    break;
+                case 1:
+                    i = ic_got_a_ride_spot1;
+                    break;
+                case 2:
+                    i = ic_got_a_ride_spot2;
+                    break;
+                case 3:
+                    i = ic_got_a_ride_spot3;
+                    break;
+                case 4:
+                    i = ic_got_a_ride_spot4;
+                    break;
+            }
         }
+
         return i;
     }
 
-    private int getPolylineColor(int routeIndex) {
-        int polylineColor = Color.YELLOW;
+    private int getIdentifierColor(int routeIndex) {
+        int polylineColor = Color.GRAY;
 
-        int value = routeIndex;
-        if (value < 5)
-            value += 5;
+        if (routeIndex > -1) {
+            int value = routeIndex;
+            if (value < 5)
+                value += 5;
 
-        switch (value % 5) {
-            case 0:
-                polylineColor = Color.BLUE;
-                break;
-            case 1:
-                polylineColor = Color.GREEN;
-                break;
-            case 2:
-                polylineColor = Color.GRAY;
-                break;
-            case 3:
-                polylineColor = Color.MAGENTA;
-                break;
-            case 4:
-                polylineColor = Color.BLACK;
-                break;
+            switch (value % 5) {
+                case 0:
+                    polylineColor = Color.BLUE;
+                    break;
+                case 1:
+                    polylineColor = Color.GREEN;
+                    break;
+                case 2:
+                    polylineColor = Color.YELLOW;
+                    break;
+                case 3:
+                    polylineColor = Color.MAGENTA;
+                    break;
+                case 4:
+                    polylineColor = Color.BLACK;
+                    break;
+            }
         }
 
         return polylineColor;
     }
 
-    private String getPolylineColorAsString(int routeIndex) {
-        String polylineColor = "";
+    private ColorStateList getIdentifierColorStateList(int routeIndex) {
+        return ContextCompat.getColorStateList(getBaseContext(), getPolylineColorAsId(routeIndex));
+    }
 
-        if (routeIndex % 2 == 0)
-            polylineColor = "#85cf3a";
-        else
-            polylineColor = "#3bb2d0";
+    private int getPolylineColorAsId(int routeIndex) {
+        int polylineColor = R.color.route_color_unknown;
+
+        if (routeIndex > -1) {
+            int value = routeIndex;
+            if (value < 5)
+                value += 5;
+
+            switch (value % 5) {
+                case 0:
+                    polylineColor = R.color.route_color_0;
+                    break;
+                case 1:
+                    polylineColor = R.color.route_color_1;
+                    break;
+                case 2:
+                    polylineColor = R.color.route_color_2;
+                    break;
+                case 3:
+                    polylineColor = R.color.route_color_3;
+                    break;
+                case 4:
+                    polylineColor = R.color.route_color_4;
+                    break;
+            }
+        }
 
         return polylineColor;
     }
