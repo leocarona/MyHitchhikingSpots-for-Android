@@ -44,4 +44,5 @@ public final class Constants {
     //Zoom to a level that makes it easier for the user to find his new position (he might not be too far from the location shown)
     public static final int ZOOM_TO_SEE_FARTHER_DISTANCE = 6;
     public static final int ZOOM_TO_SEE_CLOSE_TO_SPOT = 12;
+    public static final int KEEP_ZOOM_LEVEL = -1;
 }
