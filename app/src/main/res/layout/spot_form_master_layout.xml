@@ -31,23 +31,11 @@
         </android.support.design.widget.AppBarLayout>
 
 
-
-        <android.support.design.widget.BottomNavigationView
-            android:id="@+id/bottom_navigation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:fitsSystemWindows="true"
-            android:background="@color/ic_standard_fab_color"
-            app:itemBackground="@color/ic_standard_fab_color"
-            app:itemIconTint="@drawable/menu_bottom_selector"
-            app:itemTextColor="@drawable/menu_bottom_selector"
-            app:menu="@menu/menu_spot_form_bottom" />
-
         <include layout="@layout/spot_form_content_layout" />
 
 
     </android.support.design.widget.CoordinatorLayout>
+
 
     <android.support.design.widget.NavigationView
         android:id="@+id/nav_view"

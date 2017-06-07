@@ -88,8 +88,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private TimePicker time_timepicker;
     private Spot mCurrentSpot;
     private CheckBox is_destination_check_box;
-    private TextView hitchabilityLabel, location_changed, selected_date;
-    private LinearLayout spot_form_evaluate, spot_form_location, spot_form_more_options, hitchability_options;
+    private TextView hitchabilityLabel, selected_date;
+    private LinearLayout spot_form_evaluate, spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
     private BottomNavigationView menu_bottom;
 
@@ -209,10 +209,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         hitchability_ratingbar = (RatingBar) findViewById(R.id.spot_form_hitchability_ratingbar);
         hitchability_options = (LinearLayout) findViewById(R.id.save_spot_form_hitchability_options);
         hitchabilityLabel = (TextView) findViewById(R.id.spot_form_hitchability_selectedvalue);
-        location_changed = (TextView) findViewById(R.id.location_changed_text_view);
         selected_date = (TextView) findViewById(R.id.spot_form_selected_date);
 
-        spot_form_location = (LinearLayout) findViewById(R.id.save_spot_form_location);
         spot_form_basic = (CoordinatorLayout) findViewById(R.id.save_spot_form_basic);
         spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
         panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
@@ -1399,7 +1397,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     Snackbar snackbar;
 
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        snackbar = Snackbar.make(coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
+        String t = "";
+        if (text != null && text.length() > 0)
+            t = text.toString();
+        snackbar = Snackbar.make(coordinatorLayout, t.toUpperCase(), Snackbar.LENGTH_LONG)
                 .setAction(action, listener);
 
         // get snackbar view
