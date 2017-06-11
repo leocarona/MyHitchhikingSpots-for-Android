@@ -51,7 +51,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private MapboxMap mapboxMap;
     //private LocationEngine locationEngine;
     //private LocationEngineListener locationEngineListener;
-    private static final int PERMISSIONS_LOCATION = 0;
     private FloatingActionButton fabLocateUser, fabShowAll;
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     //private TextView mWaitingToGetCurrentLocationTextView;
@@ -183,6 +182,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
     }
+
+    private static final int PERMISSIONS_LOCATION = 0;
 
     void locateUser() {
         // Check if user has granted location permission
@@ -463,7 +464,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     void updateUI() {
         Crashlytics.log(Log.INFO, "tracking-map", "updateUI was called");
 
-        if (!isNetworkAvailable() && !no_internet_dialog_showed) {
+        if (!Utils.isNetworkAvailable(this) && !no_internet_dialog_showed) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))

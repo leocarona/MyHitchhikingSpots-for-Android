@@ -106,12 +106,4 @@ public class BaseActivity extends AppCompatActivity
                 .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
                 .show();
     }
-
-    protected boolean isNetworkAvailable() {
-        //Method copied from http://stackoverflow.com/a/4239019/1094261
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
 }
