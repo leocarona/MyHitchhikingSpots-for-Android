@@ -20,6 +20,8 @@ public class SampleBasicActivity extends BaseActivity {
                 setContentView(..)
         AND
                 REMEMBER TO ADD AN "<activity>" TAG FOR THE NEW FILE INTO /app/src/main/AndroidManifest.xml
+
+                AND IF YOU WISH TO USE mShouldShowLeftMenu, MAKE SURE YOU HAVE nav_view ON YOUR LAYOUT FILE
         */
 
 
@@ -32,6 +34,8 @@ public class SampleBasicActivity extends BaseActivity {
                 startActivity(new Intent(getApplicationContext(), MyLocationFragment.class));
             }
         });
+
+        // TO USE LeftMenu (drawer) MAKE SURE YOU ALSO HAVE
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);

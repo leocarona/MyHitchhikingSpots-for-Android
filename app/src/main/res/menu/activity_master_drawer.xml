@@ -3,11 +3,15 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_map"
+            android:icon="@android:drawable/ic_menu_mapmode"
+            android:title="@string/mapview_master_title" />
+        <item
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_signal_cellular_connected_no_internet_0_bar_black_24dp"
             android:title="@string/menu_home" />
         <item
-            android:id="@+id/nav_manage"
+            android:id="@+id/nav_tools"
             android:icon="@drawable/ic_settings_black_24dp"
             android:title="@string/settings_master_title" />
     </group>

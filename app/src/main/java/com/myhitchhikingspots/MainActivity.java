@@ -1,8 +1,13 @@
 package com.myhitchhikingspots;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
 
 import android.support.v4.app.Fragment;
@@ -14,7 +19,9 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -46,6 +53,10 @@ public class MainActivity extends TrackLocationBaseActivity {
      */
     private ViewPager mViewPager;
 
+    CoordinatorLayout coordinatorLayout;
+    boolean wasSnackbarShown;
+    static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -58,6 +69,21 @@ public class MainActivity extends TrackLocationBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.main_activity_layout);
+
+        //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
+        if (savedInstanceState == null) {
+            if (!wasSnackbarShown) {
+                if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
+                    showSpotSavedSnackbar();
+                else if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
+                    showSpotDeletedSnackbar();
+            }
+            wasSnackbarShown = true;
+        } else
+            updateValuesFromBundle(savedInstanceState);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -72,6 +98,45 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
+    }
+
+    Snackbar snackbar;
+
+    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
+        snackbar = Snackbar.make(coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
+                .setAction(action, listener);
+
+        // get snackbar view
+        View snackbarView = snackbar.getView();
+
+        // set action button color
+        snackbar.setActionTextColor(Color.BLACK);
+
+        // change snackbar text color
+        int snackbarTextId = android.support.design.R.id.snackbar_text;
+        TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
+        if (textView != null) textView.setTextColor(Color.WHITE);
+
+
+        // change snackbar background
+        snackbarView.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color));
+
+        snackbar.show();
+    }
+
+    void showSpotSavedSnackbar() {
+        showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
+                getString(R.string.map_error_alert_map_not_loaded_negative_button), new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+                    }
+                });
+    }
+
+    void showSpotDeletedSnackbar() {
+        showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
+                null, null);
     }
 
     @Override
@@ -148,6 +213,13 @@ public class MainActivity extends TrackLocationBaseActivity {
         loadValues();
     }
 
+    public void onPause() {
+        super.onPause();
+
+        if (snackbar != null)
+            snackbar.dismiss();
+    }
+
     void loadValues() {
         Crashlytics.log(Log.INFO, "tracking-main-activity", "loadValues called");
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
@@ -161,22 +233,25 @@ public class MainActivity extends TrackLocationBaseActivity {
             mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
     }
 
-  /*  @Override
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         // Check which request we're responding to
-        if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
-            // Make sure the request was successful
-            if (resultCode > RESULT_FIRST_USER) {
-                loadValues();
+        //if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
+        // Make sure the request was successful
+       /* if (resultCode != RESULT_CANCELED) {
+            showViewMapSnackbar();
+        }*/
 
-                //Update fragments
-                if (mSectionsPagerAdapter != null)
-                    mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
-            }
-        }
-    }*/
+
+        if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
+            showSpotSavedSnackbar();
+
+        if (resultCode == RESULT_OBJECT_DELETED)
+            showSpotDeletedSnackbar();
+        // }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -201,6 +276,27 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
+    }
+
+
+    /**
+     * Updates fields based on data stored in the bundle.
+     *
+     * @param savedInstanceState The activity state saved in the Bundle.
+     */
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
+        if (savedInstanceState != null) {
+            if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
+                wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
+        }
+    }
+
 
     protected void updateUILabels() {
         if (mSectionsPagerAdapter != null)

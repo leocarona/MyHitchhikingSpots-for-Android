@@ -16,6 +16,7 @@ import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 
 import io.fabric.sdk.android.Fabric;
+
 import org.joda.time.DateTime;
 
 import java.util.Calendar;
@@ -51,10 +52,10 @@ public class MyHitchhikingSpotsApplication extends Application {
         LoadCurrentWaitingSpot();
     }
 
-    public Cursor rawQuery(String sql, String[] selectionArgs){
+    public Cursor rawQuery(String sql, String[] selectionArgs) {
         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.dbName, null);
         SQLiteDatabase db = helper.getWritableDatabase();
-       return db.rawQuery(sql,selectionArgs);
+        return db.rawQuery(sql, selectionArgs);
     }
 
     private void LoadCurrentWaitingSpot() {
@@ -80,6 +81,15 @@ public class MyHitchhikingSpotsApplication extends Application {
     public Spot getLastAddedSpot() {
         SpotDao spotDao = daoSession.getSpotDao();
         Spot spot = spotDao.queryBuilder()
+                .orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).limit(1).unique();
+
+        return spot;
+    }
+
+    public Spot getLastNotGPSResolvedSpot() {
+        SpotDao spotDao = daoSession.getSpotDao();
+        Spot spot = spotDao.queryBuilder()
+                .where(SpotDao.Properties.GpsResolved.eq(false))
                 .orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).limit(1).unique();
 
         return spot;
@@ -297,7 +307,7 @@ public class MyHitchhikingSpotsApplication extends Application {
         //To prevent shit happening, don't execute this method unless it's not DEBUG mode
         if (!BuildConfig.DEBUG)
             return;
-        
+
         Spot spot1 = new Spot();
         spot1.setId(new Long(1));
         spot1.setNote("My first spot");

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_regular_spot_color">#33b5e5</color>
+    <color name="ic_arrival_color">#66009688</color>
+    <color name="ic_got_a_ride_color">#99cc00</color>
+    <color name="ic_break_color">#ffbb33</color>
+    <color name="wallet_link_text_light">#0000ee</color>
+
+    <color name="route_color_unknown">#a9a9a9</color>
+    <color name="route_color_0">#85cf3a</color>
+    <color name="route_color_1">#ffbb33</color>
+    <color name="route_color_2">#3a84df</color>
+    <color name="route_color_3">#FF4081</color>
+    <color name="route_color_4">#33C9BB</color>
+
+
+    <!--lightened with http://www.hexcolortool.com/ -->
+    <color name="ic_regular_spot_color_lighter">#4DCFFF</color>
+    <color name="ic_arrival_color_lighter">#33C7B8</color>
+    <color name="ic_got_a_ride_color_lighter">#B3E61A</color>
+    <color name="ic_break_color_lighter">#FFD54D</color>
+
+    <color name="ic_standard_fab_color">#009688</color>
+    <color name="ic_standard_fab_color_lighter">#33C9BB</color>
+
+
+    <!--BEGIN: SpotForm bottom menu-->
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="white">#FFFFFF</color>
+    <!--END: SpotForm bottom menu-->
+</resources>

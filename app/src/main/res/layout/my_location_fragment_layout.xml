@@ -1,5 +1,5 @@
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-
+<android.support.v4.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     xmlns:tools="http://schemas.android.com/tools"
@@ -10,16 +10,6 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MyLocationFragment">
-    <!-- <ImageButton
-         android:scaleType="fitCenter"
-         android:id="@+id/extra_image_button"
-         android:layout_width="158dp"
-         android:layout_height="189dp"
-         android:src="@drawable/rumo_a_stl"
-         android:layout_alignParentBottom="true"
-         android:layout_centerHorizontal="true"
-         android:background="@drawable/rounded_shape"/>-->
-
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -99,7 +89,7 @@
                 android:orientation="vertical"
                 android:weightSum="1">
 
-                <ImageButton
+                <android.support.v7.widget.AppCompatImageButton
                     android:id="@+id/save_hitchhiking_spot_button"
                     android:layout_width="92dp"
                     android:layout_height="wrap_content"

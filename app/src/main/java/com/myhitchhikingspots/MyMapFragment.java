@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.MapboxAccountManager;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
@@ -39,9 +39,10 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Mapbox.getInstance(getContext(), getResources().getString(R.string.mapBoxKey));
+
         View rootView = inflater.inflate(R.layout.my_map_fragment_layout, container, false);
 
-        MapboxAccountManager.start(getContext(), getResources().getString(R.string.mapBoxKey));
         mapView = (MapView) rootView.findViewById(R.id.mapview);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -102,23 +103,37 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
         return "";
     }
 
-    private static String dateTimeToString(Date dt) {
-        SimpleDateFormat res;
+    /*private static String dateTimeToString(Date dt) {
+        if (dt != null) {
+            SimpleDateFormat res;
+            String dateFormat = "dd/MMM', 'HH:mm";
 
-        String dateFormat = "dd/MM', 'HH:mm";
-        if (Locale.getDefault() == Locale.US)
-            dateFormat = "MM/dd', 'HH:mm";
+            if (Locale.getDefault() == Locale.US)
+                dateFormat = "MMM/dd', 'HH:mm";
 
-        try {
-            res = new SimpleDateFormat(dateFormat);
-            return res.format(dt);
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
+            try {
+                res = new SimpleDateFormat(dateFormat);
+                return res.format(dt);
+            } catch (Exception ex) {
+                Crashlytics.setString("date", dt.toString());
+                Crashlytics.logException(ex);
+            }
         }
-
         return "";
+    }*/
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mapView.onStart();
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
 
     @Override
     public void onResume() {
@@ -163,7 +178,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
             // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
             for (int i = spotList.size() - 1; i >= 0; i--) {
                 Spot spot = spotList.get(i);
-                String title = dateTimeToString(spot.getStartDateTime()) + getString(spot);
+                String title = SpotListAdapter.dateTimeToString(spot.getStartDateTime()) + getString(spot);
                 String snippet = spot.getNote();
                 float iconAlpha = (float) 1.0;
 

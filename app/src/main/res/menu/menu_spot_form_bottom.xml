@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!--<item
+        android:id="@+id/action_location"
+        android:enabled="true"
+        android:icon="@drawable/ic_pin_drop_black_24dp"
+        android:title="@string/spot_form_bottommenu_map_tile"
+        app:showAsAction="ifRoom" />-->
+    <item
+        android:id="@+id/action_basic"
+        android:enabled="true"
+        android:icon="@drawable/ic_add_location_black_24dp"
+        android:title="@string/spot_form_bottommenu_basic_tile"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_evaluate"
+        android:enabled="true"
+        android:icon="@drawable/ic_evaluate_black_24dp"
+        android:title="@string/spot_form_bottommenu_evaluate_tile"
+        app:showAsAction="always" />
+</menu>

@@ -5,7 +5,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/coordinatorLayout"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/mapview_master_layout">
 
@@ -14,7 +13,7 @@
         android:id="@+id/mapview2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        mapbox:style_url="@string/style_mapbox_streets"
+        mapbox:mapbox_styleUrl="@string/mapbox_style_mapbox_streets"
         />
 
 

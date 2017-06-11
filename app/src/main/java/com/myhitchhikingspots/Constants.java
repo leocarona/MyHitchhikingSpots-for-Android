@@ -28,10 +28,21 @@ public final class Constants {
     public static final int ATTEMPT_RESULT_GOT_A_RIDE = 1;
     public static final int ATTEMPT_RESULT_TOOK_A_BREAK = 2;
 
+    public static final int SPOT_TYPE_UNKNOWN = 0;
+    public static final int SPOT_TYPE_ORIGIN = 1;
+    public static final int SPOT_TYPE_GOT_A_RIDE = 2;
+    public static final int SPOT_TYPE_TOOK_A_BREAK = 3;
+    public static final int SPOT_TYPE_WAITING = 4;
+    public static final int SPOT_TYPE_DESTINATION = 5;
+
     public static final String SPOT_BUNDLE_EXTRA_KEY = PACKAGE_NAME + ".SPOT";
-    public static final String SPOT_BUNDLE_EXTRA_ID_KEY = PACKAGE_NAME + ".SPOT_ID";
+    public static final String SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY";
+    public static final String SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY";
+    public static final String SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = PACKAGE_NAME + ".SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY";
+    public static final String SHOULD_SHOW_BUTTONS_KEY = PACKAGE_NAME + ".SHOULD_SHOW_BUTTONS_KEY";
 
     //Zoom to a level that makes it easier for the user to find his new position (he might not be too far from the location shown)
     public static final int ZOOM_TO_SEE_FARTHER_DISTANCE = 6;
-    public static final int ZOOM_TO_SEE_CLOSE_TO_SPOT = 17;
+    public static final int ZOOM_TO_SEE_CLOSE_TO_SPOT = 12;
+    public static final int KEEP_ZOOM_LEVEL = -1;
 }

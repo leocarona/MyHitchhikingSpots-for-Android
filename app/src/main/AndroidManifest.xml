@@ -24,8 +24,8 @@ limitations under the License.
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- End: Extra-permissions necessary for MapBox -->
 
+    <!-- End: Extra-permissions necessary for MapBox -->
     <application
         android:name=".MyHitchhikingSpotsApplication"
         android:allowBackup="true"
@@ -44,15 +44,15 @@ limitations under the License.
         <activity
             android:name=".SampleBasicActivity"
             android:label="@string/sample_basic_master_title"
-            android:theme="@style/Theme.Base.NoActionBar"></activity>
+            android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".SpotFormActivity"
             android:label="@string/title_activity_scrolling"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar">
-            <meta-data
+            <!--<meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.myhitchhikingspots.BaseActivity" />
+                android:value="com.myhitchhikingspots.BaseActivity" />-->
         </activity>
         <activity
             android:name=".MainActivity"
@@ -60,42 +60,48 @@ limitations under the License.
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar">
 
-
-            <!-- Broadcast Receivers
+            <!--
+            Broadcast Receivers
             <receiver android:name=".RemoteControlReceiver">
                 <intent-filter android:priority="1000">
                     <action android:name="android.intent.action.MEDIA_BUTTON" />
                 </intent-filter>
-            </receiver> -->
+            </receiver>
+            -->
         </activity>
-
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings_master_title"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
-
         <activity
             android:name=".MapViewActivity"
             android:label="@string/app_name"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar">
+        </activity>
+
+        <!--
+        Service to asynchronously fetch a location address using a Geocoder. Setting the
+        android:exported attribute to "false" stops other apps from starting this
+        service, even when using an explicit intent.
+        -->
+        <service
+            android:name=".FetchAddressIntentService"
+            android:exported="false" />
+
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="${fabricApiKey}" />
+
+        <activity android:name=".StartActivity"
+            android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Service to asynchronously fetch a location address using a Geocoder. Setting the
-        android:exported attribute to "false" stops other apps from starting this
-        service, even when using an explicit intent. -->
-        <service
-            android:name=".FetchAddressIntentService"
-            android:exported="false" />
-        <meta-data
-            android:name="io.fabric.ApiKey"
-            android:value="${fabricApiKey}" />
     </application>
 
 </manifest>

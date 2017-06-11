@@ -218,9 +218,13 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
+        Bundle args = new Bundle();
+        args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+        args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+
         Intent intent = new Intent(getContext(), SpotFormActivity.class);
-        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        startActivityForResult(intent, requestCode);
+        intent.putExtras(args);
+        startActivity(intent);
     }
 
     public void gotARideButtonHandler() {
@@ -241,9 +245,13 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
 
         if (mIsWaitingForARide) {
+            Bundle args = new Bundle();
+            args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
+            args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+
             Intent intent = new Intent(parentActivity.getApplicationContext(), SpotFormActivity.class);
-            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
-            startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
+            intent.putExtras(args);
+            startActivity(intent);
         }
     }
 
