@@ -45,4 +45,14 @@ public final class Constants {
     public static final int ZOOM_TO_SEE_FARTHER_DISTANCE = 6;
     public static final int ZOOM_TO_SEE_CLOSE_TO_SPOT = 12;
     public static final int KEEP_ZOOM_LEVEL = -1;
+
+    public static final String FILE_NAME_FOR_STORING_MARKERS = "markersStorageFile";
+    public static final String FOLDERFORSTORINGMARKERS = "/markersStorageFolder";
+    public static final String PREFS_ZOOMLEVEL = "zoomLevel";
+    public static final float ZOOM_LOW = 9f;
+    public static final String PREFS_TIMESTAMP_OF_MARKERS_SYNC = "syncTimestamp";
+    public static final String PREFS_TIMESTAMP_OF_BACKUP_SYNC = "backupTimestamp";
+    public static final int CROUTON_DURATION_2500 = 2500;
+    public static final int CROUTON_DURATION_5000 = 5000;
+    public static final int CROUTON_DURATION_1500 = 1500;
 }

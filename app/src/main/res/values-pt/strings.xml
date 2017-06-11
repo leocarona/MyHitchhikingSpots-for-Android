@@ -67,6 +67,7 @@
     <string name="settings_master_title">Ferramentas</string>
     <string name="settings_importdb_button_label">importar banco de dados</string>
     <string name="settings_exportdb_button_label">exportar banco de dados</string>
+    <string name="settings_downloadHDSpots_button_label">download locais do Hitchwiki Maps</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

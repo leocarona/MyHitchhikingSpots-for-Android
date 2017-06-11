@@ -42,13 +42,25 @@
             android:layout_gravity="center"
             android:text="@string/settings_exportdb_button_label"
             android:id="@+id/export"
+            android:textAllCaps="true"
             android:onClick="exportButtonHandler" />
 
-        <TextView
+        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_gravity="center"
+            android:text="@string/settings_downloadHDSpots_button_label"
+            android:textAllCaps="true"
+            android:id="@+id/download_hw_spots"
+            android:onClick="downloadHWSpotsButtonHandler" />
+
+        <TextView
             android:id="@+id/feedbacklabel"
-            android:layout_gravity="left" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:background="#FFFFD54D"
+            android:padding="10dp"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
     </LinearLayout>
 </RelativeLayout>

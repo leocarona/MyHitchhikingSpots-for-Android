@@ -1,27 +1,41 @@
 package com.myhitchhikingspots;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.myhitchhikingspots.model.DaoSession;
+import com.dualquo.te.hitchwiki.classes.APICallCompletionListener;
+import com.dualquo.te.hitchwiki.classes.ApiManager;
+import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
+import com.dualquo.te.hitchwiki.entities.Error;
+import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
+import com.google.gson.Gson;
 import com.myhitchhikingspots.model.SpotDao;
 
-import org.joda.time.DateTime;
-
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,15 +45,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 public class SettingsActivity extends BaseActivity {
     TextView mfeedbacklabel;
+    CoordinatorLayout coordinatorLayout;
+
+    Context context;
+    SharedPreferences prefs;
+
+    public SettingsActivity() {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +73,38 @@ public class SettingsActivity extends BaseActivity {
         //exportDB();
         //importDB();
 
+        //prefs
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+
         mfeedbacklabel = (TextView) findViewById(R.id.feedbacklabel);
+        mfeedbacklabel.setVisibility(View.GONE);
+
+        String strLastDownload = "";
+
+        Long millisecondsAtNow = System.currentTimeMillis();
+        Long millisecondsLastExport = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_BACKUP_SYNC, 0);
+        if (millisecondsLastExport > 0) {
+            strLastDownload += String.format("- Last export was done %s ago.",
+                    SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport)));
+        }
+
+        Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_MARKERS_SYNC, 0);
+        if (millisecondsAtRefresh > 0) {
+            if (!strLastDownload.isEmpty())
+                strLastDownload += "\n";
+
+            strLastDownload += String.format("- Last download was done %s ago.",
+                    SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh)));
+        }
+
+        if (!strLastDownload.isEmpty()) {
+            mfeedbacklabel.setText(strLastDownload);
+            mfeedbacklabel.setVisibility(View.VISIBLE);
+        }
+
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        context = this;
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -111,6 +167,58 @@ public class SettingsActivity extends BaseActivity {
         Crashlytics.log(Log.DEBUG, "", "Chosen path = " + filePath);
         return filePath;
     }
+
+    public void downloadHWSpotsButtonHandler(View view) {
+        /*// Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WAKE_LOCK)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WAKE_LOCK)) {
+
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
+                        .setAction("enable", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                ActivityCompat.requestPermissions(SettingsActivity.this, new String[]{
+                                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                                        Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_WAKE_LOCK);
+                            }
+                        }).show();
+            } else {
+
+            // No explanation needed, we can request the permission.
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WAKE_LOCK},
+                    PERMISSIONS_WAKE_LOCK);
+
+            // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+            // app-defined int constant. The callback method gets the
+            // result of the request.
+            }
+        } else new retrievePlacesAsyncTask(true).execute("");*/
+        new retrievePlacesAsyncTask(true).execute("");
+
+    }
+
+    /*private static final int PERMISSIONS_WAKE_LOCK = 0;
+    private PowerManager.WakeLock wl;
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSIONS_WAKE_LOCK) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                new retrievePlacesAsyncTask(true).execute("");
+            }
+        }
+    }*/
 
     public void shareButtonHandler(View view) {
         //create the send intent
@@ -229,6 +337,7 @@ public class SettingsActivity extends BaseActivity {
 
         }
         mfeedbacklabel.setText(destinationPath);
+        mfeedbacklabel.setVisibility(View.VISIBLE);
     }
 
     final static String DBBackupSubdirectory = "/backup";
@@ -309,7 +418,9 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPreExecute() {
-            this.dialog.setMessage("Exporting database...");
+            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            this.dialog.setTitle(getString(R.string.settings_exportdb_button_label));
+            this.dialog.setMessage("Your spots list will be saved on your phone as CSV file..");
             this.dialog.show();
         }
 
@@ -349,7 +460,7 @@ public class SettingsActivity extends BaseActivity {
                 csvWrite.close();
                 curCSV.close();
 
-                result = "Copied to: " + file.getPath();
+                result = "Copied to:\n" + file.getPath();
                 Crashlytics.log(Log.DEBUG, TAG, result);
 
                 return true;
@@ -364,12 +475,16 @@ public class SettingsActivity extends BaseActivity {
 
         protected void onPostExecute(final Boolean success) {
             dbExported = success;
-
+            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             if (this.dialog.isShowing()) {
                 this.dialog.dismiss();
             }
             if (success) {
                 mfeedbacklabel.setText(result);
+                mfeedbacklabel.setVisibility(View.VISIBLE);
+
+                Long currentMillis = System.currentTimeMillis();
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP_SYNC, currentMillis).commit();
 
                 Toast.makeText(SettingsActivity.this, "Export successful!", Toast.LENGTH_SHORT).show();
             } else {
@@ -614,6 +729,367 @@ public class SettingsActivity extends BaseActivity {
                     .show();
         }
 
+    }
+
+
+    private class MyTask extends AsyncTask<Void, Void, String> {
+
+        private Exception exception;
+
+        protected String doInBackground(Void... urls) {
+
+
+//		a.getPlacesFromArea(63.375129767984f,65.208716083434f,22.544799804826f,25.190063476196f, getPlacesByArea);
+//		a.getPlacesByContinent("EU", getPlacesByArea);
+
+//		a.getPlaceCompleteDetails(6874, getCompletePlaceCallback);
+
+            hitchwikiAPI.getCountriesWithCoordinatesAndMarkersNumber(getCountriesAndCoordinates);
+            return "";
+        }
+
+        protected void onPostExecute(String feed) {
+
+        }
+    }
+
+    //async task to retrieve markers
+    public class retrievePlacesAsyncTask extends AsyncTask<String, Void, String> {
+        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
+        Boolean shouldDeleteExisting;
+
+        public retrievePlacesAsyncTask(Boolean shouldDeleteExisiting) {
+            this.shouldDeleteExisting = shouldDeleteExisiting;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            String strToShow = "Downloading spots from Hitchwiki Maps...";
+
+            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            if (shouldDeleteExisting)
+                strToShow = "Updating spots from Hitchwiki Maps...";
+
+            try {
+                loadingDialog.setTitle(getString(R.string.settings_downloadHDSpots_button_label));
+                loadingDialog.setMessage(strToShow);
+
+                if (!loadingDialog.isShowing())
+                    loadingDialog.show();
+            } catch (Exception ex) {
+                String msg = ex.getMessage();
+                Crashlytics.logException(ex);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected String doInBackground(String... params) {
+           /* PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
+            wl.acquire();*/
+
+            //this boolean is used for mkdir down in the code, so it's not useless as it seems
+            boolean dummySuccessAtCreatingFolder = false;
+
+            if (isCancelled()) {
+                return "Canceled";
+            }
+
+            //check if there's folder where we store file with markers stored
+            markersStorageFolder = new File
+                    (
+                            Environment.getExternalStorageDirectory() +
+                                    "/" +
+                                    "Android/data/" +
+                                    context.getPackageName() +
+                                    Constants.FOLDERFORSTORINGMARKERS
+                    );
+
+            //create "/markersStorageFolder" if not already created
+            if (!markersStorageFolder.exists()) {
+                //create folder for the first time
+                dummySuccessAtCreatingFolder = markersStorageFolder.mkdir();
+
+                //as folder didn't exist, this is the first time we download markers, so proceed with downloading them
+                //retrieving markers per continent, as specified in API
+                hitchwikiAPI.getPlacesByContinent("EU", getPlacesByArea);
+                hitchwikiAPI.getPlacesByContinent("AS", getPlacesByArea);
+                hitchwikiAPI.getPlacesByContinent("AF", getPlacesByArea);
+                hitchwikiAPI.getPlacesByContinent("NA", getPlacesByArea);
+                hitchwikiAPI.getPlacesByContinent("SA", getPlacesByArea);
+                hitchwikiAPI.getPlacesByContinent("AN", getPlacesByArea);
+                hitchwikiAPI.getPlacesByContinent("OC", getPlacesByArea);
+
+                //we will put complete placesContainer into a file in this newly created folder once we go
+                //to onPostExecute, using gson converter to JSON and streaming it into a file
+                return "folderDidntExist";
+            } else {
+                //folder exists, but it may be a case that file with stored markers is missing, so lets check that
+                File fileCheck = new File(markersStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
+
+                if (!fileCheck.exists()) {
+                    //so file is missing, app has to download markers, like above
+                    //as folder didn't exist, this is the first time we download markers, so proceed with downloading them
+                    //retrieving markers per continent, as specified in API
+                    hitchwikiAPI.getPlacesByContinent("EU", getPlacesByArea);
+                    hitchwikiAPI.getPlacesByContinent("AS", getPlacesByArea);
+                    hitchwikiAPI.getPlacesByContinent("AF", getPlacesByArea);
+                    hitchwikiAPI.getPlacesByContinent("NA", getPlacesByArea);
+                    hitchwikiAPI.getPlacesByContinent("SA", getPlacesByArea);
+                    hitchwikiAPI.getPlacesByContinent("AN", getPlacesByArea);
+                    hitchwikiAPI.getPlacesByContinent("OC", getPlacesByArea);
+
+                    //we will put complete placesContainer into a file in this newly created folder once we go
+                    //to onPostExecute, using gson converter to JSON and streaming it into a file
+                    return "folderDidntExist";
+                } else {
+                    if (fileCheck.length() == 0 || shouldDeleteExisting) {
+                        //security check if folder isn't deleted in the meantime (since hitchwiki app was started)
+                        if (!markersStorageFolder.exists()) {
+                            //create folder again
+                            dummySuccessAtCreatingFolder = markersStorageFolder.mkdir();
+                        } else {
+                            //folder exists (totally expected), so lets delete existing file now
+                            //but its size is 0KB, so lets delete it and download markers again
+                            fileCheck.delete();
+                        }
+
+                        //recreate placesContainer, it might not be empty
+                        if (placesContainer != null) {
+                            placesContainer = null;
+                            placesContainer = new ArrayList<PlaceInfoBasic>();
+                        }
+
+                        //this boolean will trigger marker placing in onCameraChange method
+                        placesContainerIsEmpty = true;
+
+                        //retrieving markers per continent, as specified in API
+                        hitchwikiAPI.getPlacesByContinent("EU", getPlacesByArea);
+                        hitchwikiAPI.getPlacesByContinent("AS", getPlacesByArea);
+                        hitchwikiAPI.getPlacesByContinent("AF", getPlacesByArea);
+                        hitchwikiAPI.getPlacesByContinent("NA", getPlacesByArea);
+                        hitchwikiAPI.getPlacesByContinent("SA", getPlacesByArea);
+                        hitchwikiAPI.getPlacesByContinent("AN", getPlacesByArea);
+                        hitchwikiAPI.getPlacesByContinent("OC", getPlacesByArea);
+
+                        //we will put complete placesContainer into a file in this newly created folder once we go
+                        //to onPostExecute, using gson converter to JSON and streaming it into a file
+                        return "folderDidntExist";
+                    } else {
+                        //proceed with streaming this file into String and converting it by gson to placesContainer
+                        //then continue the logic from getPlacesByArea listener
+
+                        File fl = new File(markersStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
+                        FileInputStream fin;
+                        try {
+                            fin = new FileInputStream(fl);
+
+                            //get markersStorageFile streamed into String, so gson can convert it into placesContainer
+                            String placesContainerAsString = Utils.convertStreamToString(fin);
+
+                            fin.close();
+
+                            PlaceInfoBasic[] placesContainerFromFile =
+                                    hitchwikiAPI.getPlacesByContinenFromLocalFile(placesContainerAsString);
+
+                            placesContainer.clear();
+
+                            for (int i = 0; i < placesContainerFromFile.length; i++) {
+                                placesContainer.add(placesContainerFromFile[i]);
+                            }
+
+                            //prepare everything that Clusterkraf needs
+                            //buildMarkerModels(placesContainer);
+
+                            //now build array list of inputPoints
+                            //buildInputPoints();
+                        } catch (FileNotFoundException exception) {
+                            exception.printStackTrace();
+                        } catch (IOException exception) {
+                            exception.printStackTrace();
+                        } catch (Exception exception) {
+                            exception.printStackTrace();
+                        }
+
+                        return "folderExisted";
+                    }
+                }
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            if (result.contentEquals("folderDidntExist")) {
+                //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
+                //so we have to create file in storage folder and stream placesContainer into it using gson
+                File fileToStoreMarkersInto = new File(markersStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
+
+                //also write into prefs that markers sync has occurred
+                Long currentMillis = System.currentTimeMillis();
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_MARKERS_SYNC, currentMillis).commit();
+
+               /* //update date in optionsMenu
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+                Date resultdate = new Date(currentMillis);
+                optionsMenuRefreshDate.setText(sdf.format(resultdate));*/
+
+                try {
+                    FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
+
+                    Gson gsonC = new Gson();
+                    String placesContainerAsString = gsonC.toJson(placesContainer);
+
+                    InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
+
+                    //create a buffer...
+                    byte[] buffer = new byte[1024];
+                    int bufferLength = 0; //used to store a temporary size of the buffer
+
+                    while ((bufferLength = inputStream.read(buffer)) > 0) {
+                        //add the data in the buffer to the file in the file output stream (the file on the sd card
+                        fileOutput.write(buffer, 0, bufferLength);
+                    }
+
+                    //close the output stream when done
+                    fileOutput.close();
+
+                    //continue with clusterkraf, as file is written and markers are stored
+                    //initClusterkraf();
+
+                    //this boolean will trigger marker placing in onCameraChange method
+                    placesContainerIsEmpty = false;
+
+                } catch (FileNotFoundException exception) {
+                    exception.printStackTrace();
+                } catch (UnsupportedEncodingException exception) {
+                    exception.printStackTrace();
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
+            } else {
+                //in this case, we processed already existing storage file, so we go on with initClusterkraf
+                //initClusterkraf();
+
+                //this boolean will trigger marker placing in onCameraChange method
+                placesContainerIsEmpty = false;
+            }
+
+            //release wakelock from doInBackground
+            //wl.release();
+
+            //tell the user how many markers are available
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    loadingDialog.dismiss();
+                    Toast.makeText(SettingsActivity.this, "Download successful!", Toast.LENGTH_SHORT).show();
+                    Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_MARKERS_SYNC, 0);
+                    if (millisecondsAtRefresh != 0) {
+                        //convert millisecondsAtRefresh to some kind of date and time text
+                        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+                        Date resultdate = new Date(millisecondsAtRefresh);
+                        String timeStamp = sdf.format(resultdate);
+
+                        showCrouton(String.format("%s spots were downloaded. Last sync was on %s.",
+                                placesContainer.size(),
+                                timeStamp),
+                                Constants.CROUTON_DURATION_5000);
+                    } else {
+                        showCrouton(String.format("%s spots were downloaded.",
+                                placesContainer.size()),
+                                Constants.CROUTON_DURATION_5000);
+                    }
+                }
+            });
+        }
+    }
+
+    public File markersStorageFolder;
+    public static List<PlaceInfoBasic> placesContainer = new ArrayList<PlaceInfoBasic>();
+    public boolean placesContainerIsEmpty = true;
+    final ApiManager hitchwikiAPI = new ApiManager();
+
+    APICallCompletionListener<PlaceInfoBasic[]> getPlacesByArea = new APICallCompletionListener<PlaceInfoBasic[]>() {
+        @Override
+        public void onComplete(boolean success, int intParam, String stringParam, Error error, PlaceInfoBasic[] object) {
+            if (success) {
+                for (int i = 0; i < object.length; i++) {
+                    placesContainer.add(object[i]);
+                }
+
+                //prepare everything that Clusterkraf needs
+                //buildMarkerModels(placesContainer);
+
+                //now build array list of inputPoints
+                //buildInputPoints();
+            } else {
+                System.out.println("Error message : " + error.getErrorDescription());
+            }
+        }
+    };
+
+    APICallCompletionListener<CountryInfoBasic[]> getCountriesAndCoordinates = new APICallCompletionListener<CountryInfoBasic[]>() {
+        @Override
+        public void onComplete(boolean success, int k, String s, Error error, CountryInfoBasic[] object) {
+            if (success) {
+                System.out.println(object.length);
+
+                for (int i = 0; i < object.length; i++) {
+                    System.out.println("country is = " + object[i].getName() + ", iso is = " + object[i].getIso());
+//											a.getPlaceBasicDetails(Integer.valueOf(object[i].getId()), createAccountCallback);
+                }
+            } else {
+                System.out.println("Error message : " + error.getErrorDescription());
+            }
+        }
+    };
+
+    //crouton instead of Toast messages, because Croutons are awesome
+    private void showCrouton(String croutonText, int duration) {
+        Crashlytics.log(Log.DEBUG, TAG, croutonText);
+        mfeedbacklabel.setText(croutonText);
+        mfeedbacklabel.setVisibility(View.VISIBLE);
+ /*final Crouton crouton;
+        final int durationOfCrouton = duration;
+
+        Configuration croutonConfiguration = new Configuration.Builder()
+                .setDuration(durationOfCrouton)
+                .setInAnimation(R.anim.push_right_in)
+                .setOutAnimation(R.anim.push_left_out)
+                .build();
+
+        crouton = Crouton.makeText(this, croutonText, Style.HITCHWIKI).setConfiguration(croutonConfiguration);
+
+        crouton.show();*/
+    }
+
+    Snackbar snackbar;
+
+    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
+        String t = "";
+        if (text != null && text.length() > 0)
+            t = text.toString();
+        snackbar = Snackbar.make(coordinatorLayout, t.toUpperCase(), Snackbar.LENGTH_LONG)
+                .setAction(action, listener);
+
+        // get snackbar view
+        View snackbarView = snackbar.getView();
+
+        // set action button color
+        snackbar.setActionTextColor(Color.BLACK);
+
+        // change snackbar text color
+        int snackbarTextId = android.support.design.R.id.snackbar_text;
+        TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
+        if (textView != null) textView.setTextColor(Color.WHITE);
+
+
+        // change snackbar background
+        snackbarView.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color));
+
+        snackbar.show();
     }
 }
 

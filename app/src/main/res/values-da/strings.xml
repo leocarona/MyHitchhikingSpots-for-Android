@@ -28,6 +28,7 @@
     <string name="settings_master_title">Værktøjer</string>
     <string name="settings_importdb_button_label">Importer database</string>
     <string name="settings_exportdb_button_label">Eksporter database</string>
+    <string name="settings_downloadHDSpots_button_label">Hente steder fra Hitchwiki Maps</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
