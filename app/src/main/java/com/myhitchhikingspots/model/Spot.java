@@ -33,6 +33,7 @@ public class Spot implements java.io.Serializable {
     private String CountryCode;
     private Boolean HasAccuracy;
     private Float Accuracy;
+    private Boolean IsPartOfARoute;
 
     @Generated
     public Spot() {
@@ -43,7 +44,7 @@ public class Spot implements java.io.Serializable {
     }
 
     @Generated
-    public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, java.util.Date StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination, String CountryCode, Boolean HasAccuracy, Float Accuracy) {
+    public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, java.util.Date StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination, String CountryCode, Boolean HasAccuracy, Float Accuracy, Boolean IsPartOfARoute) {
         this.id = id;
         this.Name = Name;
         this.Street = Street;
@@ -66,6 +67,7 @@ public class Spot implements java.io.Serializable {
         this.CountryCode = CountryCode;
         this.HasAccuracy = HasAccuracy;
         this.Accuracy = Accuracy;
+        this.IsPartOfARoute = IsPartOfARoute;
     }
 
     public Long getId() {
@@ -242,6 +244,14 @@ public class Spot implements java.io.Serializable {
 
     public void setAccuracy(Float Accuracy) {
         this.Accuracy = Accuracy;
+    }
+
+    public Boolean getIsPartOfARoute() {
+        return IsPartOfARoute;
+    }
+
+    public void setIsPartOfARoute(Boolean IsPartOfARoute) {
+        this.IsPartOfARoute = IsPartOfARoute;
     }
 
 }
