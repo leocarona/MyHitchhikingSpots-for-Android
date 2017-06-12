@@ -287,7 +287,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     private pageType currentPage;
 
-    protected void showCurrentPage() {
+    protected void configureBottomFABButtons() {
         switch (currentPage) {
             case NOT_FETCHING_LOCATION:
             default:
@@ -345,7 +345,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             currentPage = pageType.WAITING_FOR_A_RIDE;
         }
 
-        showCurrentPage();
+        configureBottomFABButtons();
     }
 
     /**
@@ -365,28 +365,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }
     }
 
-    protected List<Spot> getSpotListWithCurrentLocation() {
-        //If user isn't waiting for a ride, add the the current location to the list so that it's included on the map
-        List<Spot> newList = new ArrayList<>();
-
-        /*
-        Spot mCurrentSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
-
-        //As of December 2016, if the user is waiting for a ride we stop fetching his location. So we better don't try to add it to the map.
-        if (mCurrentSpot == null || mCurrentSpot.getIsWaitingForARide() == null || !mCurrentSpot.getIsWaitingForARide()) {
-            if (mCurrentLocation != null) {
-                Spot myLocationSpot = new Spot();
-                myLocationSpot.setId(Constants.USER_CURRENT_LOCATION_SPOTLIST_ID);
-                myLocationSpot.setLatitude(mCurrentLocation.getLatitude());
-                myLocationSpot.setLongitude(mCurrentLocation.getLongitude());
-                newList.add(myLocationSpot);
-            }
-        }*/
-
-        newList.addAll(spotList);
-        return newList;
-    }
-
 
     public void loadValues() {
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
@@ -395,7 +373,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
         setValues(spotList, appContext.getCurrentSpot());
-        setValues(getSpotListWithCurrentLocation());
     }
 
     //onMapReady is called after onResume()
@@ -489,7 +466,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     void loadAll() {
-        loadValues();
         updateUISaveButtons();
 
         //Load polylines
@@ -751,6 +727,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         @Override
         protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
             try {
+                loadValues();
+
                 isDrawingAnnotations = true;
 
                 List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
