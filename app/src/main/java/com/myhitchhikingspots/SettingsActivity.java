@@ -1,23 +1,19 @@
 package com.myhitchhikingspots;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -169,56 +165,8 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public void downloadHWSpotsButtonHandler(View view) {
-        /*// Here, thisActivity is the current activity
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WAKE_LOCK)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.WAKE_LOCK)) {
-
-                // Show an expanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
-                        .setAction("enable", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                ActivityCompat.requestPermissions(SettingsActivity.this, new String[]{
-                                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                                        Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_WAKE_LOCK);
-                            }
-                        }).show();
-            } else {
-
-            // No explanation needed, we can request the permission.
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WAKE_LOCK},
-                    PERMISSIONS_WAKE_LOCK);
-
-            // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-            // app-defined int constant. The callback method gets the
-            // result of the request.
-            }
-        } else new retrievePlacesAsyncTask(true).execute("");*/
         new retrievePlacesAsyncTask(true).execute("");
-
     }
-
-    /*private static final int PERMISSIONS_WAKE_LOCK = 0;
-    private PowerManager.WakeLock wl;
-
-    @Override
-    public void onRequestPermissionsResult(
-            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSIONS_WAKE_LOCK) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                new retrievePlacesAsyncTask(true).execute("");
-            }
-        }
-    }*/
 
     public void shareButtonHandler(View view) {
         //create the send intent
@@ -428,10 +376,6 @@ public class SettingsActivity extends BaseActivity {
             Crashlytics.log(Log.INFO, TAG, "ExportDatabaseCSVTask started executing..");
             MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
 
-            File db = getDatabasePath(Constants.dbName);
-            String currentDBPath = db.getPath();//"/data/"+ Constants.PACKAGE_NAME +"/databases/"+ Constants.dbName +".db";
-            File dbFile = getDatabasePath("" + currentDBPath);
-            System.out.println(dbFile);  // displays the data base path in your logcat
             File exportDir = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/");
 
             if (!exportDir.exists()) {
@@ -729,28 +673,6 @@ public class SettingsActivity extends BaseActivity {
                     .show();
         }
 
-    }
-
-
-    private class MyTask extends AsyncTask<Void, Void, String> {
-
-        private Exception exception;
-
-        protected String doInBackground(Void... urls) {
-
-
-//		a.getPlacesFromArea(63.375129767984f,65.208716083434f,22.544799804826f,25.190063476196f, getPlacesByArea);
-//		a.getPlacesByContinent("EU", getPlacesByArea);
-
-//		a.getPlaceCompleteDetails(6874, getCompletePlaceCallback);
-
-            hitchwikiAPI.getCountriesWithCoordinatesAndMarkersNumber(getCountriesAndCoordinates);
-            return "";
-        }
-
-        protected void onPostExecute(String feed) {
-
-        }
     }
 
     //async task to retrieve markers
