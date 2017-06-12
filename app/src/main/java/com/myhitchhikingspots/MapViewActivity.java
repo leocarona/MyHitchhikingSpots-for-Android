@@ -248,11 +248,13 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     boolean no_internet_dialog_showed = false;
 
     private void loadMarkerIcons() {
-        ic_unknown_spot = IconUtils.drawableToIcon(this, R.drawable.ic_edit_location_black_24dp, getIdentifierColorStateList(-1));
+        ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
+
         ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
 
+        ic_typeunknown_spot = IconUtils.drawableToIcon(this, R.drawable.ic_edit_location_black_24dp, getIdentifierColorStateList(-1));
         ic_got_a_ride_spot0 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(0));
         ic_got_a_ride_spot1 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(1));
         ic_got_a_ride_spot2 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(2));
@@ -591,7 +593,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }*/
     }
 
-    Icon ic_unknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
+    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
 
     List<Spot> spotList = new ArrayList<Spot>();
@@ -941,7 +943,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     private Icon getGotARideIconForRoute(int routeIndex) {
-        Icon i = ic_unknown_spot;
+        Icon i = ic_typeunknown_spot;
 
         if (routeIndex > -1) {
             int value = routeIndex;
