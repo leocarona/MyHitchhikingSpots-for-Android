@@ -776,10 +776,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
                                 //AT THIS SPOT USER GOT A RIDE
 
-                                int waitingTime = 0;
                                 if (spot.getWaitingTime() != null)
-                                    waitingTime = spot.getWaitingTime();
-                                snippet = SpotListAdapter.getWaitingTimeAsString(waitingTime);
+                                    snippet = SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime());
 
                                 markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
@@ -789,11 +787,15 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     }
 
                     String note = "";
-                    if (spot.getNote() != null)
+                    if (spot.getNote() != null && !spot.getNote().isEmpty())
                         note = " " + spot.getNote();
 
+                    String str = SpotListAdapter.dateTimeToString(spot.getStartDateTime());
+                    if (!snippet.isEmpty() || !note.isEmpty())
+                        str += " - " + snippet + note;
+
                     // Customize map with markers, polylines, etc.
-                    markerViewOptions.snippet(SpotListAdapter.dateTimeToString(spot.getStartDateTime()) + " - " + snippet + note);
+                    markerViewOptions.snippet(str);
 
                     spots.add(markerViewOptions);
 
