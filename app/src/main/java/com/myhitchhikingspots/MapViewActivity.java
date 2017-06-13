@@ -2,8 +2,10 @@ package com.myhitchhikingspots;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -80,6 +82,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
@@ -249,8 +253,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         snackbar.show();
     }
-
-    boolean no_internet_dialog_showed = false;
 
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
@@ -445,10 +447,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         updateUI();
     }
 
+    SharedPreferences prefs;
+
     void updateUI() {
         Crashlytics.log(Log.INFO, "tracking-map", "updateUI was called");
 
-        if (!Utils.isNetworkAvailable(this) && !no_internet_dialog_showed) {
+        if (!Utils.isNetworkAvailable(this) && !Utils.shouldLoadCurrentView(prefs)) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))
@@ -456,18 +460,24 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
+                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
+
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
                         }
                     })
                     .setNegativeButton(getResources().getString(R.string.map_error_alert_map_not_loaded_negative_button), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
+                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
+
                             loadAll();
                         }
                     }).show();
-            no_internet_dialog_showed = true;
-        } else
+        } else {
             loadAll();
+        }
     }
 
     void loadAll() {
@@ -593,7 +603,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             snackbar.dismiss();
     }
 
-    protected static final String NO_INTERNET_DIALOG_SHOWED_KEY = "no-internet-dialog-showed";
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
 
@@ -602,7 +611,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         super.onSaveInstanceState(savedInstanceState);
         mapView.onSaveInstanceState(savedInstanceState);
 
-        savedInstanceState.putBoolean(NO_INTERNET_DIALOG_SHOWED_KEY, no_internet_dialog_showed);
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
     }
 
@@ -615,8 +623,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private void updateValuesFromBundle(Bundle savedInstanceState) {
         Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
         if (savedInstanceState != null) {
-            if (savedInstanceState.keySet().contains(NO_INTERNET_DIALOG_SHOWED_KEY))
-                no_internet_dialog_showed = savedInstanceState.getBoolean(NO_INTERNET_DIALOG_SHOWED_KEY);
             if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
                 wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
         }

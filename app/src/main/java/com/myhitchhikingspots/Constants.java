@@ -52,12 +52,17 @@ public final class Constants {
     public static final String FOLDERFORSTORINGMARKERS = "/markersStorageFolder";
     public static final String PREFS_ZOOMLEVEL = "zoomLevel";
     public static final float ZOOM_LOW = 9f;
+
     public static final String PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD = "hitchwikiSpotsTimestamp";
     public static final String PREFS_TIMESTAMP_OF_BACKUP = "backupTimestamp";
     public static final String PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD = "countriesDownloadedTimestamp";
+    public static final String PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN = "lastOfflineModeWarnTimestamp";
+    public static final String PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW = "shouldLoadCurrentView";
+
     public static final int CROUTON_DURATION_2500 = 2500;
     public static final int CROUTON_DURATION_5000 = 5000;
     public static final int CROUTON_DURATION_1500 = 1500;
+
 
     public static final String SHOULD_SYNC_EU = "SHOULD_SYNC_EU";
     public static final String SHOULD_SYNC_AS = "SHOULD_SYNC_AS";
