@@ -19,23 +19,30 @@
         android:orientation="vertical">
 
         <Button
-            android:layout_gravity="center"
+            android:id="@+id/get_countries_list"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="pick file"
-            android:onClick="pickFileButtonHandler"
-            android:visibility="gone"
-            />
+            android:layout_gravity="center"
+            android:onClick="getCountriesButtonHandler"
+            android:text="@string/settings_downloadCountriesList_button_label"
+            android:textAllCaps="true" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/settings_importdb_button_label"
-            android:layout_marginTop="140dp"
             android:layout_gravity="center"
+            android:onClick="pickFileButtonHandler"
+            android:text="pick file"
+            android:visibility="gone" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="140dp"
             android:onClick="importButtonHandler"
-            android:visibility="gone"
-            />
+            android:text="@string/settings_importdb_button_label"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/download_hw_spots"
@@ -45,6 +52,48 @@
             android:onClick="downloadHWSpotsButtonHandler"
             android:text="@string/settings_downloadHDSpots_button_label"
             android:textAllCaps="true" />
+
+
+        <Switch
+            android:id="@+id/switch_an"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/continent_code_an" />
+        <Switch
+            android:id="@+id/switch_af"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/continent_code_africa" />
+        <Switch
+            android:id="@+id/switch_as"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/continent_code_asia" />
+        <Switch
+            android:id="@+id/switch_eu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/continent_code_europe" />
+        <Switch
+            android:id="@+id/switch_na"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/continent_code_north_america" />
+        <Switch
+            android:id="@+id/switch_sa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/continent_code_south_america" />
+        <Switch
+            android:id="@+id/switch_oc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/continent_code_oc" />
+        <Switch
+            android:id="@+id/switch_bra"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Brazil" />
 
         <Button
             android:id="@+id/export"

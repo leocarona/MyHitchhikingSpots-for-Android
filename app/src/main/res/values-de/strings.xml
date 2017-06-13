@@ -63,9 +63,9 @@
     <string name="menu_home">Keine 3G? Benutze das</string>
 
     <string name="settings_master_title">Werkzeuge</string>
-    <string name="settings_importdb_button_label">import database</string>
-    <string name="settings_exportdb_button_label">export database</string>
-    <string name="settings_downloadHDSpots_button_label">download spots from Hitchwiki Maps</string>
+    <string name="settings_importdb_button_label">Import database</string>
+    <string name="settings_exportdb_button_label">Export database</string>
+    <string name="settings_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -155,4 +155,12 @@
 
     <string name="waiting_time_missing_dialog_title">Waiting time not informed</string>
     <string name="waiting_time_missing_dialog_message">Want to calculate it before saving?</string>
+
+    <string name="continent_code_an">Antarctica</string>
+    <string name="continent_code_africa">Africa</string>
+    <string name="continent_code_asia">Asia</string>
+    <string name="continent_code_europe">Europe</string>
+    <string name="continent_code_north_america">North America</string>
+    <string name="continent_code_south_america">South America</string>
+    <string name="continent_code_oc">Oceania</string>
 </resources>
