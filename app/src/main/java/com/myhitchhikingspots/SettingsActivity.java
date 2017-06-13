@@ -85,7 +85,7 @@ public class SettingsActivity extends BaseActivity {
                     SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport)));
         }
 
-        Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_MARKERS_SYNC, 0);
+        Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
         if (millisecondsAtRefresh > 0) {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
