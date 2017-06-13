@@ -720,6 +720,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         @Override
         protected void onPreExecute() {
+            this.dialog.setIndeterminate(true);
+            this.dialog.setCancelable(false);
             this.dialog.setMessage(getResources().getString(R.string.map_loading_dialog));
             this.dialog.show();
         }
@@ -733,6 +735,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                 List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
                 ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
+                ArrayList<ExtendedMarkerViewOptions> singleSpots = new ArrayList<>();
 
                 //The spots are ordered from the last saved ones to the first saved ones, so we need to
                 // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
@@ -779,7 +782,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                 if (spot.getWaitingTime() != null)
                                     snippet = SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime());
 
-                                markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
+                                if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute())
+                                    markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
+                                else
+                                    markerViewOptions.icon(ic_single_spot);
+
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
                             } else {
                                 markerViewOptions.icon(getGotARideIconForRoute(-1));
@@ -797,12 +804,20 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     // Customize map with markers, polylines, etc.
                     markerViewOptions.snippet(str);
 
-                    spots.add(markerViewOptions);
+                    if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
+                        spots.add(markerViewOptions);
 
-                    if (spot.getIsDestination() != null && spot.getIsDestination() || i == 0) {
-                        trips.add(spots);
-                        spots = new ArrayList<>();
-                    }
+                        if (spot.getIsDestination() != null && spot.getIsDestination() || i == 0) {
+                            trips.add(spots);
+                            spots = new ArrayList<>();
+                        }
+                    } else
+                        singleSpots.add(markerViewOptions);
+                }
+
+                if (singleSpots.size() > 0) {
+                    trips.add(singleSpots);
+                    isLastArrayForSingleSpots = true;
                 }
 
                 return trips;
@@ -814,6 +829,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             return new ArrayList<>();
         }
 
+
+        Boolean isLastArrayForSingleSpots = false;
+
         @Override
         protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
             super.onPostExecute(trips);
@@ -823,21 +841,30 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 for (int lc = 0; lc < trips.size(); lc++) {
                     List<ExtendedMarkerViewOptions> spots = trips.get(lc);
 
-                    PolylineOptions line = new PolylineOptions()
-                            .width(2)
-                            .color(Color.parseColor(getResources().getString(getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
+                    //If it's the last array and isLastArrayForSingleSpots is true, add the markers with no polyline connecting them
+                    if (isLastArrayForSingleSpots && lc == trips.size() - 1) {
+                        for (ExtendedMarkerViewOptions spot : spots) {
+                            //Add marker to map
+                            mapboxMap.addMarker(spot);
+                        }
+                    } else {
+                        PolylineOptions line = new PolylineOptions()
+                                .width(2)
+                                .color(Color.parseColor(getResources().getString(getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
 
-                    for (ExtendedMarkerViewOptions spot : spots) {
-                        //Add marker to map
-                        mapboxMap.addMarker(spot);
+                        //Add route to the map with markers and polylines connecting them
+                        for (ExtendedMarkerViewOptions spot : spots) {
+                            //Add marker to map
+                            mapboxMap.addMarker(spot);
 
-                        //Add polyline connecting this marker
-                        line.add(spot.getPosition());
-                    }
+                            //Add polyline connecting this marker
+                            line.add(spot.getPosition());
+                        }
 
-                    if (spotList.size() > 1) {
-                        //Add polylines to map
-                        mapboxMap.addPolyline(line);
+                        if (spotList.size() > 1) {
+                            //Add polylines to map
+                            mapboxMap.addPolyline(line);
+                        }
                     }
                 }
 
