@@ -87,6 +87,30 @@ public class DaoMaster extends AbstractDaoMaster {
         }
     }
 
+    /**
+     * Checks if a column already exists on a specific table of a database. This can be used because calling a SQL ALTER table command in order to add new columns to a table schema.
+     * @param db The database to check the existence of the given column
+     * @param table The name of the table
+     * @param column The column name
+     * @return True if the column already exists in the database table schema
+     */
+    public static boolean isColumnExists(Database db, String table, String column) {
+        Cursor cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                String name = cursor.getString(cursor.getColumnIndex("name"));
+                if (column.equalsIgnoreCase(name)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * WARNING: Drops all table on Upgrade! Use only during development.
+     */
     public static class DevOpenHelper extends OpenHelper {
         public DevOpenHelper(Context context, String name) {
             super(context, name);

@@ -10,7 +10,7 @@ public class DaoGenerator {
     private static final String PROJECT_DIR = System.getProperty("user.dir").replace("\\", "/");
     public static void main(String args[]) throws Exception {
 
-        Schema schema = new Schema(3, "com.myhitchhikingspots.model");
+        Schema schema = new Schema(4, "com.myhitchhikingspots.model");
         /*Entity person = schema.addEntity("Person");
         person.addIdProperty();
         person.addStringProperty("name");
@@ -19,8 +19,6 @@ public class DaoGenerator {
         Entity lease = schema.addEntity("Lease");
         lease.addIdProperty();
         lease.addStringProperty("item");
-        lease.addStringProperty("comment");
-        lease.addLongProperty("leasedate");
         lease.addLongProperty("returndate");
 
         Property personId = lease.addLongProperty("personId").getProperty();
@@ -60,6 +58,9 @@ public class DaoGenerator {
         spot.addStringProperty("CountryCode");
         spot.addBooleanProperty("HasAccuracy");
         spot.addFloatProperty("Accuracy");
+
+        //1 field added on schema of database version 4 on June 11, 2017:
+        spot.addBooleanProperty("IsPartOfARoute");
 
         spot.implementsSerializable();
 
