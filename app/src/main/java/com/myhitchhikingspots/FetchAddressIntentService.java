@@ -9,6 +9,7 @@ import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
+import com.myhitchhikingspots.model.MyLocation;
 
 import java.io.IOException;
 import java.util.List;

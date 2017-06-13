@@ -68,6 +68,7 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 import com.myhitchhikingspots.model.DaoSession;
+import com.myhitchhikingspots.model.MyLocation;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.Utils;
