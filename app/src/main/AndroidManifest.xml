@@ -76,11 +76,14 @@ limitations under the License.
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".MapViewActivity"
-            android:label="@string/app_name"
+            android:label="@string/mapview_master_title"
             android:parentActivityName=".BaseActivity"
-            android:theme="@style/Theme.Base.NoActionBar">
-        </activity>
-
+            android:theme="@style/Theme.Base.NoActionBar"/>
+        <activity
+            android:name=".HitchwikiMapViewActivity"
+            android:label="@string/mapview_hitchwiki_title"
+            android:parentActivityName=".BaseActivity"
+            android:theme="@style/Theme.Base.NoActionBar"/>
         <!--
         Service to asynchronously fetch a location address using a Geocoder. Setting the
         android:exported attribute to "false" stops other apps from starting this

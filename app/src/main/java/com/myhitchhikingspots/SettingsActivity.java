@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.dualquo.te.hitchwiki.classes.APICallCompletionListener;
+import com.dualquo.te.hitchwiki.classes.APIConstants;
 import com.dualquo.te.hitchwiki.classes.ApiManager;
 import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
 import com.dualquo.te.hitchwiki.entities.Error;
@@ -41,7 +42,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.fabric.sdk.android.services.common.Crash;
 
 public class SettingsActivity extends BaseActivity {
     TextView mfeedbacklabel;
@@ -847,9 +848,6 @@ public class SettingsActivity extends BaseActivity {
                 //so we have to create file in storage folder and stream placesContainer into it using gson
                 File fileToStoreMarkersInto = new File(markersStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
 
-                //also write into prefs that markers sync has occurred
-                Long currentMillis = System.currentTimeMillis();
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_MARKERS_SYNC, currentMillis).commit();
 
                /* //update date in optionsMenu
                 SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
@@ -897,41 +895,45 @@ public class SettingsActivity extends BaseActivity {
                 placesContainerIsEmpty = false;
             }
 
-            //release wakelock from doInBackground
-            //wl.release();
 
-            //tell the user how many markers are available
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                    loadingDialog.dismiss();
-                    Toast.makeText(SettingsActivity.this, "Download successful!", Toast.LENGTH_SHORT).show();
-                    Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_MARKERS_SYNC, 0);
-                    if (millisecondsAtRefresh != 0) {
-                        //convert millisecondsAtRefresh to some kind of date and time text
-                        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-                        Date resultdate = new Date(millisecondsAtRefresh);
-                        String timeStamp = sdf.format(resultdate);
+            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            loadingDialog.dismiss();
 
-                        showCrouton(String.format("%s spots were downloaded. Last sync was on %s.",
-                                placesContainer.size(),
-                                timeStamp),
-                                Constants.CROUTON_DURATION_5000);
-                    } else {
-                        showCrouton(String.format("%s spots were downloaded.",
-                                placesContainer.size()),
-                                Constants.CROUTON_DURATION_5000);
-                    }
+            if (result.contentEquals("spotsDownloaded")) {
+                //also write into prefs that markers sync has occurred
+                Long currentMillis = System.currentTimeMillis();
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, currentMillis).commit();
+
+                Toast.makeText(SettingsActivity.this, "Download successful!", Toast.LENGTH_SHORT).show();
+                Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
+                if (millisecondsAtRefresh != 0) {
+                    //convert millisecondsAtRefresh to some kind of date and time text
+                    SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+                    Date resultdate = new Date(millisecondsAtRefresh);
+                    String timeStamp = sdf.format(resultdate);
+
+                    showCrouton(String.format("%s spots were downloaded. Last sync was on %s.",
+                            placesContainer.size(),
+                            timeStamp),
+                            Constants.CROUTON_DURATION_5000);
+                } else {
+                    showCrouton(String.format("%s spots were downloaded.",
+                            placesContainer.size()),
+                            Constants.CROUTON_DURATION_5000);
                 }
-            });
+            } else if (result.contentEquals("nothingToSync"))
+                showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
+            else if (!result.contentEquals("spotsLoadedFromLocalStorage") && !result.isEmpty())
+                showErrorAlert("An error occurred", "An exception occurred while trying to download spots from Hitchwiki Maps.");
+        }
+    }
         }
     }
 
     public File markersStorageFolder;
     public static List<PlaceInfoBasic> placesContainer = new ArrayList<PlaceInfoBasic>();
     public boolean placesContainerIsEmpty = true;
-    final ApiManager hitchwikiAPI = new ApiManager();
+    public static final ApiManager hitchwikiAPI = new ApiManager();
 
     APICallCompletionListener<PlaceInfoBasic[]> getPlacesByArea = new APICallCompletionListener<PlaceInfoBasic[]>() {
         @Override

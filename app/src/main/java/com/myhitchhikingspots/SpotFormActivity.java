@@ -1,6 +1,8 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -10,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -52,6 +55,10 @@ import android.widget.Toast;
 
 
 import com.crashlytics.android.Crashlytics;
+import com.dualquo.te.hitchwiki.classes.APICallCompletionListener;
+import com.dualquo.te.hitchwiki.classes.ApiManager;
+import com.dualquo.te.hitchwiki.entities.Error;
+import com.dualquo.te.hitchwiki.entities.PlaceInfoComplete;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -165,6 +172,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     MenuItem saveMenuItem;
     boolean wasSnackbarShown;
     static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
+    Context context;
+    Boolean shouldRetrieveDetailsFromHW = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -181,6 +190,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         //Prevent keyboard to be shown when activity starts
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
+        context = this;
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
@@ -190,9 +200,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     showViewMapSnackbar();
             }
             mCurrentSpot = (Spot) getIntent().getSerializableExtra(Constants.SPOT_BUNDLE_EXTRA_KEY);
-            shouldShowButtonsPanel = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
             shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
             wasSnackbarShown = true;
+            shouldShowButtonsPanel = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
+            shouldRetrieveDetailsFromHW = getIntent().getBooleanExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, false);
         } else
             updateValuesFromBundle(savedInstanceState);
 
@@ -449,7 +460,28 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         };
 
-        updateUI();
+        if (shouldRetrieveDetailsFromHW) {
+            if (!Utils.isNetworkAvailable(this)) {
+                panel_buttons.setVisibility(View.GONE);
+                panel_info.setVisibility(View.GONE);
+                showErrorAlert("Offline mode", "Your device doesn't seem to have an internet connection at the moment? :-)");
+            } else {
+                //we use getSnippet() for id because original hitchwiki id is stored as snippet in our markers
+                //this avoids extending Marker class to add additional parameter for point id
+                //and snippet will never be used as we have custom info window and not info balloon window
+                if (taskThatRetrievesCompleteDetails != null) {
+                    //check if there's this task already running (for previous marker), if so, cancel it
+                    if (taskThatRetrievesCompleteDetails.getStatus() == AsyncTask.Status.PENDING ||
+                            taskThatRetrievesCompleteDetails.getStatus() == AsyncTask.Status.RUNNING) {
+                        taskThatRetrievesCompleteDetails.cancel(true);
+                    }
+                }
+
+                //execute new asyncTask that will retrieve marker details for clickedMarker
+                taskThatRetrievesCompleteDetails = new retrievePlaceDetailsAsyncTask().execute(mCurrentSpot.getId().toString());
+            }
+        } else
+            updateUI();
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -519,7 +551,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.spot_form_menu, menu);
         saveMenuItem = menu.findItem(R.id.action_save);
-        saveMenuItem.setEnabled(!shouldShowButtonsPanel);
+        if (shouldRetrieveDetailsFromHW)
+            saveMenuItem.setVisible(false);
+        else
+            saveMenuItem.setEnabled(!shouldShowButtonsPanel);
         return true;
     }
 
@@ -770,22 +805,29 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         if (drawer.isDrawerOpen(GravityCompat.START))
             drawer.closeDrawer(GravityCompat.START);
         else {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
-                    .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
-                    .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
-                            //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-                            setResult(RESULT_CANCELED);
-                            finish();
-                        }
+            if (saveMenuItem != null && saveMenuItem.isVisible() && saveMenuItem.isEnabled()) {
+                new AlertDialog.Builder(this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
+                        .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
+                        .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
+                                //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+                                setResult(RESULT_CANCELED);
+                                finish();
+                            }
 
-                    })
-                    .setNegativeButton(getResources().getString(R.string.general_no_option), null)
-                    .show();
+                        })
+                        .setNegativeButton(getResources().getString(R.string.general_no_option), null)
+                        .show();
+            } else {
+                //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
+                //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+                setResult(RESULT_CANCELED);
+                finish();
+            }
         }
     }
 
@@ -1621,6 +1663,159 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             updateUIWidgets();
         }
     }
+
+    private AsyncTask<String, Void, String> taskThatRetrievesCompleteDetails = null;
+    public PlaceInfoComplete placeWithCompleteDetails;
+
+    APICallCompletionListener<PlaceInfoComplete> getPlaceCompleteDetails = new APICallCompletionListener<PlaceInfoComplete>() {
+        @Override
+        public void onComplete(boolean success, int intParam, String stringParam, Error error, PlaceInfoComplete object) {
+            if (success) {
+                placeWithCompleteDetails = object;
+            } else {
+                System.out.println("Error message : " + error.getErrorDescription());
+            }
+        }
+    };
+
+    //async task to retrieve details about clicked marker (point) on a map
+    private class retrievePlaceDetailsAsyncTask extends AsyncTask<String, Void, String> {
+        private final ProgressDialog dialog = new ProgressDialog(SpotFormActivity.this);
+
+        @Override
+        protected void onPreExecute() {
+            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            this.dialog.setIndeterminate(true);
+            this.dialog.setCancelable(false);
+            this.dialog.setTitle(getString(R.string.settings_exportdb_button_label));
+            this.dialog.setMessage("Your spots list will be saved on your phone as CSV file..");
+            this.dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            if (isCancelled()) {
+                return "Canceled";
+            }
+
+            String result = "Executed";
+            Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlaceCompleteDetails");
+            try {
+                //hwSpotId of clicked marker, passed here as parameter in .execute(_id);
+                int hwSpotId = Integer.valueOf(params[0]);
+                Crashlytics.setInt("hwSpotId", hwSpotId);
+
+                ApiManager hitchwikiAPI = new ApiManager();
+                hitchwikiAPI.getPlaceCompleteDetails(hwSpotId, getPlaceCompleteDetails);
+            } catch (Exception ex) {
+                Crashlytics.logException(ex);
+                result = ex.getMessage();
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            //we can populate info linear layout here, and stop spinner
+            //we have placeWithCompleteDetails full and we populate linear layout info with it
+
+            //clean any crouton that might be appearing. this is done if one marker has already been clicked so
+            //there's crouton details displayed already, and user clicks on another marker, so new crouton is coming
+            //Crouton.clearCroutonsForActivity((Activity)context);
+
+           /* -------------String str = "";
+
+            //show crouton with details about the marker (name, country, hitchability, avg waiting time)
+            //showCroutonWithCustomLayout(placeWithCompleteDetails);
+            //description text
+            if (placeWithCompleteDetails.getDescriptionENdescription().length() == 0) {
+                //placeDescription.setText("There's no description for this point :(");
+            } else {
+                str += Utils.stringBeautifier(placeWithCompleteDetails.getDescriptionENdescription());
+                //placeDescription.setText(Utils.stringBeautifier(placeWithCompleteDetails.getDescriptionENdescription()));
+            }
+
+            str += ".\nWaiting time: " + placeWithCompleteDetails.getWaiting_stats_avg() + ".";
+            str += ".\nComments: " + placeWithCompleteDetails.getComments_count() + ".";
+           /* placeButtonComments.setText
+                    (
+                            context.getResources().getString(R.string.button_comments)
+                                    + " [" + placeWithCompleteDetails.getComments_count() + "]"
+                    );/
+
+            showErrorAlert("Spot info", str);-------------------*/
+
+
+            //button listeners
+           /* placeButtonNavigate.setOnClickListener(new Button.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    //intent that fires up Google Maps or Browser and gets Google navigation
+                    //to chosen marker, mode is walking (more suitable for hitchhikers)
+                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                            Uri.parse("http://maps.google.com/maps?saddr="
+                                    + latLng.latitude
+                                    + ","
+                                    + latLng.longitude
+                                    + "&daddr="
+                                    + placeWithCompleteDetails.getLat()
+                                    + ","
+                                    + placeWithCompleteDetails.getLon()
+                                    + "&mode=walking"
+                            ));
+                    startActivity(intent);
+                }
+            });
+
+            placeButtonComments.setOnClickListener(new Button.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    //if number of comments is 0, we won't open comments dialog with listview as there's
+                    //nothing to show, but will only inform user that there are no comments
+                    if (placeWithCompleteDetails.getComments_count().contentEquals("0"))
+                    {
+                        Toast.makeText(context, "No comments yet :/", Toast.LENGTH_LONG).show();
+                    }
+                    else
+                    {
+                        showCommentsDialog(placeWithCompleteDetails);
+                    }
+                }
+            });*/
+
+            String errMsgToShow = "";
+            if (result == "Executed") {
+                try {
+                    mCurrentSpot.setNote(placeWithCompleteDetails.getDescriptionENdescription());
+                    if (placeWithCompleteDetails.getWaiting_stats_avg() != null)
+                        mCurrentSpot.setWaitingTime(Integer.parseInt(placeWithCompleteDetails.getWaiting_stats_avg()));
+                    mCurrentSpot.setCountryCode(placeWithCompleteDetails.getCountry_iso());
+                    mCurrentSpot.setCountry(placeWithCompleteDetails.getCountry_name());
+                    mCurrentSpot.setCity(placeWithCompleteDetails.getLocality());
+                } catch (Exception ex) {
+                    Crashlytics.logException(ex);
+                    errMsgToShow = "Failed to set mCurrentSpot. " + ex.getMessage();
+                }
+
+                updateUI();
+            } else {
+                errMsgToShow = "Failed to download more details from Hitchwiki Maps. " + result;
+            }
+
+            //first set progressBar to invisible
+            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            this.dialog.dismiss();
+
+            if (!errMsgToShow.isEmpty())
+                showErrorAlert("Not so good news :-(", errMsgToShow);
+            else
+                Toast.makeText(context, "Downloaded complete", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
 
 //----END: Part related to reverse geocoding
 

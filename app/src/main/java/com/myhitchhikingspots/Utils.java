@@ -17,9 +17,19 @@ import android.net.NetworkInfo;
 import android.os.Environment;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.dualquo.te.hitchwiki.classes.ApiManager;
+import com.dualquo.te.hitchwiki.classes.JSONParser;
+import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
+import com.dualquo.te.hitchwiki.entities.Error;
 import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
 import com.myhitchhikingspots.model.Spot;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import io.fabric.sdk.android.services.common.Crash;
 
 public class Utils {
     //metric radius
@@ -137,36 +147,85 @@ public class Utils {
         return b;
     }
 
-    public static PlaceInfoBasic[] loadHitchwikiSpotsFromLocalFile(Context context) {
-        File markersStorageFolder = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/" +
-                Constants.FOLDERFORSTORINGMARKERS);
+    public static CountryInfoBasic[] parseGetCountriesWithCoordinates(String json) {
+        //NOTE: com.dualquo.te.hitchwiki.classes.JSONParser also provides a parseGetCountriesWithCoordinates, but it was creating an issue on the json parameter when it tried to fix something on it - maybe it tried to fix an old issue that no longer exist?
 
-        File fl = new File(markersStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
-        FileInputStream fin;
         try {
-            fin = new FileInputStream(fl);
+            JSONArray var9 = new JSONArray(json);
+            CountryInfoBasic[] countriesWithCoordinatesArray = null;
+            if (var9.length() <= 0) {
+                return countriesWithCoordinatesArray;
+            } else {
+                countriesWithCoordinatesArray = new CountryInfoBasic[var9.length()];
 
+                for (int i = 0; i < var9.length(); ++i) {
+                    JSONObject rec = var9.getJSONObject(i);
+                    countriesWithCoordinatesArray[i] = new CountryInfoBasic(rec.get("iso").toString(), rec.get("name").toString(), rec.get("places").toString(), rec.get("lat").toString(), rec.get("lon").toString());
+                }
+
+                return countriesWithCoordinatesArray;
+            }
+        } catch (JSONException var8) {
+            System.out.println("Error parsing parseGetCountriesWithCoordinates!!!");
+            return null;
+        }
+    }
+
+    public static CountryInfoBasic[] loadCountriesListFromLocalFile() {
+
+        try {
             //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = Utils.convertStreamToString(fin);
+            String placesContainerAsString = loadFileFromLocalStorage(Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
 
-            fin.close();
+            return parseGetCountriesWithCoordinates(placesContainerAsString);
+        } catch (Exception exception) {
+            Crashlytics.logException(exception);
+        }
+
+        return new CountryInfoBasic[0];
+    }
+
+    static String TAG = "utils";
+
+    public static PlaceInfoBasic[] loadHitchwikiSpotsFromLocalFile() {
+
+        try {
+            //get markersStorageFile streamed into String, so gson can convert it into placesContainer
+            String placesContainerAsString = loadFileFromLocalStorage(Constants.FILE_NAME_FOR_STORING_MARKERS);
+
+            Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
+            Crashlytics.setString("placesContainerAsString", placesContainerAsString);
 
             return new ApiManager().getPlacesByContinenFromLocalFile(placesContainerAsString);
-        } catch (FileNotFoundException exception) {
-            exception.printStackTrace();
-        } catch (IOException exception) {
-            exception.printStackTrace();
         } catch (Exception exception) {
-            exception.printStackTrace();
+            Crashlytics.logException(exception);
         }
 
         return new PlaceInfoBasic[0];
     }
 
+    public static String loadFileFromLocalStorage(String fileName) {
+        Crashlytics.setString("Name of the file to load", fileName);
+        File markersStorageFolder = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/" +
+                Constants.FOLDERFORSTORINGMARKERS);
+
+        String result = "";
+        File fl = new File(markersStorageFolder, fileName);
+        try {
+            FileInputStream fin = new FileInputStream(fl);
+            result = Utils.convertStreamToString(fin);
+            fin.close();
+        } catch (Exception exception) {
+            Crashlytics.logException(exception);
+        }
+
+        return result;
+    }
+
     public static Spot convertToSpot(PlaceInfoBasic place) {
         Spot spot = new Spot();
         if (place.getId() != null)
-            spot.setId(Long.getLong(place.getId()));
+            spot.setId(Long.valueOf(place.getId()));
         if (place.getLat() != null)
             spot.setLatitude(Double.parseDouble(place.getLat()));
         if (place.getLon() != null)

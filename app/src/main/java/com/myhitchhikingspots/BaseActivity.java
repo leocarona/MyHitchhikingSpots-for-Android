@@ -92,6 +92,8 @@ public class BaseActivity extends AppCompatActivity
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
         else if (id == R.id.nav_map)
             startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+        else if (id == R.id.nav_hitchwiki_map)
+            startActivity(new Intent(getApplicationContext(), HitchwikiMapViewActivity.class));
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

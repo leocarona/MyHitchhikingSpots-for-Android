@@ -9,6 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    android:orientation="vertical"
     tools:showIn="@layout/settings_master_layout">
 
 
@@ -37,22 +38,22 @@
             />
 
         <Button
+            android:id="@+id/download_hw_spots"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="@string/settings_exportdb_button_label"
-            android:id="@+id/export"
-            android:textAllCaps="true"
-            android:onClick="exportButtonHandler" />
+            android:onClick="downloadHWSpotsButtonHandler"
+            android:text="@string/settings_downloadHDSpots_button_label"
+            android:textAllCaps="true" />
 
         <Button
+            android:id="@+id/export"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="@string/settings_downloadHDSpots_button_label"
-            android:textAllCaps="true"
-            android:id="@+id/download_hw_spots"
-            android:onClick="downloadHWSpotsButtonHandler" />
+            android:onClick="exportButtonHandler"
+            android:text="@string/settings_exportdb_button_label"
+            android:textAllCaps="true" />
 
         <TextView
             android:id="@+id/feedbacklabel"

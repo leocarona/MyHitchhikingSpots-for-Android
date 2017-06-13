@@ -40,6 +40,7 @@ public final class Constants {
     public static final String SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY";
     public static final String SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = PACKAGE_NAME + ".SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY";
     public static final String SHOULD_SHOW_BUTTONS_KEY = PACKAGE_NAME + ".SHOULD_SHOW_BUTTONS_KEY";
+    public static final String SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY = PACKAGE_NAME + ".SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY";
 
     //Zoom to a level that makes it easier for the user to find his new position (he might not be too far from the location shown)
     public static final int ZOOM_TO_SEE_FARTHER_DISTANCE = 6;
@@ -50,8 +51,8 @@ public final class Constants {
     public static final String FOLDERFORSTORINGMARKERS = "/markersStorageFolder";
     public static final String PREFS_ZOOMLEVEL = "zoomLevel";
     public static final float ZOOM_LOW = 9f;
-    public static final String PREFS_TIMESTAMP_OF_MARKERS_SYNC = "syncTimestamp";
     public static final String PREFS_TIMESTAMP_OF_BACKUP_SYNC = "backupTimestamp";
+    public static final String PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD = "hitchwikiSpotsTimestamp";
     public static final int CROUTON_DURATION_2500 = 2500;
     public static final int CROUTON_DURATION_5000 = 5000;
     public static final int CROUTON_DURATION_1500 = 1500;
