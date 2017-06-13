@@ -10,7 +10,7 @@
     tools:context=".SpotListFragment">
 
 
-    <LinearLayout
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -23,5 +23,15 @@
             android:layout_height="wrap_content"
             />
 
-    </LinearLayout>
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:onClick="fetchMissingAddressButtonHandler"
+            android:text="fetch addresses"
+            android:visibility="gone"/>
+
+
+    </android.support.design.widget.CoordinatorLayout>
 </RelativeLayout>
