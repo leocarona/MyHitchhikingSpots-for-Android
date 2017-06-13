@@ -385,7 +385,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     //onMapReady is called after onResume()
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
-        Crashlytics.log(Log.INFO, "tracking-map", "mapReady called");
+        Crashlytics.log(Log.INFO, TAG, "mapReady called");
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
@@ -450,7 +450,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     SharedPreferences prefs;
 
     void updateUI() {
-        Crashlytics.log(Log.INFO, "tracking-map", "updateUI was called");
+        Crashlytics.log(Log.INFO, TAG, "updateUI was called");
 
         if (!Utils.isNetworkAvailable(this) && !Utils.shouldLoadCurrentView(prefs)) {
             new AlertDialog.Builder(this)
@@ -555,7 +555,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     @Override
     public void onResume() {
         super.onResume();
-        Crashlytics.log(Log.INFO, "tracking-map", "onResume called");
+        Crashlytics.log(Log.INFO, TAG, "onResume called");
         mapView.onResume();
 
 
