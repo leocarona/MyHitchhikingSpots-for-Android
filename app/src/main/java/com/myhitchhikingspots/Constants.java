@@ -50,8 +50,6 @@ public final class Constants {
     public static final String FILE_NAME_FOR_STORING_MARKERS = "markersStorageFile";
     public static final String FILE_NAME_FOR_STORING_COUNTRIES_LIST = "countriesStorageFile";
     public static final String FOLDERFORSTORINGMARKERS = "/markersStorageFolder";
-    public static final String PREFS_ZOOMLEVEL = "zoomLevel";
-    public static final float ZOOM_LOW = 9f;
 
     public static final String PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD = "hitchwikiSpotsTimestamp";
     public static final String PREFS_TIMESTAMP_OF_BACKUP = "backupTimestamp";

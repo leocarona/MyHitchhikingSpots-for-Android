@@ -76,10 +76,8 @@ import com.myhitchhikingspots.utilities.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Locale;
 
 import android.content.Intent;
 import android.os.Handler;
