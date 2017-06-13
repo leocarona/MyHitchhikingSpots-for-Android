@@ -1,9 +1,8 @@
-package com.myhitchhikingspots;
+package com.myhitchhikingspots.utilities;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,24 +11,23 @@ import java.net.URL;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.text.format.DateUtils;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.dualquo.te.hitchwiki.classes.ApiManager;
-import com.dualquo.te.hitchwiki.classes.JSONParser;
 import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
-import com.dualquo.te.hitchwiki.entities.Error;
 import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
+import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.model.Spot;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import io.fabric.sdk.android.services.common.Crash;
 
 public class Utils {
     //metric radius
@@ -203,6 +201,21 @@ public class Utils {
 
         return new PlaceInfoBasic[0];
     }
+
+
+    public static Boolean shouldLoadCurrentView(SharedPreferences sharedPreferences) {
+        Boolean result = false;
+
+        if (DateUtils.isToday(sharedPreferences.getLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, 0))) {
+            result = sharedPreferences.getBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false);
+        } else {
+            sharedPreferences.edit().remove(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN).apply();
+            sharedPreferences.edit().remove(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW).apply();
+        }
+
+        return result;
+    }
+
 
     public static String loadFileFromLocalStorage(String fileName) {
         Crashlytics.setString("Name of the file to load", fileName);

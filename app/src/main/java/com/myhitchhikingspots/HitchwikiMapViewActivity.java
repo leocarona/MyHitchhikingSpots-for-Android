@@ -43,6 +43,11 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.ExtendedMarkerView;
+import com.myhitchhikingspots.utilities.ExtendedMarkerViewAdapter;
+import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
+import com.myhitchhikingspots.utilities.IconUtils;
+import com.myhitchhikingspots.utilities.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +80,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
@@ -206,8 +213,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         snackbar.show();
     }
 
-    boolean no_internet_dialog_showed = false;
-
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
 
@@ -313,7 +318,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     //onMapReady is called after onResume()
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
-        Crashlytics.log(Log.INFO, "tracking-map", "mapReady called");
+        Crashlytics.log(Log.INFO, TAG, "mapReady called");
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
 
@@ -378,9 +383,9 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     }
 
     void updateUI() {
-        Crashlytics.log(Log.INFO, "tracking-map", "updateUI was called");
+        Crashlytics.log(Log.INFO, TAG, "updateUI was called");
 
-        if (!Utils.isNetworkAvailable(this) && !no_internet_dialog_showed) {
+        if (!Utils.isNetworkAvailable(this) && !Utils.shouldLoadCurrentView(prefs)) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))
@@ -388,19 +393,27 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
+                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
+
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
                         }
                     })
                     .setNegativeButton(getResources().getString(R.string.map_error_alert_map_not_loaded_negative_button), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
+                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
+
                             loadAll();
                         }
                     }).show();
-            no_internet_dialog_showed = true;
-        } else
+        } else {
             loadAll();
+        }
     }
+
+    SharedPreferences prefs;
 
     void loadAll() {
         updateUISaveButtons();
@@ -408,8 +421,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         if (mapboxMap.getMyLocation() != null)
             moveCamera(new LatLng(mapboxMap.getMyLocation()));
 
-
-        SharedPreferences prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
         Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
         if (millisecondsAtRefresh > 0) {
             //Load spots and display them as markers and polylines on the map
@@ -488,7 +499,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     @Override
     public void onResume() {
         super.onResume();
-        Crashlytics.log(Log.INFO, "tracking-map", "onResume called");
+        Crashlytics.log(Log.INFO, TAG, "onResume called");
         mapView.onResume();
 
 
@@ -532,7 +543,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             snackbar.dismiss();
     }
 
-    protected static final String NO_INTERNET_DIALOG_SHOWED_KEY = "no-internet-dialog-showed";
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
 
@@ -541,7 +551,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         super.onSaveInstanceState(savedInstanceState);
         mapView.onSaveInstanceState(savedInstanceState);
 
-        savedInstanceState.putBoolean(NO_INTERNET_DIALOG_SHOWED_KEY, no_internet_dialog_showed);
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
     }
 
@@ -554,8 +563,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     private void updateValuesFromBundle(Bundle savedInstanceState) {
         Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
         if (savedInstanceState != null) {
-            if (savedInstanceState.keySet().contains(NO_INTERNET_DIALOG_SHOWED_KEY))
-                no_internet_dialog_showed = savedInstanceState.getBoolean(NO_INTERNET_DIALOG_SHOWED_KEY);
             if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
                 wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
         }
@@ -842,7 +849,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         saveSpotButtonHandler(true);
     }
 
-    protected static final String TAG = "map-view-activity";
+    protected static final String TAG = "hitchwikimap-view-activity";
 
 
     /**

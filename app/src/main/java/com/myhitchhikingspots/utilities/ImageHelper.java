@@ -1,4 +1,4 @@
-package com.myhitchhikingspots;
+package com.myhitchhikingspots.utilities;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

@@ -33,6 +33,7 @@ import com.dualquo.te.hitchwiki.entities.Error;
 import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
 import com.google.gson.Gson;
 import com.myhitchhikingspots.model.SpotDao;
+import com.myhitchhikingspots.utilities.Utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -52,8 +53,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import io.fabric.sdk.android.services.common.Crash;
 
 
 public class SettingsActivity extends BaseActivity implements CompoundButton.OnCheckedChangeListener {

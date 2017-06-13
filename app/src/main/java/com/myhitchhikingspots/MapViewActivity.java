@@ -42,6 +42,11 @@ import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
+import com.myhitchhikingspots.utilities.ExtendedMarkerView;
+import com.myhitchhikingspots.utilities.ExtendedMarkerViewAdapter;
+import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
+import com.myhitchhikingspots.utilities.IconUtils;
+import com.myhitchhikingspots.utilities.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
