@@ -41,7 +41,8 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Hvornår</string>
     <string name="spot_form_more_options_edit_label">(ændr)</string>
-    <string name="mapview_master_title">Kort</string>
+    <string name="mapview_master_title">Min Kort</string>
+    <string name="mapview_hitchwiki_title">Hitchwiki Kort</string>
     <string name="action_settings">Indstillinger</string>
     <string name="spot_saved_successfuly">Sted gemt</string>
     <string name="spot_deleted_successfuly">Sted slettet</string>

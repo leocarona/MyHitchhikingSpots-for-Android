@@ -81,7 +81,8 @@
     <string name="spot_form_more_options_label">Wann</string>
     <string name="spot_form_more_options_edit_label">(bearbeiten)</string>
 
-    <string name="mapview_master_title">Karte</string>
+    <string name="mapview_master_title">Meine Karten</string>
+    <string name="mapview_hitchwiki_title">Hitchwiki Karten</string>
 
     <string name="action_settings">Einstellungen</string>
     <string name="spot_saved_successfuly">Standort gespeichert</string>
