@@ -64,7 +64,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
-public class SettingsActivity extends BaseActivity implements CompoundButton.OnCheckedChangeListener {
+public class SettingsActivity extends BaseActivity {
     TextView mfeedbacklabel;
     CoordinatorLayout coordinatorLayout;
 
@@ -87,32 +87,6 @@ public class SettingsActivity extends BaseActivity implements CompoundButton.OnC
         mfeedbacklabel = (TextView) findViewById(R.id.feedbacklabel);
         mfeedbacklabel.setVisibility(View.GONE);
 
-        Switch switch_an = (Switch) findViewById(R.id.switch_an);
-        Switch switch_af = (Switch) findViewById(R.id.switch_af);
-        Switch switch_as = (Switch) findViewById(R.id.switch_as);
-        Switch switch_eu = (Switch) findViewById(R.id.switch_eu);
-        Switch switch_na = (Switch) findViewById(R.id.switch_na);
-        Switch switch_sa = (Switch) findViewById(R.id.switch_sa);
-        Switch switch_oc = (Switch) findViewById(R.id.switch_oc);
-        Switch switch_bra = (Switch) findViewById(R.id.switch_bra);
-
-        switch_an.setOnCheckedChangeListener(this);
-        switch_af.setOnCheckedChangeListener(this);
-        switch_as.setOnCheckedChangeListener(this);
-        switch_eu.setOnCheckedChangeListener(this);
-        switch_na.setOnCheckedChangeListener(this);
-        switch_sa.setOnCheckedChangeListener(this);
-        switch_oc.setOnCheckedChangeListener(this);
-        switch_bra.setOnCheckedChangeListener(this);
-
-        switch_an.setChecked(prefs.getBoolean(Constants.SHOULD_SYNC_AN, false));
-        switch_af.setChecked(prefs.getBoolean(Constants.SHOULD_SYNC_AF, false));
-        switch_as.setChecked(prefs.getBoolean(Constants.SHOULD_SYNC_AS, false));
-        switch_eu.setChecked(prefs.getBoolean(Constants.SHOULD_SYNC_EU, false));
-        switch_na.setChecked(prefs.getBoolean(Constants.SHOULD_SYNC_NA, false));
-        switch_sa.setChecked(prefs.getBoolean(Constants.SHOULD_SYNC_SA, false));
-        switch_oc.setChecked(prefs.getBoolean(Constants.SHOULD_SYNC_OC, false));
-        switch_bra.setChecked(prefs.getBoolean("SHOULD_SYNC_BRA", false));
 
         String strLastDownload = "";
 
@@ -242,10 +216,6 @@ public class SettingsActivity extends BaseActivity implements CompoundButton.OnC
             showErrorAlert("Offline mode", "Your device doesn't seem to have an internet connection at the moment.");
         } else
             new retrievePlacesAsyncTask(dialogType).execute();
-    }
-
-    public void downloadHWSpotsButtonHandler(View view) {
-        downloadHWSpots("", "");
     }
 
     public void shareButtonHandler(View view) {
@@ -1166,41 +1136,6 @@ public class SettingsActivity extends BaseActivity implements CompoundButton.OnC
                     showErrorAlert("An error occurred", "An exception occurred while trying to download spots from Hitchwiki Maps.");
             }
         }
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        String code = "";
-        switch (buttonView.getId()) {
-            case R.id.switch_an:
-                code = Constants.SHOULD_SYNC_AN;
-                break;
-            case R.id.switch_af:
-                code = Constants.SHOULD_SYNC_AF;
-                break;
-            case R.id.switch_as:
-                code = Constants.SHOULD_SYNC_AS;
-                break;
-            case R.id.switch_eu:
-                code = Constants.SHOULD_SYNC_EU;
-                break;
-            case R.id.switch_na:
-                code = Constants.SHOULD_SYNC_NA;
-                break;
-            case R.id.switch_sa:
-                code = Constants.SHOULD_SYNC_SA;
-                break;
-            case R.id.switch_oc:
-                code = Constants.SHOULD_SYNC_OC;
-                break;
-            case R.id.switch_bra:
-                code = "SHOULD_SYNC_BRA";
-                break;
-        }
-
-        if (!code.isEmpty())
-            prefs.edit().putBoolean(code, isChecked).commit();
-
     }
 
 
