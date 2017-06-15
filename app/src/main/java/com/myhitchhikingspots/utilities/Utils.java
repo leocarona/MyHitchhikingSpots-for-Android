@@ -23,6 +23,7 @@ import com.dualquo.te.hitchwiki.classes.ApiManager;
 import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
 import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
 import com.myhitchhikingspots.Constants;
+import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.Spot;
 
 import org.json.JSONArray;
@@ -244,9 +245,62 @@ public class Utils {
         if (place.getLon() != null)
             spot.setLongitude(Double.parseDouble(place.getLon()));
         if (place.getRating() != null)
-            spot.setHitchability(Integer.parseInt(place.getRating()));
+            spot.setHitchability( Integer.parseInt(place.getRating()));
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+
+        /*Setting attributes to false here is useless - we've just created the new Spot therefore its attributes are by default false
+        spot.setIsWaitingForARide(false);
         spot.setIsPartOfARoute(false);
+        spot.setIsDestination(false);*/
         return spot;
+    }
+
+    public static String getRatingAsString(Context context, Integer rating) {
+        String res = "";
+        switch (rating) {
+            case 1:
+                res = context.getString(R.string.hitchability_senseless);
+                break;
+            case 2:
+                res = context.getString(R.string.hitchability_bad);
+                break;
+            case 3:
+                res = context.getString(R.string.hitchability_average);
+                break;
+            case 4:
+                res = context.getString(R.string.hitchability_good);
+                break;
+            case 5:
+                res = context.getString(R.string.hitchability_very_good);
+                break;
+           /* default:
+                res = getResources().getString(R.string.hitchability_no_answer);
+                break;*/
+        }
+        return res;
+    }
+
+    public static Integer findTheOpposite(Integer rating) {
+        //NOTE: For sure there should be a math formula to find this result, I just didn't feel like using
+        // more time on this so why not a switch until you make it better =)
+        Integer res = 0;
+        switch (rating) {
+            case 1:
+                res = 5;
+                break;
+            case 2:
+                res = 4;
+                break;
+            case 3:
+                res = 3;
+                break;
+            case 4:
+                res = 2;
+                break;
+            case 5:
+                res = 1;
+                break;
+        }
+        return res;
     }
 }

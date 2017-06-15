@@ -728,30 +728,48 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
                                 //Center icon
                                 markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                            } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
-                                //AT THIS SPOT USER GOT A RIDE
-
-                                if (spot.getWaitingTime() != null)
-                                    snippet = SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime());
-
-                                if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute())
-                                    markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
-                                else
-                                    markerViewOptions.icon(ic_single_spot);
-
-                                markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
                             } else {
-                                markerViewOptions.icon(getGotARideIconForRoute(-1));
+                                if (spot.getWaitingTime() != null)
+                                    snippet = "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
+
+                                if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                                    //AT THIS SPOT USER GOT A RIDE
+
+                                    if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute())
+                                        markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
+                                    else
+                                        markerViewOptions.icon(ic_single_spot);
+
+                                    markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
+                                } else {
+                                    markerViewOptions.icon(getGotARideIconForRoute(-1));
+                                }
                             }
                     }
 
-                    String note = "";
-                    if (spot.getNote() != null && !spot.getNote().isEmpty())
-                        note = " " + spot.getNote();
-
+                    //Add date time if it is set
                     String str = SpotListAdapter.dateTimeToString(spot.getStartDateTime());
-                    if (!snippet.isEmpty() || !note.isEmpty())
-                        str += " - " + snippet + note;
+
+                    //Add snippet
+                    if (!snippet.isEmpty()) {
+                        if (!str.isEmpty())
+                            str += " - ";
+                        str += snippet;
+                    }
+
+                    //Add hitchability
+                    if (spot.getHitchability() != null && spot.getHitchability() > 0) {
+                        if (!str.isEmpty())
+                            str += " - ";
+                        str += Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability())).toUpperCase();
+                    }
+
+                    //Add note
+                    if (spot.getNote() != null && !spot.getNote().isEmpty()) {
+                        if (!str.isEmpty())
+                            str += "\n";
+                        str += spot.getNote();
+                    }
 
                     // Customize map with markers, polylines, etc.
                     markerViewOptions.snippet(str);
