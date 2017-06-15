@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.Utils;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -184,7 +185,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     }
 
     public Integer getSelectedHitchability() {
-        return findTheOpposit(Math.round(hitchability_ratingbar.getRating()));
+        return Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating()));
     }
 
     public void saveRegularSpotButtonHandler() {
@@ -242,7 +243,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      * updates were not previously requested.
      */
     public void evaluateSpotButtonHandler() {
-        mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
+        mCurrentWaitingSpot.setHitchability(Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating())));
 
         if (mIsWaitingForARide) {
             Bundle args = new Bundle();
@@ -402,55 +403,8 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-        mHitchabilityTextView.setText(getRatingString(Math.round(rating)));
+        mHitchabilityTextView.setText(Utils.getRatingAsString(getContext(), Math.round(rating)));
     }
 
-    private String getRatingString(Integer rating) {
-        String res = "";
-        switch (rating) {
-            case 1:
-                res = getResources().getString(R.string.hitchability_senseless);
-                break;
-            case 2:
-                res = getResources().getString(R.string.hitchability_bad);
-                break;
-            case 3:
-                res = getResources().getString(R.string.hitchability_average);
-                break;
-            case 4:
-                res = getResources().getString(R.string.hitchability_good);
-                break;
-            case 5:
-                res = getResources().getString(R.string.hitchability_very_good);
-                break;
-           /* default:
-                res = getResources().getString(R.string.hitchability_no_answer);
-                break;*/
-        }
-        return res;
-    }
 
-    private static Integer findTheOpposit(Integer rating) {
-        //NOTE: For sure there should be a math formula to find this result, I just didn't feel like using
-        // more time on this so why not a switch until you make it better =)
-        Integer res = 0;
-        switch (rating) {
-            case 1:
-                res = 5;
-                break;
-            case 2:
-                res = 4;
-                break;
-            case 3:
-                res = 3;
-                break;
-            case 4:
-                res = 2;
-                break;
-            case 5:
-                res = 1;
-                break;
-        }
-        return res;
-    }
 }

@@ -863,33 +863,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     @Override
     public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
 
-        hitchabilityLabel.setText(getRatingString(Math.round(rating)));
+        hitchabilityLabel.setText(Utils.getRatingAsString(this, Math.round(rating)));
     }
 
-    private String getRatingString(Integer rating) {
-        String res = "";
-        switch (rating) {
-            case 1:
-                res = getResources().getString(R.string.hitchability_senseless);
-                break;
-            case 2:
-                res = getResources().getString(R.string.hitchability_bad);
-                break;
-            case 3:
-                res = getResources().getString(R.string.hitchability_average);
-                break;
-            case 4:
-                res = getResources().getString(R.string.hitchability_good);
-                break;
-            case 5:
-                res = getResources().getString(R.string.hitchability_very_good);
-                break;
-           /* default:
-                res = getResources().getString(R.string.hitchability_no_answer);
-                break;*/
-        }
-        return res;
-    }
 
     private enum FormType {
         Unknown,
@@ -1005,7 +981,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 } else
                     h = mCurrentSpot.getHitchability();
             }
-            hitchability_ratingbar.setRating(findTheOpposit(h));
+
+          hitchability_ratingbar.setRating(Utils.findTheOpposite(h));
 
         } catch (Exception ex) {
             //setTitle(getResources().getString(R.string.spot_form_bottommenu_map_tile));
@@ -1023,29 +1000,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         Toast.makeText(this, getResources().getString(R.string.spot_form_waiting_time_label) + ": " + minutes, Toast.LENGTH_LONG).show();
     }
 
-    private static Integer findTheOpposit(Integer rating) {
-        //NOTE: For sure there should be a math formula to find this result, I just didn't feel like using
-        // more time on this so why not a switch until you make it better =)
-        Integer res = 0;
-        switch (rating) {
-            case 1:
-                res = 5;
-                break;
-            case 2:
-                res = 4;
-                break;
-            case 3:
-                res = 3;
-                break;
-            case 4:
-                res = 2;
-                break;
-            case 5:
-                res = 1;
-                break;
-        }
-        return res;
-    }
 
     public void locationAddressButtonHandler(View v) {
         String strToCopy = spotLocationToString(mCurrentSpot).trim();
@@ -1138,7 +1092,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_UNKNOWN);
             } else {
                 mCurrentSpot.setIsDestination(false);
-                mCurrentSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
+                mCurrentSpot.setHitchability(Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating())));
                 if (mFormType == FormType.Basic)
                     mCurrentSpot.setIsWaitingForARide(true);
                 else
