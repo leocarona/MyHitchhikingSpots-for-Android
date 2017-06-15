@@ -49,6 +49,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -167,6 +168,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     boolean shouldGoBackToPreviousActivity, shouldShowButtonsPanel;
 
     LinearLayout panel_buttons, panel_info;
+    RelativeLayout datePanel;
     MenuItem saveMenuItem;
     boolean wasSnackbarShown;
     static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
@@ -224,6 +226,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
         panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
         panel_info = (LinearLayout) findViewById(R.id.panel_info);
+        datePanel = (RelativeLayout) findViewById(R.id.date_panel);
 
         menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
 
@@ -345,7 +348,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             //mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
         }
 
-        if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
+        if (shouldRetrieveDetailsFromHW)
+            mFormType = FormType.ReadOnly;
+        else if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
             mFormType = FormType.Evaluate;
         else if (mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination())
             mFormType = FormType.Destination;
@@ -458,6 +463,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         };
 
+        updateUI();
+
         if (shouldRetrieveDetailsFromHW) {
             if (!Utils.isNetworkAvailable(this)) {
                 panel_buttons.setVisibility(View.GONE);
@@ -478,8 +485,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 //execute new asyncTask that will retrieve marker details for clickedMarker
                 taskThatRetrievesCompleteDetails = new retrievePlaceDetailsAsyncTask().execute(mCurrentSpot.getId().toString());
             }
-        } else
-            updateUI();
+        }
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -549,7 +555,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.spot_form_menu, menu);
         saveMenuItem = menu.findItem(R.id.action_save);
-        if (shouldRetrieveDetailsFromHW)
+        if (mFormType == FormType.ReadOnly)
             saveMenuItem.setVisible(false);
         else
             saveMenuItem.setEnabled(!shouldShowButtonsPanel);
@@ -591,7 +597,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         //Calculate the waiting time if the spot is still on Evaluate phase (if calculating when editing a spot already evaluated it could mess the waiting time without the user expecting/noticing)
-        if (mFormType != FormType.All)
+        if (mFormType != FormType.All && mFormType != FormType.ReadOnly)
             calculateWaitingTime(null);
 
         updateAttemptResultButtonsState();
@@ -872,6 +878,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         Basic,
         Evaluate,
         Destination,
+        ReadOnly,
         All
     }
 
@@ -893,7 +900,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 title = getResources().getString(R.string.save_spot_button_text);
             else if (mFormType == FormType.Destination || mFormType == FormType.All)
                 title = getResources().getString(R.string.spot_form_title_edit);
-            else {
+            else if (mFormType == FormType.ReadOnly) {
+                if (shouldRetrieveDetailsFromHW)
+                    title = "Hitchwiki";
+                else
+                    title = "Spot";
+            } else {
                /* switch (attemptResult) {
                     case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                         title = getResources().getString(R.string.got_a_ride_button_text);
@@ -934,7 +946,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
 
             //Show delete button when the spot is been edited
-            if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0)
+            if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0 && mFormType != FormType.ReadOnly)
                 mDeleteButton.setVisibility(View.VISIBLE);
             else
                 mDeleteButton.setVisibility(View.GONE);
@@ -944,12 +956,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             else
                 evaluate_menuitem.setEnabled(true);
 
-            //To prevent the values and listeners of datepicker and timepicker been set more than once, call SetDateTime only when !updateUIFirstCalled
-            if (!updateUIFirstCalled) {
-                Date spotStartDT = new Date();
-                if (mCurrentSpot.getStartDateTime() != null)
-                    spotStartDT = mCurrentSpot.getStartDateTime();
-                SetDateTime(date_datepicker, time_timepicker, spotStartDT);
+            if (shouldRetrieveDetailsFromHW) {
+                datePanel.setVisibility(View.GONE);
+            } else {
+                //To prevent the values and listeners of datepicker and timepicker been set more than once, call SetDateTime only when !updateUIFirstCalled
+                if (!updateUIFirstCalled) {
+                    Date spotStartDT = new Date();
+                    if (mCurrentSpot.getStartDateTime() != null)
+                        spotStartDT = mCurrentSpot.getStartDateTime();
+                    SetDateTime(date_datepicker, time_timepicker, spotStartDT);
+                }
             }
 
             if (mCurrentSpot.getIsPartOfARoute() == null || !mCurrentSpot.getIsPartOfARoute())
@@ -959,6 +975,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (mFormType != FormType.Evaluate && mCurrentSpot.getWaitingTime() != null) {
                 String val = mCurrentSpot.getWaitingTime().toString();
                 waiting_time_edittext.setText(val);
+            }
+
+            if (mFormType == FormType.ReadOnly) {
+                waiting_time_edittext.setEnabled(false);
+                findViewById(R.id.spot_form_waiting_time_refresh_button).setVisibility(View.GONE);
             }
 
             if (mCurrentSpot.getNote() != null)
@@ -1746,11 +1767,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (result == "Executed") {
                 try {
                     mCurrentSpot.setNote(placeWithCompleteDetails.getDescriptionENdescription());
-                    if (placeWithCompleteDetails.getWaiting_stats_avg() != null)
-                        mCurrentSpot.setWaitingTime(Integer.parseInt(placeWithCompleteDetails.getWaiting_stats_avg()));
                     mCurrentSpot.setCountryCode(placeWithCompleteDetails.getCountry_iso());
                     mCurrentSpot.setCountry(placeWithCompleteDetails.getCountry_name());
                     mCurrentSpot.setCity(placeWithCompleteDetails.getLocality());
+                    if (placeWithCompleteDetails.getWaiting_stats_avg() != null && placeWithCompleteDetails.getWaiting_stats_avg() != "null")
+                        mCurrentSpot.setWaitingTime(Integer.parseInt(placeWithCompleteDetails.getWaiting_stats_avg()));
                 } catch (Exception ex) {
                     Crashlytics.logException(ex);
                     errMsgToShow = "Failed to set mCurrentSpot. " + ex.getMessage();
