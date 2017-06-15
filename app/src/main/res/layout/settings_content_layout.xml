@@ -58,37 +58,44 @@
             android:id="@+id/switch_an"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/continent_code_an" />
+            android:text="@string/continent_code_antarctica"
+            android:visibility="gone"/>
         <Switch
             android:id="@+id/switch_af"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/continent_code_africa" />
+            android:text="@string/continent_code_africa"
+            android:visibility="gone"/>
         <Switch
             android:id="@+id/switch_as"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/continent_code_asia" />
+            android:text="@string/continent_code_asia"
+            android:visibility="gone"/>
         <Switch
             android:id="@+id/switch_eu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/continent_code_europe" />
+            android:text="@string/continent_code_europe"
+            android:visibility="gone"/>
         <Switch
             android:id="@+id/switch_na"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/continent_code_north_america" />
+            android:text="@string/continent_code_north_america"
+            android:visibility="gone"/>
         <Switch
             android:id="@+id/switch_sa"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/continent_code_south_america" />
+            android:text="@string/continent_code_south_america"
+            android:visibility="gone"/>
         <Switch
             android:id="@+id/switch_oc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/continent_code_oc" />
+            android:text="@string/continent_code_oceania"
+            android:visibility="gone"/>
         <Switch
             android:id="@+id/switch_bra"
             android:layout_width="match_parent"
