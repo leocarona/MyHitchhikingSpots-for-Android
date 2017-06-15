@@ -312,6 +312,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 }
             }
         }
+
+        updateUISaveButtons();
     }
 
 
@@ -416,8 +418,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     SharedPreferences prefs;
 
     void loadAll() {
-        updateUISaveButtons();
-
         if (mapboxMap.getMyLocation() != null)
             moveCamera(new LatLng(mapboxMap.getMyLocation()));
 

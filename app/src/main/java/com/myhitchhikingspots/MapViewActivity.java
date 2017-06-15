@@ -273,18 +273,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     boolean mIsWaitingForARide;
     boolean mWillItBeFirstSpotOfARoute;
 
-    public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
-        mCurrentWaitingSpot = currentWaitingSpot;
-
-        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
-            mIsWaitingForARide = false;
-        else
-            mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
-
-
-        mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
-    }
-
     public enum pageType {
         NOT_FETCHING_LOCATION,
         WILL_BE_FIRST_SPOT_OF_A_ROUTE, //user sees "save spot" but doesn't see "arrival" button
@@ -377,9 +365,17 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
-        spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
+        spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
-        setValues(spotList, appContext.getCurrentSpot());
+        mCurrentWaitingSpot = appContext.getCurrentSpot();
+
+        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
+            mIsWaitingForARide = false;
+        else
+            mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
+
+
+        mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
     }
 
     //onMapReady is called after onResume()
@@ -481,8 +477,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     void loadAll() {
-        updateUISaveButtons();
-
         //Load polylines
         new DrawAnnotations().execute();
     }
@@ -866,6 +860,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             super.onPostExecute(trips);
             try {
                 mapboxMap.clear();
+
+                updateUISaveButtons();
 
                 for (int lc = 0; lc < trips.size(); lc++) {
                     List<ExtendedMarkerViewOptions> spots = trips.get(lc);
