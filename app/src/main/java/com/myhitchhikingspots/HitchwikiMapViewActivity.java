@@ -797,7 +797,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     @Override
                     public void run() {
                         showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
-                                "Loading spots failed - " + ex.getMessage()));
+                                "Loading spots failed.\n" + ex.getMessage()));
                     }
                 });
             }

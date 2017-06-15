@@ -844,11 +844,17 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 }
 
                 return trips;
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 Crashlytics.logException(ex);
-                showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
-                        "Loading spots failed - " + ex.getMessage()));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+                                "Loading spots failed.\n" + ex.getMessage()));
+                    }
+                });
             }
+
             return new ArrayList<>();
         }
 
