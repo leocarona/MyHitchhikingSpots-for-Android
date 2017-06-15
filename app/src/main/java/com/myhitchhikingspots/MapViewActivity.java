@@ -892,7 +892,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             line.add(spot.getPosition());
                         }
 
-                        if (spotList.size() > 1) {
+                        if (line.getPoints().size() > 1) {
                             //Add polylines to map
                             mapboxMap.addPolyline(line);
                         }

@@ -835,7 +835,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                             line.add(spot.getPosition());
                         }
 
-                        if (spotList.size() > 1) {
+                        if (line.getPoints().size() > 1) {
                             //Add polylines to map
                             mapboxMap.addPolyline(line);
                         }
