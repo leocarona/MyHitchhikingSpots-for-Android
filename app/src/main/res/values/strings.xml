@@ -123,8 +123,11 @@
     <string name="general_yes_option">Yes</string>
     <string name="general_no_option">No</string>
     <string name="general_cancel_option">Cancel</string>
+    <string name="general_download_option" translatable="false">Download</string>
     <string name="general_error_dialog_title">Something went wrong :(</string>
     <string name="general_error_dialog_message" translatable="false">"%s"</string>
+    <string name="general_loading_dialog_title" translatable="false">Loading data&#8230;</string>
+    <string name="general_loading_dialog_message" translatable="false">Please wait</string>
 
     <string name="fetch_address">fetch address</string>
     <string name="address_found">Address found</string>

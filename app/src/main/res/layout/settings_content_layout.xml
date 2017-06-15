@@ -19,15 +19,6 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/get_countries_list"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="getCountriesButtonHandler"
-            android:text="@string/settings_downloadCountriesList_button_label"
-            android:textAllCaps="true" />
-
-        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -51,7 +42,8 @@
             android:layout_gravity="center"
             android:onClick="downloadHWSpotsButtonHandler"
             android:text="@string/settings_downloadHDSpots_button_label"
-            android:textAllCaps="true" />
+            android:textAllCaps="true"
+            android:visibility="gone" />
 
 
         <Switch
@@ -100,7 +92,14 @@
             android:id="@+id/switch_bra"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Brazil" />
+            android:text="Brazil"
+            android:visibility="gone"/>
+
+        <TextView
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Export" />
 
         <Button
             android:id="@+id/export"
@@ -110,6 +109,37 @@
             android:onClick="exportButtonHandler"
             android:text="@string/settings_exportdb_button_label"
             android:textAllCaps="true" />
+
+        <TextView
+            android:layout_marginTop="20dp"
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_downloadHDSpots_button_label" />
+
+        <Button
+            android:id="@+id/select_continents"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="showContinentsDialog"
+            android:text="Select continents >"
+            android:textAllCaps="true" />
+
+        <Button
+            android:id="@+id/select_countries"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="showCountriesDialog"
+            android:text="Select countries >"
+            android:textAllCaps="true" />
+
+
+        <TextView
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/feedbacklabel"

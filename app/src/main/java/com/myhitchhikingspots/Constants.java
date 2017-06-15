@@ -35,6 +35,9 @@ public final class Constants {
     public static final int SPOT_TYPE_WAITING = 4;
     public static final int SPOT_TYPE_DESTINATION = 5;
 
+    public static final String DIALOG_STRINGLIST_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_STRINGLIST_BUNDLE_KEY";
+    public static final String DIALOG_TYPE_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_TYPE_BUNDLE_KEY";
+
     public static final String SPOT_BUNDLE_EXTRA_KEY = PACKAGE_NAME + ".SPOT";
     public static final String SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY";
     public static final String SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY = PACKAGE_NAME + ".SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY";
@@ -56,6 +59,9 @@ public final class Constants {
     public static final String PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD = "countriesDownloadedTimestamp";
     public static final String PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN = "lastOfflineModeWarnTimestamp";
     public static final String PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW = "shouldLoadCurrentView";
+
+    public static final String PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD = "PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD";
+    public static final String PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD = "PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD";
 
     public static final int CROUTON_DURATION_2500 = 2500;
     public static final int CROUTON_DURATION_5000 = 5000;

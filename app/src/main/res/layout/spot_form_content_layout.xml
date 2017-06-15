@@ -216,6 +216,7 @@
                     </RelativeLayout>
 
                     <RelativeLayout
+                        android:id="@+id/date_panel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
@@ -485,7 +486,7 @@
 
 
             <android.support.design.widget.FloatingActionButton
-                android:id="@+id/imageView6"
+                android:id="@+id/spot_form_waiting_time_refresh_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
