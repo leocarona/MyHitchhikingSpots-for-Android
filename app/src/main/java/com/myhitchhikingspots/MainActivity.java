@@ -225,7 +225,7 @@ public class MainActivity extends TrackLocationBaseActivity {
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
-        mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
+        mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
         mCurrentSpot = appContext.getCurrentSpot();
 
         //Update fragments

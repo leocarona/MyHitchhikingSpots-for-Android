@@ -976,6 +976,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 SetDateTime(date_datepicker, time_timepicker, spotStartDT);
             }
 
+            if (mCurrentSpot.getIsPartOfARoute() == null || !mCurrentSpot.getIsPartOfARoute())
+                is_destination_check_box.setVisibility(View.GONE);
+
             //If mFormType is Evaluate or WaitingTime wasn't set, leave the waiting time field empty
             if (mFormType != FormType.Evaluate && mCurrentSpot.getWaitingTime() != null) {
                 String val = mCurrentSpot.getWaitingTime().toString();
@@ -1163,6 +1166,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
+
+        mCurrentSpot.setIsPartOfARoute(true);
 
         new Thread() {
             @Override
@@ -1685,8 +1690,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             this.dialog.setIndeterminate(true);
             this.dialog.setCancelable(false);
-            this.dialog.setTitle(getString(R.string.settings_exportdb_button_label));
-            this.dialog.setMessage("Your spots list will be saved on your phone as CSV file..");
+            this.dialog.setTitle(getString(R.string.general_loading_dialog_title));
+            this.dialog.setMessage(getString(R.string.general_loading_dialog_message));
             this.dialog.show();
         }
 

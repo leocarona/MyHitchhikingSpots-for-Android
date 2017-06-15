@@ -61,7 +61,7 @@ public class MyHitchhikingSpotsApplication extends Application {
     private void LoadCurrentWaitingSpot() {
         SpotDao spotDao = daoSession.getSpotDao();
         List<Spot> areWaitingForARide = spotDao.queryBuilder().where(SpotDao.Properties.IsWaitingForARide.eq(true))
-                .orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
+                .orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
         if (areWaitingForARide.size() > 1)
             Crashlytics.log(Log.INFO, "LoadCurrentWaitingSpot", "More than 1 spot was found with IsWaitingForARide set to true! This should never happen - Please be aware of this.");
