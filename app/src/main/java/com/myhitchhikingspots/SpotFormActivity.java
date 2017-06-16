@@ -458,13 +458,17 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     //Stop listening to location updates
                     mapboxMap.setOnMyLocationChangeListener(null);
 
+                    //Remove onCameraChangeListener - it will be added again if a new location is fetched
+                    mapboxMap.setOnCameraChangeListener(null);
+
                     //As the map camera was moved, we should clear the previous address data
                     mAddressOutput = null;
-                    mCurrentSpot.setGpsResolved(false);
-                    mLocationAddressTextView.setText(getString(R.string.spot_form_location_selected_label));
+                    displayAddressOutput();
 
                     //extraText.setText("CAMERA MANUALLY CHANGED! follow location was unsubscribed");
-                }
+                } else if (requestToPositionAt.getLatitude() == position.target.getLatitude() &&
+                        requestToPositionAt.getLongitude() == position.target.getLongitude())
+                    requestToPositionAt = null;
             }
         };
 
@@ -932,10 +936,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 panel_info.setVisibility(View.VISIBLE);
             }
 
-            if (mCurrentSpot != null && mCurrentSpot.getGpsResolved() != null && mCurrentSpot.getGpsResolved())
-                mLocationAddressTextView.setText(getString(mCurrentSpot));
-            else
-                mLocationAddressTextView.setText(getResources().getString(R.string.spot_form_location_selected_label));
+            updateSpotLocationOnUI();
 
             //Automatically calculate the waiting time if the spot is still on Evaluate phase (if calculating when editing a spot already evaluated it could mess the waiting time without the user expecting/noticing)
             if (getCallingActivity() != null && mFormType == FormType.Evaluate)
@@ -1008,7 +1009,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     h = mCurrentSpot.getHitchability();
             }
 
-          hitchability_ratingbar.setRating(Utils.findTheOpposite(h));
+            hitchability_ratingbar.setRating(Utils.findTheOpposite(h));
 
         } catch (Exception ex) {
             //setTitle(getResources().getString(R.string.spot_form_bottommenu_map_tile));
@@ -1017,6 +1018,17 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         updateUIFirstCalled = true;
+    }
+
+    private void updateSpotLocationOnUI() {
+        String address = "";
+
+        if (mCurrentSpot != null && mCurrentSpot.getGpsResolved() != null && mCurrentSpot.getGpsResolved())
+            address = spotLocationToString(mCurrentSpot).trim();
+        else
+            address = getString(R.string.spot_form_location_selected_label);
+
+        mLocationAddressTextView.setText(address);
     }
 
     public void calculateWaitingTime(View view) {
@@ -1028,7 +1040,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
     public void locationAddressButtonHandler(View v) {
-        String strToCopy = spotLocationToString(mCurrentSpot).trim();
+        String strToCopy = "";
+
+        if (mCurrentSpot.getGpsResolved() != null && mCurrentSpot.getGpsResolved())
+            strToCopy = spotLocationToString(mCurrentSpot).trim();
 
         if ((strToCopy != null && !strToCopy.isEmpty()))
             strToCopy += " ";
@@ -1060,8 +1075,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         //If location is been listened, stop listening to it and keep current location
         mapboxMap.setOnMyLocationChangeListener(null);
-        //Add gesture listener to make map camera stop following GPS position if the user moves the camera manually
-        mapboxMap.setOnCameraChangeListener(clearAddressInfoAfterUserManuallyChangedMapCamera);
     }
 
     public void viewMapButtonHandler(View view) {
@@ -1532,25 +1545,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mCurrentSpot.setGpsResolved(false);
         }
 
-        mLocationAddressTextView.setText(getString(mCurrentSpot));
-
+        updateSpotLocationOnUI();
     }
-
-    @NonNull
-    private String getString(Spot mCurrentSpot) {
-        String spotLoc = "";
-        try {
-            spotLoc = spotLocationToString(mCurrentSpot).trim();
-           /* if ((spotLoc == null || spotLoc.isEmpty()) && (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null))
-                spotLoc = getResources().getString(R.string.spot_form_location_selected_label);
-            spotLoc = String.format(getResources().getString(R.string.spot_form_lat_lng_label),
-                        mCurrentSpot.getLatitude().toString(), mCurrentSpot.getLongitude().toString());*/
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
-        }
-        return spotLoc;
-    }
-
 
     static String locationSeparator = ", ";
 
@@ -1559,14 +1555,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         ArrayList<String> loc = new ArrayList();
         try {
-            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
-                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                    loc.add(spot.getCity().trim());
-                if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                    loc.add(spot.getState().trim());
-                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                    loc.add(spot.getCountry().trim());
-            }
+            if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
+                loc.add(spot.getCity().trim());
+            if (spot.getState() != null && !spot.getState().trim().isEmpty())
+                loc.add(spot.getState().trim());
+            if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
+                loc.add(spot.getCountry().trim());
 
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
@@ -1642,6 +1636,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mAddressRequested = false;
             showToast(strResult);
             updateUIWidgets();
+
+
+            //Add gesture listener to make map camera stop following GPS position if the user moves the camera manually
+            if (!mLocationAddressTextView.getText().equals(getString(R.string.spot_form_location_selected_label)) &&
+                    mapboxMap != null && mCurrentSpot.getGpsResolved())
+                mapboxMap.setOnCameraChangeListener(clearAddressInfoAfterUserManuallyChangedMapCamera);
         }
     }
 
