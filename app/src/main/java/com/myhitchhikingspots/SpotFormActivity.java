@@ -344,6 +344,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // that means he's saving a new spot so we need to show him the Basic form instead.
         if (mCurrentSpot == null) {
             mCurrentSpot = new Spot();
+            mCurrentSpot.setIsPartOfARoute(true);
             mCurrentSpot.setStartDateTime(new Date());
             //mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
         }
@@ -1141,8 +1142,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
-
-        mCurrentSpot.setIsPartOfARoute(true);
 
         new Thread() {
             @Override

@@ -207,6 +207,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             requestCode = BaseActivity.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsDestination(isDestination);
+            spot.setIsPartOfARoute(true);
             if (parentActivity.mCurrentLocation != null) {
                 spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
                 spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());

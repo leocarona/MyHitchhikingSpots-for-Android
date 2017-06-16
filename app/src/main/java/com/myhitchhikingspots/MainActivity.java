@@ -174,6 +174,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 mCurrentSpot.setIsDestination(false);
                 mCurrentSpot.setLatitude(mCurrentLocation.getLatitude());
                 mCurrentSpot.setLongitude(mCurrentLocation.getLongitude());
+                mCurrentSpot.setIsPartOfARoute(true);
             } else {
                 DateTime date = new DateTime(mCurrentSpot.getStartDateTime());
                 Integer waiting_time = Minutes.minutesBetween(date, DateTime.now()).getMinutes();

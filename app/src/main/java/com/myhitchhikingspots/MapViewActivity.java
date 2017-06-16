@@ -953,6 +953,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         if (!mIsWaitingForARide) {
             spot = new Spot();
             spot.setIsDestination(isDestination);
+            spot.setIsPartOfARoute(true);
             Location mCurrentLocation = mapboxMap.getMyLocation();
             if (mCurrentLocation != null) {
                 spot.setLatitude(mCurrentLocation.getLatitude());
