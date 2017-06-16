@@ -504,8 +504,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
 
         //If mapbox was already loaded, we should call updateUI() here in order to update its data
-        if (mapboxMap != null)
-            updateUI();
+        //if (mapboxMap != null)
+        //    updateUI();
     }
 
     @Override
