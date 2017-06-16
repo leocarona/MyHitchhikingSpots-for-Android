@@ -692,10 +692,9 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
                 for (int i = spotList.size() - 1; i >= 0; i--) {
                     Spot spot = spotList.get(i);
-                    String snippet = "";
+                    String spotType = "";
 
                     ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
-                            .title(getString(spot))
                             .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
 
                     if (spot.getId() != null)
@@ -704,7 +703,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     if (spot.getIsDestination() != null && spot.getIsDestination()) {
                         //AT THIS SPOT USER HAS ARRIVED TO HIS DESTINATION
 
-                        snippet = getResources().getString(R.string.map_infoview_spot_type_destination);
+                        spotType = getResources().getString(R.string.map_infoview_spot_type_destination);
                         markerViewOptions.icon(ic_arrival_spot);
                         markerViewOptions.spotType(Constants.SPOT_TYPE_DESTINATION);
 
@@ -713,66 +712,83 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                         //AT THIS SPOT USER IS WAITING FOR A RIDE
 
-                        snippet = getResources().getString(R.string.map_infoview_spot_type_waiting);
+                        spotType = getResources().getString(R.string.map_infoview_spot_type_waiting);
                         markerViewOptions.icon(ic_waiting_spot);
                         markerViewOptions.spotType(Constants.SPOT_TYPE_WAITING);
 
+                    } else if (spot.getAttemptResult() != null && spot.getAttemptResult() > 0) {
+                        if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
+                            //AT THIS SPOT USER TOOK A BREAK SPOT
+
+                            spotType = getResources().getString(R.string.map_infoview_spot_type_break);
+                            markerViewOptions.icon(ic_took_a_break_spot);
+                            markerViewOptions.spotType(Constants.SPOT_TYPE_TOOK_A_BREAK);
+
+                            //Center icon
+                            markerViewOptions.anchor((float) 0.5, (float) 0.5);
+                        } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                            //AT THIS SPOT USER GOT A RIDE
+
+                            if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute())
+                                markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
+                            else
+                                markerViewOptions.icon(ic_single_spot);
+
+                            markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
+                        }
                     } else {
-                        if (spot.getAttemptResult() != null)
-                            if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
-                                //AT THIS SPOT USER TOOK A BREAK SPOT
-
-                                snippet = getResources().getString(R.string.map_infoview_spot_type_break);
-                                markerViewOptions.icon(ic_took_a_break_spot);
-                                markerViewOptions.spotType(Constants.SPOT_TYPE_TOOK_A_BREAK);
-
-                                //Center icon
-                                markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                            } else {
-                                if (spot.getWaitingTime() != null)
-                                    snippet = "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
-
-                                if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
-                                    //AT THIS SPOT USER GOT A RIDE
-
-                                    if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute())
-                                        markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
-                                    else
-                                        markerViewOptions.icon(ic_single_spot);
-
-                                    markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
-                                } else {
-                                    markerViewOptions.icon(getGotARideIconForRoute(-1));
-                                }
-                            }
+                        markerViewOptions.icon(getGotARideIconForRoute(-1));
                     }
+
+                    //Get location string
+                    String firstLine = spotLocationToString(spot).trim();
+                    String secondLine = "";
 
                     //Add date time if it is set
-                    String str = SpotListAdapter.dateTimeToString(spot.getStartDateTime());
+                    if (spot.getStartDateTime() != null)
+                        secondLine += SpotListAdapter.dateTimeToString(spot.getStartDateTime());
 
-                    //Add snippet
-                    if (!snippet.isEmpty()) {
-                        if (!str.isEmpty())
-                            str += " - ";
-                        str += snippet;
-                    }
+                    /*//Add type
+                    if (!spotType.isEmpty()) {
+                        if (!secondLine.isEmpty())
+                            secondLine += " - ";
+                        secondLine += spotType;
+                    }*/
 
-                    //Add hitchability
-                    if (spot.getHitchability() != null && spot.getHitchability() > 0) {
-                        if (!str.isEmpty())
-                            str += " - ";
-                        str += Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability())).toUpperCase();
+                    //Add waiting time
+                    if (spot.getWaitingTime() != null && (spot.getIsDestination() == null || !spot.getIsDestination())) {
+                        if (!secondLine.isEmpty())
+                            secondLine += " ";
+                        secondLine += "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
                     }
 
                     //Add note
                     if (spot.getNote() != null && !spot.getNote().isEmpty()) {
-                        if (!str.isEmpty())
-                            str += "\n";
-                        str += spot.getNote();
+                        if (!secondLine.isEmpty())
+                            secondLine += "\n";
+                        secondLine += spot.getNote();
                     }
 
+                    String snippetAllLines = firstLine;
+                    if (!snippetAllLines.isEmpty())
+                        snippetAllLines += "\n";
+                    snippetAllLines += secondLine;
+
+                    //Get a hitchability string to set as title
+                    String title = "";
+                    if (!spotType.isEmpty())
+                        title = spotType;
+                    else if (spot.getHitchability() != null && spot.getHitchability() > 0)
+                        title = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
+
+                    if (title.isEmpty())
+                        title = "Not evaluated";
+
+                    //Set hitchability as title
+                    markerViewOptions.title(title.toUpperCase());
+
                     // Customize map with markers, polylines, etc.
-                    markerViewOptions.snippet(str);
+                    markerViewOptions.snippet(snippetAllLines);
 
                     if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
                         spots.add(markerViewOptions);
@@ -791,7 +807,10 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 }
 
                 return trips;
-            } catch (final Exception ex) {
+            } catch (
+                    final Exception ex)
+
+            {
                 Crashlytics.logException(ex);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -879,6 +898,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         if (!mIsWaitingForARide) {
             spot = new Spot();
             spot.setIsDestination(isDestination);
+            spot.setIsPartOfARoute(true);
             Location mCurrentLocation = mapboxMap.getMyLocation();
             if (mCurrentLocation != null) {
                 spot.setLatitude(mCurrentLocation.getLatitude());
