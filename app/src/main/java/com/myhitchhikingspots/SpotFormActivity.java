@@ -1744,17 +1744,26 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     mCurrentSpot.setCountryCode(placeWithCompleteDetails.getCountry_iso());
                     mCurrentSpot.setCountry(placeWithCompleteDetails.getCountry_name());
                     mCurrentSpot.setCity(placeWithCompleteDetails.getLocality());
-                    if (placeWithCompleteDetails.getWaiting_stats_avg() != null && placeWithCompleteDetails.getWaiting_stats_avg() != "null")
-                        mCurrentSpot.setWaitingTime(Integer.parseInt(placeWithCompleteDetails.getWaiting_stats_avg()));
+
+                    //If a waiting time was informed, convert it into Integer
+                    String waiting_stats_avg = placeWithCompleteDetails.getWaiting_stats_avg();
+                    if (waiting_stats_avg != null && !waiting_stats_avg.contentEquals("null") && !waiting_stats_avg.isEmpty())
+                        mCurrentSpot.setWaitingTime(Integer.parseInt(waiting_stats_avg));
+
+                    //If any location string can be built with the location data received, then we should set gpsResolved to true
+                    if ((mCurrentSpot.getCity() != null && !mCurrentSpot.getCity().isEmpty()) ||
+                            (mCurrentSpot.getCountry() != null && !mCurrentSpot.getCountry().isEmpty()) ||
+                            (mCurrentSpot.getCountryCode() != null && !mCurrentSpot.getCountryCode().isEmpty()))
+                        mCurrentSpot.setGpsResolved(true);
                 } catch (Exception ex) {
                     Crashlytics.logException(ex);
                     errMsgToShow = "Failed to set mCurrentSpot. " + ex.getMessage();
                 }
-
-                updateUI();
             } else {
-                errMsgToShow = "Failed to download more details from Hitchwiki Maps. " + result;
+                errMsgToShow = "Failed to download more details from Hitchwiki Maps.\n\"" + result + "\"";
             }
+
+            updateUI();
 
             //first set progressBar to invisible
             ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
