@@ -152,11 +152,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private ImageView dropPinView;
     //private android.support.v4.widget.NestedScrollView sv;
 
-    MapboxMap.OnMyLocationChangeListener cameraWillFollowLocationListener, moveCameraToFirstLocationReceived;
+    MapboxMap.OnMyLocationChangeListener moveCameraToFirstLocationReceived; //cameraWillFollowLocationListener
 
-    MapboxMap.OnCameraChangeListener followGPSWhenRequestedPositionIsReached,
-            addGestureListenerAfterRequestedPositionIsReached,
-            clearAddressInfoAfterUserManuallyChangedMapCamera;
+    MapboxMap.OnCameraChangeListener clearAddressInfoAfterUserManuallyChangedMapCamera; //followGPSWhenRequestedPositionIsReached, addGestureListenerAfterRequestedPositionIsReached,
 
     private CoordinatorLayout coordinatorLayout, spot_form_basic;
     private android.support.design.widget.FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
@@ -371,6 +369,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         followingGPSToast = Toast.makeText(getBaseContext(), "following gps", Toast.LENGTH_SHORT);
 
+
+       /* LISTENERS THAT WE STOPPED USING BECAUSE onCameraChangeListener IS CALLED AT RANDOM MOMENTS, NOT ONLY WHEN THE USER MOVES THE MAP MANUALLY.
+       GOOD NEWS: The next version of gradle (current one when this comment is been written is: io.fabric.tools:gradle:1.22.2) should provide listeners
+       for detecting when a map was completely moved and if it was moved by an app request or by the user. So maybe after next version we can adjust and come back using the listeners declaired below.
         cameraWillFollowLocationListener = new MapboxMap.OnMyLocationChangeListener() {
             @Override
             public void onMyLocationChange(Location location) {
@@ -443,6 +445,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 }
             }
         };
+        */
+
 
         //Checks if user has manually changed the camera position
         // and sets gpsResolved to false and stop listening to location updates
@@ -1693,35 +1697,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         @Override
         protected void onPostExecute(String result) {
-            //we can populate info linear layout here, and stop spinner
-            //we have placeWithCompleteDetails full and we populate linear layout info with it
-
-            //clean any crouton that might be appearing. this is done if one marker has already been clicked so
-            //there's crouton details displayed already, and user clicks on another marker, so new crouton is coming
-            //Crouton.clearCroutonsForActivity((Activity)context);
-
-           /* -------------String str = "";
-
-            //show crouton with details about the marker (name, country, hitchability, avg waiting time)
-            //showCroutonWithCustomLayout(placeWithCompleteDetails);
-            //description text
-            if (placeWithCompleteDetails.getDescriptionENdescription().length() == 0) {
-                //placeDescription.setText("There's no description for this point :(");
-            } else {
-                str += Utils.stringBeautifier(placeWithCompleteDetails.getDescriptionENdescription());
-                //placeDescription.setText(Utils.stringBeautifier(placeWithCompleteDetails.getDescriptionENdescription()));
-            }
-
-            str += ".\nWaiting time: " + placeWithCompleteDetails.getWaiting_stats_avg() + ".";
-            str += ".\nComments: " + placeWithCompleteDetails.getComments_count() + ".";
-           /* placeButtonComments.setText
-                    (
-                            context.getResources().getString(R.string.button_comments)
-                                    + " [" + placeWithCompleteDetails.getComments_count() + "]"
-                    );/
-
-            showErrorAlert("Spot info", str);-------------------*/
-
 
             //button listeners
            /* placeButtonNavigate.setOnClickListener(new Button.OnClickListener()

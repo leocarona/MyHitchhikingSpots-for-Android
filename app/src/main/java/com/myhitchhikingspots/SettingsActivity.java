@@ -860,16 +860,11 @@ public class SettingsActivity extends BaseActivity {
             if (shouldDeleteExisting)
                 strToShow = "Updating countries list...";
 
-            try {
-                this.loadingDialog.setIndeterminate(true);
-                this.loadingDialog.setCancelable(false);
-                this.loadingDialog.setTitle(getString(R.string.settings_downloadCountriesList_button_label));
-                this.loadingDialog.setMessage(strToShow);
-                this.loadingDialog.show();
-            } catch (Exception ex) {
-                String msg = ex.getMessage();
-                Crashlytics.logException(ex);
-            }
+            this.loadingDialog.setIndeterminate(true);
+            this.loadingDialog.setCancelable(false);
+            this.loadingDialog.setTitle(getString(R.string.settings_downloadCountriesList_button_label));
+            this.loadingDialog.setMessage(strToShow);
+            this.loadingDialog.show();
         }
 
         @SuppressWarnings("unchecked")
@@ -919,8 +914,6 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(String result) {
-
-            //TODO: if(countriesContainer.length >0) build list of switches for each country
 
             if (!result.contentEquals("countriesLoadedFromLocalStorage")) {
                 File file = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
