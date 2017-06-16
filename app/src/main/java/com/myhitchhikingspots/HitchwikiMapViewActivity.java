@@ -580,13 +580,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         mapView.onLowMemory();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.mapview_menu, menu);
-        return true;
-    }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -597,7 +590,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            saveSpotButtonHandler(false);
+            //startActivity(new Intent(getApplicationContext(), MainActivity.class));
             return true;
         }
 

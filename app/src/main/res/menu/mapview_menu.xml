@@ -5,5 +5,5 @@
         android:title="@string/mapview_master_title"
         android:orderInCategory="100"
         app:showAsAction="ifRoom"
-        android:icon="@android:drawable/ic_menu_sort_by_size" />
+        android:icon="@drawable/ic_add_new_black_24dp" />
 </menu>

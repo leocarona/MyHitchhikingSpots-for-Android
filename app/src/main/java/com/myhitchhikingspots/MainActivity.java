@@ -271,7 +271,9 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+            mSectionsPagerAdapter.saveSpotButtonHandler(false);
+            //GotARideShortcut();
+            //startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
             return true;
         }
 
@@ -422,6 +424,11 @@ public class MainActivity extends TrackLocationBaseActivity {
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
             }
+        }
+
+        public void saveSpotButtonHandler(Boolean isDestination) {
+            if (fragment != null)
+                fragment.saveSpotButtonHandler(isDestination);
         }
     }
 }

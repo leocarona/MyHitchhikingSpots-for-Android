@@ -651,7 +651,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            saveSpotButtonHandler(false);
+            //startActivity(new Intent(getApplicationContext(), MainActivity.class));
             return true;
         }
 
