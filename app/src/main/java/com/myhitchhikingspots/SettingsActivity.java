@@ -297,7 +297,7 @@ public class SettingsActivity extends BaseActivity {
                         .setPositiveButton(getResources().getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                new getCountriesAsyncTask(false).execute();
+                                new getCountriesAsyncTask(true).execute();
                             }
                         })
                         .setNegativeButton(getResources().getString(R.string.general_cancel_option), null)
@@ -968,8 +968,24 @@ public class SettingsActivity extends BaseActivity {
             } else if (!result.contentEquals("countriesLoadedFromLocalStorage") && !result.isEmpty())
                 showErrorAlert("An error occurred", "An exception occurred while trying to download the countries list.");
 
-            if (result.contentEquals("countriesListDownloaded") || result.contentEquals("countriesLoadedFromLocalStorage"))
-                new showCountriesDialogAsyncTask().execute();
+            if (result.contentEquals("countriesListDownloaded") || result.contentEquals("countriesLoadedFromLocalStorage")) {
+                if (countriesContainer.length == 0) {
+                    //Ask user if they'd like to download the countries list now
+                    new AlertDialog.Builder(context)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setTitle("Countries list is empty")
+                            .setMessage("Something strang happened and your countries list is empty.\nWould you like to download the countries list now?")
+                            .setPositiveButton(getResources().getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    new getCountriesAsyncTask(true).execute();
+                                }
+                            })
+                            .setNegativeButton(getResources().getString(R.string.general_cancel_option), null)
+                            .show();
+                } else
+                    new showCountriesDialogAsyncTask().execute();
+            }
 
             this.loadingDialog.dismiss();
             ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -1001,7 +1017,7 @@ public class SettingsActivity extends BaseActivity {
             this.loadingDialog.setIndeterminate(true);
             this.loadingDialog.setCancelable(false);
             this.loadingDialog.setTitle(getString(R.string.settings_downloadHDSpots_button_label));
-            this.loadingDialog.setMessage("Downloading: " + lstToDownload + "...");
+            this.loadingDialog.setMessage("Downloading: " + lstToDownload);
             this.loadingDialog.show();
         }
 
@@ -1096,14 +1112,11 @@ public class SettingsActivity extends BaseActivity {
                 } catch (Exception exception) {
                     Crashlytics.logException(exception);
                 }
-            }
 
-            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            loadingDialog.dismiss();
-
-            if (result.contentEquals("spotsDownloaded")) {
                 //also write into prefs that markers sync has occurred
                 prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, System.currentTimeMillis()).commit();
+
+                //TODO: show how many megabytes were downloaded or saved locally
 
                 Toast.makeText(SettingsActivity.this, "Download successful!", Toast.LENGTH_SHORT).show();
                 Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
@@ -1128,6 +1141,9 @@ public class SettingsActivity extends BaseActivity {
                 else if (!result.isEmpty())
                     showErrorAlert("An error occurred", "An exception occurred while trying to download spots from Hitchwiki Maps.");
             }
+
+            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            loadingDialog.dismiss();
         }
     }
 
