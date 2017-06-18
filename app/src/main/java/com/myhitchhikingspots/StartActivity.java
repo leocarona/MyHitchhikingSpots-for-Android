@@ -28,8 +28,12 @@ public class StartActivity extends Activity {
             if (lastAdded.getIsWaitingForARide()) {
                 spot = lastAdded;
                 intent.putExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
-            } else
+            } else {
+                //Let the user add a new spot to his route
+                spot = new Spot();
+                spot.setIsPartOfARoute(true);
                 intent.putExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
+            }
 
             intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
             finish();
