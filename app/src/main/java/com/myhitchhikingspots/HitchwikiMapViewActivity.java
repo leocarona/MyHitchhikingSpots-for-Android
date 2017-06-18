@@ -387,32 +387,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     void updateUI() {
         Crashlytics.log(Log.INFO, TAG, "updateUI was called");
 
-        if (!Utils.isNetworkAvailable(this) && !Utils.shouldLoadCurrentView(prefs)) {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))
-                    .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
-                    .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
-                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
-
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                        }
-                    })
-                    .setNegativeButton(getResources().getString(R.string.map_error_alert_map_not_loaded_negative_button), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
-                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
-
-                            loadAll();
-                        }
-                    }).show();
-        } else {
-            loadAll();
-        }
+        loadAll();
     }
 
     SharedPreferences prefs;
