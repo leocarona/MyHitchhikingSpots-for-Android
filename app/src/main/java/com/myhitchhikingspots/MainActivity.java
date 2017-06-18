@@ -56,12 +56,15 @@ public class MainActivity extends TrackLocationBaseActivity {
     CoordinatorLayout coordinatorLayout;
     boolean wasSnackbarShown;
     static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
+    static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
+    static final String TAG = "main-activity";
+
+    int indexOfLastOpenTab = 0;
 
     /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     * Set shouldGoBackToPreviousActivity to true if instead of opening a new map, the action bar option should just finish current activity
      */
-    //  private GoogleApiClient client;
+    Boolean shouldGoBackToPreviousActivity = false;
 
    /* protected AudioManager mAudioManager;
     protected RemoteControlClient mRemoteControlClient;
@@ -73,8 +76,12 @@ public class MainActivity extends TrackLocationBaseActivity {
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
+        Boolean shouldShowYouTab = false;
+
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
+            shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
+            shouldShowYouTab = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, false);
             if (!wasSnackbarShown) {
                 if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
                     showSpotSavedSnackbar();
@@ -93,11 +100,18 @@ public class MainActivity extends TrackLocationBaseActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        if (shouldShowYouTab || indexOfLastOpenTab == 1)
+            showYouTab();
+
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
+    }
+
+    public void showYouTab() {
+        mViewPager.setCurrentItem(1);
     }
 
     Snackbar snackbar;
@@ -129,7 +143,10 @@ public class MainActivity extends TrackLocationBaseActivity {
                 getString(R.string.map_error_alert_map_not_loaded_negative_button), new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+                        if (shouldGoBackToPreviousActivity)
+                            finish();
+                        else
+                            startActivity(new Intent(getBaseContext(), MapViewActivity.class));
                     }
                 });
     }
@@ -264,26 +281,39 @@ public class MainActivity extends TrackLocationBaseActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        boolean selectionHandled = false;
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            mSectionsPagerAdapter.saveSpotButtonHandler(false);
-            //GotARideShortcut();
-            //startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_view_map:
+                //If MapViewActivity was the one who opened the current MainActivity, then we don't need to start a new instance of MainActivity, just call finish() instead
+
+                /*ComponentName callingActivity = getCallingActivity();
+                if (callingActivity != null && callingActivity.getClassName() != null
+                        && callingActivity.getClassName().equals(MapViewActivity.class.getName())*/
+                if (shouldGoBackToPreviousActivity)
+                    finish();
+                else
+                    startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+                selectionHandled = true;
+                break;
+            case R.id.action_new_spot:
+                mSectionsPagerAdapter.saveSpotButtonHandler(false);
+                //GotARideShortcut();
+                selectionHandled = true;
+                break;
         }
 
-        return super.onOptionsItemSelected(item);
+        if (selectionHandled)
+            return true;
+        else
+            return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
+        savedInstanceState.putInt(LAST_TAB_OPENED_KEY, mViewPager.getCurrentItem());
     }
 
 
@@ -297,6 +327,8 @@ public class MainActivity extends TrackLocationBaseActivity {
         if (savedInstanceState != null) {
             if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
                 wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
+            if (savedInstanceState.keySet().contains(LAST_TAB_OPENED_KEY))
+                indexOfLastOpenTab = savedInstanceState.getInt(LAST_TAB_OPENED_KEY, 0);
         }
     }
 
@@ -321,8 +353,8 @@ public class MainActivity extends TrackLocationBaseActivity {
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        private MyLocationFragment fragment;
-        private SpotListFragment fragment2;
+        private SpotListFragment tab_list;
+        private MyLocationFragment tab_you;
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -335,15 +367,15 @@ public class MainActivity extends TrackLocationBaseActivity {
             // Return a PlaceholderFragment (defined as a static inner class below).
             switch (position) {
                 case 0:
-                    MyLocationFragment frag = new MyLocationFragment();
-                    Bundle args = new Bundle();
-                    frag.setArguments(args);
-                    return frag;
-                case 1:
-                    SpotListFragment frag2 = new SpotListFragment();
+                    SpotListFragment listFrag = new SpotListFragment();
                     Bundle args2 = new Bundle();
-                    frag2.setArguments(args2);
-                    return frag2;
+                    listFrag.setArguments(args2);
+                    return listFrag;
+                case 1:
+                    MyLocationFragment youFrag = new MyLocationFragment();
+                    Bundle args = new Bundle();
+                    youFrag.setArguments(args);
+                    return youFrag;
             }
             return null;
         }
@@ -356,20 +388,20 @@ public class MainActivity extends TrackLocationBaseActivity {
         // http://stackoverflow.com/a/29288093/1094261
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-            Crashlytics.log(Log.INFO, "tracking-main-activity", "SectionsPagerAdapter.instantiateItem called for position " + position);
+            Crashlytics.log(Log.INFO, TAG, "SectionsPagerAdapter.instantiateItem called for position " + position);
 
             Fragment createdFragment = (Fragment) super.instantiateItem(container, position);
             // save the appropriate reference depending on position
             switch (position) {
                 case 0:
-                    MyLocationFragment f = (MyLocationFragment) createdFragment;
-                    f.setValues(mSpotList, mCurrentSpot);
-                    fragment = f;
+                    SpotListFragment tab_list = (SpotListFragment) createdFragment;
+                    tab_list.setValues(mSpotList);
+                    this.tab_list = tab_list;
                     break;
                 case 1:
-                    SpotListFragment f2 = (SpotListFragment) createdFragment;
-                    f2.setValues(mSpotList);
-                    fragment2 = f2;
+                    MyLocationFragment tab_you = (MyLocationFragment) createdFragment;
+                    tab_you.setValues(mSpotList, mCurrentSpot);
+                    this.tab_you = tab_you;
                     break;
             }
             return createdFragment;
@@ -384,51 +416,50 @@ public class MainActivity extends TrackLocationBaseActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return getResources().getString(R.string.main_activity_you_tab);
-                case 1:
                     return getResources().getString(R.string.main_activity_list_tab);
+                    return getResources().getString(R.string.main_activity_you_tab);
             }
             return null;
         }
 
         public void updateUILabels() {
-            if (fragment != null)
-                fragment.updateUILabels();
+            if (tab_you != null)
+                tab_you.updateUILabels();
         }
 
         public void updateUILocationSwitch() {
-            if (fragment != null)
-                fragment.updateUILocationSwitch();
+            if (tab_you != null)
+                tab_you.updateUILocationSwitch();
         }
 
         public void updateUISaveButtons() {
-            if (fragment != null)
-                fragment.updateUISaveButtons();
+            if (tab_you != null)
+                tab_you.updateUISaveButtons();
         }
 
         public Integer getSelectedHitchability() {
-            if (fragment == null)
+            if (tab_you == null)
                 return 0;
             else
-                return fragment.getSelectedHitchability();
+                return tab_you.getSelectedHitchability();
         }
 
         public void setValues(List<Spot> lst, Spot spot) {
-            Crashlytics.log(Log.INFO, "tracking-main-activity", "SectionsPagerAdapter.setValues called");
+            Crashlytics.log(Log.INFO, TAG, "SectionsPagerAdapter.setValues called");
             try {
-                if (fragment != null)
-                    fragment.setValues(lst, spot);
+                if (tab_you != null)
+                    tab_you.setValues(lst, spot);
 
-                if (fragment2 != null)
-                    fragment2.setValues(lst);
+                if (tab_list != null)
+                    tab_list.setValues(lst);
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
             }
         }
 
         public void saveSpotButtonHandler(Boolean isDestination) {
-            if (fragment != null)
-                fragment.saveSpotButtonHandler(isDestination);
+            if (tab_you != null)
+                tab_you.saveSpotButtonHandler(isDestination);
         }
     }
 }
