@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_settings"
+    <item android:id="@+id/action_view_map"
+        android:title="@string/view_map_button_label"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_new_spot"
         android:orderInCategory="100"
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_add_new_black_24dp" />

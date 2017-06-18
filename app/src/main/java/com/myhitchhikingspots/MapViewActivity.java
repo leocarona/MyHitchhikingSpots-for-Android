@@ -462,7 +462,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
                             prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
 
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            openSpotsListView(true);
                         }
                     })
                     .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
@@ -653,19 +653,48 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        boolean selectionHandled = false;
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            saveSpotButtonHandler(false);
-            //startActivity(new Intent(getApplicationContext(), MainActivity.class));
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_view_list:
+                openSpotsListView();
+                selectionHandled = true;
+                break;
+            case R.id.action_new_spot:
+                //If mapboxMap was not loaded, we can't track the user location using MapBox.
+                // Let's give the user an option to track his location using Google Play services instead, which is done by {@link #TrackLocationBaseActivity}
+                if (mapboxMap == null) {
+                    new AlertDialog.Builder(this)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setTitle(getString(R.string.save_spot_button_text))
+                            .setMessage(getString(R.string.map_error_alert_map_not_loaded_title)
+                                    + ". To fetch your location we need the map which was not loaded. But you can still try to save a new spot by using the feature that doesn't use maps.")
+                            .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    openSpotsListView(true);
+                                }
+                            })
+                            .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
+                } else
+                    saveSpotButtonHandler(false);
+                selectionHandled = true;
+                break;
         }
 
-        return super.onOptionsItemSelected(item);
+        if (selectionHandled)
+            return true;
+        else
+            return super.onOptionsItemSelected(item);
+    }
+
+    void openSpotsListView(Boolean... shouldShowYouTab) {
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+        //When set to true, shouldShowYouTab will open MainActivity presenting the tab "You" instead of the tab "List"
+        intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab);
+        startActivity(intent);
+        //startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
 
     protected void zoomOutToFitAllMarkers() {
