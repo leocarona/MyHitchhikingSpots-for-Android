@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/spot_list_item_parent"
     android:layout_width="match_parent"
+    android:paddingLeft="11dp"
+    android:paddingRight="11dp"
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
@@ -71,6 +72,12 @@
                 android:layout_width="18dp"
                 android:layout_height="match_parent"
                 app:srcCompat="@drawable/ic_break_spot_icon" />
+
+            <ImageView
+                android:id="@+id/single_icon_layout_imageview"
+                android:layout_width="18dp"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/ic_marker_got_a_ride_24dp" />
 
             <TextView
                 android:id="@+id/spot_notes_layout_textview"

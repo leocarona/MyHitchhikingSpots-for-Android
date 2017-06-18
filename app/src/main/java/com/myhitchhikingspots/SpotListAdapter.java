@@ -23,9 +23,7 @@ import org.joda.time.Minutes;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
@@ -204,7 +202,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public TextView dateTime, cityNameText, notesText, waitingTimeText;
-        public ImageView waitingIcon, arrivalIcon, pauseIcon;
+        public ImageView waitingIcon, arrivalIcon, singleSpotIcon, breakIcon;
         public SpotListFragment spotListFragment;
         public Spot spot;
         public View viewParent;
@@ -219,7 +217,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             waitingTimeText = (TextView) itemLayoutView.findViewById(R.id.waiting_time_layout_textview);
             waitingIcon = (ImageView) itemLayoutView.findViewById(R.id.waiting_icon_layout_imageview);
             arrivalIcon = (ImageView) itemLayoutView.findViewById(R.id.arrival_icon_layout_imageview);
-            pauseIcon = (ImageView) itemLayoutView.findViewById(R.id.break_icon_layout_imageview);
+            singleSpotIcon = (ImageView) itemLayoutView.findViewById(R.id.single_icon_layout_imageview);
+            breakIcon = (ImageView) itemLayoutView.findViewById(R.id.break_icon_layout_imageview);
+
 
             viewParent = itemLayoutView.findViewById(R.id.spot_list_item_parent);
             viewParent.setOnClickListener(this);
@@ -292,12 +292,18 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 if (captilizedNote != null && !captilizedNote.isEmpty())
                     captilizedNote = captilizedNote.substring(0, 1).toUpperCase() + captilizedNote.substring(1);
 
-                if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK
-                        && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide()))
-                    pauseIcon.setVisibility(View.VISIBLE);
-                else
-                    pauseIcon.setVisibility(View.GONE);
-                //captilizedNote = viewParent.getResources().getString(R.string.break_spot_state_label) + " - " + captilizedNote;
+                if (spot.getIsPartOfARoute() != null && !spot.getIsPartOfARoute()) {
+                    viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_single_spot_bg_color));
+                    breakIcon.setVisibility(View.GONE);
+                    singleSpotIcon.setVisibility(View.VISIBLE);
+                } else {
+                    singleSpotIcon.setVisibility(View.GONE);
+                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK
+                            && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide()))
+                        breakIcon.setVisibility(View.VISIBLE);
+                    else
+                        breakIcon.setVisibility(View.GONE);
+                }
 
                 notesText.setText(captilizedNote);
             } catch (Exception ex) {

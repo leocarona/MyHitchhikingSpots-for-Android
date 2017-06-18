@@ -62,8 +62,8 @@
                     app:backgroundTint="@color/ic_standard_fab_color"
                     app:fabSize="mini"
                     app:rippleColor="@color/ic_standard_fab_color_lighter"
-                    app:srcCompat="@drawable/ic_my_location_24dp"
                     app:useCompatPadding="true"
+                    mapbox:srcCompat="@drawable/ic_my_location_24dp"
                     tools:ignore="VectorDrawableCompat" />
 
                 <android.support.design.widget.FloatingActionButton
@@ -77,8 +77,8 @@
                     app:backgroundTint="@color/ic_standard_fab_color"
                     app:fabSize="mini"
                     app:rippleColor="@color/ic_standard_fab_color_lighter"
-                    app:srcCompat="@drawable/ic_zoom_in_white_24dp"
                     app:useCompatPadding="true"
+                    mapbox:srcCompat="@drawable/ic_zoom_in_white_24dp"
                     tools:ignore="VectorDrawableCompat" />
 
                 <android.support.design.widget.FloatingActionButton
@@ -91,8 +91,8 @@
                     app:backgroundTint="@color/ic_standard_fab_color"
                     app:fabSize="mini"
                     app:rippleColor="@color/ic_standard_fab_color_lighter"
-                    app:srcCompat="@drawable/ic_zoom_out_white_24dp"
                     app:useCompatPadding="true"
+                    mapbox:srcCompat="@drawable/ic_zoom_out_white_24dp"
                     tools:ignore="VectorDrawableCompat" />
 
             </android.support.design.widget.CoordinatorLayout>
@@ -160,7 +160,8 @@
                             android:focusableInTouchMode="true"
                             android:gravity="top"
                             android:hint="@string/spot_form_note_label"
-                            android:inputType="textMultiLine" />
+                            android:inputType="textMultiLine"
+                            android:minLines="2" />
                     </android.support.design.widget.TextInputLayout>
 
                     <RelativeLayout
@@ -312,15 +313,40 @@
                             android:layoutMode="clipBounds" />
                     </LinearLayout>
 
+                   <!-- <TextView
+                        style="?android:attr/listSeparatorTextViewStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />-->
+
+                    <CheckBox
+                        android:id="@+id/save_spot_form_is_part_of_a_route_check_box"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:button="@null"
+                        android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
+                        android:text="@string/spot_form_is_is_part_of_a_route_checkbox_text"
+                        android:textStyle="normal|bold" />
+
                     <CheckBox
                         android:id="@+id/save_spot_form_is_destination_check_box"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="right"
+                        android:layout_gravity="end"
                         android:button="@null"
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
-                        android:onClick="isDestinationHandleChecked"
                         android:text="@string/spot_form_is_destination_checkbox_text" />
+
+                    <TextView
+                        android:id="@+id/feedbacklabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#FFFFD54D"
+                        android:gravity="center"
+                        android:padding="10dp"
+                        android:text="Save your spot to enable the Evaluate tab."
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:visibility="gone" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -376,7 +402,8 @@
         android:layout_height="match_parent"
         android:background="#FFF"
         android:orientation="vertical"
-        android:paddingBottom="80dp">
+        android:paddingBottom="80dp"
+        android:visibility="gone">
 
         <LinearLayout
             android:id="@+id/save_spot_form_hitchability_options"
@@ -438,7 +465,7 @@
                     android:layout_weight="0.79"
                     android:background="@drawable/got_a_ride_button"
                     android:gravity="center_horizontal"
-                    app:srcCompat="@drawable/ic_got_a_ride_spot_icon" />
+                    mapbox:srcCompat="@drawable/ic_got_a_ride_spot_icon" />
 
 
                 <TextView
@@ -468,7 +495,7 @@
                     android:layout_weight="0.79"
                     android:background="@drawable/break_button"
                     android:gravity="center_horizontal"
-                    app:srcCompat="@drawable/ic_break_spot_icon" />
+                    mapbox:srcCompat="@drawable/ic_break_spot_icon" />
 
 
                 <TextView

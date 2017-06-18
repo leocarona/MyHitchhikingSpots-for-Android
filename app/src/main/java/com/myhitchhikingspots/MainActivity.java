@@ -137,7 +137,7 @@ public class MainActivity extends TrackLocationBaseActivity {
 
     void showSpotSavedSnackbar() {
         showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
-                getString(R.string.map_error_alert_map_not_loaded_negative_button), new View.OnClickListener() {
+                String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if (shouldGoBackToPreviousActivity)
@@ -239,6 +239,8 @@ public class MainActivity extends TrackLocationBaseActivity {
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
+
+        //TODO: Check if this query is really helping us to detect if isWaitingForARide after we've added IsPartOfARoute
         mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
         mCurrentSpot = appContext.getCurrentSpot();
 

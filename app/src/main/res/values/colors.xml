@@ -9,10 +9,11 @@
     <color name="route_color_unknown">#a9a9a9</color>
     <color name="route_color_0">#85cf3a</color>
     <color name="route_color_1">#ffbb33</color>
-    <color name="route_color_2">#3a84df</color>
+    <color name="route_color_2">#33C9BB</color>
     <color name="route_color_3">#FF4081</color>
-    <color name="route_color_4">#33C9BB</color>
+    <color name="route_color_4">#a082ff</color>
 
+    <color name="ic_single_spot_bg_color">#a8f5a3f9</color>
 
     <!--lightened with http://www.hexcolortool.com/ -->
     <color name="ic_regular_spot_color_lighter">#4DCFFF</color>

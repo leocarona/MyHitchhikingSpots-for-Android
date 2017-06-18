@@ -1263,11 +1263,7 @@ public class SettingsActivity extends BaseActivity {
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         DialogSelection2 dialog = new DialogSelection2();
-
-        //TODO: check when eactly setArguments should be set because currently if screen is rotated the bundle isn't been recovered
         dialog.setArguments(args);
-
-
         dialog.show(fragmentManager, "tagSelection");
     }
 

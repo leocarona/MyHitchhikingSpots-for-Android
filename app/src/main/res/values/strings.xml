@@ -108,7 +108,8 @@
     <string name="spot_form_delete_dialog_message_text">Are you sure you want to permanently delete this spot?</string>
     <string name="spot_form_delete_dialog_no_option">Cancel</string>
     <string name="spot_form_delete_dialog_yes_option">Delete</string>
-    <string name="spot_form_is_destination_checkbox_text">This is my destination by now</string>
+    <string name="spot_form_is_is_part_of_a_route_checkbox_text" translatable="false">This spot belongs to a route</string>
+    <string name="spot_form_is_destination_checkbox_text">This is my route\'s destination</string>
     <string name="spot_form_title_evaluate">Evaluate spot</string>
     <string name="spot_form_title_edit">Edit spot</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
