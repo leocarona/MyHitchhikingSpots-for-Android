@@ -78,9 +78,10 @@ public class MyHitchhikingSpotsApplication extends Application {
         return currentSpot;
     }
 
-    public Spot getLastAddedSpot() {
+    public Spot getLastAddedRouteSpot() {
         SpotDao spotDao = daoSession.getSpotDao();
         Spot spot = spotDao.queryBuilder()
+                .where(SpotDao.Properties.IsPartOfARoute.eq(true))
                 .orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).limit(1).unique();
 
         return spot;
