@@ -55,7 +55,7 @@ public class MainActivity extends TrackLocationBaseActivity {
 
     CoordinatorLayout coordinatorLayout;
     boolean wasSnackbarShown;
-    static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
+    static final String SNACKBAR_SHOWED_KEY = "snackbar-showed-key";
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
 
@@ -66,9 +66,6 @@ public class MainActivity extends TrackLocationBaseActivity {
      */
     Boolean shouldGoBackToPreviousActivity = false;
 
-   /* protected AudioManager mAudioManager;
-    protected RemoteControlClient mRemoteControlClient;
-                                                          */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.main_activity_layout);
@@ -222,11 +219,10 @@ public class MainActivity extends TrackLocationBaseActivity {
     List<Spot> mSpotList;
     Spot mCurrentSpot;
 
-
     @Override
     public void onResume() {
         super.onResume();
-        Crashlytics.log(Log.INFO, "tracking-main-activity", "onResume called");
+        Crashlytics.log(Log.INFO, TAG, "onResume called");
 
         loadValues();
     }
@@ -239,7 +235,7 @@ public class MainActivity extends TrackLocationBaseActivity {
     }
 
     void loadValues() {
-        Crashlytics.log(Log.INFO, "tracking-main-activity", "loadValues called");
+        Crashlytics.log(Log.INFO, TAG, "loadValues called");
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
