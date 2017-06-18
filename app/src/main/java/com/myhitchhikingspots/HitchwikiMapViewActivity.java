@@ -427,7 +427,17 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             //Load spots and display them as markers and polylines on the map
             new DrawAnnotations().execute();
         } else {
-            showErrorAlert("No data to show", "Please, navigate to Menu > Tools and Download spots from Hitchwiki Maps.");
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle("No data to show")
+                    .setMessage("Please, navigate to Menu > " + getString(R.string.settings_master_title) + " and Download spots from Hitchwiki Maps.")
+                    .setPositiveButton(getString(R.string.settings_master_title), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                        }
+                    })
+                    .setNegativeButton(getResources().getString(R.string.general_ok_option), null).show();
         }
     }
 
