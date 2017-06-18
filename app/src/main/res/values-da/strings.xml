@@ -49,6 +49,7 @@
     <string name="title_activity_main">@string/app_name</string>
     <string name="confirm_back_button_click_dialog_title">Tilbage</string>
     <string name="confirm_back_button_click_dialog_message">Er du sikker på, at du vil forlade denne side uden at gemme dine ændringer?</string>
+    <string name="main_activity_title">Mine Steder</string>
     <string name="main_activity_you_tab">dig</string>
     <string name="main_activity_list_tab">liste</string>
     <string name="spot_list_item_arrival_label">ankomst</string>

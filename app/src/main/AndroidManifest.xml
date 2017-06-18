@@ -56,19 +56,9 @@ limitations under the License.
         </activity>
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main"
+            android:label="@string/main_activity_title"
             android:parentActivityName=".BaseActivity"
-            android:theme="@style/Theme.Base.NoActionBar">
-
-            <!--
-            Broadcast Receivers
-            <receiver android:name=".RemoteControlReceiver">
-                <intent-filter android:priority="1000">
-                    <action android:name="android.intent.action.MEDIA_BUTTON" />
-                </intent-filter>
-            </receiver>
-            -->
-        </activity>
+            android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings_master_title"

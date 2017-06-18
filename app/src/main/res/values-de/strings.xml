@@ -92,6 +92,7 @@
     <string name="confirm_back_button_click_dialog_title">Zurück</string>
     <string name="confirm_back_button_click_dialog_message">Möchtest du diese Seite wirklich ohne Speichern verlassen?</string>
 
+    <string name="main_activity_title">Meine Standorten</string>
     <string name="main_activity_you_tab">Du</string>
     <string name="main_activity_list_tab">Liste</string>
     <string name="spot_list_item_arrival_label">Ankunft</string>

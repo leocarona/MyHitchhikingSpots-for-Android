@@ -93,6 +93,7 @@
     <string name="confirm_back_button_click_dialog_title">Voltar</string>
     <string name="confirm_back_button_click_dialog_message">Tem certeza que deseja sair desta página sem salvar suas alteraçōes?</string>
 
+    <string name="main_activity_title">Meus Locais</string>
     <string name="main_activity_you_tab">você</string>
     <string name="main_activity_list_tab">lista</string>
     <string name="spot_list_item_arrival_label">chegada</string>
