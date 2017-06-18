@@ -381,7 +381,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     //onMapReady is called after onResume()
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
-        Crashlytics.log(Log.INFO, TAG, "mapReady called");
+        Crashlytics.log(Log.INFO, TAG, "onMapReady was called");
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
@@ -537,20 +537,22 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     @Override
     protected void onStart() {
+        Crashlytics.log(Log.INFO, TAG, "onStart called");
         super.onStart();
         mapView.onStart();
     }
 
     @Override
     protected void onStop() {
+        Crashlytics.log(Log.INFO, TAG, "onStop called");
         super.onStop();
         mapView.onStop();
     }
 
     @Override
     public void onResume() {
-        super.onResume();
         Crashlytics.log(Log.INFO, TAG, "onResume called");
+        super.onResume();
         mapView.onResume();
 
 
@@ -591,6 +593,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     @Override
     public void onPause() {
+        Crashlytics.log(Log.INFO, TAG, "onPause was called");
         super.onPause();
         mapView.onPause();
 
@@ -603,6 +606,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
+        Crashlytics.log(Log.INFO, TAG, "onSaveInstanceState called");
         super.onSaveInstanceState(savedInstanceState);
         mapView.onSaveInstanceState(savedInstanceState);
 
@@ -625,12 +629,14 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     @Override
     protected void onDestroy() {
+        Crashlytics.log(Log.INFO, TAG, "onDestroy was called");
         super.onDestroy();
         mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
+        Crashlytics.log(Log.WARN, TAG, "onLowMemory was called");
         super.onLowMemory();
         mapView.onLowMemory();
     }
