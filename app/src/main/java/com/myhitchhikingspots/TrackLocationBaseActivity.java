@@ -11,15 +11,17 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.myhitchhikingspots.model.Spot;
 
-import java.text.DateFormat;
 import java.util.Date;
 
+
+/**
+ * Tracks user location using the help of Google Play services (GoogleApiClient)
+ */
 public class TrackLocationBaseActivity extends BaseActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    protected static final String TAG = "track-location-base";
+    protected static final String TRACK_LOCATION_BASEACTIVITY_TAG = "track-location-base";
 
 
     /**
@@ -91,7 +93,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
      * @param savedInstanceState The activity state saved in the Bundle.
      */
     private void updateValuesFromBundle(Bundle savedInstanceState) {
-        Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
+        Crashlytics.log(Log.INFO, TRACK_LOCATION_BASEACTIVITY_TAG, "Updating values from bundle");
 
         if (savedInstanceState != null) {
             try {
@@ -126,7 +128,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
      * LocationServices API.
      */
     protected synchronized void buildGoogleApiClient() {
-        Crashlytics.log(Log.INFO, TAG, "Building GoogleApiClient");
+        Crashlytics.log(Log.INFO, TRACK_LOCATION_BASEACTIVITY_TAG, "Building GoogleApiClient");
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -187,8 +189,8 @@ public class TrackLocationBaseActivity extends BaseActivity implements
 
         // The final argument to {@code requestLocationUpdates()} is a LocationListener
         // (http://developer.android.com/reference/com/google/android/gms/location/LocationListener.html).
-        Crashlytics.log(Log.INFO, TAG, mGoogleApiClient != null ? "mGoogleApiClient is NOT null" : "mGoogleApiClient is null");
-        Crashlytics.log(Log.INFO, TAG, mGoogleApiClient.isConnected() ? "mGoogleApiClient is connected" : "mGoogleApiClient is NOT connected");
+        Crashlytics.log(Log.INFO, TRACK_LOCATION_BASEACTIVITY_TAG, mGoogleApiClient != null ? "mGoogleApiClient is NOT null" : "mGoogleApiClient is null");
+        Crashlytics.log(Log.INFO, TRACK_LOCATION_BASEACTIVITY_TAG, mGoogleApiClient.isConnected() ? "mGoogleApiClient is connected" : "mGoogleApiClient is NOT connected");
 
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
@@ -254,7 +256,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
      */
     @Override
     public void onConnected(Bundle connectionHint) {
-        Crashlytics.log(Log.INFO, TAG, "Connected to GoogleApiClient");
+        Crashlytics.log(Log.INFO, TRACK_LOCATION_BASEACTIVITY_TAG, "Connected to GoogleApiClient");
 
         updateUILocationSwitch();
         updateUISaveButtons();
@@ -288,7 +290,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
     public void onConnectionSuspended(int cause) {
         // The connection to Google Play services was lost for some reason. We call connect() to
         // attempt to re-establish the connection.
-        Crashlytics.log(Log.WARN, TAG, "Connection suspended");
+        Crashlytics.log(Log.WARN, TRACK_LOCATION_BASEACTIVITY_TAG, "Connection suspended");
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.trying_to_reconnect_to_provider_of_location), Toast.LENGTH_LONG).show();
         updateUILocationSwitch();
         updateUISaveButtons();
@@ -299,7 +301,7 @@ public class TrackLocationBaseActivity extends BaseActivity implements
     public void onConnectionFailed(ConnectionResult result) {
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
         // onConnectionFailed.
-        Crashlytics.log(Log.ERROR, TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+        Crashlytics.log(Log.ERROR, TRACK_LOCATION_BASEACTIVITY_TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
         Toast.makeText(getApplicationContext(), getResources().getString(R.string.unable_to_find_location), Toast.LENGTH_LONG).show();
         updateUILocationSwitch();
         updateUISaveButtons();
