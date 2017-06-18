@@ -102,7 +102,7 @@ public class SpotListFragment extends Fragment {
      *
     public void fetchMissingAddressButtonHandler(View view) {
 
-        Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedSpot();
+        Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
         if (lastAddedSpot != null) {
             LatLng pinPosition = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
 
