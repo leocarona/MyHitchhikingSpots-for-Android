@@ -92,6 +92,8 @@
     <string name="confirm_back_button_click_dialog_title">Zurück</string>
     <string name="confirm_back_button_click_dialog_message">Möchtest du diese Seite wirklich ohne Speichern verlassen?</string>
 
+    <string name="view_map_button_label">Karte</string>
+
     <string name="main_activity_title">Meine Standorten</string>
     <string name="main_activity_you_tab">Du</string>
     <string name="main_activity_list_tab">Liste</string>
@@ -146,7 +148,7 @@
     <string name="map_error_alert_map_not_loaded_title">Internet nicht verfügbar</string>
     <string name="map_error_alert_map_not_loaded_message">Griaß di. :-) Dein Gerät scheint im Moment nicht mit dem Internet verbunden zu sein. Du kannst deinen Standort speichern, aber die Karte wird möglicherweise nicht geladen. Probiere die App ohne Karte aus.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Probiere ohne Karte</string>
-    <string name="map_error_alert_map_not_loaded_negative_button">Karte anzeigen</string>
+    <string name="action_button_label">%s anzeigen</string>
 
     <string name="map_loading_dialog">Laden von Standorten&#8230;</string>
 

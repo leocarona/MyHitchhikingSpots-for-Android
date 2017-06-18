@@ -94,6 +94,9 @@
     <string name="confirm_back_button_click_dialog_title">Navigate back</string>
     <string name="confirm_back_button_click_dialog_message">Are you sure you want to leave this page without saving your changes?</string>
 
+    <string name="view_map_button_label">Map</string>
+    <string name="view_list_button_label" translatable="false">@string/main_activity_list_tab</string>
+
     <string name="main_activity_title">My Spots</string>
     <string name="main_activity_you_tab">you</string>
     <string name="main_activity_list_tab">list</string>
@@ -152,7 +155,7 @@
     <string name="map_error_alert_map_not_loaded_title">Internet unavailable</string>
     <string name="map_error_alert_map_not_loaded_message">Hey. :-) Your device seems to be disconnected from the internet at the moment. You can still save your locations, but the maps might not load as expected. You may try the app without map.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Try without map</string>
-    <string name="map_error_alert_map_not_loaded_negative_button">View map</string>
+    <string name="action_button_label">View %s</string>
 
     <string name="map_loading_dialog">Loading spots&#8230;</string>
 

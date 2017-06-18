@@ -49,6 +49,7 @@
     <string name="title_activity_main">@string/app_name</string>
     <string name="confirm_back_button_click_dialog_title">Tilbage</string>
     <string name="confirm_back_button_click_dialog_message">Er du sikker på, at du vil forlade denne side uden at gemme dine ændringer?</string>
+    <string name="view_map_button_label">Kort</string>
     <string name="main_activity_title">Mine Steder</string>
     <string name="main_activity_you_tab">dig</string>
     <string name="main_activity_list_tab">liste</string>
@@ -94,7 +95,7 @@
     <string name="map_error_alert_map_not_loaded_title">Internet utilgængeligt</string>
     <string name="map_error_alert_map_not_loaded_message">Hej! Din enhed virker til at være afkoblet en internetforbindelse i øjeblikket. Du kan stadig gemme dine positioner, men kortet bliver måske ikke hentet som forventet. Prøv at bruge appen uden kort.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Prøv uden kort</string>
-    <string name="map_error_alert_map_not_loaded_negative_button">Vis kort</string>
+    <string name="action_button_label">Vis %s</string>
     <string name="map_loading_dialog">Henter steder&#8230;</string>
 
     <string-array name="hitchabilities">

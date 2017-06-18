@@ -120,7 +120,7 @@
                     android:visibility="visible">
 
                     <Button
-                        android:id="@+id/view_map_button"
+                        android:id="@+id/new_spot_button"
                         style="@style/roundButtonTextStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -131,14 +131,13 @@
                         android:textAllCaps="true" />
 
                     <Button
-                        android:id="@+id/new_spot_button"
+                        android:id="@+id/view_map_button"
                         style="@style/roundButtonTextStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/save_spot_button"
                         android:onClick="viewMapButtonHandler"
                         android:padding="15dp"
-                        android:text="@string/map_error_alert_map_not_loaded_negative_button"
                         android:textAllCaps="true" />
                 </LinearLayout>
 
@@ -372,6 +371,7 @@
 
     <LinearLayout
         android:id="@+id/save_spot_form_evaluate"
+
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#FFF"

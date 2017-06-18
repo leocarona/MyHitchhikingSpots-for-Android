@@ -463,7 +463,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
                         }
                     })
-                    .setNegativeButton(getResources().getString(R.string.map_error_alert_map_not_loaded_negative_button), new DialogInterface.OnClickListener() {
+                    .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();

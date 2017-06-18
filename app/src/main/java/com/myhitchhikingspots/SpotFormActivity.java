@@ -43,6 +43,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -245,6 +246,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         mTookABreakButton = (AppCompatImageButton) findViewById(R.id.break_button);
         mGotARideButton.setOnClickListener(this);
         mTookABreakButton.setOnClickListener(this);
+
+        mViewMapButton.setText(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)));
 
         //----BEGIN: Part related to reverse geocoding
         mResultReceiver = new AddressResultReceiver(new Handler());
@@ -1479,7 +1482,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     void showViewMapSnackbar() {
         showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
-                getString(R.string.map_error_alert_map_not_loaded_negative_button), new View.OnClickListener() {
+                String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         startActivity(new Intent(getBaseContext(), MapViewActivity.class));
