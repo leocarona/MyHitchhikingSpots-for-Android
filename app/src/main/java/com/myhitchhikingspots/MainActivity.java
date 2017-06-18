@@ -212,7 +212,7 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         } catch (Exception ex) {
             Crashlytics.logException(ex);
-            Toast.makeText(getApplicationContext(), getResources().getString(R.string.shortcut_save_button_failed), Toast.LENGTH_LONG).show();
+            ((BaseActivity) getParent()).showErrorAlert("Save shortcut", getString(R.string.shortcut_save_button_failed));
         }
     }
 
