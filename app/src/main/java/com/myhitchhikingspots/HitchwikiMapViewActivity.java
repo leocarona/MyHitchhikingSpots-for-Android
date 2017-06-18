@@ -133,7 +133,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             public void onMyLocationChange(Location location) {
                 if (location != null) {
                     if (!wasFirstLocationReceived) {
-                        updateUISaveButtons();
+                        updateCurrentPage();
                         wasFirstLocationReceived = true;
                     }
 
@@ -251,7 +251,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
     private pageType currentPage;
 
-    protected void updateUISaveButtons() {
+    protected void updateCurrentPage() {
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
             /*if (!locationEngine.areLocationPermissionsGranted() || locationEngine.getLastLocation() == null
@@ -269,6 +269,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             currentPage = pageType.WAITING_FOR_A_RIDE;
         }
 
+        Crashlytics.setString("currentPage", currentPage.toString());
     }
 
     /**
@@ -311,7 +312,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             }
         }
 
-        updateUISaveButtons();
+        updateCurrentPage();
     }
 
 
