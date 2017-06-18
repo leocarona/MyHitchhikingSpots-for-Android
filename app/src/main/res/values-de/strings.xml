@@ -136,7 +136,7 @@
 
     <string name="shortcut_save_button_failed">Es war nicht möglich deinen Standort durch die Schnelltaste zu akutalisieren :(</string>
 
-    <string name="save_spot_error_map_not_loaded">Es scheint als hättest du\ deinen Standort manuell angepasst, aber die Karte wurde nicht geladen.\Du brauchst eine Internetverbindung um die Veränderung zu speichern.</string>
+    <string name="save_spot_error_map_not_loaded">Es scheint als hättest du die Karte wurde nicht geladen.\Du brauchst eine Internetverbindung um die Veränderung zu speichern.</string>
     <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\nYou might need an internet connection to save this change.</string>
     <string name="save_spot_error_general">Irgendetwas ging schief :(\n%s</string>
 
@@ -151,6 +151,7 @@
     <string name="action_button_label">%s anzeigen</string>
 
     <string name="map_loading_dialog">Laden von Standorten&#8230;</string>
+    <string name="map_not_loaded_message">When you have an internet connection again,\na map will be displayed here. :-)</string>
 
     <string name="spot_form_bottommenu_map_tile">Location</string>
     <string name="spot_form_bottommenu_basic_tile">Standort</string>

@@ -137,7 +137,7 @@
 
     <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
 
-    <string name="save_spot_error_map_not_loaded">Parece que você ajustou a posição do local sem o mapa carregado.\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
+    <string name="save_spot_error_map_not_loaded">Parece que o mapa não carregou.\nVocê precisará se conectar à internet para salvar esta alteração.</string>
     <string name="save_spot_error_coordinate_not_informed_error_message">Não conseguimos obter as coordenadas geográficas do local que você está tentando salvar.\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
     <string name="save_spot_error_general">Houve uma falha :(\n%s</string>
 
@@ -152,6 +152,7 @@
     <string name="action_button_label">Ver %s</string>
 
     <string name="map_loading_dialog">Carregando locais&#8230;</string>
+    <string name="map_not_loaded_message">Quando você tiver uma conexão à internet novamente,\num mapa será aparecerá aqui. :-)</string>
 
     <string name="spot_form_bottommenu_map_tile">Local</string>
     <string name="spot_form_bottommenu_basic_tile">Local</string>

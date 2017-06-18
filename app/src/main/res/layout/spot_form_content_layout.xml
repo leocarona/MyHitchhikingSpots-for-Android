@@ -48,7 +48,7 @@
                         android:layout_marginRight="60dp"
                         android:shadowColor="#C0C0C0"
                         android:shadowRadius="2"
-                        android:text="When you have an internet connection again,\na map will be displayed here. :-)"
+                        android:text="@string/map_not_loaded_message"
                         android:textAlignment="center"
                         android:gravity="center"
                         android:textColor="#FFF" />

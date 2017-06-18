@@ -143,7 +143,7 @@
 
     <string name="shortcut_save_button_failed">It was not possible to update your spot through the shortcut :(</string>
 
-    <string name="save_spot_error_map_not_loaded">It seems like you\'ve manually adjusted the location of your spot location but the map is not loaded.\nYou might need an internet connection to save this change.</string>
+    <string name="save_spot_error_map_not_loaded">It seems like the map is not loaded.\nYou might need an internet connection to save this change.</string>
     <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\nYou might need an internet connection to save this change.</string>
     <string name="save_spot_error_general">Something went wrong :(\n%s</string>
 
@@ -158,6 +158,7 @@
     <string name="action_button_label">View %s</string>
 
     <string name="map_loading_dialog">Loading spots&#8230;</string>
+    <string name="map_not_loaded_message">When you have an internet connection again,\na map will be displayed here. :-)</string>
 
     <string name="spot_form_bottommenu_map_tile">Location</string>
     <string name="spot_form_bottommenu_basic_tile">Spot</string>
