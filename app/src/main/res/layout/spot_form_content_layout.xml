@@ -34,6 +34,25 @@
                     android:layout_height="200dp"
                     mapbox:mapbox_styleUrl="@string/mapbox_style_mapbox_streets" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/save_spot_map_not_displayed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="60dp"
+                        android:layout_marginRight="60dp"
+                        android:shadowColor="#C0C0C0"
+                        android:shadowRadius="2"
+                        android:text="When you have an internet connection again,\na map will be displayed here. :-)"
+                        android:textAlignment="center"
+                        android:gravity="center"
+                        android:textColor="#FFF" />
+                </LinearLayout>
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_locate_user"

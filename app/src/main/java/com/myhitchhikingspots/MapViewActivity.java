@@ -384,6 +384,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         Crashlytics.log(Log.INFO, TAG, "mapReady called");
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
+        prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
         // Customize the user location icon using the getMyLocationViewSettings object.
         //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);

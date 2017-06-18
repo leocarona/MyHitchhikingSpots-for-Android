@@ -8,6 +8,7 @@ import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -98,6 +99,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private LinearLayout spot_form_evaluate, spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
     private BottomNavigationView menu_bottom;
+    SharedPreferences prefs;
 
     private BottomNavigationItemView spot_menuitem, evaluate_menuitem;
 
@@ -166,6 +168,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     boolean shouldGoBackToPreviousActivity, shouldShowButtonsPanel;
 
     LinearLayout panel_buttons, panel_info;
+    TextView panel_map_not_displayed, feedbacklabel;
     RelativeLayout datePanel;
     MenuItem saveMenuItem;
     boolean wasSnackbarShown;
@@ -190,6 +193,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         context = this;
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
@@ -224,6 +229,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
         panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
         panel_info = (LinearLayout) findViewById(R.id.panel_info);
+        panel_map_not_displayed = (TextView) findViewById(R.id.save_spot_map_not_displayed);
         datePanel = (RelativeLayout) findViewById(R.id.date_panel);
 
         menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
@@ -269,6 +275,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
+        updateMapVisibility();
 
         fabLocateUser = (FloatingActionButton) findViewById(R.id.fab_locate_user);
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
@@ -501,6 +508,18 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     }
 
+    void updateMapVisibility() {
+        if (prefs.getBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, false)) {
+            //mapView.setVisibility(View.VISIBLE);
+            panel_map_not_displayed.setVisibility(View.GONE);
+        } else {
+            //mapView.setVisibility(View.GONE);
+            panel_map_not_displayed.setVisibility(View.VISIBLE);
+            //For some strange reason the note field is getting focus when map is not loaded and that causes the panel to expand, hiding the message.
+            //hideKeyboard();
+        }
+    }
+
     void locateUser() {
         // Check if user has granted location permission
         if (!PermissionsManager.areLocationPermissionsGranted(this)) {
@@ -630,6 +649,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     public void onMapReady(final MapboxMap mapboxMap) {
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
+        prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).commit();
+        updateMapVisibility();
 
         // Customize the user location icon using the getMyLocationViewSettings object.
         this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring));//Color.parseColor("#56B881")
