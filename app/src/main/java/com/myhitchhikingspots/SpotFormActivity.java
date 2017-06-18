@@ -89,7 +89,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
     private Button mSaveButton, mDeleteButton;
-    private Button mNewSpotButton, mViewMapButton;
+    private Button mViewMapButton; //mNewSpotButton
     private EditText note_edittext, waiting_time_edittext;
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
@@ -212,7 +212,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         mSaveButton = (Button) findViewById(R.id.save_button);
         mDeleteButton = (Button) findViewById(R.id.delete_button);
-        mNewSpotButton = (Button) findViewById(R.id.new_spot_button);
+        //mNewSpotButton = (Button) findViewById(R.id.new_spot_button);
         mViewMapButton = (Button) findViewById(R.id.view_map_button);
         note_edittext = (EditText) findViewById(R.id.spot_form_note_edittext);
         date_datepicker = (DatePicker) findViewById(R.id.spot_form_date_datepicker);
@@ -259,7 +259,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         updateUIWidgets();
         //----END: Part related to reverse geocoding
-
 
         hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
         hitchability_ratingbar.setStepSize(1);
@@ -1005,7 +1004,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
 
             if (mFormType == FormType.ReadOnly) {
-                waiting_time_edittext.setEnabled(false);
+                //waiting_time_edittext.setEnabled(false);
                 findViewById(R.id.spot_form_waiting_time_refresh_button).setVisibility(View.GONE);
             }
 

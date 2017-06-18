@@ -9,7 +9,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".SpotFormActivity"
     tools:showIn="@layout/spot_form_master_layout">
-    
+
     <android.support.design.widget.CoordinatorLayout
         android:id="@+id/save_spot_form_basic"
         android:layout_width="match_parent"

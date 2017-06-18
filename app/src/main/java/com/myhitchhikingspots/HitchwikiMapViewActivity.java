@@ -22,8 +22,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -467,33 +465,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         return "";
     }
 
-    @NonNull
-    private static String getString(Spot mCurrentSpot) {
-        String spotLoc = spotLocationToString(mCurrentSpot).trim();
-        if (spotLoc != null && !spotLoc.isEmpty()) {// spotLoc = "- " + spotLoc;
-        } else if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null)
-            spotLoc = "(" + mCurrentSpot.getLatitude() + ", " + mCurrentSpot.getLongitude() + ")";
-        return spotLoc;
-    }
-
-   /* private static String dateTimeToString(Date dt) {
-        if (dt != null) {
-            SimpleDateFormat res;
-            String dateFormat = "dd/MMM', 'HH:mm";
-
-            if (Locale.getDefault() == Locale.US)
-                dateFormat = "MMM/dd', 'HH:mm";
-
-            try {
-                res = new SimpleDateFormat(dateFormat);
-                return res.format(dt);
-            } catch (Exception ex) {
-                Crashlytics.setString("date", dt.toString());
-                Crashlytics.logException(ex);
-            }
-        }
-        return "";
-    }*/
 
     @Override
     protected void onStart() {
@@ -512,11 +483,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         super.onResume();
         Crashlytics.log(Log.INFO, TAG, "onResume called");
         mapView.onResume();
-
-
-        //If mapbox was already loaded, we should call updateUI() here in order to update its data
-        //if (mapboxMap != null)
-        //    updateUI();
     }
 
     @Override
@@ -589,24 +555,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            saveSpotButtonHandler(false);
-            //startActivity(new Intent(getApplicationContext(), MainActivity.class));
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     protected void zoomOutToFitAllMarkers() {
@@ -882,69 +830,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
     }
 
-
-    public void saveRegularSpotButtonHandler() {
-        saveSpotButtonHandler(false);
-    }
-
-    public void saveDestinationSpotButtonHandler() {
-        saveSpotButtonHandler(true);
-    }
-
     protected static final String TAG = "hitchwikimap-view-activity";
-
-
-    /**
-     * Handles the Save Spot button and save current location. Does nothing if
-     * updates have already been requested.
-     */
-    public void saveSpotButtonHandler(boolean isDestination) {
-        Spot spot = null;
-        if (!mIsWaitingForARide) {
-            spot = new Spot();
-            spot.setIsDestination(isDestination);
-            spot.setIsPartOfARoute(true);
-            Location mCurrentLocation = mapboxMap.getMyLocation();
-            if (mCurrentLocation != null) {
-                spot.setLatitude(mCurrentLocation.getLatitude());
-                spot.setLongitude(mCurrentLocation.getLongitude());
-                spot.setAccuracy(mCurrentLocation.getAccuracy());
-                spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
-            }
-            Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a new spot is being created.");
-        } else {
-            spot = mCurrentWaitingSpot;
-            Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
-        }
-
-        Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        startActivity(intent);
-    }
-
-    public void gotARideButtonHandler() {
-        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        evaluateSpotButtonHandler();
-    }
-
-    public void tookABreakButtonHandler() {
-        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
-        evaluateSpotButtonHandler();
-    }
-
-    /**
-     * Handles the Got A Ride button, and requests removal of location updates. Does nothing if
-     * updates were not previously requested.
-     */
-    public void evaluateSpotButtonHandler() {
-        //mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
-
-        if (mIsWaitingForARide) {
-            Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
-            startActivity(intent);
-        }
-    }
 
     private Icon getGotARideIconForRoute(int routeIndex) {
         Icon i = ic_typeunknown_spot;
