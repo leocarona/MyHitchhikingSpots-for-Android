@@ -410,12 +410,16 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         @Override
         public CharSequence getPageTitle(int position) {
+            CharSequence res = null;
             switch (position) {
                 case 0:
-                    return getResources().getString(R.string.main_activity_list_tab);
-                    return getResources().getString(R.string.main_activity_you_tab);
+                    res = getResources().getString(R.string.main_activity_list_tab);
+                    break;
+                case 1:
+                    res = getResources().getString(R.string.main_activity_you_tab);
+                    break;
             }
-            return null;
+            return res;
         }
 
         public void updateUILabels() {
