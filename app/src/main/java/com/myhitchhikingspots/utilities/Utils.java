@@ -245,7 +245,7 @@ public class Utils {
         if (place.getLon() != null)
             spot.setLongitude(Double.parseDouble(place.getLon()));
         if (place.getRating() != null)
-            spot.setHitchability( Integer.parseInt(place.getRating()));
+            spot.setHitchability(Integer.valueOf(place.getRating()));
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
 
         /*Setting attributes to false here is useless - we've just created the new Spot therefore its attributes are by default false
