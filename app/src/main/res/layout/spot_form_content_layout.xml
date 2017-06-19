@@ -251,7 +251,7 @@
                             android:clickable="true"
                             android:gravity="center_vertical|end"
                             android:lines="2"
-                            android:onClick="moreOptionsButtonHandler"
+                            android:onClick="editDateButtonHandler"
                             android:paddingLeft="10dp"
                             android:paddingRight="5dp"
                             android:text="dd/MMM, HH:mm"
@@ -266,7 +266,7 @@
                             android:layout_alignParentRight="true"
                             android:layout_gravity="center_vertical"
                             android:gravity="center_vertical"
-                            android:onClick="moreOptionsButtonHandler"
+                            android:onClick="editDateButtonHandler"
                             app:backgroundTint="@color/ic_standard_fab_color"
                             app:fabSize="mini"
                             app:rippleColor="@color/ic_standard_fab_color_lighter"
@@ -324,6 +324,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
                         android:button="@null"
+                        android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
                         android:text="@string/spot_form_is_is_part_of_a_route_checkbox_text"
                         android:textStyle="normal|bold" />
@@ -334,6 +335,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
                         android:button="@null"
+                        android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
                         android:text="@string/spot_form_is_destination_checkbox_text" />
 

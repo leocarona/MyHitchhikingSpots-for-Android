@@ -1337,9 +1337,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         return conData;
     }
 
-    public void moreOptionsButtonHandler(View view) {
-        if (spot_form_more_options.isShown()) {
+    public void editDateButtonHandler(View view) {
+        if (spot_form_more_options.getVisibility() == View.VISIBLE) {
             spot_form_more_options.setVisibility(View.GONE);
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             hideKeyboard();
         } else {
             spot_form_more_options.setVisibility(View.VISIBLE);
@@ -1383,7 +1384,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         DateTime dateTime = new DateTime(date);
 
         // Must always subtract 1 here as DatePicker month is 0 based
-        date_datepicker.init(dateTime.getYear(), dateTime.getMonthOfYear() - 1, dateTime.getDayOfMonth(), new DatePicker.OnDateChangedListener() {
+        datePicker.init(dateTime.getYear(), dateTime.getMonthOfYear() - 1, dateTime.getDayOfMonth(), new DatePicker.OnDateChangedListener() {
 
             @Override
             public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
