@@ -62,7 +62,7 @@
 
     <string name="menu_home">Keine 3G? Benutze das</string>
 
-    <string name="settings_master_title">Werkzeuge</string>
+    <string name="tools_title">Werkzeuge</string>
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export database</string>
     <string name="settings_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>

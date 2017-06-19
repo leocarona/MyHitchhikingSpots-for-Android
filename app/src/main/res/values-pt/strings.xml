@@ -65,7 +65,7 @@
 
     <string name="menu_home">Sem 3G? Use esse</string>
 
-    <string name="settings_master_title">Ferramentas</string>
+    <string name="tools_title">Ferramentas</string>
     <string name="settings_importdb_button_label">Importar banco de dados</string>
     <string name="settings_exportdb_button_label">Exportar banco de dados</string>
     <string name="settings_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>

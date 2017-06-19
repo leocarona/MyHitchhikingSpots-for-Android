@@ -404,14 +404,14 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle("No data to show")
-                    .setMessage("Please, navigate to Menu > " + getString(R.string.settings_master_title) + " and Download spots from Hitchwiki Maps.")
-                    .setPositiveButton(getString(R.string.settings_master_title), new DialogInterface.OnClickListener() {
+                    .setMessage("Please, navigate to Menu > " + getString(R.string.tools_title) + " and Download spots from Hitchwiki Maps.")
+                    .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
                         }
                     })
-                    .setNegativeButton(getResources().getString(R.string.general_ok_option), null).show();
+                    .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
         }
     }
 

@@ -61,7 +61,7 @@ limitations under the License.
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/settings_master_title"
+            android:label="@string/tools_title"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity

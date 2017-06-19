@@ -17,7 +17,7 @@
         <item
             android:id="@+id/nav_tools"
             android:icon="@drawable/ic_settings_black_24dp"
-            android:title="@string/settings_master_title" />
+            android:title="@string/tools_title" />
     </group>
 
 </menu>
