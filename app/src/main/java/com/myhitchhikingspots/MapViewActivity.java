@@ -428,6 +428,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
                     //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
                     intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
                     startActivityForResult(intent, EDIT_SPOT_REQUEST);
                 } else
                     Crashlytics.log(Log.WARN, TAG,
