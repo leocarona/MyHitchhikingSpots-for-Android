@@ -693,7 +693,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
         //When set to true, shouldShowYouTab will open MainActivity presenting the tab "You" instead of the tab "List"
-        intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab);
+        if (shouldShowYouTab.length > 0)
+            intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab[0]);
         startActivity(intent);
         //startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }

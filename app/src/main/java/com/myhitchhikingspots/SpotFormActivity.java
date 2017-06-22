@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Address;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -78,8 +79,10 @@ import com.myhitchhikingspots.utilities.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -94,7 +97,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
     private Spot mCurrentSpot;
-    private CheckBox is_part_of_a_route_check_box, is_destination_check_box;
+    private CheckBox is_single_spot_check_box, is_destination_check_box;
     private TextView hitchabilityLabel, selected_date;
     private LinearLayout spot_form_evaluate, spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
@@ -114,6 +117,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     protected static final String BUTTONS_PANEL_IS_VISIBLE_KEY = "buttons-panel-is-visible";
     protected static final String LAST_SELECTED_TAB_ID_KEY = "last-selected-tab";
     protected static final String SHOULD_GO_BACK_KEY = "should-go-back";
+    protected static final String REFRESH_DATETIME_ALERT_SHOWN_KEY = "PREF_REFRESH_DATETIME_ALERT_SHOWN_KEY";
+
 
     /**
      * Tracks whether the user has requested an address. Becomes true when the user requests an
@@ -169,7 +174,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     BottomSheetBehavior mBottomSheetBehavior;
     public AppCompatImageButton mGotARideButton, mTookABreakButton;
 
-    boolean shouldGoBackToPreviousActivity, shouldShowButtonsPanel;
+    boolean shouldGoBackToPreviousActivity, shouldShowButtonsPanel, refreshDatetimeAlertDialogWasShown;
     int lastSelectedTab = -1;
 
     LinearLayout panel_buttons, panel_info;
@@ -257,7 +262,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         time_timepicker = (TimePicker) findViewById(R.id.spot_form_time_timepicker);
         waiting_time_edittext = (EditText) findViewById(R.id.spot_form_waiting_time_edittext);
         spot_form_more_options = (LinearLayout) findViewById(R.id.save_spot_form_more_options);
-        is_part_of_a_route_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_part_of_a_route_check_box);
+        is_single_spot_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_single_spot_check_box);
         is_destination_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_destination_check_box);
         hitchability_ratingbar = (RatingBar) findViewById(R.id.spot_form_hitchability_ratingbar);
         hitchability_options = (LinearLayout) findViewById(R.id.save_spot_form_hitchability_options);
@@ -372,7 +377,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                 spot_form_basic.setVisibility(View.VISIBLE);
                                 spot_form_evaluate.setVisibility(View.GONE);
 
-                                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                                //mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                                 hideKeyboard();
                                 break;
                             case R.id.action_evaluate:
@@ -489,7 +494,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         };
 
-        is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
+        is_single_spot_check_box.setOnCheckedChangeListener(this);
         is_destination_check_box.setOnCheckedChangeListener(this);
 
         //Load UI - Make sure all the relevant listeners were set BEFORE updateUI() is called
@@ -518,7 +523,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         mShouldShowLeftMenu = true;
-        super.onCreate(savedInstanceState);
+        super.
+
+                onCreate(savedInstanceState);
 
     }
 
@@ -635,7 +642,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         //Calculate the waiting time if the spot is still on Evaluate phase (if calculating when editing a spot already evaluated it could mess the waiting time without the user expecting/noticing)
-        if (mFormType != FormType.Edit && mFormType != FormType.ReadOnly && is_part_of_a_route_check_box.isChecked())
+        if (mFormType != FormType.Edit && mFormType != FormType.ReadOnly && !is_single_spot_check_box.isChecked())
             calculateWaitingTime(null);
 
         updateAttemptResultButtonsState();
@@ -793,6 +800,31 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
     }
 
+    @NonNull
+    public static String dateTimeToString(Date dt) {
+        return dateTimeToString(dt, ", ");
+    }
+
+    @NonNull
+    public static String dateTimeToString(Date dt, String separator) {
+        if (dt != null) {
+            SimpleDateFormat res;
+            String dateFormat = "dd/MMM'" + separator + "'HH:mm";
+
+            if (Locale.getDefault() == Locale.US)
+                dateFormat = "MMM/dd'" + separator + "'HH:mm";
+
+            try {
+                res = new SimpleDateFormat(dateFormat);
+                return res.format(dt);
+            } catch (Exception ex) {
+                Crashlytics.setString("date", dt.toString());
+                Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
+                Crashlytics.logException(ex);
+            }
+        }
+        return "";
+    }
 
     @Override
     protected void onStart() {
@@ -806,11 +838,40 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         mapView.onStop();
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
 
         mapView.onResume();
+
+        //To avoid many alertdialogs been displayed when the screen is rotated many times, we're saving refreshDatetimeAlertDialogWasShown to a bundle in onSaveInstanceState and checking its value here
+        if (!refreshDatetimeAlertDialogWasShown) {
+            if (mFormType == FormType.Create && !shouldShowButtonsPanel) {
+                DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
+                final DateTime dateTimeNow = DateTime.now();
+                int minutesPast = Minutes.minutesBetween(dateTime, dateTimeNow).getMinutes();
+
+                if (minutesPast > 10) {
+                    refreshDatetimeAlertDialogWasShown = true;
+                    new AlertDialog.Builder(this)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setTitle(getString(R.string.refresh_datetime_dialog_title))
+                            .setMessage(String.format(
+                                    getString(R.string.refresh_datetime_dialog_message),
+                                    minutesPast, dateTimeToString(dateTime.toDate()), dateTimeToString(dateTimeNow.toDate())))
+                            .setPositiveButton(getString(R.string.general_refresh_label), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    SetDateTime(date_datepicker, time_timepicker, dateTimeNow.toDate());
+                                }
+
+                            })
+                            .setNegativeButton(String.format(getString(R.string.general_thank_you_label), getString(R.string.general_no_option)), null)
+                            .show();
+                }
+            }
+        }
     }
 
     @Override
@@ -1016,12 +1077,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             else
                 note_edittext.setText("");
 
-            Boolean isPartOfARoute = mCurrentSpot.getIsPartOfARoute() != null && mCurrentSpot.getIsPartOfARoute();
+            Boolean isSingleSpot = mCurrentSpot.getIsPartOfARoute() == null || !mCurrentSpot.getIsPartOfARoute();
             Boolean isDestination = mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination();
 
-            is_part_of_a_route_check_box.setChecked(isPartOfARoute);
-            is_destination_check_box.setChecked(isPartOfARoute && isDestination);
-            is_destination_check_box.setEnabled(isPartOfARoute);
+            is_single_spot_check_box.setChecked(isSingleSpot);
+            is_destination_check_box.setChecked(isDestination);
 
             if (shouldRetrieveDetailsFromHW)
                 is_destination_check_box.setVisibility(View.GONE);
@@ -1158,7 +1218,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void saveButtonHandler(View view) {
-        if (mFormType != FormType.Create && is_part_of_a_route_check_box.isChecked() && !is_destination_check_box.isChecked() &&
+        if (mFormType != FormType.Create && !is_single_spot_check_box.isChecked() && !is_destination_check_box.isChecked() &&
                 waiting_time_edittext.getText().toString().isEmpty()) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -1201,7 +1261,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             mCurrentSpot.setNote(note_edittext.getText().toString());
 
-            mCurrentSpot.setIsPartOfARoute(is_part_of_a_route_check_box.isChecked());
+            mCurrentSpot.setIsPartOfARoute(!is_single_spot_check_box.isChecked());
 
             if (is_destination_check_box.isChecked()) {
                 mCurrentSpot.setIsDestination(true);
@@ -1211,7 +1271,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             } else {
                 mCurrentSpot.setIsDestination(false);
                 mCurrentSpot.setHitchability(Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating())));
-                if (mFormType == FormType.Create && is_part_of_a_route_check_box.isChecked())
+                if (mFormType == FormType.Create && !is_single_spot_check_box.isChecked())
                     mCurrentSpot.setIsWaitingForARide(true);
                 else
                     mCurrentSpot.setIsWaitingForARide(false);
@@ -1322,8 +1382,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         //If it's Create mode, then we should pass the current spot so that it can be Evaluated. Otherwise, instantiate a new route spot and pass it instead.
         if (mFormType == FormType.Create && !is_destination_check_box.isChecked()) {
-
-            if (is_part_of_a_route_check_box.isChecked())
+            if (!is_single_spot_check_box.isChecked())
                 //A spot that is part of a route but is not its destination is being created
                 mFormType = FormType.Evaluate;
             else
@@ -1334,13 +1393,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             Crashlytics.setString("mFormType", mFormType.toString());
 
+            refreshDatetimeAlertDialogWasShown = false;
+
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             hideKeyboard();
 
             showViewMapSnackbar();
 
             //We want to show the Evaluate tab when the user has just saved a new spot that doesn't belong to a route, so that he can evaluate it.
             //updateUI will present Basic tab because mFormType is Edit. So make sure setSelectedItemId(R.id.action_evaluate) is called after updateUI() in here.
-            if (!is_part_of_a_route_check_box.isChecked())
+            if (is_single_spot_check_box.isChecked())
                 lastSelectedTab = R.id.action_evaluate;
             else
                 lastSelectedTab = -1;
@@ -1348,12 +1410,15 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             updateUI();
 
         } else if ((mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                && is_part_of_a_route_check_box.isChecked() && getCallingActivity() == null) {
+                && !is_single_spot_check_box.isChecked() && getCallingActivity() == null) {
             //Instantiate a new route spot and pass it, so that the user can adjust it as he wants and save it as a new spot.
             mFormType = FormType.Create;
 
             Crashlytics.setString("mFormType", mFormType.toString());
 
+            refreshDatetimeAlertDialogWasShown = false;
+
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             hideKeyboard();
 
             mCurrentSpot = new Spot();
@@ -1373,21 +1438,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (mapboxMap.getMyLocation() != null)
                 moveCamera(new LatLng(mapboxMap.getMyLocation()));
 
-          /*
-            //No reason to send the user back to the previous activity, so let's redirect him to SpotFormActivity to make his next choice (Save new spot / View Map)
-            Bundle conData = new Bundle();
-            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
-            conData.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBackToPreviousActivity);
-
-
-            conData.putBoolean(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
-            conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-
-            Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-            intent.putExtras(conData);
-
-            finish();
-            startActivity(intent);*/
         } else {
             finish();
 
@@ -1440,11 +1490,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     public void onCheckedChanged(CompoundButton checkBox, boolean isChecked) {
         switch (checkBox.getId()) {
-            case R.id.save_spot_form_is_part_of_a_route_check_box:
+            case R.id.save_spot_form_is_single_spot_check_box:
                 //If a spot is not part of a route, then it can not be the destination of a route - let's disable the destination checkbox
-                if (!isChecked) {
-                    //is_part_of_a_route_check_box.setHighlightColor(ContextCompat.getColor(getBaseContext(), R.color.ic_standard_fab_color));
+                if (isChecked) {
+                    //is_single_spot_check_box.setHighlightColor(Color.DKGRAY);
 
+                    is_single_spot_check_box.setTypeface(null, Typeface.BOLD);
+
+                    //Spot is part of a route
                     is_destination_check_box.setChecked(false);
                     is_destination_check_box.setEnabled(false);
 
@@ -1454,14 +1507,25 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     if (mFormType == FormType.Create)
                         feedbacklabel.setVisibility(View.VISIBLE);
                 } else {
-                    //is_part_of_a_route_check_box.setHighlightColor(Color.DKGRAY);
+                    //is_single_spot_check_box.setHighlightColor(ContextCompat.getColor(getBaseContext(), R.color.ic_standard_fab_color));
 
-                    //Spot is part of a route
+                    is_single_spot_check_box.setTypeface(null, Typeface.NORMAL);
                     is_destination_check_box.setEnabled(true);
+
                     feedbacklabel.setVisibility(View.GONE);
                 }
                 break;
             case R.id.save_spot_form_is_destination_check_box:
+                if (isChecked) {
+                    is_destination_check_box.setTypeface(null, Typeface.BOLD);
+
+                    is_single_spot_check_box.setChecked(false);
+                    is_single_spot_check_box.setEnabled(false);
+                } else {
+                    is_destination_check_box.setTypeface(null, Typeface.NORMAL);
+                    is_single_spot_check_box.setEnabled(true);
+                }
+
                 updateTabsState();
                 break;
         }
@@ -1540,7 +1604,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         savedInstanceState.putInt(LAST_SELECTED_TAB_ID_KEY, lastSelectedTab);
 
-        savedInstanceState.putBoolean(LAST_SELECTED_TAB_ID_KEY, shouldGoBackToPreviousActivity);
+        savedInstanceState.putBoolean(SHOULD_GO_BACK_KEY, shouldGoBackToPreviousActivity);
+
+        savedInstanceState.putBoolean(REFRESH_DATETIME_ALERT_SHOWN_KEY, refreshDatetimeAlertDialogWasShown);
 
         mapView.onSaveInstanceState(savedInstanceState);
 
@@ -1591,6 +1657,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             if (savedInstanceState.keySet().contains(SHOULD_GO_BACK_KEY))
                 shouldGoBackToPreviousActivity = savedInstanceState.getBoolean(SHOULD_GO_BACK_KEY);
+
+            if (savedInstanceState.keySet().contains(REFRESH_DATETIME_ALERT_SHOWN_KEY))
+                refreshDatetimeAlertDialogWasShown = savedInstanceState.getBoolean(REFRESH_DATETIME_ALERT_SHOWN_KEY);
         }
     }
 

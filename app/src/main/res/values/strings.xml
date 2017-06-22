@@ -14,7 +14,7 @@
   limitations under the License.
 -->
 <resources>
-    <string name="app_name">MyHitchhikingSpots</string>
+    <string name="app_name" translatable="false">MyHitchhikingSpots</string>
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
@@ -67,6 +67,7 @@
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export database</string>
     <string name="settings_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
+    <!-- TODO: translate below strings -->
     <string name="settings_downloadCountriesList_button_label" translatable="false">Get countries list</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -95,11 +96,11 @@
     <string name="confirm_back_button_click_dialog_message">Are you sure you want to leave this page without saving your changes?</string>
 
     <string name="view_map_button_label">Map</string>
-    <string name="view_list_button_label" translatable="false">@string/main_activity_list_tab</string>
+    <string name="view_list_button_label">list</string>
 
     <string name="main_activity_title">My Spots</string>
     <string name="main_activity_you_tab">you</string>
-    <string name="main_activity_list_tab">list</string>
+    <string name="main_activity_list_tab">routes</string>
     <string name="spot_list_item_arrival_label">arrival</string>
     <string name="spot_list_item_waiting_label">waiting</string>
     <string name="spot_form_save_button_text">save</string>
@@ -108,7 +109,7 @@
     <string name="spot_form_delete_dialog_message_text">Are you sure you want to permanently delete this spot?</string>
     <string name="spot_form_delete_dialog_no_option">Cancel</string>
     <string name="spot_form_delete_dialog_yes_option">Delete</string>
-    <string name="spot_form_is_is_part_of_a_route_checkbox_text" translatable="false">This spot belongs to a route</string>
+    <string name="spot_form_is_single_spot_checkbox_text">This spot doesn\'t belong to a route</string>
     <string name="spot_form_is_destination_checkbox_text">This is my route\'s destination</string>
     <string name="spot_form_title_evaluate">Evaluate spot</string>
     <string name="spot_form_title_edit">Edit spot</string>
@@ -127,7 +128,10 @@
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Yes</string>
     <string name="general_no_option">No</string>
+    <string name="general_thank_you_label">%s, thanks</string>
+    <string name="general_refresh_label">Refresh</string>
     <string name="general_cancel_option">Cancel</string>
+    <!-- TODO: translate below strings -->
     <string name="general_download_option" translatable="false">Download</string>
     <string name="general_error_dialog_title">Something went wrong :(</string>
     <string name="general_error_dialog_message" translatable="false">"%s"</string>
@@ -175,5 +179,10 @@
     <string name="continent_code_north_america">North America</string>
     <string name="continent_code_south_america">South America</string>
     <string name="continent_code_oceania">Oceania</string>
+
+    <!-- TODO: translate below strings -->
+    <string name="refresh_datetime_dialog_title" translatable="false">Refresh the selcted time?</string>
+    <string name="refresh_datetime_dialog_message" translatable="false">Hey. :-) %d minutes have past since you\'ve first opened this screen. Would you like your new spot to match the current date time? We can reset it for you from %s to %s.</string>
+    <string name="main_activity_single_spots_list_tab">spots</string>
 
 </resources>

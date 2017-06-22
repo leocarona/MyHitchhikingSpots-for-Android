@@ -32,6 +32,7 @@ import com.myhitchhikingspots.model.SpotDao;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -97,8 +98,9 @@ public class MainActivity extends TrackLocationBaseActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        if (shouldShowYouTab || indexOfLastOpenTab == 1)
-            showYouTab();
+        if (shouldShowYouTab)
+            indexOfLastOpenTab = SectionsPagerAdapter.TAB_YOU_INDEX;
+        selectTab(indexOfLastOpenTab);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
@@ -107,8 +109,8 @@ public class MainActivity extends TrackLocationBaseActivity {
         super.onCreate(savedInstanceState);
     }
 
-    public void showYouTab() {
-        mViewPager.setCurrentItem(1);
+    public void selectTab(int tab_index) {
+        mViewPager.setCurrentItem(tab_index);
     }
 
     Snackbar snackbar;
@@ -351,8 +353,11 @@ public class MainActivity extends TrackLocationBaseActivity {
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        private SpotListFragment tab_list;
+        private SpotListFragment tab_route_spots_list;
+        private SpotListFragment tab_single_spots_list;
         private MyLocationFragment tab_you;
+
+        List<Spot> routeSpots = new ArrayList<>(), singleSpots = new ArrayList<>();
 
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -366,10 +371,15 @@ public class MainActivity extends TrackLocationBaseActivity {
             switch (position) {
                 case 0:
                     SpotListFragment listFrag = new SpotListFragment();
-                    Bundle args2 = new Bundle();
-                    listFrag.setArguments(args2);
+                    Bundle args1 = new Bundle();
+                    listFrag.setArguments(args1);
                     return listFrag;
                 case 1:
+                    SpotListFragment singleSpotsListFrag = new SpotListFragment();
+                    Bundle args2 = new Bundle();
+                    singleSpotsListFrag.setArguments(args2);
+                    return singleSpotsListFrag;
+                case 2:
                     MyLocationFragment youFrag = new MyLocationFragment();
                     Bundle args = new Bundle();
                     youFrag.setArguments(args);
@@ -393,32 +403,48 @@ public class MainActivity extends TrackLocationBaseActivity {
             switch (position) {
                 case 0:
                     SpotListFragment tab_list = (SpotListFragment) createdFragment;
-                    tab_list.setValues(mSpotList);
-                    this.tab_list = tab_list;
+                    tab_list.setValues(routeSpots);
+                    this.tab_route_spots_list = tab_list;
                     break;
                 case 1:
+                    SpotListFragment tab_single_spots_list = (SpotListFragment) createdFragment;
+                    tab_single_spots_list.setValues(singleSpots);
+                    this.tab_single_spots_list = tab_single_spots_list;
+                    break;
+                case 2:
                     MyLocationFragment tab_you = (MyLocationFragment) createdFragment;
-                    tab_you.setValues(mSpotList, mCurrentSpot);
+                    tab_you.setValues(getWillBeFirstSpotOfARoute(routeSpots), mCurrentSpot);
                     this.tab_you = tab_you;
                     break;
             }
             return createdFragment;
         }
 
+        Boolean getWillBeFirstSpotOfARoute(List<Spot> lst) {
+            return lst.size() == 0 ||
+                    (lst.get(0).getIsPartOfARoute() == null || !lst.get(0).getIsPartOfARoute()) ||
+                    (lst.get(0).getIsDestination() != null && lst.get(0).getIsDestination());
+        }
+
         @Override
         public int getCount() {
-            return 2;
+            return 3;
         }
+
+        public final static int TAB_YOU_INDEX = 2;
 
         @Override
         public CharSequence getPageTitle(int position) {
             CharSequence res = null;
             switch (position) {
                 case 0:
-                    res = getResources().getString(R.string.main_activity_list_tab);
+                    res = getString(R.string.main_activity_list_tab);
                     break;
                 case 1:
-                    res = getResources().getString(R.string.main_activity_you_tab);
+                    res = getString(R.string.main_activity_single_spots_list_tab);
+                    break;
+                case 2:
+                    res = getString(R.string.main_activity_you_tab);
                     break;
             }
             return res;
@@ -449,11 +475,26 @@ public class MainActivity extends TrackLocationBaseActivity {
         public void setValues(List<Spot> lst, Spot spot) {
             Crashlytics.log(Log.INFO, TAG, "SectionsPagerAdapter.setValues called");
             try {
-                if (tab_you != null)
-                    tab_you.setValues(lst, spot);
+                routeSpots = new ArrayList<>();
+                singleSpots = new ArrayList<>();
+                for (Spot s : lst)
+                    if (s.getIsPartOfARoute() == null || !s.getIsPartOfARoute())
+                        singleSpots.add(s);
+                    else
+                        routeSpots.add(s);
+            } catch (Exception ex) {
+                Crashlytics.logException(ex);
+            }
 
-                if (tab_list != null)
-                    tab_list.setValues(lst);
+            try {
+                if (tab_you != null)
+                    tab_you.setValues(getWillBeFirstSpotOfARoute(routeSpots), spot);
+
+                if (tab_route_spots_list != null)
+                    tab_route_spots_list.setValues(routeSpots);
+
+                if (tab_single_spots_list != null)
+                    tab_single_spots_list.setValues(singleSpots);
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
             }

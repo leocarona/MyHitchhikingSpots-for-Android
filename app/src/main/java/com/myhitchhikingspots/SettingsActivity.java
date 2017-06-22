@@ -446,7 +446,7 @@ public class SettingsActivity extends BaseActivity {
     final String TAG = "settings-activity";
 
 
-    public class ExportDatabaseCSVTask extends AsyncTask<String, Void, Boolean> {
+    public class ExportDatabaseCSVTask extends AsyncTask<Void, Void, Boolean> {
         private final ProgressDialog dialog = new ProgressDialog(SettingsActivity.this);
 
         @Override
@@ -459,7 +459,7 @@ public class SettingsActivity extends BaseActivity {
             this.dialog.show();
         }
 
-        protected Boolean doInBackground(final String... args) {
+        protected Boolean doInBackground(Void... args) {
             Crashlytics.log(Log.INFO, TAG, "ExportDatabaseCSVTask started executing..");
             MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
 
@@ -515,7 +515,7 @@ public class SettingsActivity extends BaseActivity {
                 mfeedbacklabel.setVisibility(View.VISIBLE);
 
                 Long currentMillis = System.currentTimeMillis();
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, currentMillis).commit();
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, currentMillis).apply();
 
                 Toast.makeText(SettingsActivity.this, "Export successful!", Toast.LENGTH_SHORT).show();
             } else {
@@ -946,7 +946,7 @@ public class SettingsActivity extends BaseActivity {
             if (result.contentEquals("countriesListDownloaded")) {
                 //also write into prefs that markers sync has occurred
                 Long currentMillis = System.currentTimeMillis();
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).commit();
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).apply();
 
                 Toast.makeText(SettingsActivity.this, "Download successful!", Toast.LENGTH_SHORT).show();
                 Long millisecondsAtDownload = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
@@ -1114,7 +1114,7 @@ public class SettingsActivity extends BaseActivity {
                 }
 
                 //also write into prefs that markers sync has occurred
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, System.currentTimeMillis()).commit();
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, System.currentTimeMillis()).apply();
 
                 //TODO: show how many megabytes were downloaded or saved locally
 

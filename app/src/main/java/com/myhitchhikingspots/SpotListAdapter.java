@@ -293,7 +293,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                     captilizedNote = captilizedNote.substring(0, 1).toUpperCase() + captilizedNote.substring(1);
 
                 if (spot.getIsPartOfARoute() != null && !spot.getIsPartOfARoute()) {
-                    viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_single_spot_bg_color));
+                    //viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_single_spot_bg_color));
                     breakIcon.setVisibility(View.GONE);
                     singleSpotIcon.setVisibility(View.VISIBLE);
                 } else {

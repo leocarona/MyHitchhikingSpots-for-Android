@@ -49,9 +49,20 @@ public class BaseActivity extends AppCompatActivity
                 drawer.setDrawerListener(toggle);
                 toggle.syncState();
 
-                //Set listener to the menu icon click (the icon placed on the top left side of the screen)
                 NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
                 if (navigationView != null) {
+
+                    //Apply selected style to the open activity
+                    String currentActivityName = getClass().getName();
+                    if (currentActivityName.equals(SettingsActivity.class.getName()))
+                        navigationView.setCheckedItem(R.id.nav_tools);
+                    else if (currentActivityName.equals(MapViewActivity.class.getName()))
+                        navigationView.setCheckedItem(R.id.nav_my_map);
+                    else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
+                        navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
+                    else if (currentActivityName.equals(MainActivity.class.getName()))
+                        navigationView.setCheckedItem(R.id.nav_no_internet);
+
                     navigationView.setVisibility(View.VISIBLE);
                     navigationView.setNavigationItemSelectedListener(this);
                 }
@@ -82,7 +93,8 @@ public class BaseActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        String currentActivityName = (getClass() != null && getClass().getName() != null) ? getClass().getName() : "";
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        String currentActivityName = getClass().getName();
 
         switch (item.getItemId()) {
             case R.id.nav_tools:
@@ -100,7 +112,7 @@ public class BaseActivity extends AppCompatActivity
             case R.id.nav_no_internet:
                 //If the current activity is MainActivity, select the tab "you"
                 if (currentActivityName.equals(MainActivity.class.getName()))
-                    ((MainActivity) this).showYouTab();
+                    ((MainActivity) this).selectTab(MainActivity.SectionsPagerAdapter.TAB_YOU_INDEX);
                 else {
                     //Start MainActivity presenting "you" tab.
                     // If the current activity is MapViewActivity, we want the user to be sent back here if he clicks in "map" button in the next activity - (SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = true) will do that.

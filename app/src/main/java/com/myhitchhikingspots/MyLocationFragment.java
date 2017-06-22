@@ -18,6 +18,7 @@ package com.myhitchhikingspots;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -146,7 +147,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     boolean mIsWaitingForARide;
     boolean mWillItBeFirstSpotOfARoute;
 
-    public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
+    public void setValues(Boolean willItBeFirstSpotOfARoute, Spot currentWaitingSpot) {
         Crashlytics.log(Log.INFO, TAG, "setValues was called");
         try {
             mCurrentWaitingSpot = currentWaitingSpot;
@@ -157,7 +158,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
                 mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
 
-            mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+            mWillItBeFirstSpotOfARoute = willItBeFirstSpotOfARoute;
 
         } catch (Exception ex) {
             Crashlytics.logException(ex);
@@ -220,13 +221,26 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
-        Bundle args = new Bundle();
-        args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+        if (spot.getLatitude() == null || spot.getLatitude() == 0 || spot.getLongitude() == null || spot.getLongitude() == 0)
+            showErrorAlert("No location data", "We couldn't fetch your current location, you might need an internet connection first and hopefully a next time you will no longer need it.");
+        else {
+            Bundle args = new Bundle();
+            args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+            args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
 
-        Intent intent = new Intent(getContext(), SpotFormActivity.class);
-        intent.putExtras(args);
-        startActivity(intent);
+            Intent intent = new Intent(getContext(), SpotFormActivity.class);
+            intent.putExtras(args);
+            startActivity(intent);
+        }
+    }
+
+    protected void showErrorAlert(String title, String msg) {
+        new AlertDialog.Builder(getContext())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
+                .show();
     }
 
     public void gotARideButtonHandler() {

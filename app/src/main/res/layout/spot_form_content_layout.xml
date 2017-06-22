@@ -46,11 +46,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="60dp"
                         android:layout_marginRight="60dp"
+                        android:gravity="center"
                         android:shadowColor="#C0C0C0"
                         android:shadowRadius="2"
                         android:text="@string/map_not_loaded_message"
                         android:textAlignment="center"
-                        android:gravity="center"
                         android:textColor="#FFF" />
                 </LinearLayout>
 
@@ -313,31 +313,34 @@
                             android:layoutMode="clipBounds" />
                     </LinearLayout>
 
-                   <!-- <TextView
-                        style="?android:attr/listSeparatorTextViewStyle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />-->
+                    <!-- <TextView
+                         style="?android:attr/listSeparatorTextViewStyle"
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content" />-->
 
-                    <CheckBox
-                        android:id="@+id/save_spot_form_is_part_of_a_route_check_box"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:button="@null"
-                        android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
-                        android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
-                        android:text="@string/spot_form_is_is_part_of_a_route_checkbox_text"
-                        android:textStyle="normal|bold" />
-
-                    <CheckBox
+                    <android.support.v7.widget.AppCompatCheckBox
                         android:id="@+id/save_spot_form_is_destination_check_box"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
                         android:button="@null"
+                        android:layout_marginEnd="5dp"
+                        android:layout_marginRight="5dp"
                         android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
                         android:text="@string/spot_form_is_destination_checkbox_text" />
+
+                    <android.support.v7.widget.AppCompatCheckBox
+                        android:id="@+id/save_spot_form_is_single_spot_check_box"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:button="@null"
+                        android:layout_marginEnd="5dp"
+                        android:layout_marginRight="5dp"
+                        android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
+                        android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
+                        android:text="@string/spot_form_is_single_spot_checkbox_text" />
 
                     <TextView
                         android:id="@+id/feedbacklabel"
@@ -346,7 +349,7 @@
                         android:background="#FFFFD54D"
                         android:gravity="center"
                         android:padding="10dp"
-                        android:text="Save your spot to enable the Evaluate tab."
+                        android:text="Save your spot to enable Evaluate tab."
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:visibility="gone" />
 
@@ -560,7 +563,7 @@
         android:background="@color/ic_standard_fab_color"
         android:fitsSystemWindows="true"
         app:itemBackground="@color/ic_standard_fab_color"
-        app:itemIconTint="@drawable/menu_bottom_selector"
-        app:itemTextColor="@drawable/menu_bottom_selector"
+        app:itemIconTint="@color/menu_bottom_selector"
+        app:itemTextColor="@color/menu_bottom_selector"
         app:menu="@menu/menu_spot_form_bottom" />
 </android.support.design.widget.CoordinatorLayout>
