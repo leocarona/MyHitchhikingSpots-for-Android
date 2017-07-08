@@ -1116,17 +1116,24 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     private void updateSaveButtonState() {
+        Boolean showSaveButton = true;
+        Boolean enableSaveButton = panel_buttons.getVisibility() != View.VISIBLE;
+
+        if (mFormType == FormType.ReadOnly)
+            showSaveButton = false;
+        else if (!shouldShowButtonsPanel)
+            enableSaveButton = true;
+
         if (saveMenuItem != null) {
-            if (mFormType == FormType.ReadOnly)
-                saveMenuItem.setVisible(false);
-            else {
-                saveMenuItem.setVisible(true);
-                if (shouldShowButtonsPanel)
-                    saveMenuItem.setEnabled(panel_buttons.getVisibility() != View.VISIBLE);
-                else
-                    saveMenuItem.setEnabled(true);
-            }
+            saveMenuItem.setVisible(showSaveButton);
+            saveMenuItem.setEnabled(enableSaveButton);
         }
+
+        //Hide mSaveButton if panel_buttons is visible
+        if (panel_buttons.getVisibility() == View.VISIBLE || !showSaveButton)
+            mSaveButton.setVisibility(View.GONE);
+        else
+            mSaveButton.setVisibility(View.VISIBLE);
     }
 
 

@@ -104,7 +104,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#FFF"
-            android:paddingBottom="80dp"
+            android:paddingBottom="100dp"
             app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
             <LinearLayout
@@ -353,48 +353,6 @@
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:visibility="gone" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_horizontal"
-                        android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/save_button"
-                            style="@style/roundButtonTextStyle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/save_spot_button"
-                            android:onClick="saveButtonHandler"
-                            android:padding="15dp"
-                            android:text="@string/spot_form_save_button_text"
-                            android:visibility="gone" />
-
-                        <Button
-                            android:id="@+id/fetch_address_button"
-                            style="@style/roundButtonTextStyle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/arrived_button"
-                            android:onClick="fetchAddressButtonHandler"
-                            android:padding="13dp"
-                            android:paddingBottom="15dp"
-                            android:paddingTop="15dp"
-                            android:text="@string/fetch_address"
-                            android:visibility="gone" />
-
-                        <Button
-                            android:id="@+id/delete_button"
-                            style="@style/roundButtonTextStyle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/break_button"
-                            android:onClick="deleteButtonHandler"
-                            android:padding="13dp"
-                            android:paddingBottom="15dp"
-                            android:paddingTop="15dp"
-                            android:text="@string/spot_form_delete_button_text" />
-                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </android.support.v4.widget.NestedScrollView>
@@ -407,7 +365,7 @@
         android:layout_height="match_parent"
         android:background="#FFF"
         android:orientation="vertical"
-        android:paddingBottom="80dp"
+        android:paddingBottom="100dp"
         android:visibility="gone">
 
         <LinearLayout
@@ -553,6 +511,51 @@
                 tools:ignore="VectorDrawableCompat" />
 
         </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_gravity="bottom"
+        android:paddingBottom="90dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/save_button"
+            style="@style/roundButtonTextStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/save_spot_button"
+            android:onClick="saveButtonHandler"
+            android:padding="15dp"
+            android:text="@string/spot_form_save_button_text"
+            />
+
+        <Button
+            android:id="@+id/fetch_address_button"
+            style="@style/roundButtonTextStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/arrived_button"
+            android:onClick="fetchAddressButtonHandler"
+            android:padding="13dp"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
+            android:text="@string/fetch_address"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/delete_button"
+            style="@style/roundButtonTextStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/break_button"
+            android:onClick="deleteButtonHandler"
+            android:padding="13dp"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
+            android:text="@string/spot_form_delete_button_text" />
     </LinearLayout>
 
     <android.support.design.widget.BottomNavigationView
