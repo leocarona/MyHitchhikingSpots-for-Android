@@ -1091,7 +1091,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             int h = 0;
             if (mCurrentSpot.getHitchability() != null) {
                 //getHitchability() is always the position of the selected star on the ratingbar.
-                if (mCurrentSpot.getHitchability() >= hitchability_ratingbar.getNumStars() || mCurrentSpot.getHitchability() < 0) {
+                if (mCurrentSpot.getHitchability() > hitchability_ratingbar.getNumStars() || mCurrentSpot.getHitchability() < 0) {
                     h = 0;
                     Crashlytics.setInt("mCurrentSpot.getHitchability", mCurrentSpot.getHitchability());
                     Crashlytics.setInt("hitchability_ratingbar.getNumStars", hitchability_ratingbar.getNumStars());
@@ -1104,7 +1104,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (h == 0)
                 hitchabilityLabel.setText("");
             else
-                hitchabilityLabel.setText(Utils.getRatingAsString(this, Math.round(h)));
+                hitchabilityLabel.setText(Utils.getRatingAsString(this, Utils.findTheOpposite(h)));
 
         } catch (Exception ex) {
             //setTitle(getResources().getString(R.string.spot_form_bottommenu_map_tile));
