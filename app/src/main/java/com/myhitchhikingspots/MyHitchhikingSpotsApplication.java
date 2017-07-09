@@ -121,6 +121,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         //FIRST DAY - Odense to Copenhagen
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Odense");
         spot.setCountry("Denmark");
         spot.setLatitude(55.351012);
@@ -135,6 +136,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         spotStartDateTime.add(Calendar.HOUR, 1);
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Slagelse");
         spot.setCountry("Denmark");
         spot.setLatitude(55.389869);
@@ -150,6 +152,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         spotStartDateTime.add(Calendar.HOUR, 1);
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Copenhagen");
         spot.setCountry("Denmark");
         spot.setLatitude(55.668537);
@@ -167,6 +170,7 @@ public class MyHitchhikingSpotsApplication extends Application {
         spotStartDateTime = new GregorianCalendar(2016, 03, 11, 8, 00, 00);
 
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Copenhagen");
         spot.setCountry("Denmark");
         spot.setLatitude(55.650766);
@@ -181,6 +185,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
 
         spotStartDateTime.add(Calendar.HOUR, 1);
+        spot.setIsHitchhikingSpot(true);
         spot = new Spot();
         spot.setCity("Holbæk");
         spot.setCountry("Denmark");
@@ -196,6 +201,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
 
         spotStartDateTime.add(Calendar.HOUR, 1);
+        spot.setIsHitchhikingSpot(true);
         spot = new Spot();
         spot.setCity("Sjællands Odde");
         spot.setCountry("Denmark");
@@ -213,6 +219,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         spotStartDateTime.add(Calendar.HOUR, 1);
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Aarhus");
         spot.setCountry("Denmark");
         spot.setLatitude(56.161744);
@@ -229,6 +236,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         spotStartDateTime.add(Calendar.HOUR, 1);
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Skagen");
         spot.setCountry("Denmark");
         spot.setLatitude(57.738293);
@@ -246,6 +254,7 @@ public class MyHitchhikingSpotsApplication extends Application {
         spotStartDateTime = new GregorianCalendar(2016, 03, 12, 8, 00, 00);
 
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Skagen");
         spot.setCountry("Denmark");
         spot.setLatitude(57.725531);
@@ -261,6 +270,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         spotStartDateTime.add(Calendar.HOUR, 1);
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Viborg");
         spot.setCountry("Denmark");
         spot.setLatitude(56.426606);
@@ -275,6 +285,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         spotStartDateTime.add(Calendar.HOUR, 1);
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Herning");
         spot.setCountry("Denmark");
         spot.setLatitude(56.153862);
@@ -290,6 +301,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         spotStartDateTime.add(Calendar.HOUR, 1);
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Vejle");
         spot.setCountry("Denmark");
         spot.setLatitude(55.683155);
@@ -305,6 +317,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
         spotStartDateTime.add(Calendar.HOUR, 1);
         spot = new Spot();
+        spot.setIsHitchhikingSpot(true);
         spot.setCity("Fredericia");
         spot.setCountry("Denmark");
         spot.setLatitude(55.556310);
@@ -324,6 +337,7 @@ public class MyHitchhikingSpotsApplication extends Application {
             return;
 
         Spot spot1 = new Spot();
+        spot1.setIsHitchhikingSpot(true);
         spot1.setId(new Long(1));
         spot1.setNote("My first spot");
         spot1.setCity("Belo Horizonte");
@@ -337,6 +351,7 @@ public class MyHitchhikingSpotsApplication extends Application {
         spot1.setIsPartOfARoute(true);
 
         Spot spot2 = new Spot();
+        spot2.setIsHitchhikingSpot(true);
         spot2.setId(new Long(2));
         spot2.setNote("My second spot");
         spot2.setCity("Rio de Janeiro");
@@ -350,6 +365,7 @@ public class MyHitchhikingSpotsApplication extends Application {
         spot2.setIsPartOfARoute(true);
 
         Spot spot3 = new Spot();
+        spot3.setIsHitchhikingSpot(true);
         spot3.setId(new Long(3));
         spot3.setNote("My third spot");
         spot3.setCity("Salvador");
@@ -362,6 +378,7 @@ public class MyHitchhikingSpotsApplication extends Application {
         spot3.setIsPartOfARoute(true);
 
         Spot spot4 = new Spot();
+        spot4.setIsHitchhikingSpot(true);
         spot4.setId(new Long(4));
         spot4.setCity("Odense");
         //spot4.setState("Frankfurt");
@@ -376,6 +393,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
 
         Spot spot5 = new Spot();
+        spot5.setIsHitchhikingSpot(true);
         spot5.setId(new Long(5));
         spot5.setNote("My fifth spot");
         spot5.setCity("Berlin");
@@ -391,6 +409,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
 
         Spot spot6 = new Spot();
+        spot6.setIsHitchhikingSpot(true);
         spot6.setId(new Long(6));
         spot6.setCity("Sofia");
         //spot5.setState("São Paulo");
@@ -403,6 +422,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
 
         Spot spot7 = new Spot();
+        spot7.setIsHitchhikingSpot(true);
         spot7.setId(new Long(7));
         spot7.setNote("My seventh spot");
         spot7.setCity("Sofia");
@@ -419,6 +439,7 @@ public class MyHitchhikingSpotsApplication extends Application {
         spot7.setIsPartOfARoute(true);
 
         Spot spot8 = new Spot();
+        spot8.setIsHitchhikingSpot(true);
         spot8.setId(new Long(8));
         spot8.setNote("My eith spot");
         spot8.setCity("Istanbul");

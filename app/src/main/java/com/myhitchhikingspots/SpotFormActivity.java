@@ -97,7 +97,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
     private Spot mCurrentSpot;
-    private CheckBox is_single_spot_check_box, is_destination_check_box;
+    private CheckBox is_single_spot_check_box, is_destination_check_box, is_hitchhiking_spot_check_box;
     private TextView hitchabilityLabel, selected_date;
     private LinearLayout spot_form_evaluate, spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
@@ -264,6 +264,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         spot_form_more_options = (LinearLayout) findViewById(R.id.save_spot_form_more_options);
         is_single_spot_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_single_spot_check_box);
         is_destination_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_destination_check_box);
+        is_hitchhiking_spot_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_hitchhiking_spot_check_box);
         hitchability_ratingbar = (RatingBar) findViewById(R.id.spot_form_hitchability_ratingbar);
         hitchability_options = (LinearLayout) findViewById(R.id.save_spot_form_hitchability_options);
         hitchabilityLabel = (TextView) findViewById(R.id.spot_form_hitchability_selectedvalue);
@@ -390,8 +391,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     }
                 });
 
-
-
        /* LISTENERS THAT WE STOPPED USING BECAUSE onCameraChangeListener IS CALLED AT RANDOM MOMENTS, NOT ONLY WHEN THE USER MOVES THE MAP MANUALLY.
        GOOD NEWS: The next version of gradle (current one when this comment is been written is: io.fabric.tools:gradle:1.22.2) should provide listeners
        for detecting when a map was completely moved and if it was moved by an app request or by the user. So maybe after next version we can adjust and come back using the listeners declaired below.
@@ -494,8 +493,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         };
 
+
+        //Add checkboxes listeners
         is_single_spot_check_box.setOnCheckedChangeListener(this);
         is_destination_check_box.setOnCheckedChangeListener(this);
+        is_hitchhiking_spot_check_box.setOnCheckedChangeListener(this);
+
 
         //Load UI - Make sure all the relevant listeners were set BEFORE updateUI() is called
         updateUI();
@@ -853,7 +856,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 int minutesPast = Minutes.minutesBetween(dateTime, dateTimeNow).getMinutes();
 
                 if (minutesPast > 10) {
-                    refreshDatetimeAlertDialogWasShown = true;
                     new AlertDialog.Builder(this)
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setTitle(getString(R.string.refresh_datetime_dialog_title))
@@ -863,11 +865,17 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                             .setPositiveButton(getString(R.string.general_refresh_label), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    refreshDatetimeAlertDialogWasShown = true;
                                     SetDateTime(date_datepicker, time_timepicker, dateTimeNow.toDate());
                                 }
 
                             })
-                            .setNegativeButton(String.format(getString(R.string.general_thank_you_label), getString(R.string.general_no_option)), null)
+                            .setNegativeButton(String.format(getString(R.string.general_thank_you_label), getString(R.string.general_no_option)), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    refreshDatetimeAlertDialogWasShown = true;
+                                }
+                            })
                             .show();
                 }
             }
@@ -1029,12 +1037,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             //if (mFormType == FormType.Evaluate)
             //    calculateWaitingTime(null);
 
-            updateSpotLocationOnUI();
-
-            updateTabsState();
-
-            updateSaveButtonState();
-
             if (mFormType == FormType.Unknown) {
                 Crashlytics.logException(new Exception("mFormType is Unkonwn"));
                 mSaveButton.setEnabled(false);
@@ -1077,16 +1079,26 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             else
                 note_edittext.setText("");
 
-            Boolean isSingleSpot = mCurrentSpot.getIsPartOfARoute() == null || !mCurrentSpot.getIsPartOfARoute();
             Boolean isDestination = mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination();
+            Boolean isNotPartOfARouteSpot = mCurrentSpot.getIsPartOfARoute() == null || !mCurrentSpot.getIsPartOfARoute();
+            Boolean isHitchhikingSpot = mCurrentSpot.getIsHitchhikingSpot() != null && mCurrentSpot.getIsHitchhikingSpot();
 
-            is_single_spot_check_box.setChecked(isSingleSpot);
             is_destination_check_box.setChecked(isDestination);
+            is_single_spot_check_box.setChecked(isNotPartOfARouteSpot);
+            is_hitchhiking_spot_check_box.setChecked(isHitchhikingSpot);
 
-            if (shouldRetrieveDetailsFromHW)
+            if (shouldRetrieveDetailsFromHW) {
                 is_destination_check_box.setVisibility(View.GONE);
-            else
+                is_single_spot_check_box.setVisibility(View.VISIBLE);
+                is_single_spot_check_box.setEnabled(false);
+                is_hitchhiking_spot_check_box.setVisibility(View.VISIBLE);
+                is_hitchhiking_spot_check_box.setEnabled(false);
+            } else {
                 is_destination_check_box.setVisibility(View.VISIBLE);
+                is_single_spot_check_box.setVisibility(View.VISIBLE);
+                is_hitchhiking_spot_check_box.setVisibility(View.VISIBLE);
+
+            }
 
             int h = 0;
             if (mCurrentSpot.getHitchability() != null) {
@@ -1105,6 +1117,15 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 hitchabilityLabel.setText("");
             else
                 hitchabilityLabel.setText(Utils.getRatingAsString(this, Utils.findTheOpposite(h)));
+
+
+            updateSpotLocationOnUI();
+
+            updateEnabledTabs();
+
+            updateSelectedTab();
+
+            updateSaveButtonState();
 
         } catch (Exception ex) {
             //setTitle(getResources().getString(R.string.spot_form_bottommenu_map_tile));
@@ -1137,29 +1158,35 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
 
-    private void updateTabsState() {
-        //If it is a destination spot, the evaluate screen isn't used - let's disable evaluate_menuitem tab
+    private void updateEnabledTabs() {
         if (mFormType == FormType.Edit || mFormType == FormType.Evaluate) {
-            evaluate_menuitem.setEnabled(!is_destination_check_box.isChecked());
-
-            if (lastSelectedTab != -1)
-                menu_bottom.setSelectedItemId(lastSelectedTab);
-            else if (mFormType == FormType.Evaluate && !is_destination_check_box.isChecked())
-                menu_bottom.setSelectedItemId(R.id.action_evaluate);
+            //If it is not a hitchhiking spot, the evaluate tab isn't used - let's disable evaluate_menuitem tab
+            if (!is_hitchhiking_spot_check_box.isChecked())
+                evaluate_menuitem.setEnabled(false);
             else
-                menu_bottom.setSelectedItemId(R.id.action_basic);
-
+                evaluate_menuitem.setEnabled(true);
         } else {
             if (mFormType == FormType.Create)
                 evaluate_menuitem.setEnabled(false);
             else
-                evaluate_menuitem.setEnabled(panel_buttons.getVisibility() != View.VISIBLE && !is_destination_check_box.isChecked());
-
-            if (lastSelectedTab != -1)
-                menu_bottom.setSelectedItemId(lastSelectedTab);
-            else
-                menu_bottom.setSelectedItemId(R.id.action_basic);
+                evaluate_menuitem.setEnabled(panel_buttons.getVisibility() != View.VISIBLE && is_hitchhiking_spot_check_box.isChecked());
         }
+    }
+
+    private void updateSelectedTab() {
+        if (mFormType == FormType.Edit || mFormType == FormType.Evaluate) {
+            if (lastSelectedTab == -1) {
+                if (mFormType == FormType.Evaluate && is_hitchhiking_spot_check_box.isChecked())
+                    lastSelectedTab = R.id.action_evaluate;
+                else
+                    lastSelectedTab = R.id.action_basic;
+            }
+        } else {
+            if (lastSelectedTab == -1)
+                lastSelectedTab = R.id.action_basic;
+        }
+
+        menu_bottom.setSelectedItemId(lastSelectedTab);
     }
 
 
@@ -1211,7 +1238,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         panel_info.setVisibility(View.VISIBLE);
 
         updateSaveButtonState();
-        updateTabsState();
+        updateSelectedTab();
 
         //Automatically resolve gps
         fetchAddressButtonHandler(null);
@@ -1225,8 +1252,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void saveButtonHandler(View view) {
-        if (mFormType != FormType.Create && !is_single_spot_check_box.isChecked() && !is_destination_check_box.isChecked() &&
+        //If it is a hitchhiking spot and it's part of a route (!is_single_spot) and waiting time wasn't informed, show alert
+        if (mFormType != FormType.Create &&
+                is_hitchhiking_spot_check_box.isChecked() &&
+                !is_single_spot_check_box.isChecked() &&
                 waiting_time_edittext.getText().toString().isEmpty()) {
+            //Show a dialog alerting that a waiting time was not informed
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(getString(R.string.waiting_time_missing_dialog_title))
@@ -1270,7 +1301,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             mCurrentSpot.setIsPartOfARoute(!is_single_spot_check_box.isChecked());
 
-            if (is_destination_check_box.isChecked()) {
+            if (attemptResult == Constants.ATTEMPT_RESULT_GOT_A_RIDE)
+                mCurrentSpot.setIsHitchhikingSpot(true);
+            else
+                mCurrentSpot.setIsHitchhikingSpot(is_hitchhiking_spot_check_box.isChecked());
+
+            if (!mCurrentSpot.getIsHitchhikingSpot() && is_destination_check_box.isChecked()) {
                 mCurrentSpot.setIsDestination(true);
                 mCurrentSpot.setHitchability(0);
                 mCurrentSpot.setIsWaitingForARide(false);
@@ -1278,7 +1314,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             } else {
                 mCurrentSpot.setIsDestination(false);
                 mCurrentSpot.setHitchability(Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating())));
-                if (mFormType == FormType.Create && !is_single_spot_check_box.isChecked())
+
+                //If user is saving a new hitchhiking spot that belongs to a route, setIsWaitingForARide to true
+                if (mFormType == FormType.Create &&
+                        is_hitchhiking_spot_check_box.isChecked() && !is_single_spot_check_box.isChecked())
                     mCurrentSpot.setIsWaitingForARide(true);
                 else
                     mCurrentSpot.setIsWaitingForARide(false);
@@ -1387,77 +1426,82 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private void finishSaving(int result) {
         setResult(result);
 
-        //If it's Create mode, then we should pass the current spot so that it can be Evaluated. Otherwise, instantiate a new route spot and pass it instead.
-        if (mFormType == FormType.Create && !is_destination_check_box.isChecked()) {
-            if (!is_single_spot_check_box.isChecked())
-                //A spot that is part of a route but is not its destination is being created
-                mFormType = FormType.Evaluate;
-            else
-                // Single spot is being created
-                mFormType = FormType.Edit;
+        if (is_hitchhiking_spot_check_box.isChecked()) {
+            //If it's Create mode, then we should pass the current spot so that it can be Evaluated. Otherwise, instantiate a new route spot and pass it instead.
+            if (mFormType == FormType.Create) {
+                //If spot is not part of a route (is_single_spot)
+                if (is_single_spot_check_box.isChecked())
+                    mFormType = FormType.Edit;
+                else
+                    mFormType = FormType.Evaluate;
 
-            feedbacklabel.setVisibility(View.GONE);
+                feedbacklabel.setVisibility(View.GONE);
 
-            Crashlytics.setString("mFormType", mFormType.toString());
+                Crashlytics.setString("mFormType", mFormType.toString());
 
-            refreshDatetimeAlertDialogWasShown = false;
+                refreshDatetimeAlertDialogWasShown = false;
 
-            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            hideKeyboard();
+                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                hideKeyboard();
 
-            showViewMapSnackbar();
+                showViewMapSnackbar();
 
-            //We want to show the Evaluate tab when the user has just saved a new spot that doesn't belong to a route, so that he can evaluate it.
-            //updateUI will present Basic tab because mFormType is Edit. So make sure setSelectedItemId(R.id.action_evaluate) is called after updateUI() in here.
-            if (is_single_spot_check_box.isChecked())
-                lastSelectedTab = R.id.action_evaluate;
-            else
-                lastSelectedTab = -1;
+                //We want to show the Evaluate tab when the user has just saved a new spot that doesn't belong to a route, so that he can evaluate it.
+                //updateUI will present Basic tab because mFormType is Edit. So make sure setSelectedItemId(R.id.action_evaluate) is called after updateUI() in here.
+                if (is_hitchhiking_spot_check_box.isChecked())
+                    lastSelectedTab = R.id.action_evaluate;
+                else
+                    lastSelectedTab = -1;
 
-            updateUI();
+                updateUI();
 
-        } else if ((mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                && !is_single_spot_check_box.isChecked() && getCallingActivity() == null) {
-            //Instantiate a new route spot and pass it, so that the user can adjust it as he wants and save it as a new spot.
-            mFormType = FormType.Create;
+                return;
+            } else if ((mFormType == FormType.Evaluate || mFormType == FormType.Edit)
+                    && !is_single_spot_check_box.isChecked() && getCallingActivity() == null) {
+                //Instantiate a new route spot and pass it, so that the user can adjust it as he wants and save it as a new spot.
+                mFormType = FormType.Create;
 
-            Crashlytics.setString("mFormType", mFormType.toString());
+                Crashlytics.setString("mFormType", mFormType.toString());
 
-            refreshDatetimeAlertDialogWasShown = false;
+                refreshDatetimeAlertDialogWasShown = false;
 
-            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-            hideKeyboard();
+                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                hideKeyboard();
 
-            mCurrentSpot = new Spot();
-            mCurrentSpot.setIsPartOfARoute(true);
+                mCurrentSpot = new Spot();
+                mCurrentSpot.setIsHitchhikingSpot(true);
+                mCurrentSpot.setIsPartOfARoute(true);
 
-            shouldShowButtonsPanel = true;
+                shouldShowButtonsPanel = true;
 
-            mAddressRequested = false;
-            mAddressOutput = null;
+                mAddressRequested = false;
+                mAddressOutput = null;
 
-            showViewMapSnackbar();
+                showViewMapSnackbar();
 
-            lastSelectedTab = R.id.action_basic;
+                lastSelectedTab = R.id.action_basic;
 
-            updateUI();
+                updateUI();
 
-            if (mapboxMap.getMyLocation() != null)
-                moveCamera(new LatLng(mapboxMap.getMyLocation()));
+                if (mapboxMap.getMyLocation() != null)
+                    moveCamera(new LatLng(mapboxMap.getMyLocation()));
 
-        } else {
-            finish();
-
-            if (!shouldGoBackToPreviousActivity) {
-                Bundle conData = new Bundle();
-                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
-
-                Intent i = new Intent(getBaseContext(), MapViewActivity.class);
-                i.putExtras(conData);
-                startActivity(i);
+                return;
             }
         }
+
+        finish();
+
+        if (!shouldGoBackToPreviousActivity) {
+            Bundle conData = new Bundle();
+            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
+
+            Intent i = new Intent(getBaseContext(), MapViewActivity.class);
+            i.putExtras(conData);
+            startActivity(i);
+        }
     }
+
 
     Bundle getBundle(int result) {
         //NOTE: If finish() is called and a new activity is not called, the user will be sent back to the previous
@@ -1496,46 +1540,117 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void onCheckedChanged(CompoundButton checkBox, boolean isChecked) {
+        /*
+        A spot is just a coordinate and some extra data. Currently we allow 6 types of spots (listed below).
+        The logic of the checkboxes should allow the user to save a spot as:
+            waiting spot -          is a hitchhiking spot;       is part of a route;        is not a destination
+            got a ride -            is a hitchhiking spot;       is part of a route;        is not a destination
+            single spot -           is a hitchhiking spot;       is not part of a route;    is not a destination
+
+            destination -           is not a hitchhiking spot;  is part of a route;         is a destination
+            took a break -          is not a hitchhiking spot;  is part of a route;         is not a destination
+            other -                 is not a hitchhiking spot;  is not part of a route;     is not a destination
+
+        Additionally, the names used should be understood as follow:
+            is NOT part of a route = is single spot
+            is NOT a hitchhiking spot = is other type of spot
+        */
+
+        //Clear all checkedChangedListener - it should be set again before the end of this method
+        is_destination_check_box.setOnCheckedChangeListener(null);
+        is_single_spot_check_box.setOnCheckedChangeListener(null);
+        is_hitchhiking_spot_check_box.setOnCheckedChangeListener(null);
+
         switch (checkBox.getId()) {
-            case R.id.save_spot_form_is_single_spot_check_box:
-                //If a spot is not part of a route, then it can not be the destination of a route - let's disable the destination checkbox
-                if (isChecked) {
-                    //is_single_spot_check_box.setHighlightColor(Color.DKGRAY);
-
-                    is_single_spot_check_box.setTypeface(null, Typeface.BOLD);
-
-                    //Spot is part of a route
-                    is_destination_check_box.setChecked(false);
-                    is_destination_check_box.setEnabled(false);
-
-                    //It make sense to disable Evaluate tab when the spot is a route, but when it's just a single spot the user might be confused.
-                    //We could also keep feedbacklabel always visible or Evaluate tab always enabled, but when the spot is a destination, then the feedbacklabel or the Evaluate tab could also be confusing.
-                    //So here we chose to keep Evaluate tab disabled, and show the feedbacklabel to the user when the spot is not part of a route (neither a destination).
-                    if (mFormType == FormType.Create)
-                        feedbacklabel.setVisibility(View.VISIBLE);
-                } else {
-                    //is_single_spot_check_box.setHighlightColor(ContextCompat.getColor(getBaseContext(), R.color.ic_standard_fab_color));
-
-                    is_single_spot_check_box.setTypeface(null, Typeface.NORMAL);
-                    is_destination_check_box.setEnabled(true);
-
-                    feedbacklabel.setVisibility(View.GONE);
-                }
-                break;
             case R.id.save_spot_form_is_destination_check_box:
                 if (isChecked) {
+                    //It is a destination
                     is_destination_check_box.setTypeface(null, Typeface.BOLD);
 
+                    //If it is a destination, it is not a hitchhiking spot
+                    is_hitchhiking_spot_check_box.setChecked(false);
+                    is_hitchhiking_spot_check_box.setEnabled(false);
+                    is_hitchhiking_spot_check_box.setTypeface(null, Typeface.NORMAL);
+
+                    //If it is a destination, it is not a single spot
                     is_single_spot_check_box.setChecked(false);
                     is_single_spot_check_box.setEnabled(false);
+                    is_single_spot_check_box.setTypeface(null, Typeface.NORMAL);
                 } else {
+                    //It is not a destination
                     is_destination_check_box.setTypeface(null, Typeface.NORMAL);
+
+                    //It is not a destination, it can be a single spot or a hitchhiking spot
+                    is_hitchhiking_spot_check_box.setEnabled(true);
                     is_single_spot_check_box.setEnabled(true);
                 }
 
-                updateTabsState();
+                break;
+            case R.id.save_spot_form_is_single_spot_check_box:
+                if (isChecked) {
+                    //It is a single spot
+                    is_single_spot_check_box.setTypeface(null, Typeface.BOLD);
+
+                    //If it is a single spot, it can not be a destination
+                    is_destination_check_box.setChecked(false);
+                    //is_destination_check_box.setEnabled(false);
+                    is_destination_check_box.setTypeface(null, Typeface.NORMAL);
+
+                    //If it is a single spot, it can be a hitchhiking spot
+                    is_hitchhiking_spot_check_box.setEnabled(true);
+                } else {
+                    //It is not a single spot
+                    is_single_spot_check_box.setTypeface(null, Typeface.NORMAL);
+
+                    //It is not a single spot, it can be a destination
+                    //is_destination_check_box.setChecked(false);
+                    is_destination_check_box.setEnabled(true);
+
+                    //It is not a single spot, it can be a hitchhiking spot
+                    is_hitchhiking_spot_check_box.setEnabled(true);
+                }
+                break;
+            case R.id.save_spot_form_is_hitchhiking_spot_check_box:
+                if (isChecked) {
+                    //It is a hitchhiking spot
+                    is_hitchhiking_spot_check_box.setTypeface(null, Typeface.BOLD);
+
+                    //If it is a hitchhiking spot, it can not be a destination
+                    is_destination_check_box.setChecked(false);
+                    //is_destination_check_box.setEnabled(false);
+                    is_destination_check_box.setTypeface(null, Typeface.NORMAL);
+
+                    //If it is a hitchhiking spot, it can be a single spot
+                    is_single_spot_check_box.setEnabled(true);
+
+                    //If it is a hitchhiking spot, user might want to evaluate the spot
+                    if (mFormType == FormType.Create) {
+                        //Show message to let the user know that Evaluate tab will be enabled after he clicks the Save button
+                        feedbacklabel.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    //It is not a hitchhiking spot
+                    is_hitchhiking_spot_check_box.setTypeface(null, Typeface.NORMAL);
+
+                    //If it is not a hitchhiking spot, it can be a destination
+                    is_destination_check_box.setEnabled(true);
+
+                    //If it is not a hitchhiking spot, it can be a single spot
+                    is_single_spot_check_box.setEnabled(true);
+
+                    //If it is not a hitchhiking spot, there's nothing to evaluate
+                    feedbacklabel.setVisibility(View.GONE);
+                }
+
                 break;
         }
+
+        updateEnabledTabs();
+
+        //Set all checkedChangedListener
+        is_destination_check_box.setOnCheckedChangeListener(this);
+        is_single_spot_check_box.setOnCheckedChangeListener(this);
+        is_hitchhiking_spot_check_box.setOnCheckedChangeListener(this);
     }
 
 

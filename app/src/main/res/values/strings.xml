@@ -111,6 +111,7 @@
     <string name="spot_form_delete_dialog_yes_option">Delete</string>
     <string name="spot_form_is_single_spot_checkbox_text">This spot doesn\'t belong to a route</string>
     <string name="spot_form_is_destination_checkbox_text">This is my route\'s destination</string>
+    <string name="spot_form_is_hitchhiking_spot_checkbox_text" translatable="false">This is a hitchhiking spot</string>
     <string name="spot_form_title_evaluate">Evaluate spot</string>
     <string name="spot_form_title_edit">Edit spot</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>

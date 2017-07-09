@@ -30,10 +30,11 @@ public final class Constants {
 
     public static final int SPOT_TYPE_UNKNOWN = 0;
     public static final int SPOT_TYPE_ORIGIN = 1;
-    public static final int SPOT_TYPE_GOT_A_RIDE = 2;
-    public static final int SPOT_TYPE_TOOK_A_BREAK = 3;
-    public static final int SPOT_TYPE_WAITING = 4;
-    public static final int SPOT_TYPE_DESTINATION = 5;
+    public static final int SPOT_TYPE_HITCHHIKING_SPOT = 2;
+    public static final int SPOT_TYPE_WAITING = 3;
+    public static final int SPOT_TYPE_DESTINATION = 4;
+    public static final int SPOT_TYPE_SINGLE_SPOT = 5;
+    public static final int SPOT_TYPE_OTHER = 6;
 
     public static final String DIALOG_STRINGLIST_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_STRINGLIST_BUNDLE_KEY";
     public static final String DIALOG_TYPE_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_TYPE_BUNDLE_KEY";

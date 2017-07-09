@@ -104,7 +104,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#FFF"
-            android:paddingBottom="100dp"
+            android:paddingBottom="120dp"
             app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
             <LinearLayout
@@ -319,13 +319,25 @@
                          android:layout_height="wrap_content" />-->
 
                     <android.support.v7.widget.AppCompatCheckBox
+                        android:id="@+id/save_spot_form_is_hitchhiking_spot_check_box"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:button="@null"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginRight="10dp"
+                        android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
+                        android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
+                        android:text="@string/spot_form_is_hitchhiking_spot_checkbox_text" />
+
+                    <android.support.v7.widget.AppCompatCheckBox
                         android:id="@+id/save_spot_form_is_destination_check_box"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
                         android:button="@null"
-                        android:layout_marginEnd="5dp"
-                        android:layout_marginRight="5dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginRight="10dp"
                         android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
                         android:text="@string/spot_form_is_destination_checkbox_text" />
@@ -336,11 +348,12 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
                         android:button="@null"
-                        android:layout_marginEnd="5dp"
-                        android:layout_marginRight="5dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginRight="10dp"
                         android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
                         android:text="@string/spot_form_is_single_spot_checkbox_text" />
+
 
                     <TextView
                         android:id="@+id/feedbacklabel"
@@ -365,7 +378,7 @@
         android:layout_height="match_parent"
         android:background="#FFF"
         android:orientation="vertical"
-        android:paddingBottom="100dp"
+        android:paddingBottom="120dp"
         android:visibility="gone">
 
         <LinearLayout
@@ -518,7 +531,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:layout_gravity="bottom"
-        android:paddingBottom="90dp"
+        android:paddingBottom="80dp"
         android:orientation="horizontal">
 
         <Button

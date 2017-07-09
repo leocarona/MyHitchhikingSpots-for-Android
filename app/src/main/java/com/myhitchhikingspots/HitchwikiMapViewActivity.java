@@ -629,45 +629,10 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     if (spot.getId() != null)
                         markerViewOptions.tag(spot.getId().toString());
 
-                    if (spot.getIsDestination() != null && spot.getIsDestination()) {
-                        //AT THIS SPOT USER HAS ARRIVED TO HIS DESTINATION
 
-                        spotType = getResources().getString(R.string.map_infoview_spot_type_destination);
-                        markerViewOptions.icon(ic_arrival_spot);
-                        markerViewOptions.spotType(Constants.SPOT_TYPE_DESTINATION);
+                    markerViewOptions.icon(ic_single_spot);
+                    markerViewOptions.spotType(Constants.SPOT_TYPE_HITCHHIKING_SPOT);
 
-                        //Center icon
-                        markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                    } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
-                        //AT THIS SPOT USER IS WAITING FOR A RIDE
-
-                        spotType = getResources().getString(R.string.map_infoview_spot_type_waiting);
-                        markerViewOptions.icon(ic_waiting_spot);
-                        markerViewOptions.spotType(Constants.SPOT_TYPE_WAITING);
-
-                    } else if (spot.getAttemptResult() != null && spot.getAttemptResult() > 0) {
-                        if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
-                            //AT THIS SPOT USER TOOK A BREAK SPOT
-
-                            spotType = getResources().getString(R.string.map_infoview_spot_type_break);
-                            markerViewOptions.icon(ic_took_a_break_spot);
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_TOOK_A_BREAK);
-
-                            //Center icon
-                            markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                        } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
-                            //AT THIS SPOT USER GOT A RIDE
-
-                            if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute())
-                                markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
-                            else
-                                markerViewOptions.icon(ic_single_spot);
-
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
-                        }
-                    } else {
-                        markerViewOptions.icon(getGotARideIconForRoute(-1));
-                    }
 
                     //Get location string
                     String firstLine = spotLocationToString(spot).trim();
@@ -685,7 +650,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     }*/
 
                     //Add waiting time
-                    if (spot.getWaitingTime() != null && (spot.getIsDestination() == null || !spot.getIsDestination())) {
+                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() && spot.getWaitingTime() != null) {
                         if (!secondLine.isEmpty())
                             secondLine += " ";
                         secondLine += "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
@@ -707,10 +672,11 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     String title = "";
                     if (!spotType.isEmpty())
                         title = spotType;
-                    else if (spot.getHitchability() != null && spot.getHitchability() > 0)
+                    else if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
+                            spot.getHitchability() != null && spot.getHitchability() > 0)
                         title = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
 
-                    if (title.isEmpty())
+                    if (title.isEmpty() && spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
                         title = "Not evaluated";
 
                     //Set hitchability as title

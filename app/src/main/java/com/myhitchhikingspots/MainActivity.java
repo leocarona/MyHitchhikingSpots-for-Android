@@ -185,6 +185,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 if (mCurrentLocation == null)
                     return;
                 mCurrentSpot = new Spot();
+                mCurrentSpot.setIsHitchhikingSpot(true);
                 mCurrentSpot.setStartDateTime(new Date());
                 mCurrentSpot.setIsWaitingForARide(true);
                 mCurrentSpot.setIsDestination(false);

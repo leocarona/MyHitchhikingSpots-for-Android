@@ -32,6 +32,7 @@ public class StartActivity extends Activity {
             } else {
                 //Let the user add a new spot to his route
                 spot = new Spot();
+                spot.setIsHitchhikingSpot(true);
                 spot.setIsPartOfARoute(true);
                 intent.putExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, true);
             }

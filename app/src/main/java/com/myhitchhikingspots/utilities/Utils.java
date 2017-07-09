@@ -247,6 +247,7 @@ public class Utils {
         if (place.getRating() != null)
             spot.setHitchability(Integer.valueOf(place.getRating()));
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        spot.setIsHitchhikingSpot(true);
 
         /*Setting attributes to false here is useless - we've just created the new Spot therefore its attributes are by default false
         spot.setIsWaitingForARide(false);

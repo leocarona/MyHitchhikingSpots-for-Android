@@ -784,10 +784,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 ArrayList<ExtendedMarkerViewOptions> singleSpots = new ArrayList<>();
 
                 //The spots are ordered from the last saved ones to the first saved ones, so we need to
-                // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
+                // go through the list in the opposite direction in order to sum up the route's totals from their origin to their destinations
                 for (int i = spotList.size() - 1; i >= 0; i--) {
                     Spot spot = spotList.get(i);
-                    String spotType = "";
+                    String markerTitle = "";
 
                     ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
                             .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
@@ -795,45 +795,62 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     if (spot.getId() != null)
                         markerViewOptions.tag(spot.getId().toString());
 
-                    if (spot.getIsDestination() != null && spot.getIsDestination()) {
-                        //AT THIS SPOT USER HAS ARRIVED TO HIS DESTINATION
+                    Icon icon = ic_single_spot;
 
-                        spotType = getResources().getString(R.string.map_infoview_spot_type_destination);
-                        markerViewOptions.icon(ic_arrival_spot);
-                        markerViewOptions.spotType(Constants.SPOT_TYPE_DESTINATION);
+                    //If spot belongs to a route (it's not a single spot)
+                    if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
 
-                        //Center icon
-                        markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                    } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
-                        //AT THIS SPOT USER IS WAITING FOR A RIDE
+                        //If spot is a hitchhiking spot where the user is waiting for a ride
+                        if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
+                                spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
+                            //The spot is where the user is waiting for a ride
 
-                        spotType = getResources().getString(R.string.map_infoview_spot_type_waiting);
-                        markerViewOptions.icon(ic_waiting_spot);
-                        markerViewOptions.spotType(Constants.SPOT_TYPE_WAITING);
+                            markerTitle = getString(R.string.map_infoview_spot_type_waiting);
+                            icon = ic_waiting_spot;
+                            markerViewOptions.spotType(Constants.SPOT_TYPE_WAITING);
 
-                    } else if (spot.getAttemptResult() != null && spot.getAttemptResult() > 0) {
-                        if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK) {
-                            //AT THIS SPOT USER TOOK A BREAK SPOT
+                        } else if (spot.getIsDestination() != null && spot.getIsDestination()) {
+                            //The spot is a destination
 
-                            spotType = getResources().getString(R.string.map_infoview_spot_type_break);
-                            markerViewOptions.icon(ic_took_a_break_spot);
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_TOOK_A_BREAK);
+                            markerTitle = getString(R.string.map_infoview_spot_type_destination);
+                            icon = ic_arrival_spot;
+                            markerViewOptions.spotType(Constants.SPOT_TYPE_DESTINATION);
 
                             //Center icon
                             markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                        } else if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
-                            //AT THIS SPOT USER GOT A RIDE
+                        } else {
+                            if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
+                                //The spot is a hitchhiking spot
+                                markerViewOptions.spotType(Constants.SPOT_TYPE_HITCHHIKING_SPOT);
 
-                            if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute())
-                                markerViewOptions.icon(getGotARideIconForRoute(trips.size()));
-                            else
-                                markerViewOptions.icon(ic_single_spot);
-
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_GOT_A_RIDE);
+                                if (spot.getHitchability() == null || spot.getHitchability() == 0) {
+                                    //The spot is a hitchhiking spot that was not evaluated yet
+                                    icon = getGotARideIconForRoute(-1);
+                                    markerTitle = "Not evaluated";
+                                } else {
+                                    //The spot is a hitchhiking spot that was already evaluated
+                                    icon = getGotARideIconForRoute(trips.size());
+                                    markerTitle = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
+                                }
+                            } else {
+                                //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
+                                markerViewOptions.spotType(Constants.SPOT_TYPE_OTHER);
+                                markerViewOptions.alpha((float) 0.5);
+                            }
                         }
-                    } else {
-                        markerViewOptions.icon(getGotARideIconForRoute(-1));
-                    }
+
+                        if (spots.size() == 0) {
+                            //The spot is the origin of a route
+                            markerViewOptions.spotType(Constants.SPOT_TYPE_ORIGIN);
+                            if (!markerTitle.isEmpty())
+                                markerTitle = "(ORIGIN) " + markerTitle;
+                            else
+                                markerTitle = "(ORIGIN)";
+                        }
+                    } else
+                        markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);
+
+                    markerViewOptions.icon(icon);
 
                     //Get location string
                     String firstLine = spotLocationToString(spot).trim();
@@ -851,7 +868,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     }*/
 
                     //Add waiting time
-                    if (spot.getWaitingTime() != null && (spot.getIsDestination() == null || !spot.getIsDestination())) {
+                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() && spot.getWaitingTime() != null) {
                         if (!secondLine.isEmpty())
                             secondLine += " ";
                         secondLine += "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
@@ -869,18 +886,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         snippetAllLines += "\n";
                     snippetAllLines += secondLine;
 
-                    //Get a hitchability string to set as title
-                    String title = "";
-                    if (!spotType.isEmpty())
-                        title = spotType;
-                    else if (spot.getHitchability() != null && spot.getHitchability() > 0)
-                        title = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
-
-                    if (title.isEmpty())
-                        title = "Not evaluated";
-
                     //Set hitchability as title
-                    markerViewOptions.title(title.toUpperCase());
+                    markerViewOptions.title(markerTitle.toUpperCase());
 
                     // Customize map with markers, polylines, etc.
                     markerViewOptions.snippet(snippetAllLines);
@@ -993,6 +1000,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         Spot spot = null;
         if (!mIsWaitingForARide) {
             spot = new Spot();
+            spot.setIsHitchhikingSpot(true);
             spot.setIsDestination(isDestination);
             spot.setIsPartOfARoute(true);
             if (mapboxMap != null) {

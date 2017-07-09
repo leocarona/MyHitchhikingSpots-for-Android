@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
+import com.myhitchhikingspots.Constants;
 
 import org.greenrobot.greendao.AbstractDaoMaster;
 import org.greenrobot.greendao.database.StandardDatabase;
@@ -87,8 +88,9 @@ public class DaoMaster extends AbstractDaoMaster {
 
     /**
      * Checks if a column already exists on a specific table of a database. This can be used because calling a SQL ALTER table command in order to add new columns to a table schema.
-     * @param db The database to check the existence of the given column
-     * @param table The name of the table
+     *
+     * @param db     The database to check the existence of the given column
+     * @param table  The name of the table
      * @param column The column name
      * @return True if the column already exists in the database table schema
      */
@@ -105,6 +107,11 @@ public class DaoMaster extends AbstractDaoMaster {
 
         return false;
     }
+
+    /**
+     * WARNING: Drops all table on Upgrade! Use only during development.
+     */
+
 
     /**
      * WARNING: Drops all table on Upgrade! Use only during development.
@@ -137,7 +144,11 @@ public class DaoMaster extends AbstractDaoMaster {
                         "ALTER TABLE " + SpotDao.TABLENAME + " ADD '" + SpotDao.Properties.IsPartOfARoute.columnName + "' " + SpotDao.Properties.IsPartOfARoute.type.getSimpleName() + " DEFAULT 1;"
                 };
                 String[] changesRequeriedByVersion5 = new String[]{
-                        "ALTER TABLE " + SpotDao.TABLENAME + " ADD '" + SpotDao.Properties.IsHitchhikingSpot.columnName + "' " + SpotDao.Properties.IsHitchhikingSpot.type.getSimpleName() + " DEFAULT 1;"
+                        "ALTER TABLE " + SpotDao.TABLENAME + " ADD '" + SpotDao.Properties.IsHitchhikingSpot.columnName + "' " + SpotDao.Properties.IsHitchhikingSpot.type.getSimpleName() + " DEFAULT 1;",
+                        "UPDATE " + SpotDao.TABLENAME +
+                                " SET " + SpotDao.Properties.IsHitchhikingSpot.columnName + " = '0' " +
+                                " WHERE " + SpotDao.Properties.AttemptResult.columnName + " = '" + Constants.ATTEMPT_RESULT_TOOK_A_BREAK + "' " +
+                                " OR " + SpotDao.Properties.IsDestination.columnName + " = '1'"
                 };
 
                 ArrayList<String[]> versionsUpdate = new ArrayList<>();
@@ -173,7 +184,6 @@ public class DaoMaster extends AbstractDaoMaster {
 
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
-
             }
         }
     }
