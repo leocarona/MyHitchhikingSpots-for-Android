@@ -325,6 +325,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         }
                     }
                 } else {
+                    //This spot doesn't belong to a route (it's a single spot)
                     singleSpotIcon.setVisibility(View.VISIBLE);
 
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {

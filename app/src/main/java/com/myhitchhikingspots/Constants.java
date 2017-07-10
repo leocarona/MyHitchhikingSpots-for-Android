@@ -34,7 +34,7 @@ public final class Constants {
     public static final int SPOT_TYPE_WAITING = 3;
     public static final int SPOT_TYPE_DESTINATION = 4;
     public static final int SPOT_TYPE_SINGLE_SPOT = 5;
-    public static final int SPOT_TYPE_OTHER = 6;
+    public static final int SPOT_TYPE_POINT_ON_THE_ROUTE = 6;
 
     public static final String DIALOG_STRINGLIST_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_STRINGLIST_BUNDLE_KEY";
     public static final String DIALOG_TYPE_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_TYPE_BUNDLE_KEY";

@@ -257,7 +257,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
 
-        ic_other_spot = IconUtils.drawableToIcon(this, R.drawable.ic_point_in_the_route_black_24dp, -1);
+        ic_point_on_the_route_spot = IconUtils.drawableToIcon(this, R.drawable.ic_point_in_the_route_black_24dp, -1);
         ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
@@ -584,7 +584,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }*/
     }
 
-    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_other_spot, ic_arrival_spot = null;
+    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_point_on_the_route_spot, ic_arrival_spot = null;
     Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
 
     List<Spot> spotList = new ArrayList<Spot>();
@@ -797,7 +797,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     if (spot.getId() != null)
                         markerViewOptions.tag(spot.getId().toString());
 
-                    Icon icon = ic_single_spot;
+                    Icon icon = null;
 
                     //If spot belongs to a route (it's not a single spot)
                     if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
@@ -836,14 +836,14 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                     case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                         //The spot is a hitchhiking spot that was already evaluated
                                         //icon = ic_took_a_break_spot;
-                                        icon = ic_other_spot;
+                                        icon = ic_point_on_the_route_spot;
                                         markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                         markerViewOptions.alpha((float) 0.5);
                                         break;
                                    /* default:
                                         //The spot is a hitchhiking spot that was not evaluated yet
                                         //icon = getGotARideIconForRoute(-1);
-                                        icon = ic_other_spot;
+                                        icon = ic_point_on_the_route_spot;
                                         markerTitle = getString(R.string.map_infoview_spot_type_not_evaluated);
                                         markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                         marker'/ViewOptions.alpha((float) 0.5);
@@ -852,8 +852,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                             } else {
                                 //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
-                                icon = ic_other_spot;
-                                markerViewOptions.spotType(Constants.SPOT_TYPE_OTHER);
+                                icon = ic_point_on_the_route_spot;
+                                markerViewOptions.spotType(Constants.SPOT_TYPE_POINT_ON_THE_ROUTE);
                                 markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                 markerViewOptions.alpha((float) 0.5);
                             }
@@ -868,13 +868,16 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             }
                         }
                     } else {
+                        //This spot doesn't belong to a route (it's a single spot)
+                        icon = ic_single_spot;
                         markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);
 
                         if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
                             markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
                     }
 
-                    markerViewOptions.icon(icon);
+                    if (icon != null)
+                        markerViewOptions.icon(icon);
 
                     //Get location string
                     String firstLine = spotLocationToString(spot).trim();
