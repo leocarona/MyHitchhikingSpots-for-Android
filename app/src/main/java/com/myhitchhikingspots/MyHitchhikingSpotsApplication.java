@@ -64,8 +64,8 @@ public class MyHitchhikingSpotsApplication extends Application {
                 .orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
         if (areWaitingForARide.size() > 1)
-            Crashlytics.log(Log.INFO, "LoadCurrentWaitingSpot", "More than 1 spot was found with IsWaitingForARide set to true! This should never happen - Please be aware of this.");
-        else if (areWaitingForARide.size() == 1)
+            Crashlytics.logException(new Exception("Error at: LoadCurrentWaitingSpot. More than 1 spot was found with IsWaitingForARide set to true! This should never happen - Please be aware of this."));
+        if (areWaitingForARide.size() >= 1)
             currentSpot = areWaitingForARide.get(0);
     }
 
