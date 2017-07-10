@@ -243,7 +243,6 @@ public class MainActivity extends TrackLocationBaseActivity {
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
 
-        //TODO: Check if this query is really helping us to detect if isWaitingForARide after we've added IsPartOfARoute
         mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
         mCurrentSpot = appContext.getCurrentSpot();
 

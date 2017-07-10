@@ -367,7 +367,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
 
-        //TODO: Check if this query is really helping us to detect if isWaitingForARide after we've added IsPartOfARoute
         spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
         mCurrentWaitingSpot = appContext.getCurrentSpot();

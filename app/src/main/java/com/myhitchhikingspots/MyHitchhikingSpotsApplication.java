@@ -60,7 +60,6 @@ public class MyHitchhikingSpotsApplication extends Application {
 
     private void LoadCurrentWaitingSpot() {
         SpotDao spotDao = daoSession.getSpotDao();
-        //TODO: Check if this query is really helping us to detect if areWaitingForARide after we've added IsPartOfARoute
         List<Spot> areWaitingForARide = spotDao.queryBuilder().where(SpotDao.Properties.IsWaitingForARide.eq(true))
                 .orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
