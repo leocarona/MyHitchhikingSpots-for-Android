@@ -83,6 +83,8 @@
                 android:id="@+id/spot_notes_layout_textview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
                 android:maxLines="1"
                 android:text="user's notes go here they can be quite long so we need to shrink it..." />
 

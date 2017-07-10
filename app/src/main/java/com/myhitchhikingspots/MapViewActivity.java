@@ -257,6 +257,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
 
+        ic_other_spot = IconUtils.drawableToIcon(this, R.drawable.ic_point_in_the_route_black_24dp, -1);
         ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
@@ -584,7 +585,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }*/
     }
 
-    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
+    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_other_spot, ic_arrival_spot = null;
     Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
 
     List<Spot> spotList = new ArrayList<Spot>();
@@ -761,6 +762,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
 
+    Boolean shouldShowOnlyGotARideMarkers = true;
+
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
         private final ProgressDialog dialog = new ProgressDialog(MapViewActivity.this);
 
@@ -825,25 +828,34 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
                                 switch (spot.getAttemptResult()) {
                                     case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
+                                    default:
                                         //The spot is a hitchhiking spot that was already evaluated
                                         icon = getGotARideIconForRoute(trips.size());
                                         markerTitle = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
                                         break;
                                     case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                         //The spot is a hitchhiking spot that was already evaluated
-                                        icon = ic_took_a_break_spot;
+                                        //icon = ic_took_a_break_spot;
+                                        icon = ic_other_spot;
                                         markerTitle = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
+                                        markerViewOptions.anchor((float) 0.5, (float) 0.5);
+                                        markerViewOptions.alpha((float) 0.5);
                                         break;
-                                    default:
+                                   /* default:
                                         //The spot is a hitchhiking spot that was not evaluated yet
-                                        icon = getGotARideIconForRoute(-1);
+                                        //icon = getGotARideIconForRoute(-1);
+                                        icon = ic_other_spot;
                                         markerTitle = getString(R.string.map_infoview_spot_type_not_evaluated);
-                                        break;
+                                        markerViewOptions.anchor((float) 0.5, (float) 0.5);
+                                        marker'/ViewOptions.alpha((float) 0.5);
+                                        break;*/
                                 }
 
                             } else {
                                 //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
+                                icon = ic_other_spot;
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_OTHER);
+                                markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                 markerViewOptions.alpha((float) 0.5);
                             }
                         }

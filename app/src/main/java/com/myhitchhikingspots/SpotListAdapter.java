@@ -297,24 +297,32 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                             switch (spot.getAttemptResult()) {
                                 case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
+                                default:
+
                                     //The spot is a hitchhiking spot that was already evaluated
                                     //icon = getGotARideIconForRoute(trips.size());
                                     break;
                                 case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                     //The spot is a hitchhiking spot that was already evaluated
                                     //icon = ic_took_a_break_spot;
+                                    breakIcon.setImageResource(R.drawable.ic_break_spot_icon);
                                     breakIcon.setVisibility(View.VISIBLE);
+                                    breakIcon.setAlpha((float) 1);
                                     break;
-                                default:
+                               /* default:
                                     //The spot is a hitchhiking spot that was not evaluated yet
                                     //icon = getGotARideIconForRoute(-1);
                                     //markerTitle = getString(R.string.map_infoview_spot_type_not_evaluated);
-                                    singleSpotIcon.setVisibility(View.VISIBLE);
-                                    break;
+                                    breakIcon.setImageResource(R.drawable.ic_point_in_the_route_black_24dp);
+                                    breakIcon.setVisibility(View.VISIBLE);
+                                    breakIcon.setAlpha((float) 0.5);
+                                    break;*/
                             }
                         } else {
                             //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
-                            singleSpotIcon.setVisibility(View.VISIBLE);
+                            breakIcon.setImageResource(R.drawable.ic_point_in_the_route_black_24dp);
+                            breakIcon.setVisibility(View.VISIBLE);
+                            breakIcon.setAlpha((float) 0.5);
                         }
                     }
                 } else {
