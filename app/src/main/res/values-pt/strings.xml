@@ -128,7 +128,6 @@
     <string name="trying_to_reconnect_to_provider_of_location">Tentar reconectar ao localizador..</string>
 
     <string name="destination_spot_totals_format">TOTAL | %1$d caronas | %2$s</string>
-    <string name="break_spot_state_label">PAUSA</string>
     <string name="waiting_for_gps">Aguardando atualização da sua localizaçāo..</string>
 
     <string name="general_ok_option">Ok</string>
@@ -176,6 +175,7 @@
     <string name="map_infoview_spot_type_origin">(ORIGEM)</string>
     <string name="map_infoview_spot_type_not_evaluated">(NÃO AVALIADO)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
+    <string name="map_infoview_spot_type_break">(PAUSA)</string>
 
     <string name="map_error_alert_map_not_loaded_message">Olá. :-) Seu celular parece estar desconectado da internet no momento. Ainda assim você pode salvar novos locais, porém talvez o mapa não carregue como esperado. Você pode experimentar usar sem mapa.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Usar sem mapa</string>

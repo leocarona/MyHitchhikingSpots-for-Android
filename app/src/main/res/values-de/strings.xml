@@ -127,7 +127,6 @@
 
     <string name="destination_spot_totals_format">INSGESAMMT | %1$d Fahrten | %2$s</string>
 
-    <string name="break_spot_state_label">PAUSE</string>
     <string name="waiting_for_gps">Warte auf deine Standorterkennung..</string>
 
     <string name="general_ok_option">Ok</string>
@@ -175,6 +174,7 @@
     <string name="map_infoview_spot_type_origin">(ORIGIN)</string>
     <string name="map_infoview_spot_type_not_evaluated">(NOT EVALUATED)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
+    <string name="map_infoview_spot_type_break">(PAUSE)</string>
 
     <string name="map_error_alert_map_not_loaded_message">Griaß di. :-) Dein Gerät scheint im Moment nicht mit dem Internet verbunden zu sein. Du kannst deinen Standort speichern, aber die Karte wird möglicherweise nicht geladen. Probiere die App ohne Karte aus.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Probiere ohne Karte</string>

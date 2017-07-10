@@ -825,13 +825,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                 //The spot is a hitchhiking spot
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_HITCHHIKING_SPOT);
 
-                                markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
-
                                 switch (spot.getAttemptResult()) {
                                     case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                                     default:
                                         //The spot is a hitchhiking spot that was already evaluated
                                         icon = getGotARideIconForRoute(trips.size());
+                                        markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
                                         break;
                                     case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                         //The spot is a hitchhiking spot that was already evaluated
@@ -839,6 +838,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                         icon = ic_point_on_the_route_spot;
                                         markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                         markerViewOptions.alpha((float) 0.5);
+                                        markerTitle = getString(R.string.map_infoview_spot_type_break);
                                         break;
                                    /* default:
                                         //The spot is a hitchhiking spot that was not evaluated yet

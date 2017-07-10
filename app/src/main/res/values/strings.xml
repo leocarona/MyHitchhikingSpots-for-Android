@@ -129,7 +129,6 @@
 
     <string name="destination_spot_totals_format">TOTAL | %1$d rides | %2$s</string>
 
-    <string name="break_spot_state_label">BREAK</string>
     <string name="waiting_for_gps">Waiting to receive your current location..</string>
 
     <string name="general_ok_option">OK</string>
@@ -178,6 +177,7 @@
     <string name="map_infoview_spot_type_origin">(ORIGIN)</string>
     <string name="map_infoview_spot_type_not_evaluated">(NOT EVALUATED)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
+    <string name="map_infoview_spot_type_break">(BREAK)</string>
 
     <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
     <string name="map_error_alert_map_not_loaded_message">Hey. :-) Your device seems to be disconnected from the internet at the moment. You can still save your locations, but the maps might not load as expected. You may try the app without map.</string>

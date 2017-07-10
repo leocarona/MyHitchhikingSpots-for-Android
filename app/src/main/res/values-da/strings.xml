@@ -97,7 +97,6 @@
 
     <string name="destination_spot_totals_format">TOTAL | %1$d lift | %2$s</string>
 
-    <string name="break_spot_state_label">PAUSE</string>
     <string name="waiting_for_gps">Venter på at modtage din nuværende position..</string>
 
     <string name="general_ok_option">Ok</string>
@@ -145,6 +144,7 @@
     <string name="map_infoview_spot_type_origin">(ORIGIN)</string>
     <string name="map_infoview_spot_type_not_evaluated">(NOT EVALUATED)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
+    <string name="map_infoview_spot_type_break">(PAUSE)</string>
 
     <string name="map_error_alert_map_not_loaded_message">Hej! Din enhed virker til at være afkoblet en internetforbindelse i øjeblikket. Du kan stadig gemme dine positioner, men kortet bliver måske ikke hentet som forventet. Prøv at bruge appen uden kort.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Prøv uden kort</string>
