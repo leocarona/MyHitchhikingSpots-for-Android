@@ -273,7 +273,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 waitingTimeText.setVisibility(View.GONE);
                 viewParent.setBackgroundColor(Color.TRANSPARENT);
 
-                Boolean shouldShowWaitingTime = false;
 
                 //If spot belongs to a route (it's not a single spot)
                 if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
@@ -292,8 +291,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         destinationIcon.setVisibility(View.VISIBLE);
 
                     } else {
-                        shouldShowWaitingTime = true;
                         if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
+                            waitingTimeText.setVisibility(View.VISIBLE);
 
                             switch (spot.getAttemptResult()) {
                                 case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
@@ -309,7 +308,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                                     breakIcon.setVisibility(View.VISIBLE);
                                     breakIcon.setAlpha((float) 1);
                                     break;
-                               /* default:
+                                /*default:
                                     //The spot is a hitchhiking spot that was not evaluated yet
                                     //icon = getGotARideIconForRoute(-1);
                                     //markerTitle = getString(R.string.map_infoview_spot_type_not_evaluated);
@@ -326,17 +325,18 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         }
                     }
                 } else {
-                    shouldShowWaitingTime = true;
                     singleSpotIcon.setVisibility(View.VISIBLE);
+
+                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
+                        waitingTimeText.setVisibility(View.VISIBLE);
+
+                    }
                 }
 
-                if (shouldShowWaitingTime) {
-                    Integer waitingTime = 0;
-                    if (spot.getWaitingTime() != null)
-                        waitingTime = spot.getWaitingTime();
-                    waitingTimeText.setText(getWaitingTimeAsString(waitingTime));
-                    waitingTimeText.setVisibility(View.VISIBLE);
-                }
+                Integer waitingTime = 0;
+                if (spot.getWaitingTime() != null)
+                    waitingTime = spot.getWaitingTime();
+                waitingTimeText.setText(getWaitingTimeAsString(waitingTime));
 
                 //Set the date and time
                 if (spot.getStartDateTime() != null)
@@ -355,6 +355,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 Crashlytics.logException(ex);
             }
         }
+
 
 
         @NonNull
