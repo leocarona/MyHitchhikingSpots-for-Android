@@ -319,7 +319,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                             }
                         } else {
                             //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
-                            breakIcon.setImageResource(R.drawable.ic_point_in_the_route_black_24dp);
+                            breakIcon.setImageResource(R.drawable.ic_point_on_the_route_black_24dp);
                             breakIcon.setVisibility(View.VISIBLE);
                             breakIcon.setAlpha((float) 0.5);
                         }

@@ -257,7 +257,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
 
-        ic_point_on_the_route_spot = IconUtils.drawableToIcon(this, R.drawable.ic_point_in_the_route_black_24dp, -1);
+        ic_point_on_the_route_spot = IconUtils.drawableToIcon(this, R.drawable.ic_point_on_the_route_black_24dp, -1);
         ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
