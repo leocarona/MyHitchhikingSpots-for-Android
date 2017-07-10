@@ -256,6 +256,13 @@ public class Utils {
         return spot;
     }
 
+    public static String getRatingOrDefaultAsString(Context context, int rating) {
+        if (rating == 0)
+            return context.getString(R.string.map_infoview_spot_type_not_evaluated);
+        else
+            return Utils.getRatingAsString(context, Utils.findTheOpposite(rating));
+    }
+
     public static String getRatingAsString(Context context, Integer rating) {
         String res = "";
         switch (rating) {

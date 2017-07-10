@@ -826,18 +826,18 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                 //The spot is a hitchhiking spot
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_HITCHHIKING_SPOT);
 
+                                markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+
                                 switch (spot.getAttemptResult()) {
                                     case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                                     default:
                                         //The spot is a hitchhiking spot that was already evaluated
                                         icon = getGotARideIconForRoute(trips.size());
-                                        markerTitle = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
                                         break;
                                     case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                         //The spot is a hitchhiking spot that was already evaluated
                                         //icon = ic_took_a_break_spot;
                                         icon = ic_other_spot;
-                                        markerTitle = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
                                         markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                         markerViewOptions.alpha((float) 0.5);
                                         break;
@@ -868,8 +868,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             else
                                 markerTitle = getString(R.string.map_infoview_spot_type_origin);
                         }
-                    } else
+                    } else {
                         markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);
+
+                        if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
+                            markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                    }
 
                     markerViewOptions.icon(icon);
 
@@ -943,7 +947,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
             return new ArrayList<>();
         }
-
 
         Boolean isLastArrayForSingleSpots = false;
 
