@@ -1121,9 +1121,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             updateSpotLocationOnUI();
 
-            updateEnabledTabs();
-
             updateSelectedTab();
+
+            updateEnabledTabs();
 
             updateSaveButtonState();
 
@@ -1159,18 +1159,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
     private void updateEnabledTabs() {
-        if (mFormType == FormType.Edit || mFormType == FormType.Evaluate) {
-            //If it is not a hitchhiking spot, the evaluate tab isn't used - let's disable evaluate_menuitem tab
-            if (!is_hitchhiking_spot_check_box.isChecked())
-                evaluate_menuitem.setEnabled(false);
-            else
-                evaluate_menuitem.setEnabled(true);
-        } else {
-            if (mFormType == FormType.Create)
-                evaluate_menuitem.setEnabled(false);
-            else
-                evaluate_menuitem.setEnabled(panel_buttons.getVisibility() != View.VISIBLE && is_hitchhiking_spot_check_box.isChecked());
-        }
+        //NOTE: Make sure that updateEnabledTabs is always called after updateSelectedTab.
+        // If you try to disable a tab when it is the current selected tab, the tab won't be disabled.
+
+        //If it is not a hitchhiking spot, the evaluate tab isn't used - let's disable evaluate_menuitem tab
+        if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
+            evaluate_menuitem.setEnabled(is_hitchhiking_spot_check_box.isChecked());
+        else
+            evaluate_menuitem.setEnabled(false);
     }
 
     private void updateSelectedTab() {
