@@ -60,7 +60,7 @@ public class MyHitchhikingSpotsApplication extends Application {
 
     private void LoadCurrentWaitingSpot() {
         SpotDao spotDao = daoSession.getSpotDao();
-        List<Spot> areWaitingForARide = spotDao.queryBuilder().where(SpotDao.Properties.IsWaitingForARide.eq(true))
+        List<Spot> areWaitingForARide = spotDao.queryBuilder().where(SpotDao.Properties.IsHitchhikingSpot.eq(true), SpotDao.Properties.IsWaitingForARide.eq(true))
                 .orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
         if (areWaitingForARide.size() > 1)
