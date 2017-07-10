@@ -858,15 +858,15 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                 markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                 markerViewOptions.alpha((float) 0.5);
                             }
-                        }
 
-                        if (spots.size() == 0) {
-                            //The spot is the origin of a route
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_ORIGIN);
-                            if (!markerTitle.isEmpty())
-                                markerTitle = getString(R.string.map_infoview_spot_type_origin) + " " + markerTitle;
-                            else
-                                markerTitle = getString(R.string.map_infoview_spot_type_origin);
+                            if (spots.size() == 0) {
+                                //The spot is the origin of a route
+                                markerViewOptions.spotType(Constants.SPOT_TYPE_ORIGIN);
+                                if (!markerTitle.isEmpty())
+                                    markerTitle = getString(R.string.map_infoview_spot_type_origin) + " " + markerTitle;
+                                else
+                                    markerTitle = getString(R.string.map_infoview_spot_type_origin);
+                            }
                         }
                     } else {
                         markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);
