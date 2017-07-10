@@ -147,8 +147,7 @@ public class DaoMaster extends AbstractDaoMaster {
                         "ALTER TABLE " + SpotDao.TABLENAME + " ADD '" + SpotDao.Properties.IsHitchhikingSpot.columnName + "' " + SpotDao.Properties.IsHitchhikingSpot.type.getSimpleName() + " DEFAULT 1;",
                         "UPDATE " + SpotDao.TABLENAME +
                                 " SET " + SpotDao.Properties.IsHitchhikingSpot.columnName + " = '0' " +
-                                " WHERE " + SpotDao.Properties.AttemptResult.columnName + " = '" + Constants.ATTEMPT_RESULT_TOOK_A_BREAK + "' " +
-                                " OR " + SpotDao.Properties.IsDestination.columnName + " = '1'"
+                                " WHERE " + SpotDao.Properties.IsDestination.columnName + " = '1'"
                 };
 
                 ArrayList<String[]> versionsUpdate = new ArrayList<>();

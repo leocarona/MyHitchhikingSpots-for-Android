@@ -1297,22 +1297,26 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 return;
             }
 
-            mCurrentSpot.setNote(note_edittext.getText().toString());
-
             mCurrentSpot.setIsPartOfARoute(!is_single_spot_check_box.isChecked());
 
-            if (attemptResult == Constants.ATTEMPT_RESULT_GOT_A_RIDE)
-                mCurrentSpot.setIsHitchhikingSpot(true);
-            else
-                mCurrentSpot.setIsHitchhikingSpot(is_hitchhiking_spot_check_box.isChecked());
+            mCurrentSpot.setIsHitchhikingSpot(is_hitchhiking_spot_check_box.isChecked());
 
-            if (!mCurrentSpot.getIsHitchhikingSpot() && is_destination_check_box.isChecked()) {
-                mCurrentSpot.setIsDestination(true);
+            mCurrentSpot.setIsDestination(is_destination_check_box.isChecked());
+
+            //Set note
+            mCurrentSpot.setNote(note_edittext.getText().toString());
+
+            //Set chosen date & time
+            DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
+            mCurrentSpot.setStartDateTime(dateTime.toDate());
+
+            if (!evaluate_menuitem.isEnabled()) {
+                mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_UNKNOWN);
                 mCurrentSpot.setHitchability(0);
                 mCurrentSpot.setIsWaitingForARide(false);
-                mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_UNKNOWN);
+                mCurrentSpot.setWaitingTime(null);
             } else {
-                mCurrentSpot.setIsDestination(false);
+                mCurrentSpot.setAttemptResult(attemptResult);
                 mCurrentSpot.setHitchability(Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating())));
 
                 //If user is saving a new hitchhiking spot that belongs to a route, setIsWaitingForARide to true
@@ -1325,21 +1329,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 String vals = waiting_time_edittext.getText().toString();
                 if (!vals.isEmpty())
                     mCurrentSpot.setWaitingTime(Integer.valueOf(vals));
-                /*else
-                    mCurrentSpot.setWaitingTime(0);
-
-                if (mFormType == FormType.Create) {
-                    //We need to set waiting time to null here, so that waiting time field won't show "0" when first evaluating a single spot
-                    if (mCurrentSpot.getIsPartOfARoute() == null || !mCurrentSpot.getIsPartOfARoute())
-                        mCurrentSpot.setWaitingTime(null);/*/
-
-                mCurrentSpot.setAttemptResult(attemptResult);
             }
 
-            DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
-            mCurrentSpot.setStartDateTime(dateTime.toDate());
-
-
+            //Set chosen location
             if (mCurrentSpot.getLatitude() == null || mCurrentSpot.getLongitude() == null) {
                 Crashlytics.logException(new Exception("User tried to save a spot without coordinates?"));
                 showErrorAlert(getResources().getString(R.string.save_spot_button_text), getResources().getString(R.string.save_spot_error_coordinate_not_informed_error_message));
@@ -1543,13 +1535,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         /*
         A spot is just a coordinate and some extra data. Currently we allow 6 types of spots (listed below).
         The logic of the checkboxes should allow the user to save a spot as:
+            got a ride -            is a hitchhiking spot;       x                          is not a destination
+            took a break -          is a hitchhiking spot;       x                          is not a destination
+            other -                 is not a hitchhiking spot;   x                          is not a destination
+
             waiting spot -          is a hitchhiking spot;       is part of a route;        is not a destination
-            got a ride -            is a hitchhiking spot;       is part of a route;        is not a destination
             single spot -           is a hitchhiking spot;       is not part of a route;    is not a destination
 
             destination -           is not a hitchhiking spot;  is part of a route;         is a destination
-            took a break -          is not a hitchhiking spot;  is part of a route;         is not a destination
-            other -                 is not a hitchhiking spot;  is not part of a route;     is not a destination
 
         Additionally, the names used should be understood as follow:
             is NOT part of a route = is single spot

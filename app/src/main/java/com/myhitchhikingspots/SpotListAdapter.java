@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
@@ -117,7 +119,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         else if (spot.getNote() != null)
             secondLine = spot.getNote();
 
-        viewHolder.setFields(spot, secondLine);
+        viewHolder.setFields(spot, secondLine, spotListFragment.getContext());
     }
 
     static String locationSeparator = ", ";
@@ -211,7 +213,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public TextView dateTime, cityNameText, notesText, waitingTimeText;
-        public ImageView waitingIcon, arrivalIcon, singleSpotIcon, breakIcon;
+        public ImageView waitingIcon, destinationIcon, singleSpotIcon, breakIcon;
         public SpotListFragment spotListFragment;
         public Spot spot;
         public View viewParent;
@@ -225,7 +227,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             notesText = (TextView) itemLayoutView.findViewById(R.id.spot_notes_layout_textview);
             waitingTimeText = (TextView) itemLayoutView.findViewById(R.id.waiting_time_layout_textview);
             waitingIcon = (ImageView) itemLayoutView.findViewById(R.id.waiting_icon_layout_imageview);
-            arrivalIcon = (ImageView) itemLayoutView.findViewById(R.id.arrival_icon_layout_imageview);
+            destinationIcon = (ImageView) itemLayoutView.findViewById(R.id.arrival_icon_layout_imageview);
             singleSpotIcon = (ImageView) itemLayoutView.findViewById(R.id.single_icon_layout_imageview);
             breakIcon = (ImageView) itemLayoutView.findViewById(R.id.break_icon_layout_imageview);
 
@@ -260,54 +262,85 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             spotListFragment.startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
         }
 
-        public void setFields(Spot spot, String secondLine) {
+        public void setFields(Spot spot, String secondLine, Context context) {
             try {
                 this.spot = spot;
 
-                if (spot.getIsDestination() != null && spot.getIsDestination()) {
-                    //ARRIVAL SPOT
-                    viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_arrival_color));
-                    arrivalIcon.setVisibility(View.VISIBLE);
-                    waitingTimeText.setVisibility(View.GONE);
-                    waitingIcon.setVisibility(View.GONE);
-                } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
-                    //USER IS WAITING FOR A RIDE
-                    viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_regular_spot_color));
-                    arrivalIcon.setVisibility(View.GONE);
-                    waitingTimeText.setVisibility(View.GONE);
-                    waitingIcon.setVisibility(View.VISIBLE);
+                destinationIcon.setVisibility(View.GONE);
+                waitingIcon.setVisibility(View.GONE);
+                breakIcon.setVisibility(View.GONE);
+                singleSpotIcon.setVisibility(View.GONE);
+                waitingTimeText.setVisibility(View.GONE);
+                viewParent.setBackgroundColor(Color.TRANSPARENT);
+
+                Boolean shouldShowWaitingTime = false;
+
+                //If spot belongs to a route (it's not a single spot)
+                if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
+
+                    //If spot is a hitchhiking spot where the user is waiting for a ride
+                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
+                            spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
+                        //The spot is where the user is waiting for a ride
+                        viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_regular_spot_color));
+                        waitingIcon.setVisibility(View.VISIBLE);
+
+                    } else if (spot.getIsDestination() != null && spot.getIsDestination()) {
+                        //The spot is a destination
+
+                        viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_arrival_color));
+                        destinationIcon.setVisibility(View.VISIBLE);
+
+                    } else {
+                        shouldShowWaitingTime = true;
+                        if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
+
+                            switch (spot.getAttemptResult()) {
+                                case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
+                                    //The spot is a hitchhiking spot that was already evaluated
+                                    //icon = getGotARideIconForRoute(trips.size());
+                                    break;
+                                case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
+                                    //The spot is a hitchhiking spot that was already evaluated
+                                    //icon = ic_took_a_break_spot;
+                                    breakIcon.setVisibility(View.VISIBLE);
+                                    break;
+                                default:
+                                    //The spot is a hitchhiking spot that was not evaluated yet
+                                    //icon = getGotARideIconForRoute(-1);
+                                    //markerTitle = getString(R.string.map_infoview_spot_type_not_evaluated);
+                                    singleSpotIcon.setVisibility(View.VISIBLE);
+                                    break;
+                            }
+                        } else {
+                            //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
+                            singleSpotIcon.setVisibility(View.VISIBLE);
+                        }
+                    }
                 } else {
-                    viewParent.setBackgroundColor(Color.TRANSPARENT);
+                    shouldShowWaitingTime = true;
+                    singleSpotIcon.setVisibility(View.VISIBLE);
+                }
+
+                if (shouldShowWaitingTime) {
                     Integer waitingTime = 0;
                     if (spot.getWaitingTime() != null)
                         waitingTime = spot.getWaitingTime();
                     waitingTimeText.setText(getWaitingTimeAsString(waitingTime));
-                    arrivalIcon.setVisibility(View.GONE);
                     waitingTimeText.setVisibility(View.VISIBLE);
-                    waitingIcon.setVisibility(View.GONE);
                 }
 
+                //Set the date and time
                 if (spot.getStartDateTime() != null)
                     dateTime.setText(dateTimeToString(spot.getStartDateTime(), ",\n"));
 
+                //Set the address or coordinates
                 String spotLoc = getString(spot);
                 cityNameText.setText(spotLoc);
 
+                //Set the second line, show the first letter capitalized
                 if (secondLine != null && !secondLine.isEmpty())
                     secondLine = secondLine.substring(0, 1).toUpperCase() + secondLine.substring(1);
-
-                if (spot.getIsPartOfARoute() != null && !spot.getIsPartOfARoute()) {
-                    //viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_single_spot_bg_color));
-                    breakIcon.setVisibility(View.GONE);
-                    singleSpotIcon.setVisibility(View.VISIBLE);
-                } else {
-                    singleSpotIcon.setVisibility(View.GONE);
-                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK
-                            && (spot.getIsWaitingForARide() == null || !spot.getIsWaitingForARide()))
-                        breakIcon.setVisibility(View.VISIBLE);
-                    else
-                        breakIcon.setVisibility(View.GONE);
-                }
 
                 notesText.setText(secondLine);
             } catch (Exception ex) {
