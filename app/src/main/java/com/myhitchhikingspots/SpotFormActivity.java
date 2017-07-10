@@ -97,7 +97,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
     private Spot mCurrentSpot;
-    private CheckBox is_single_spot_check_box, is_destination_check_box, is_hitchhiking_spot_check_box;
+    private CheckBox is_part_of_a_route_check_box, is_destination_check_box, is_hitchhiking_spot_check_box;
     private TextView hitchabilityLabel, selected_date;
     private LinearLayout spot_form_evaluate, spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
@@ -262,7 +262,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         time_timepicker = (TimePicker) findViewById(R.id.spot_form_time_timepicker);
         waiting_time_edittext = (EditText) findViewById(R.id.spot_form_waiting_time_edittext);
         spot_form_more_options = (LinearLayout) findViewById(R.id.save_spot_form_more_options);
-        is_single_spot_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_single_spot_check_box);
+        is_part_of_a_route_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_single_spot_check_box);
         is_destination_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_destination_check_box);
         is_hitchhiking_spot_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_hitchhiking_spot_check_box);
         hitchability_ratingbar = (RatingBar) findViewById(R.id.spot_form_hitchability_ratingbar);
@@ -495,7 +495,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
         //Add checkboxes listeners
-        is_single_spot_check_box.setOnCheckedChangeListener(this);
+        is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
         is_destination_check_box.setOnCheckedChangeListener(this);
         is_hitchhiking_spot_check_box.setOnCheckedChangeListener(this);
 
@@ -645,7 +645,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         //Calculate the waiting time if the spot is still on Evaluate phase (if calculating when editing a spot already evaluated it could mess the waiting time without the user expecting/noticing)
-        if (mFormType != FormType.Edit && mFormType != FormType.ReadOnly && !is_single_spot_check_box.isChecked())
+        if (mFormType != FormType.Edit && mFormType != FormType.ReadOnly && is_part_of_a_route_check_box.isChecked())
             calculateWaitingTime(null);
 
         updateAttemptResultButtonsState();
@@ -1080,22 +1080,22 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 note_edittext.setText("");
 
             Boolean isDestination = mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination();
-            Boolean isNotPartOfARouteSpot = mCurrentSpot.getIsPartOfARoute() == null || !mCurrentSpot.getIsPartOfARoute();
+            Boolean isPartOfARouteSpot = mCurrentSpot.getIsPartOfARoute() != null && mCurrentSpot.getIsPartOfARoute();
             Boolean isHitchhikingSpot = mCurrentSpot.getIsHitchhikingSpot() != null && mCurrentSpot.getIsHitchhikingSpot();
 
             is_destination_check_box.setChecked(isDestination);
-            is_single_spot_check_box.setChecked(isNotPartOfARouteSpot);
+            is_part_of_a_route_check_box.setChecked(isPartOfARouteSpot);
             is_hitchhiking_spot_check_box.setChecked(isHitchhikingSpot);
 
             if (shouldRetrieveDetailsFromHW) {
                 is_destination_check_box.setVisibility(View.GONE);
-                is_single_spot_check_box.setVisibility(View.VISIBLE);
-                is_single_spot_check_box.setEnabled(false);
+                is_part_of_a_route_check_box.setVisibility(View.VISIBLE);
+                is_part_of_a_route_check_box.setEnabled(false);
                 is_hitchhiking_spot_check_box.setVisibility(View.VISIBLE);
                 is_hitchhiking_spot_check_box.setEnabled(false);
             } else {
                 is_destination_check_box.setVisibility(View.VISIBLE);
-                is_single_spot_check_box.setVisibility(View.VISIBLE);
+                is_part_of_a_route_check_box.setVisibility(View.VISIBLE);
                 is_hitchhiking_spot_check_box.setVisibility(View.VISIBLE);
 
             }
@@ -1251,7 +1251,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         //If it is a hitchhiking spot and it's part of a route (!is_single_spot) and waiting time wasn't informed, show alert
         if (mFormType != FormType.Create &&
                 is_hitchhiking_spot_check_box.isChecked() &&
-                !is_single_spot_check_box.isChecked() &&
+                is_part_of_a_route_check_box.isChecked() &&
                 waiting_time_edittext.getText().toString().isEmpty()) {
             //Show a dialog alerting that a waiting time was not informed
             new AlertDialog.Builder(this)
@@ -1293,7 +1293,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 return;
             }
 
-            mCurrentSpot.setIsPartOfARoute(!is_single_spot_check_box.isChecked());
+            mCurrentSpot.setIsPartOfARoute(is_part_of_a_route_check_box.isChecked());
 
             mCurrentSpot.setIsHitchhikingSpot(is_hitchhiking_spot_check_box.isChecked());
 
@@ -1317,7 +1317,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                 //If user is saving a new hitchhiking spot that belongs to a route, setIsWaitingForARide to true
                 if (mFormType == FormType.Create &&
-                        is_hitchhiking_spot_check_box.isChecked() && !is_single_spot_check_box.isChecked())
+                        is_hitchhiking_spot_check_box.isChecked() && is_part_of_a_route_check_box.isChecked())
                     mCurrentSpot.setIsWaitingForARide(true);
                 else
                     mCurrentSpot.setIsWaitingForARide(false);
@@ -1418,7 +1418,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             //If it's Create mode, then we should pass the current spot so that it can be Evaluated. Otherwise, instantiate a new route spot and pass it instead.
             if (mFormType == FormType.Create) {
                 //If spot is not part of a route (is_single_spot)
-                if (is_single_spot_check_box.isChecked())
+                if (!is_part_of_a_route_check_box.isChecked())
                     mFormType = FormType.Edit;
                 else
                     mFormType = FormType.Evaluate;
@@ -1445,7 +1445,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                 return;
             } else if ((mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                    && !is_single_spot_check_box.isChecked() && getCallingActivity() == null) {
+                    && is_part_of_a_route_check_box.isChecked() && getCallingActivity() == null) {
                 //Instantiate a new route spot and pass it, so that the user can adjust it as he wants and save it as a new spot.
                 mFormType = FormType.Create;
 
@@ -1547,7 +1547,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         //Clear all checkedChangedListener - it should be set again before the end of this method
         is_destination_check_box.setOnCheckedChangeListener(null);
-        is_single_spot_check_box.setOnCheckedChangeListener(null);
+        is_part_of_a_route_check_box.setOnCheckedChangeListener(null);
         is_hitchhiking_spot_check_box.setOnCheckedChangeListener(null);
 
         switch (checkBox.getId()) {
@@ -1561,24 +1561,34 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     is_hitchhiking_spot_check_box.setEnabled(false);
                     is_hitchhiking_spot_check_box.setTypeface(null, Typeface.NORMAL);
 
-                    //If it is a destination, it is not a single spot
-                    is_single_spot_check_box.setChecked(false);
-                    is_single_spot_check_box.setEnabled(false);
-                    is_single_spot_check_box.setTypeface(null, Typeface.NORMAL);
+                    //If it is a destination, it is part of a route (it's not a single spot)
+                    is_part_of_a_route_check_box.setChecked(true);
+                    is_part_of_a_route_check_box.setEnabled(false);
+                    is_part_of_a_route_check_box.setTypeface(null, Typeface.BOLD);
                 } else {
                     //It is not a destination
                     is_destination_check_box.setTypeface(null, Typeface.NORMAL);
 
                     //It is not a destination, it can be a single spot or a hitchhiking spot
                     is_hitchhiking_spot_check_box.setEnabled(true);
-                    is_single_spot_check_box.setEnabled(true);
+                    is_part_of_a_route_check_box.setEnabled(true);
                 }
 
                 break;
             case R.id.save_spot_form_is_single_spot_check_box:
                 if (isChecked) {
-                    //It is a single spot
-                    is_single_spot_check_box.setTypeface(null, Typeface.BOLD);
+                    //It is part of a route (not a single spot)
+                    is_part_of_a_route_check_box.setTypeface(null, Typeface.BOLD);
+
+                    //It is not a single spot, it can be a destination
+                    //is_destination_check_box.setChecked(false);
+                    is_destination_check_box.setEnabled(true);
+
+                    //It is not a single spot, it can be a hitchhiking spot
+                    is_hitchhiking_spot_check_box.setEnabled(true);
+                } else {
+                    //It is not part of a route (it's a single spot)
+                    is_part_of_a_route_check_box.setTypeface(null, Typeface.NORMAL);
 
                     //If it is a single spot, it can not be a destination
                     is_destination_check_box.setChecked(false);
@@ -1586,16 +1596,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     is_destination_check_box.setTypeface(null, Typeface.NORMAL);
 
                     //If it is a single spot, it can be a hitchhiking spot
-                    is_hitchhiking_spot_check_box.setEnabled(true);
-                } else {
-                    //It is not a single spot
-                    is_single_spot_check_box.setTypeface(null, Typeface.NORMAL);
-
-                    //It is not a single spot, it can be a destination
-                    //is_destination_check_box.setChecked(false);
-                    is_destination_check_box.setEnabled(true);
-
-                    //It is not a single spot, it can be a hitchhiking spot
                     is_hitchhiking_spot_check_box.setEnabled(true);
                 }
                 break;
@@ -1610,7 +1610,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     is_destination_check_box.setTypeface(null, Typeface.NORMAL);
 
                     //If it is a hitchhiking spot, it can be a single spot
-                    is_single_spot_check_box.setEnabled(true);
+                    is_part_of_a_route_check_box.setEnabled(true);
 
                     //If it is a hitchhiking spot, user might want to evaluate the spot
                     if (mFormType == FormType.Create) {
@@ -1625,7 +1625,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     is_destination_check_box.setEnabled(true);
 
                     //If it is not a hitchhiking spot, it can be a single spot
-                    is_single_spot_check_box.setEnabled(true);
+                    is_part_of_a_route_check_box.setEnabled(true);
 
                     //If it is not a hitchhiking spot, there's nothing to evaluate
                     feedbacklabel.setVisibility(View.GONE);
@@ -1638,7 +1638,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         //Set all checkedChangedListener
         is_destination_check_box.setOnCheckedChangeListener(this);
-        is_single_spot_check_box.setOnCheckedChangeListener(this);
+        is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
         is_hitchhiking_spot_check_box.setOnCheckedChangeListener(this);
     }
 

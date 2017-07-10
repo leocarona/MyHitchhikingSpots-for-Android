@@ -114,7 +114,7 @@
     <string name="spot_form_delete_dialog_message_text">Você tem certeza que deseja deletar esse local permanentemente?</string>
     <string name="spot_form_delete_dialog_no_option">Cancelar</string>
     <string name="spot_form_delete_dialog_yes_option">Deletar</string>
-    <string name="spot_form_is_single_spot_checkbox_text">Este local não faz parte de uma rota</string>
+    <string name="spot_form_is_part_of_a_route_checkbox_text">Este local faz parte de uma rota</string>
     <string name="spot_form_is_destination_checkbox_text">Este é meu destino nesta viagem</string>
     <string name="spot_form_is_hitchhiking_spot_checkbox_text">Este é um ponto de carona</string>
     <string name="spot_form_title_evaluate">Avaliar ponto</string>

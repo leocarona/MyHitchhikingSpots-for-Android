@@ -83,7 +83,7 @@
     <string name="spot_form_delete_dialog_message_text">Er du sikker på, at du vil slette stedet permanent?</string>
     <string name="spot_form_delete_dialog_no_option">Fortryd</string>
     <string name="spot_form_delete_dialog_yes_option">Slet</string>
-    <string name="spot_form_is_single_spot_checkbox_text">This spot doesn\'t belong to any route</string>
+    <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
     <string name="spot_form_is_destination_checkbox_text">Det her er min destination for nu</string>
     <string name="spot_form_is_hitchhiking_spot_checkbox_text">Det her er et blaffe sted</string>
     <string name="spot_form_title_evaluate">Evaluer sted</string>
