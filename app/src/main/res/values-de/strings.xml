@@ -65,6 +65,14 @@
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export database</string>
     <string name="settings_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
+    <string name="settings_select_continents_button_label">Select continents</string>
+    <string name="settings_select_countries_button_label">Select countries</string>
+    <string name="settings_downloadCountriesList_button_label">Downloading countries list</string>
+    <string name="settings_exporting_db_message">Your spots list will be saved on your phone as CSV file..</string>
+    <string name="settings_countriesList_is_empty_title">Countries list not downloaded</string>
+    <string name="settings_countriesList_is_empty_message">Once the country options are downloaded, you\'ll be able to download spots from Hitchwiki Maps for the countries of your preference. This means just a small part of your phone memory will be used. :-)\nWould you like to download the countries list now?</string>
+    <string name="settings_exportdb_finish_successfull_message">Copied to:\n%s</string>
+    <string name="settings_countriesList_download_failed_message">An exception occurred while trying to download the countries list.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -106,8 +114,8 @@
     <string name="spot_form_delete_dialog_no_option">Abbrechen</string>
     <string name="spot_form_delete_dialog_yes_option">Löschen</string>
     <string name="spot_form_is_single_spot_checkbox_text">This spot doesn\'t belong to any route</string>
-
     <string name="spot_form_is_destination_checkbox_text">Das ist mein bisheriges Ziel</string>
+    <string name="spot_form_is_hitchhiking_spot_checkbox_text">This is a hitchhiking spot</string>
     <string name="spot_form_title_evaluate">Ort beurteilen</string>
     <string name="spot_form_title_edit">Standort bearbeiten</string>
     <string name="spot_form_lat_lng_label">Bg %1$s Lg %2$s</string>
@@ -126,7 +134,27 @@
     <string name="general_yes_option">Ja</string>
     <string name="general_no_option">Nein</string>
     <string name="general_cancel_option">Beenden</string>
+
+    <string name="general_download_option">Download</string>
+    <string name="general_downloading_message">Downloading&#8230;</string>
+    <string name="general_items_downloaded_message">%d items were downloaded.</string>
+    <string name="general_downloading_something_message">Downloading: %s</string>
+    <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Irgendetwas ging schief :(</string>
+    <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_loading_dialog_title">Loading data&#8230;</string>
+    <string name="general_loading_dialog_message">Please wait</string>
+
+    <string name="general_internet_unavailable_title">Internet nicht verfügbar</string>
+    <string name="general_offline_mode_label">Offline mode</string>
+    <string name="general_network_unavailable_message">Your device doesn\'t seem to have an internet connection at the moment.</string>
+    <string name="general_export_finished_successfull_message">Exported successfully!</string>
+    <string name="general_export_finished_failed_message">Export failed</string>
+    <string name="general_last_sync_date">Last sync was on %s.</string>
+
+    <string name="empty_list_dialog_title">Nothing to show</string>
+    <string name="empty_list_dialog_message">Please, navigate to Menu > %s and Download spots from Hitchwiki Maps.</string>
+
     <string name="fetch_address">Adresse abrufen</string>
     <string name="address_found">Adresse gefunden</string>
     <string name="no_address_found">Sorry, keine Adresse gefunden</string>
@@ -143,10 +171,10 @@
 
     <string name="map_infoview_spot_type_destination">(REISEZIEL)</string>
     <string name="map_infoview_spot_type_waiting">(WARTEN)</string>
-    <string name="map_infoview_spot_type_break">(PAUSE)</string>
+    <string name="map_infoview_spot_type_origin">(ORIGIN)</string>
+    <string name="map_infoview_spot_type_not_evaluated">(NOT EVALUATED)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
 
-    <string name="map_error_alert_map_not_loaded_title">Internet nicht verfügbar</string>
     <string name="map_error_alert_map_not_loaded_message">Griaß di. :-) Dein Gerät scheint im Moment nicht mit dem Internet verbunden zu sein. Du kannst deinen Standort speichern, aber die Karte wird möglicherweise nicht geladen. Probiere die App ohne Karte aus.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Probiere ohne Karte</string>
     <string name="action_button_label">%s anzeigen</string>
@@ -171,4 +199,8 @@
     <string name="general_thank_you_label">%s, danke</string>
     <string name="general_refresh_label">Refresh</string>
     <string name="main_activity_single_spots_list_tab">Standorten</string>
+
+    <string name="refresh_datetime_dialog_title">Update date and time?</string>
+    <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
+
 </resources>

@@ -455,7 +455,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         if (!Utils.isNetworkAvailable(this) && !Utils.shouldLoadCurrentView(prefs)) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getResources().getString(R.string.map_error_alert_map_not_loaded_title))
+                    .setTitle(getResources().getString(R.string.general_network_unavailable_message))
                     .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
                     .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
                         @Override
@@ -668,8 +668,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     new AlertDialog.Builder(this)
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setTitle(getString(R.string.save_spot_button_text))
-                            .setMessage(getString(R.string.map_error_alert_map_not_loaded_title)
-                                    + ". To fetch your location we need the map which was not loaded. But you can still try to save a new spot by using the feature that doesn't use maps.")
+                            .setMessage(getString(R.string.general_offline_mode_label)
+                                    + ". " + getString(R.string.map_error_alert_map_not_loaded_alternative_message))
                             .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -826,7 +826,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                 if (spot.getHitchability() == null || spot.getHitchability() == 0) {
                                     //The spot is a hitchhiking spot that was not evaluated yet
                                     icon = getGotARideIconForRoute(-1);
-                                    markerTitle = "Not evaluated";
+                                    markerTitle = getString(R.string.map_infoview_spot_type_not_evaluated);
                                 } else {
                                     //The spot is a hitchhiking spot that was already evaluated
                                     icon = getGotARideIconForRoute(trips.size());
@@ -843,9 +843,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             //The spot is the origin of a route
                             markerViewOptions.spotType(Constants.SPOT_TYPE_ORIGIN);
                             if (!markerTitle.isEmpty())
-                                markerTitle = "(ORIGIN) " + markerTitle;
+                                markerTitle = getString(R.string.map_infoview_spot_type_origin) + " " + markerTitle;
                             else
-                                markerTitle = "(ORIGIN)";
+                                markerTitle = getString(R.string.map_infoview_spot_type_origin);
                         }
                     } else
                         markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);

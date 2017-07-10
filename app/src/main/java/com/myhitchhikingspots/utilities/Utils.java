@@ -100,7 +100,7 @@ public class Utils {
                 Log.e("active internet check", "Error checking internet connection", e);
             }
         } else {
-            Log.d("active internet check", "No network available!");
+            Log.d("active internet check",  "No network available!");
         }
         return false;
     }

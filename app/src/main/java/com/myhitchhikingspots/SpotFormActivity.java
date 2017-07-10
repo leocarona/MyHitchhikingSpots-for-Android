@@ -2126,9 +2126,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             this.dialog.dismiss();
 
             if (!errMsgToShow.isEmpty())
-                showErrorAlert("Not so good news :-(", errMsgToShow);
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), errMsgToShow));
             else
-                Toast.makeText(context, "Downloaded complete", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
         }
 
     }

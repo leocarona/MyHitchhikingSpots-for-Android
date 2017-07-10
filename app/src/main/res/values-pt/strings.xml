@@ -68,6 +68,14 @@
     <string name="settings_importdb_button_label">Importar banco de dados</string>
     <string name="settings_exportdb_button_label">Exportar banco de dados</string>
     <string name="settings_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>
+    <string name="settings_select_continents_button_label">Selecionar continentes</string>
+    <string name="settings_select_countries_button_label">Select países</string>
+    <string name="settings_downloadCountriesList_button_label">Baixando lista de países</string>
+    <string name="settings_exporting_db_message">Sua lista de locais será salva em seu celular como um arquivo de excel (CSV)..</string>
+    <string name="settings_countriesList_is_empty_title">Lista de países não baixada</string>
+    <string name="settings_countriesList_is_empty_message">Uma vez que a lista de países estiver baixada, você poderá baixar locais de carona do Hitchwiki Maps para os países de sua escolha. Desta forma pouca memória do seu celular será consumida. :-)\nVocê gostaria de baixar a lista de países?</string>
+    <string name="settings_exportdb_finish_successfull_message">Exportado para:\n%s</string>
+    <string name="settings_countriesList_download_failed_message">Houve um erro ao tentar baixar a lista de países.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -108,6 +116,7 @@
     <string name="spot_form_delete_dialog_yes_option">Deletar</string>
     <string name="spot_form_is_single_spot_checkbox_text">Este local não faz parte de uma rota</string>
     <string name="spot_form_is_destination_checkbox_text">Este é meu destino nesta viagem</string>
+    <string name="spot_form_is_hitchhiking_spot_checkbox_text">Este é um ponto de carona</string>
     <string name="spot_form_title_evaluate">Avaliar ponto</string>
     <string name="spot_form_title_edit">Editar ponto</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
@@ -126,7 +135,26 @@
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>
     <string name="general_cancel_option">Cancelar</string>
+
+    <string name="general_download_option">Baixar</string>
+    <string name="general_downloading_message">Baixando&#8230;</string>
+    <string name="general_items_downloaded_message">%d items baixados.</string>
+    <string name="general_downloading_something_message">Baixando: %s</string>
+    <string name="general_download_finished_successffull_message">Download concluído com sucesso</string>
     <string name="general_error_dialog_title">Houve uma falha :(</string>
+    <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_loading_dialog_title">Carregando&#8230;</string>
+    <string name="general_loading_dialog_message">Aguarde</string>
+
+    <string name="general_internet_unavailable_title">Internet indisponível</string>
+    <string name="general_offline_mode_label">Modo offline</string>
+    <string name="general_network_unavailable_message">Seu dispositivo não parece ter uma conexão com a internet neste momento.</string>
+    <string name="general_export_finished_successfull_message">Exportado com sucesso!</string>
+    <string name="general_export_finished_failed_message">Falha na exportação</string>
+    <string name="general_last_sync_date">Última sincronização realizada em %s.</string>
+
+    <string name="empty_list_dialog_title">Nada para mostrar</string>
+    <string name="empty_list_dialog_message">Por favor, navegue para Menu > %s e baixe locais do Hitchwiki Maps.</string>
 
     <string name="fetch_address">obter endereço</string>
     <string name="address_found">Endereço encontrado</string>
@@ -144,10 +172,10 @@
 
     <string name="map_infoview_spot_type_destination">(DESTINO)</string>
     <string name="map_infoview_spot_type_waiting">(AGUARDANDO)</string>
-    <string name="map_infoview_spot_type_break">(PAUSA)</string>
+    <string name="map_infoview_spot_type_origin">(ORIGEM)</string>
+    <string name="map_infoview_spot_type_not_evaluated">(NÃO AVALIADO)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
 
-    <string name="map_error_alert_map_not_loaded_title">Internet indisponível</string>
     <string name="map_error_alert_map_not_loaded_message">Olá. :-) Seu celular parece estar desconectado da internet no momento. Ainda assim você pode salvar novos locais, porém talvez o mapa não carregue como esperado. Você pode experimentar usar sem mapa.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Usar sem mapa</string>
     <string name="action_button_label">Ver %s</string>
@@ -172,5 +200,8 @@
     <string name="general_thank_you_label">%s, obrigado</string>
     <string name="general_refresh_label">Atualizar</string>
     <string name="main_activity_single_spots_list_tab">locais</string>
+
+    <string name="refresh_datetime_dialog_title">Atualizar data e hora?</string>
+    <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutos já passaram desde que você abriu esta janela pela primeira vez. Você gostaria de atualizar a data e hora deste novo local? A atualização será feita de %2$s para %3$s.</string>
 
 </resources>

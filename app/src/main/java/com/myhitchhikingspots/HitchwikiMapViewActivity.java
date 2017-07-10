@@ -403,8 +403,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         } else {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle("No data to show")
-                    .setMessage("Please, navigate to Menu > " + getString(R.string.tools_title) + " and Download spots from Hitchwiki Maps.")
+                    .setTitle(getString(R.string.empty_list_dialog_title))
+                    .setMessage(String.format(getString(R.string.empty_list_dialog_message), getString(R.string.tools_title)))
                     .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -621,7 +621,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
                 for (int i = spotList.size() - 1; i >= 0; i--) {
                     Spot spot = spotList.get(i);
-                    String spotType = "";
 
                     ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
                             .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
@@ -670,14 +669,11 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
                     //Get a hitchability string to set as title
                     String title = "";
-                    if (!spotType.isEmpty())
-                        title = spotType;
-                    else if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
+                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
                             spot.getHitchability() != null && spot.getHitchability() > 0)
                         title = Utils.getRatingAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability()));
-
-                    if (title.isEmpty() && spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
-                        title = "Not evaluated";
+                    else
+                        title = getString(R.string.map_infoview_spot_type_not_evaluated);
 
                     //Set hitchability as title
                     markerViewOptions.title(title.toUpperCase());
@@ -702,15 +698,12 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 }
 
                 return trips;
-            } catch (
-                    final Exception ex)
-
-            {
+            } catch (final Exception ex) {
                 Crashlytics.logException(ex);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+                        showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                                 "Loading spots failed.\n" + ex.getMessage()));
                     }
                 });

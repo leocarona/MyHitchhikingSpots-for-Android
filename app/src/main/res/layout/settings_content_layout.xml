@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:onClick="showContinentsDialog"
-            android:text="Select continents >"
+            android:text="@string/settings_select_continents_button_label"
             android:textAllCaps="true" />
 
         <Button
@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:onClick="showCountriesDialog"
-            android:text="Select countries >"
+            android:text="@string/settings_select_countries_button_label"
             android:textAllCaps="true" />
 
 

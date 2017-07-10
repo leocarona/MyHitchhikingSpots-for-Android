@@ -13,21 +13,16 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.util.Pair;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.CompoundButton;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,7 +48,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
@@ -213,7 +207,7 @@ public class SettingsActivity extends BaseActivity {
         }
 
         if (!Utils.isNetworkAvailable(this)) {
-            showErrorAlert("Offline mode", "Your device doesn't seem to have an internet connection at the moment.");
+            showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_network_unavailable_message));
         } else
             new retrievePlacesAsyncTask(dialogType).execute();
     }
@@ -275,7 +269,7 @@ public class SettingsActivity extends BaseActivity {
 
     public void showContinentsDialog(View view) {
         if (continentsContainer.length == 0) {
-            showErrorAlert("Continents list", "The list of continents are not loaded. Try to navigate out of this screen and come back agian.");
+            showErrorAlert(getString(R.string.settings_select_continents_button_label), "The list of continents are not loaded. Try to navigate out of this screen and come back agian.");
         } else {
             new showContinentsDialogAsyncTask().execute();
         }
@@ -292,15 +286,15 @@ public class SettingsActivity extends BaseActivity {
                 //Ask user if they'd like to download the countries list now
                 new AlertDialog.Builder(this)
                         .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle("Country options not downloaded")
-                        .setMessage("Once the country options are downloaded, you'll be able to download spots from Hitchwiki Maps for the countries of your preference. This means just a small part of your phone memory will be used. :-)\nWould you like to download the countries list now?")
+                        .setTitle(getString(R.string.settings_countriesList_is_empty_title))
+                        .setMessage(getString(R.string.settings_countriesList_is_empty_message))
                         .setPositiveButton(getResources().getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 new getCountriesAsyncTask(true).execute();
                             }
                         })
-                        .setNegativeButton(getResources().getString(R.string.general_cancel_option), null)
+                        .setNegativeButton(getString(R.string.general_cancel_option), null)
                         .show();
             }
         } else {
@@ -455,7 +449,7 @@ public class SettingsActivity extends BaseActivity {
             this.dialog.setIndeterminate(true);
             this.dialog.setCancelable(false);
             this.dialog.setTitle(getString(R.string.settings_exportdb_button_label));
-            this.dialog.setMessage("Your spots list will be saved on your phone as CSV file..");
+            this.dialog.setMessage(getString(R.string.settings_exporting_db_message));
             this.dialog.show();
         }
 
@@ -491,7 +485,7 @@ public class SettingsActivity extends BaseActivity {
                 csvWrite.close();
                 curCSV.close();
 
-                result = "Copied to:\n" + file.getPath();
+                result = String.format(getString(R.string.settings_exportdb_finish_successfull_message), file.getPath());
                 Crashlytics.log(Log.DEBUG, TAG, result);
 
                 return true;
@@ -517,9 +511,9 @@ public class SettingsActivity extends BaseActivity {
                 Long currentMillis = System.currentTimeMillis();
                 prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, currentMillis).apply();
 
-                Toast.makeText(SettingsActivity.this, "Export successful!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SettingsActivity.this, getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(SettingsActivity.this, "Export failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SettingsActivity.this, getString(R.string.general_export_finished_failed_message), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -793,7 +787,7 @@ public class SettingsActivity extends BaseActivity {
                 //Build string to show
                 String c2 = country.getName();
                 if (country.getPlaces() != null && !country.getPlaces().isEmpty())
-                    c2 += " (" + country.getPlaces() + " spots)";
+                    c2 += " (" + country.getPlaces() + " " + getString(R.string.main_activity_single_spots_list_tab) + ")";
 
                 PairParcelable item = new PairParcelable(country.getIso(), c2);
                 lst[i] = item;
@@ -956,26 +950,24 @@ public class SettingsActivity extends BaseActivity {
                     Date resultdate = new Date(millisecondsAtDownload);
                     String timeStamp = sdf.format(resultdate);
 
-                    showCrouton(String.format("%s countries data were downloaded. Last sync was on %s.",
-                            countriesContainer.length,
-                            timeStamp),
+                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), countriesContainer.length) + " " +
+                                    String.format(getString(R.string.general_last_sync_date), timeStamp),
                             Constants.CROUTON_DURATION_5000);
                 } else {
-                    showCrouton(String.format("%s countries data were downloaded.",
-                            countriesContainer.length),
+                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), countriesContainer.length),
                             Constants.CROUTON_DURATION_5000);
                 }
             } else if (!result.contentEquals("countriesLoadedFromLocalStorage") && !result.isEmpty())
-                showErrorAlert("An error occurred", "An exception occurred while trying to download the countries list.");
+                showErrorAlert(getString(R.string.general_error_dialog_title), getString(R.string.settings_countriesList_download_failed_message));
 
             if (result.contentEquals("countriesListDownloaded") || result.contentEquals("countriesLoadedFromLocalStorage")) {
                 if (countriesContainer.length == 0) {
                     //Ask user if they'd like to download the countries list now
                     new AlertDialog.Builder(context)
                             .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setTitle("Countries list is empty")
-                            .setMessage("Something strang happened and your countries list is empty.\nWould you like to download the countries list now?")
-                            .setPositiveButton(getResources().getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
+                            .setTitle(getString(R.string.settings_countriesList_is_empty_title))
+                            .setMessage(getString(R.string.settings_countriesList_is_empty_message))
+                            .setPositiveButton(getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     new getCountriesAsyncTask(true).execute();
@@ -1017,7 +1009,7 @@ public class SettingsActivity extends BaseActivity {
             this.loadingDialog.setIndeterminate(true);
             this.loadingDialog.setCancelable(false);
             this.loadingDialog.setTitle(getString(R.string.settings_downloadHDSpots_button_label));
-            this.loadingDialog.setMessage("Downloading: " + lstToDownload);
+            this.loadingDialog.setMessage(String.format(getString(R.string.general_downloading_something_message), lstToDownload));
             this.loadingDialog.show();
         }
 
@@ -1118,7 +1110,7 @@ public class SettingsActivity extends BaseActivity {
 
                 //TODO: show how many megabytes were downloaded or saved locally
 
-                Toast.makeText(SettingsActivity.this, "Download successful!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SettingsActivity.this, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
                 Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
                 if (millisecondsAtRefresh != 0) {
                     //convert millisecondsAtRefresh to some kind of date and time text
@@ -1126,20 +1118,18 @@ public class SettingsActivity extends BaseActivity {
                     Date resultdate = new Date(millisecondsAtRefresh);
                     String timeStamp = sdf.format(resultdate);
 
-                    showCrouton(String.format("%s spots were downloaded. Last sync was on %s.",
-                            placesContainer.size(),
-                            timeStamp),
+                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()) +
+                                    " " + String.format(getString(R.string.general_last_sync_date), timeStamp),
                             Constants.CROUTON_DURATION_5000);
                 } else {
-                    showCrouton(String.format("%s spots were downloaded.",
-                            placesContainer.size()),
+                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()),
                             Constants.CROUTON_DURATION_5000);
                 }
             } else {
                 if (result.contentEquals("nothingToSync"))
                     showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
                 else if (!result.isEmpty())
-                    showErrorAlert("An error occurred", "An exception occurred while trying to download spots from Hitchwiki Maps.");
+                    showErrorAlert(getString(R.string.general_error_dialog_title), "An exception occurred while trying to download spots from Hitchwiki Maps.");
             }
 
             ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -1211,7 +1201,13 @@ public class SettingsActivity extends BaseActivity {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-            builder.setTitle("Countries to download")
+            String title = "";
+            if (dialog_type == DIALOG_TYPE_CONTINENT)
+                title = getString(R.string.settings_select_continents_button_label);
+            else if (dialog_type == DIALOG_TYPE_COUNTRY)
+                title = getString(R.string.settings_select_countries_button_label);
+
+            builder.setTitle(title)
                     .setMultiChoiceItems(getItemsValueArray(), lst, new DialogInterface.OnMultiChoiceClickListener() {
                         public void onClick(DialogInterface dialog, int item, boolean isChecked) {
                             try {
