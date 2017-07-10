@@ -35,7 +35,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     protected static final String TAG = "spot-list-adapter";
     private List<Spot> mData;
     private SpotListFragment spotListFragment;
-    public static Hashtable<Long, String> totalsToDestinations;
+    public Hashtable<Long, String> totalsToDestinations;
 
     public SpotListAdapter(List<Spot> data, SpotListFragment spotListFragment) {
         this.mData = data;
@@ -65,7 +65,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         totalWaitingTimeMinutes += spot.getWaitingTime();*/
 
                     //If user gave up on hitchhiking on this spot, then we must not count it as a ride
-                    if (spot.getAttemptResult() == null || spot.getAttemptResult() != Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
+                    if ((spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) &&
+                            (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) &&
+                            spot.getAttemptResult() == null || spot.getAttemptResult() != Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
                         totalRides++;
                 } else {
                     Integer minutes = 0;
@@ -108,7 +110,14 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
         Spot spot = mData.get(position);
-        viewHolder.setFields(spot);
+
+        String secondLine = "";
+        if (spot.getIsDestination() != null && spot.getIsDestination())
+            secondLine = totalsToDestinations.get(spot.getId());
+        else if (spot.getNote() != null)
+            secondLine = spot.getNote();
+
+        viewHolder.setFields(spot, secondLine);
     }
 
     static String locationSeparator = ", ";
@@ -251,13 +260,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             spotListFragment.startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
         }
 
-        public void setFields(Spot spot) {
+        public void setFields(Spot spot, String secondLine) {
             try {
                 this.spot = spot;
-
-                String captilizedNote = "";
-                if (spot.getNote() != null)
-                    captilizedNote = spot.getNote();
 
                 if (spot.getIsDestination() != null && spot.getIsDestination()) {
                     //ARRIVAL SPOT
@@ -265,7 +270,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                     arrivalIcon.setVisibility(View.VISIBLE);
                     waitingTimeText.setVisibility(View.GONE);
                     waitingIcon.setVisibility(View.GONE);
-                    captilizedNote = totalsToDestinations.get(spot.getId());
                 } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                     //USER IS WAITING FOR A RIDE
                     viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_regular_spot_color));
@@ -289,8 +293,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 String spotLoc = getString(spot);
                 cityNameText.setText(spotLoc);
 
-                if (captilizedNote != null && !captilizedNote.isEmpty())
-                    captilizedNote = captilizedNote.substring(0, 1).toUpperCase() + captilizedNote.substring(1);
+                if (secondLine != null && !secondLine.isEmpty())
+                    secondLine = secondLine.substring(0, 1).toUpperCase() + secondLine.substring(1);
 
                 if (spot.getIsPartOfARoute() != null && !spot.getIsPartOfARoute()) {
                     //viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_single_spot_bg_color));
@@ -305,7 +309,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         breakIcon.setVisibility(View.GONE);
                 }
 
-                notesText.setText(captilizedNote);
+                notesText.setText(secondLine);
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
             }
