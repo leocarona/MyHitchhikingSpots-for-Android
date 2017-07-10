@@ -165,6 +165,7 @@
 
     <string name="shortcut_save_button_failed">Es war nicht möglich deinen Standort durch die Schnelltaste zu akutalisieren :(</string>
 
+    <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
     <string name="save_spot_error_map_not_loaded">Es scheint als hättest du die Karte wurde nicht geladen.\Du brauchst eine Internetverbindung um die Veränderung zu speichern.</string>
     <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\nYou might need an internet connection to save this change.</string>
     <string name="save_spot_error_general">Irgendetwas ging schief :(\n%s</string>

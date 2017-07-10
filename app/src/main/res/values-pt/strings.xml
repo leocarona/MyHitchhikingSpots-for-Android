@@ -166,6 +166,7 @@
 
     <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
 
+    <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
     <string name="save_spot_error_map_not_loaded">Parece que o mapa não carregou.\nVocê precisará se conectar à internet para salvar esta alteração.</string>
     <string name="save_spot_error_coordinate_not_informed_error_message">Não conseguimos obter as coordenadas geográficas do local que você está tentando salvar.\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
     <string name="save_spot_error_general">Houve uma falha :(\n%s</string>
