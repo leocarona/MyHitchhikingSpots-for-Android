@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
@@ -326,12 +325,18 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                     }
                 } else {
                     //This spot doesn't belong to a route (it's a single spot)
-                    singleSpotIcon.setVisibility(View.VISIBLE);
 
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
                         waitingTimeText.setVisibility(View.VISIBLE);
 
-                    }
+                        //if(spot.getHitchability() != null)
+                        //  hitchability = Utils.getRatingOrDefaultAsString(context, Utils.findTheOpposite(spot.getHitchability()));
+
+                        breakIcon.setImageResource(R.drawable.ic_point_on_the_route_black_24dp);
+                        breakIcon.setVisibility(View.VISIBLE);
+                        breakIcon.setAlpha((float) 0.5);
+                    } else
+                        singleSpotIcon.setVisibility(View.VISIBLE);
                 }
 
                 Integer waitingTime = 0;
@@ -356,7 +361,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 Crashlytics.logException(ex);
             }
         }
-
 
 
         @NonNull
