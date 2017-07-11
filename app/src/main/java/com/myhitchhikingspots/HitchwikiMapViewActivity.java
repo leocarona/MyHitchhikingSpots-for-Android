@@ -403,7 +403,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         } else {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getString(R.string.empty_list_dialog_title))
+                    .setTitle(getString(R.string.mapview_hitchwiki_title))
                     .setMessage(String.format(getString(R.string.empty_list_dialog_message), getString(R.string.tools_title)))
                     .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
                         @Override

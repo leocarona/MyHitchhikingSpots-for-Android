@@ -151,8 +151,7 @@
     <string name="general_export_finished_failed_message">Export failed</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>
 
-    <string name="empty_list_dialog_title">Nothing to show</string>
-    <string name="empty_list_dialog_message">Please, navigate to Menu > %s and Download spots from Hitchwiki Maps.</string>
+    <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 
     <string name="fetch_address">Adresse abrufen</string>
     <string name="address_found">Adresse gefunden</string>

@@ -69,7 +69,7 @@
     <string name="settings_exportdb_button_label">Exportar banco de dados</string>
     <string name="settings_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>
     <string name="settings_select_continents_button_label">Selecionar continentes</string>
-    <string name="settings_select_countries_button_label">Select países</string>
+    <string name="settings_select_countries_button_label">Selecionar países</string>
     <string name="settings_downloadCountriesList_button_label">Baixando lista de países</string>
     <string name="settings_exporting_db_message">Sua lista de locais será salva em seu celular como um arquivo de excel (CSV)..</string>
     <string name="settings_countriesList_is_empty_title">Lista de países não baixada</string>
@@ -152,8 +152,7 @@
     <string name="general_export_finished_failed_message">Falha na exportação</string>
     <string name="general_last_sync_date">Última sincronização realizada em %s.</string>
 
-    <string name="empty_list_dialog_title">Nada para mostrar</string>
-    <string name="empty_list_dialog_message">Por favor, navegue para Menu > %s e baixe locais do Hitchwiki Maps.</string>
+    <string name="empty_list_dialog_message">Para visualizar locais adicionados por outros caroneiros ao Hitchwiki Maps, acesse o menu %s.</string>
 
     <string name="fetch_address">obter endereço</string>
     <string name="address_found">Endereço encontrado</string>
