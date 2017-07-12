@@ -1,5 +1,9 @@
 package com.myhitchhikingspots;
 
+/**
+ * Created by leoboaventura on 28/05/2017.
+ */
+
 import android.app.IntentService;
 import android.content.Intent;
 import android.location.Address;
@@ -20,8 +24,8 @@ import java.util.Locale;
  * location through an intent. Tries to fetch the address for the location using a Geocoder, and
  * sends the result to the ResultReceiver.
  */
-public class FetchAddressIntentService extends IntentService {
-    private static final String TAG = "FetchAddressIS";
+public class FetchMissingAddressIntentService extends IntentService {
+    private static final String TAG = "FetchMissingAddressIS";
 
     /**
      * The receiver where results are forwarded from this service.
@@ -32,7 +36,7 @@ public class FetchAddressIntentService extends IntentService {
      * This constructor is required, and calls the super IntentService(String)
      * constructor with the name for a worker thread.
      */
-    public FetchAddressIntentService() {
+    public FetchMissingAddressIntentService() {
         // Use the TAG to name the worker thread.
         super(TAG);
     }

@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name"></string>
+
     <string name="latitude_label">Breddegrad</string>
     <string name="longitude_label">Længdegrad</string>
     <string name="accuracy_label">Nøjagtighed</string>
     <string name="last_update_time_label">Sidste position opdater tid</string>
+
     <string name="save_spot_button_text">Gem sted</string>
     <string name="got_a_ride_button_text">Fik et lift</string>
     <string name="arrived_button_text">Ankommet til destination</string>
     <string name="break_button_text">Tag en pause</string>
     <string name="evaluate_running_spot_required">Du skal vælge ’Fik et lift’ eller ’Tag en pause’ før du opretter/ændrer et nyt sted</string>
+
     <string name="location_updated_message">Position opdateret</string>
     <string name="update_location_switch">Få min nuværende position</string>
+
     <string name="hitchability">Blafferegnethed</string>
     <string name="hitchability_unknown">Ukendt</string>
     <string name="hitchability_very_good">Meget god</string>
@@ -20,16 +23,33 @@
     <string name="hitchability_bad">Dårlig</string>
     <string name="hitchability_senseless">Meningsløs</string>
     <string name="hitchability_no_answer">Intet svar</string>
+
     <string name="attempt_result">Forsøgsresultat</string>
     <string name="attempt_result_unknown">@string/hitchability_unknown</string>
     <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
     <string name="attempt_result_gave_up">@string/break_button_text</string>
+
     <string name="menu_home">Intet 3G? Brug det her</string>
-    <string name="settings_master_title">Værktøjer</string>
+
+    <string name="tools_title">Værktøjer</string>
     <string name="settings_importdb_button_label">Importer database</string>
     <string name="settings_exportdb_button_label">Eksporter database</string>
+    <string name="settings_downloadHDSpots_button_label">Hent steder fra Hitchwiki Maps</string>
+    <string name="settings_select_continents_button_label">Select continents</string>
+    <string name="settings_select_countries_button_label">Select countries</string>
+    <string name="settings_downloadCountriesList_button_label">Downloading countries list</string>
+    <string name="settings_exporting_db_message">Your spots list will be saved on your phone as CSV file..</string>
+    <string name="settings_countriesList_is_empty_title">Countries list not downloaded</string>
+    <string name="settings_countriesList_is_empty_message">Once the country options are downloaded, you\'ll be able to download spots from Hitchwiki Maps for the countries of your preference. This means just a small part of your phone memory will be used. :-)\nWould you like to download the countries list now?</string>
+    <string name="settings_exportdb_finish_successfull_message">Copied to:\n%s</string>
+    <string name="settings_countriesList_download_failed_message">An exception occurred while trying to download the countries list.</string>
+    <string name="settings_last_countriesList_update_message">Last update of countries list was done %s ago.</string>
+    <string name="settings_last_export_message">Last export was done %s ago.</string>
+    <string name="settings_last_download_message">Last download was done %s ago.</string>
+
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
     <string name="spot_form_note_label">Notat</string>
@@ -40,39 +60,74 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Hvornår</string>
     <string name="spot_form_more_options_edit_label">(ændr)</string>
-    <string name="mapview_master_title">Kort</string>
+
+    <string name="mapview_master_title">Min Kort</string>
+    <string name="mapview_hitchwiki_title">Hitchwiki Kort</string>
+
     <string name="action_settings">Indstillinger</string>
     <string name="spot_saved_successfuly">Sted gemt</string>
     <string name="spot_deleted_successfuly">Sted slettet</string>
     <string name="title_activity_main">@string/app_name</string>
+
     <string name="confirm_back_button_click_dialog_title">Tilbage</string>
     <string name="confirm_back_button_click_dialog_message">Er du sikker på, at du vil forlade denne side uden at gemme dine ændringer?</string>
+
+    <string name="view_map_button_label">Kort</string>
+    <string name="view_list_button_label">liste</string>
+
+    <string name="main_activity_title">Mine Steder</string>
     <string name="main_activity_you_tab">dig</string>
-    <string name="main_activity_list_tab">liste</string>
+    <string name="main_activity_list_tab">ruter</string>
     <string name="spot_list_item_arrival_label">ankomst</string>
     <string name="spot_list_item_waiting_label">venter</string>
+
     <string name="spot_form_save_button_text">gem</string>
     <string name="spot_form_delete_button_text">slet</string>
     <string name="spot_form_delete_dialog_title_text">Slet sted</string>
     <string name="spot_form_delete_dialog_message_text">Er du sikker på, at du vil slette stedet permanent?</string>
     <string name="spot_form_delete_dialog_no_option">Fortryd</string>
     <string name="spot_form_delete_dialog_yes_option">Slet</string>
+    <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
     <string name="spot_form_is_destination_checkbox_text">Det her er min destination for nu</string>
+    <string name="spot_form_is_hitchhiking_spot_checkbox_text">Det her er et blaffe sted</string>
     <string name="spot_form_title_evaluate">Evaluer sted</string>
     <string name="spot_form_title_edit">Ændr sted</string>
     <string name="spot_form_lat_lng_label">Br %1$s L %2$s</string>
     <string name="spot_form_location_selected_label">Sted valgt.</string>
+    <string name="spot_form_enable_evaluate_tab_message">Save your hitchhiking spot to enable the %s tab.</string>
+
     <string name="waiting_for_connection">Venter på at forbindelsen bliver oprettet..</string>
     <string name="unable_to_find_location">Ude af stand til at hente position med Google api client :(</string>
     <string name="trying_to_reconnect_to_provider_of_location">Prøver at genskabe forbindelse til positionsudbyderen..</string>
+
     <string name="destination_spot_totals_format">TOTAL | %1$d lift | %2$s</string>
-    <string name="break_spot_state_label">PAUSE</string>
+
     <string name="waiting_for_gps">Venter på at modtage din nuværende position..</string>
+
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>
     <string name="general_no_option">Nej</string>
     <string name="general_cancel_option">Fortryd</string>
+
+    <string name="general_download_option">Hent</string>
+    <string name="general_downloading_message">Downloading&#8230;</string>
+    <string name="general_items_downloaded_message">%d items were downloaded.</string>
+    <string name="general_downloading_something_message">Downloading: %s</string>
+    <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Noget gik galt :(</string>
+    <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_loading_dialog_title">Loading data&#8230;</string>
+    <string name="general_loading_dialog_message">Please wait</string>
+
+    <string name="general_internet_unavailable_title">Internet utilgængeligt</string>
+    <string name="general_offline_mode_label">Offline mode</string>
+    <string name="general_network_unavailable_message">Your device doesn\'t seem to have an internet connection at the moment.</string>
+    <string name="general_export_finished_successfull_message">Exported successfully!</string>
+    <string name="general_export_finished_failed_message">Export failed</string>
+    <string name="general_last_sync_date">Last sync was on %s.</string>
+
+    <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
+
     <string name="fetch_address">hent adresse</string>
     <string name="address_found">Adresse fundet</string>
     <string name="no_address_found">Undskyld, ingen adresse fundet</string>
@@ -80,19 +135,27 @@
     <string name="service_not_available">Undskyld, servicen er ikke tilgængelig</string>
     <string name="invalid_lat_long_used">Den anvendte bredde- eller længegrad er ugyldig</string>
     <string name="spot_form_location_info_copied">Tekst kopieret til udklipsholder</string>
+
     <string name="shortcut_save_button_failed">Det var ikke muligt at opdatere dit sted med genvejen :(</string>
-    <string name="save_spot_error_map_not_loaded">Det ser ud til, at du manuelt har ændret positionen af dit sted, men kortet er endnu ikke hentet. \nDu har måske brug for internetforbindelse for at gemme denne ændring.</string>
+
+    <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
+    <string name="save_spot_error_map_not_loaded">Det ser ud til, at kortet er endnu ikke hentet. \nDu har måske brug for internetforbindelse for at gemme denne ændring.</string>
     <string name="save_spot_error_coordinate_not_informed_error_message">Vi er ikke i stand til at lokalisere stedet, du prøver at gemme. Internetforbindelse er måske nødvendig for at gemme denne ændring.</string>
     <string name="save_spot_error_general">Noget gik galt :(\n%s</string>
+
     <string name="map_infoview_spot_type_destination">(DESTINATION)</string>
     <string name="map_infoview_spot_type_waiting">(VENTER)</string>
-    <string name="map_infoview_spot_type_break">(PAUSE)</string>
+    <string name="map_infoview_spot_type_origin">(ORIGIN)</string>
+    <string name="map_infoview_spot_type_not_evaluated">(NOT EVALUATED)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
-    <string name="map_error_alert_map_not_loaded_title">Internet utilgængeligt</string>
+    <string name="map_infoview_spot_type_break">(PAUSE)</string>
+
     <string name="map_error_alert_map_not_loaded_message">Hej! Din enhed virker til at være afkoblet en internetforbindelse i øjeblikket. Du kan stadig gemme dine positioner, men kortet bliver måske ikke hentet som forventet. Prøv at bruge appen uden kort.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Prøv uden kort</string>
-    <string name="map_error_alert_map_not_loaded_negative_button">Vis kort</string>
+    <string name="action_button_label">Vis %s</string>
+
     <string name="map_loading_dialog">Henter steder&#8230;</string>
+    <string name="map_not_loaded_message">When you have an internet connection again,\na map will be displayed here. :-)</string>
 
     <string-array name="hitchabilities">
         <item>@string/hitchability_unknown</item>
@@ -115,4 +178,19 @@
 
     <string name="waiting_time_missing_dialog_title">Waiting time not informed</string>
     <string name="waiting_time_missing_dialog_message">Want to calculate it before saving?</string>
+
+    <string name="continent_code_antarctica">Antarctica</string>
+    <string name="continent_code_africa">Africa</string>
+    <string name="continent_code_asia">Asia</string>
+    <string name="continent_code_europe">Europe</string>
+    <string name="continent_code_north_america">North America</string>
+    <string name="continent_code_south_america">South America</string>
+    <string name="continent_code_oceania">Oceania</string>
+    <string name="general_thank_you_label">%s, tak</string>
+    <string name="general_refresh_label">Refresh</string>
+    <string name="main_activity_single_spots_list_tab">steder</string>
+
+    <string name="refresh_datetime_dialog_title">Update date and time?</string>
+    <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
+
 </resources>

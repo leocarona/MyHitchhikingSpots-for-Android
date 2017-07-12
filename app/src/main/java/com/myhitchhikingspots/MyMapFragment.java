@@ -186,7 +186,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
                         // Create an Icon object for the marker to use
                         IconFactory iconFactory = IconFactory.getInstance(MainActivity.this);
                         Drawable iconDrawable = ContextCompat.getDrawable(MainActivity.this, R.drawable.blue_marker);
-                        Icon arrivalIcon = iconFactory.fromDrawable(iconDrawable);
+                        Icon destinationIcon = iconFactory.fromDrawable(iconDrawable);
                         Icon waitingIcon = iconFactory.fromDrawable(iconDrawable);
                         Icon currentLocationIcon = iconFactory.fromDrawable(iconDrawable);
                     */
@@ -196,7 +196,7 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
 
                     snippet = "(DESTINATION) " + snippet;
 
-                    //markerViewOptions.icon(arrivalIcon);
+                    //markerViewOptions.icon(destinationIcon);
                 } else if (spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                     //USER IS WAITING FOR A RIDE
 

@@ -14,7 +14,6 @@
   limitations under the License.
 -->
 <resources>
-    <string name="app_name">MyHitchhikingSpots</string>
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
@@ -60,13 +59,26 @@
         <item>@string/attempt_result_gave_up</item>
     </string-array>
 
-    <string name="mapview_master_title">Mapa</string>
+    <string name="mapview_master_title">Meu Mapa</string>
+    <string name="mapview_hitchwiki_title">Hitchwiki Maps</string>
 
     <string name="menu_home">Sem 3G? Use esse</string>
 
-    <string name="settings_master_title">Ferramentas</string>
-    <string name="settings_importdb_button_label">importar banco de dados</string>
-    <string name="settings_exportdb_button_label">exportar banco de dados</string>
+    <string name="tools_title">Ferramentas</string>
+    <string name="settings_importdb_button_label">Importar banco de dados</string>
+    <string name="settings_exportdb_button_label">Exportar banco de dados</string>
+    <string name="settings_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>
+    <string name="settings_select_continents_button_label">Selecionar continentes</string>
+    <string name="settings_select_countries_button_label">Selecionar países</string>
+    <string name="settings_downloadCountriesList_button_label">Baixando lista de países</string>
+    <string name="settings_exporting_db_message">Sua lista de locais será salva em seu celular como um arquivo de excel (CSV)..</string>
+    <string name="settings_countriesList_is_empty_title">Lista de países não baixada</string>
+    <string name="settings_countriesList_is_empty_message">Uma vez que a lista de países estiver baixada, você poderá baixar locais de carona do Hitchwiki Maps para os países de sua escolha. Desta forma pouca memória do seu celular será consumida. :-)\nVocê gostaria de baixar a lista de países?</string>
+    <string name="settings_exportdb_finish_successfull_message">Exportado para:\n%s</string>
+    <string name="settings_countriesList_download_failed_message">Houve um erro ao tentar baixar a lista de países.</string>
+    <string name="settings_last_countriesList_update_message">Última atualização da lista de países foi feita há %s atrás.</string>
+    <string name="settings_last_export_message">Última vez que sua lista de locais foi exportada foi há %s atrás.</string>
+    <string name="settings_last_download_message">Último download de locais do Hitchwiki Maps foi feito há %s atrás.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -91,36 +103,60 @@
     <string name="confirm_back_button_click_dialog_title">Voltar</string>
     <string name="confirm_back_button_click_dialog_message">Tem certeza que deseja sair desta página sem salvar suas alteraçōes?</string>
 
+    <string name="view_map_button_label">Mapa</string>
+    <string name="view_list_button_label">lista</string>
+
+    <string name="main_activity_title">Meus Locais</string>
     <string name="main_activity_you_tab">você</string>
-    <string name="main_activity_list_tab">lista</string>
+    <string name="main_activity_list_tab">rotas</string>
     <string name="spot_list_item_arrival_label">chegada</string>
     <string name="spot_list_item_waiting_label">aguardando</string>
+
     <string name="spot_form_save_button_text">salvar</string>
     <string name="spot_form_delete_button_text">deletar</string>
     <string name="spot_form_delete_dialog_title_text">Deletar local</string>
     <string name="spot_form_delete_dialog_message_text">Você tem certeza que deseja deletar esse local permanentemente?</string>
     <string name="spot_form_delete_dialog_no_option">Cancelar</string>
     <string name="spot_form_delete_dialog_yes_option">Deletar</string>
+    <string name="spot_form_is_part_of_a_route_checkbox_text">Este local faz parte de uma rota</string>
     <string name="spot_form_is_destination_checkbox_text">Este é meu destino nesta viagem</string>
+    <string name="spot_form_is_hitchhiking_spot_checkbox_text">Este é um ponto de carona</string>
     <string name="spot_form_title_evaluate">Avaliar ponto</string>
     <string name="spot_form_title_edit">Editar ponto</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
     <string name="spot_form_location_selected_label">Localização selecionada.</string>
-
+    <string name="spot_form_enable_evaluate_tab_message">Salve seu local de carona para habilitar a aba %s.</string>
 
     <string name="waiting_for_connection">Estabelecendo conexão..</string>
     <string name="unable_to_find_location">Nāo foi possível encontrar sua localizaçāo com o Google api client :(</string>
     <string name="trying_to_reconnect_to_provider_of_location">Tentar reconectar ao localizador..</string>
 
     <string name="destination_spot_totals_format">TOTAL | %1$d caronas | %2$s</string>
-    <string name="break_spot_state_label">PAUSA</string>
     <string name="waiting_for_gps">Aguardando atualização da sua localizaçāo..</string>
 
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>
     <string name="general_cancel_option">Cancelar</string>
+
+    <string name="general_download_option">Baixar</string>
+    <string name="general_downloading_message">Baixando&#8230;</string>
+    <string name="general_items_downloaded_message">%d items baixados.</string>
+    <string name="general_downloading_something_message">Baixando: %s</string>
+    <string name="general_download_finished_successffull_message">Download concluído com sucesso</string>
     <string name="general_error_dialog_title">Houve uma falha :(</string>
+    <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_loading_dialog_title">Carregando&#8230;</string>
+    <string name="general_loading_dialog_message">Aguarde</string>
+
+    <string name="general_internet_unavailable_title">Internet indisponível</string>
+    <string name="general_offline_mode_label">Modo offline</string>
+    <string name="general_network_unavailable_message">Seu dispositivo não parece ter uma conexão com a internet neste momento.</string>
+    <string name="general_export_finished_successfull_message">Exportado com sucesso!</string>
+    <string name="general_export_finished_failed_message">Falha na exportação</string>
+    <string name="general_last_sync_date">Última sincronização realizada em %s.</string>
+
+    <string name="empty_list_dialog_message">Para visualizar locais adicionados por outros caroneiros ao Hitchwiki Maps, acesse o menu %s.</string>
 
     <string name="fetch_address">obter endereço</string>
     <string name="address_found">Endereço encontrado</string>
@@ -132,21 +168,24 @@
 
     <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
 
-    <string name="save_spot_error_map_not_loaded">Parece que você ajustou a posição do local sem o mapa carregado.\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
+    <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
+    <string name="save_spot_error_map_not_loaded">Parece que o mapa não carregou.\nVocê precisará se conectar à internet para salvar esta alteração.</string>
     <string name="save_spot_error_coordinate_not_informed_error_message">Não conseguimos obter as coordenadas geográficas do local que você está tentando salvar.\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
     <string name="save_spot_error_general">Houve uma falha :(\n%s</string>
 
     <string name="map_infoview_spot_type_destination">(DESTINO)</string>
     <string name="map_infoview_spot_type_waiting">(AGUARDANDO)</string>
-    <string name="map_infoview_spot_type_break">(PAUSA)</string>
+    <string name="map_infoview_spot_type_origin">(ORIGEM)</string>
+    <string name="map_infoview_spot_type_not_evaluated">(NÃO AVALIADO)</string>
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
+    <string name="map_infoview_spot_type_break">(PAUSA)</string>
 
-    <string name="map_error_alert_map_not_loaded_title">Internet indisponível</string>
     <string name="map_error_alert_map_not_loaded_message">Olá. :-) Seu celular parece estar desconectado da internet no momento. Ainda assim você pode salvar novos locais, porém talvez o mapa não carregue como esperado. Você pode experimentar usar sem mapa.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Usar sem mapa</string>
-    <string name="map_error_alert_map_not_loaded_negative_button">Ver mapa</string>
+    <string name="action_button_label">Ver %s</string>
 
     <string name="map_loading_dialog">Carregando locais&#8230;</string>
+    <string name="map_not_loaded_message">Quando você tiver uma conexão à internet novamente,\num mapa será aparecerá aqui. :-)</string>
 
     <string name="spot_form_bottommenu_map_tile">Local</string>
     <string name="spot_form_bottommenu_basic_tile">Local</string>
@@ -154,4 +193,19 @@
 
     <string name="waiting_time_missing_dialog_title">Tempo de espera não informado</string>
     <string name="waiting_time_missing_dialog_message">Deseja que o tempo de espera seja calculado automaticamente antes de salvar?</string>
+
+    <string name="continent_code_antarctica">Antártica</string>
+    <string name="continent_code_africa">África</string>
+    <string name="continent_code_asia">Ásia</string>
+    <string name="continent_code_europe">Europa</string>
+    <string name="continent_code_north_america">América do Norte</string>
+    <string name="continent_code_south_america">América do Sul (Brasil)</string>
+    <string name="continent_code_oceania">Oceania</string>
+    <string name="general_thank_you_label">%s, obrigado</string>
+    <string name="general_refresh_label">Atualizar</string>
+    <string name="main_activity_single_spots_list_tab">locais</string>
+
+    <string name="refresh_datetime_dialog_title">Atualizar data e hora?</string>
+    <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutos já passaram desde que você abriu esta janela pela primeira vez. Você gostaria de atualizar a data e hora deste novo local? A atualização será feita de %2$s para %3$s.</string>
+
 </resources>

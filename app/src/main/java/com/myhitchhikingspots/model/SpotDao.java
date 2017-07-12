@@ -44,6 +44,8 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         public final static Property CountryCode = new Property(19, String.class, "CountryCode", false, "COUNTRY_CODE");
         public final static Property HasAccuracy = new Property(20, Boolean.class, "HasAccuracy", false, "HAS_ACCURACY");
         public final static Property Accuracy = new Property(21, Float.class, "Accuracy", false, "ACCURACY");
+        public final static Property IsPartOfARoute = new Property(22, Boolean.class, "IsPartOfARoute", false, "IS_PART_OF_AROUTE");
+        public final static Property IsHitchhikingSpot = new Property(23, Boolean.class, "IsHitchhikingSpot", false, "IS_HITCHHIKING_SPOT");
     }
 
 
@@ -80,7 +82,9 @@ public class SpotDao extends AbstractDao<Spot, Long> {
                 "\"IS_DESTINATION\" INTEGER," + // 18: IsDestination
                 "\"COUNTRY_CODE\" TEXT," + // 19: CountryCode
                 "\"HAS_ACCURACY\" INTEGER," + // 20: HasAccuracy
-                "\"ACCURACY\" REAL);"); // 21: Accuracy
+                "\"ACCURACY\" REAL," + // 21: Accuracy
+                "\"IS_PART_OF_AROUTE\" INTEGER," + // 22: IsPartOfARoute
+                "\"IS_HITCHHIKING_SPOT\" INTEGER);"); // 23: IsHitchhikingSpot
     }
 
     /** Drops the underlying database table. */
@@ -202,6 +206,16 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         if (Accuracy != null) {
             stmt.bindDouble(22, Accuracy);
         }
+ 
+        Boolean IsPartOfARoute = entity.getIsPartOfARoute();
+        if (IsPartOfARoute != null) {
+            stmt.bindLong(23, IsPartOfARoute ? 1L: 0L);
+        }
+ 
+        Boolean IsHitchhikingSpot = entity.getIsHitchhikingSpot();
+        if (IsHitchhikingSpot != null) {
+            stmt.bindLong(24, IsHitchhikingSpot ? 1L: 0L);
+        }
     }
 
     @Override
@@ -317,6 +331,16 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         if (Accuracy != null) {
             stmt.bindDouble(22, Accuracy);
         }
+ 
+        Boolean IsPartOfARoute = entity.getIsPartOfARoute();
+        if (IsPartOfARoute != null) {
+            stmt.bindLong(23, IsPartOfARoute ? 1L: 0L);
+        }
+ 
+        Boolean IsHitchhikingSpot = entity.getIsHitchhikingSpot();
+        if (IsHitchhikingSpot != null) {
+            stmt.bindLong(24, IsHitchhikingSpot ? 1L: 0L);
+        }
     }
 
     @Override
@@ -348,7 +372,9 @@ public class SpotDao extends AbstractDao<Spot, Long> {
             cursor.isNull(offset + 18) ? null : cursor.getShort(offset + 18) != 0, // IsDestination
             cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19), // CountryCode
             cursor.isNull(offset + 20) ? null : cursor.getShort(offset + 20) != 0, // HasAccuracy
-            cursor.isNull(offset + 21) ? null : cursor.getFloat(offset + 21) // Accuracy
+            cursor.isNull(offset + 21) ? null : cursor.getFloat(offset + 21), // Accuracy
+            cursor.isNull(offset + 22) ? null : cursor.getShort(offset + 22) != 0, // IsPartOfARoute
+            cursor.isNull(offset + 23) ? null : cursor.getShort(offset + 23) != 0 // IsHitchhikingSpot
         );
         return entity;
     }
@@ -377,6 +403,8 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         entity.setCountryCode(cursor.isNull(offset + 19) ? null : cursor.getString(offset + 19));
         entity.setHasAccuracy(cursor.isNull(offset + 20) ? null : cursor.getShort(offset + 20) != 0);
         entity.setAccuracy(cursor.isNull(offset + 21) ? null : cursor.getFloat(offset + 21));
+        entity.setIsPartOfARoute(cursor.isNull(offset + 22) ? null : cursor.getShort(offset + 22) != 0);
+        entity.setIsHitchhikingSpot(cursor.isNull(offset + 23) ? null : cursor.getShort(offset + 23) != 0);
      }
     
     @Override

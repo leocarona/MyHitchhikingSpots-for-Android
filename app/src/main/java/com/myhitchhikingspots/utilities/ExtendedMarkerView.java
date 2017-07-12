@@ -1,4 +1,4 @@
-package com.myhitchhikingspots;
+package com.myhitchhikingspots.utilities;
 
 import android.support.annotation.Nullable;
 
@@ -9,6 +9,7 @@ import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerView;
 import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
+import com.myhitchhikingspots.Constants;
 
 /**
  * Created by leoboaventura on 25/02/2017.

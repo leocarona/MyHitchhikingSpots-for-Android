@@ -1,10 +1,7 @@
 package com.myhitchhikingspots;
 
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -28,30 +25,44 @@ public class BaseActivity extends AppCompatActivity
     public static final int RESULT_OBJECT_ADDED = 2;
     public static final int RESULT_OBJECT_EDITED = 3;
     public static final int RESULT_OBJECT_DELETED = 4;
+    DrawerLayout drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         if (mShouldShowLeftMenu)
             ShowMenu();
     }
+
 
     protected void ShowMenu() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
 
-            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             if (drawer != null) {
                 ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                         this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
                 drawer.setDrawerListener(toggle);
                 toggle.syncState();
 
-                //Set listener to the menu icon click (the icon placed on the top left side of the screen)
                 NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
                 if (navigationView != null) {
+
+                    //Apply selected style to the open activity
+                    String currentActivityName = getClass().getName();
+                    if (currentActivityName.equals(SettingsActivity.class.getName()))
+                        navigationView.setCheckedItem(R.id.nav_tools);
+                    else if (currentActivityName.equals(MapViewActivity.class.getName()))
+                        navigationView.setCheckedItem(R.id.nav_my_map);
+                    else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
+                        navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
+                    else if (currentActivityName.equals(MainActivity.class.getName()))
+                        navigationView.setCheckedItem(R.id.nav_no_internet);
+
                     navigationView.setVisibility(View.VISIBLE);
                     navigationView.setNavigationItemSelectedListener(this);
                 }
@@ -61,7 +72,6 @@ public class BaseActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -83,17 +93,37 @@ public class BaseActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        String currentActivityName = getClass().getName();
 
-        if (id == R.id.nav_tools)
-            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-        else if (id == R.id.nav_home)
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-        else if (id == R.id.nav_map)
-            startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+        switch (item.getItemId()) {
+            case R.id.nav_tools:
+                if (!currentActivityName.equals(SettingsActivity.class.getName()))
+                    startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                break;
+            case R.id.nav_my_map:
+                if (!currentActivityName.equals(MapViewActivity.class.getName()))
+                    startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+                break;
+            case R.id.nav_hitchwiki_map:
+                if (!currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
+                    startActivity(new Intent(getApplicationContext(), HitchwikiMapViewActivity.class));
+                break;
+            case R.id.nav_no_internet:
+                //If the current activity is MainActivity, select the tab "you"
+                if (currentActivityName.equals(MainActivity.class.getName()))
+                    ((MainActivity) this).selectTab(MainActivity.SectionsPagerAdapter.TAB_YOU_INDEX);
+                else {
+                    //Start MainActivity presenting "you" tab.
+                    // If the current activity is MapViewActivity, we want the user to be sent back here if he clicks in "map" button in the next activity - (SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = true) will do that.
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, true);
+                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, currentActivityName.equals(MapViewActivity.class.getName()));
+                    startActivity(intent);
+                }
+                break;
+        }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -105,13 +135,5 @@ public class BaseActivity extends AppCompatActivity
                 .setMessage(msg)
                 .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
                 .show();
-    }
-
-    protected boolean isNetworkAvailable() {
-        //Method copied from http://stackoverflow.com/a/4239019/1094261
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }

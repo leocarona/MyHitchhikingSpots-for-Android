@@ -1,4 +1,4 @@
-package com.myhitchhikingspots;
+package com.myhitchhikingspots.utilities;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -7,10 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.mapbox.mapboxsdk.annotations.MarkerView;
-import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.myhitchhikingspots.ExtendedMarkerView;
+import com.myhitchhikingspots.R;
+import com.myhitchhikingspots.utilities.ExtendedMarkerView;
 
 /**
  * Default MarkerViewAdapter used for base class of MarkerView to adapt a MarkerView to an ImageView

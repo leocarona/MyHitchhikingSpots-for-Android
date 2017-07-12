@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/spot_list_item_parent"
     android:layout_width="match_parent"
+    android:paddingLeft="11dp"
+    android:paddingRight="11dp"
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
@@ -57,8 +58,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:maxLines="1"
-                android:text="- Sofia, Bulgaria"
-                android:singleLine="true" />
+                android:text="- Sofia, Bulgaria" />
 
         </LinearLayout>
 
@@ -73,13 +73,20 @@
                 android:layout_height="match_parent"
                 app:srcCompat="@drawable/ic_break_spot_icon" />
 
+            <ImageView
+                android:id="@+id/single_icon_layout_imageview"
+                android:layout_width="18dp"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/ic_marker_got_a_ride_24dp" />
+
             <TextView
                 android:id="@+id/spot_notes_layout_textview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
                 android:maxLines="1"
-                android:text="user's notes go here they can be quite long so we need to shrink it..."
-                android:singleLine="true" />
+                android:text="user's notes go here they can be quite long so we need to shrink it..." />
 
         </LinearLayout>
 

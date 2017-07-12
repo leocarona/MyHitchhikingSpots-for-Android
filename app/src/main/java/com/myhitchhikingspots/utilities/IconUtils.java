@@ -1,4 +1,4 @@
-package com.myhitchhikingspots;
+package com.myhitchhikingspots.utilities;
 
 import android.content.Context;
 import android.content.res.ColorStateList;

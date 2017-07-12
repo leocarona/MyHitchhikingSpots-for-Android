@@ -1,4 +1,4 @@
-package com.myhitchhikingspots;
+package com.myhitchhikingspots.model;
 
 /**
  * Created by leoboaventura on 02/10/2016.

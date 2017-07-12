@@ -9,6 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    android:orientation="vertical"
     tools:showIn="@layout/settings_master_layout">
 
 
@@ -18,37 +19,75 @@
         android:orientation="vertical">
 
         <Button
-            android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="pick file"
+            android:layout_gravity="center"
             android:onClick="pickFileButtonHandler"
-            android:visibility="gone"
-            />
+            android:text="pick file"
+            android:visibility="gone" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/settings_importdb_button_label"
+            android:layout_gravity="center"
             android:layout_marginTop="140dp"
-            android:layout_gravity="center"
             android:onClick="importButtonHandler"
-            android:visibility="gone"
-            />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/settings_exportdb_button_label"
-            android:id="@+id/export"
-            android:onClick="exportButtonHandler" />
+            android:text="@string/settings_importdb_button_label"
+            android:visibility="gone" />
 
         <TextView
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Export" />
+
+        <Button
+            android:id="@+id/export"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_gravity="center"
+            android:onClick="exportButtonHandler"
+            android:text="@string/settings_exportdb_button_label"
+            android:textAllCaps="true" />
+
+        <TextView
+            android:layout_marginTop="20dp"
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_downloadHDSpots_button_label" />
+
+        <Button
+            android:id="@+id/select_continents"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="showContinentsDialog"
+            android:text="@string/settings_select_continents_button_label"
+            android:textAllCaps="true" />
+
+        <Button
+            android:id="@+id/select_countries"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="showCountriesDialog"
+            android:text="@string/settings_select_countries_button_label"
+            android:textAllCaps="true" />
+
+
+        <TextView
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
             android:id="@+id/feedbacklabel"
-            android:layout_gravity="left" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:background="#FFFFD54D"
+            android:padding="10dp"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
     </LinearLayout>
 </RelativeLayout>

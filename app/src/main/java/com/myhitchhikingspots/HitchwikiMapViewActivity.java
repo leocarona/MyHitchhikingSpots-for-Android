@@ -22,13 +22,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
@@ -41,9 +40,7 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
-import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.ExtendedMarkerView;
 import com.myhitchhikingspots.utilities.ExtendedMarkerViewAdapter;
 import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
@@ -53,13 +50,12 @@ import com.myhitchhikingspots.utilities.Utils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapViewActivity extends BaseActivity implements OnMapReadyCallback {
+public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReadyCallback {
     private MapView mapView;
     private MapboxMap mapboxMap;
     //private LocationEngine locationEngine;
     //private LocationEngineListener locationEngineListener;
     private FloatingActionButton fabLocateUser, fabShowAll;
-    private FloatingActionButton fabSpotAction1, fabSpotAction2;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
 
@@ -75,7 +71,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         // object or in the same activity which contains the mapview.
         Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
 
-        setContentView(R.layout.mapview_master_layout);
+        setContentView(R.layout.hitchwikimapview_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
@@ -120,45 +116,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
         });
 
-        fabSpotAction1 = (FloatingActionButton) findViewById(R.id.fab_spot_action_1);
-        fabSpotAction1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //While waiting for a ride, MainActionButton is a "Got a ride" button
-                //when not waiting for a ride, it's a "Save spot" button
-
-                if (mIsWaitingForARide)
-                    gotARideButtonHandler();
-                else
-                    saveRegularSpotButtonHandler();
-
-
-                //   Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //         .setAction("Action", null).show();
-                //startActivity(new Intent(getApplicationContext(), MyLocationFragment.class));
-            }
-        });
-
-        fabSpotAction2 = (FloatingActionButton) findViewById(R.id.fab_spot_action_2);
-        fabSpotAction2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //While waiting for a ride, SecondaryActionButton is a "Arrived to destination" button
-                //when not waiting for a ride, it's a "Take a break" button
-
-                if (mIsWaitingForARide)
-                    tookABreakButtonHandler();
-                else
-                    saveDestinationSpotButtonHandler();
-
-                // Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //       .setAction("Action", null).show();
-                //startActivity(new Intent(getApplicationContext(), MyLocationFragment.class));
-            }
-        });
-
-        fabSpotAction1.setVisibility(View.INVISIBLE);
-        fabSpotAction2.setVisibility(View.INVISIBLE);
 
         // Get the location engine object for later use.
         //locationEngine = LocationSource.getLocationEngine(this);
@@ -176,7 +133,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             public void onMyLocationChange(Location location) {
                 if (location != null) {
                     if (!wasFirstLocationReceived) {
-                        updateUISaveButtons();
+                        updateCurrentPage();
                         wasFirstLocationReceived = true;
                     }
 
@@ -201,7 +158,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     .setAction("enable", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            ActivityCompat.requestPermissions(MapViewActivity.this, new String[]{
+                            ActivityCompat.requestPermissions(HitchwikiMapViewActivity.this, new String[]{
                                     Manifest.permission.ACCESS_COARSE_LOCATION,
                                     Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_LOCATION);
                         }
@@ -257,7 +214,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
 
-        ic_point_on_the_route_spot = IconUtils.drawableToIcon(this, R.drawable.ic_point_on_the_route_black_24dp, -1);
         ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
@@ -274,6 +230,18 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     boolean mIsWaitingForARide;
     boolean mWillItBeFirstSpotOfARoute;
 
+    public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
+        mCurrentWaitingSpot = currentWaitingSpot;
+
+        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
+            mIsWaitingForARide = false;
+        else
+            mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
+
+
+        mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+    }
+
     public enum pageType {
         NOT_FETCHING_LOCATION,
         WILL_BE_FIRST_SPOT_OF_A_ROUTE, //user sees "save spot" but doesn't see "arrival" button
@@ -283,47 +251,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     private pageType currentPage;
 
-    protected void configureBottomFABButtons() {
-        switch (currentPage) {
-            case NOT_FETCHING_LOCATION:
-            default:
-                fabSpotAction1.setVisibility(View.INVISIBLE);
-                fabSpotAction2.setVisibility(View.INVISIBLE);
-                break;
-            case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
-                fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_regular_spot_color));
-                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color_lighter));
-
-                fabSpotAction1.setVisibility(View.VISIBLE);
-                fabSpotAction2.setVisibility(View.INVISIBLE);
-                break;
-            case WILL_BE_REGULAR_SPOT:
-                fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_regular_spot_color));
-                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color_lighter));
-                fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
-                fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_arrival_color));
-                fabSpotAction2.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_arrival_color_lighter));
-
-                fabSpotAction1.setVisibility(View.VISIBLE);
-                fabSpotAction2.setVisibility(View.VISIBLE);
-                break;
-            case WAITING_FOR_A_RIDE:
-                fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_got_a_ride_color));
-                fabSpotAction1.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_got_a_ride_color_lighter));
-                fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
-                fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(getBaseContext(), R.color.ic_break_color));
-                fabSpotAction2.setRippleColor(ContextCompat.getColor(getBaseContext(), R.color.ic_break_color_lighter));
-
-                fabSpotAction1.setVisibility(View.VISIBLE);
-                fabSpotAction2.setVisibility(View.VISIBLE);
-                break;
-        }
-    }
-
-    protected void updateUISaveButtons() {
+    protected void updateCurrentPage() {
         //If it's not waiting for a ride
         if (!mIsWaitingForARide) {
             /*if (!locationEngine.areLocationPermissionsGranted() || locationEngine.getLastLocation() == null
@@ -341,7 +269,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             currentPage = pageType.WAITING_FOR_A_RIDE;
         }
 
-        configureBottomFABButtons();
+        Crashlytics.setString("currentPage", currentPage.toString());
     }
 
     /**
@@ -363,27 +291,35 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
 
     public void loadValues() {
-        MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
-        DaoSession daoSession = appContext.getDaoSession();
-        SpotDao spotDao = daoSession.getSpotDao();
 
-        spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
+        PlaceInfoBasic[] placesContainerFromFile = Utils.loadHitchwikiSpotsFromLocalFile();
 
-        mCurrentWaitingSpot = appContext.getCurrentSpot();
-
-        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
-            mIsWaitingForARide = false;
+        if (spotList == null)
+            spotList = new ArrayList<>();
         else
-            mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
+            spotList.clear();
 
+        if (placesContainerFromFile != null) {
+            for (int i = 0; i < placesContainerFromFile.length; i++) {
+                try {
+                    Spot s = Utils.convertToSpot(placesContainerFromFile[i]);
+                    if (s.getId() == null || s.getId() == 0)
+                        s.setId((long) i);
+                    spotList.add(s);
+                } catch (Exception ex) {
+                    Crashlytics.logException(ex);
+                }
+            }
+        }
 
-        mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+        updateCurrentPage();
     }
+
 
     //onMapReady is called after onResume()
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
-        Crashlytics.log(Log.INFO, TAG, "onMapReady was called");
+        Crashlytics.log(Log.INFO, TAG, "mapReady called");
         // Customize map with markers, polylines, etc.
         this.mapboxMap = mapboxMap;
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
@@ -393,7 +329,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring));//Color.parseColor("#56B881")
 
         // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(MapViewActivity.this) && !mapboxMap.isMyLocationEnabled())
+        if (PermissionsManager.areLocationPermissionsGranted(HitchwikiMapViewActivity.this) && !mapboxMap.isMyLocationEnabled())
             mapboxMap.setMyLocationEnabled(true);
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
@@ -412,7 +348,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 }
 
                 if (spot != null) {
-                    Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+                    /*Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
 
                     //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
                     if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
@@ -423,12 +359,13 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             Toast.makeText(getBaseContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
                             return true;
                         }
-                    }
+                    }*/
 
                     Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
                     //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
                     intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+                    intent.putExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, true);
+
                     startActivityForResult(intent, EDIT_SPOT_REQUEST);
                 } else
                     Crashlytics.log(Log.WARN, TAG,
@@ -442,48 +379,42 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         final MarkerViewManager markerViewManager = mapboxMap.getMarkerViewManager();
         // if you want to customise a ViewMarker you need to extend ViewMarker and provide an adapter implementation
         // set adapters for child classes of ViewMarker
-        markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(MapViewActivity.this));
+        markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(HitchwikiMapViewActivity.this));
 
         updateUI();
     }
 
-    SharedPreferences prefs;
-
     void updateUI() {
         Crashlytics.log(Log.INFO, TAG, "updateUI was called");
 
-        if (!Utils.isNetworkAvailable(this) && !Utils.shouldLoadCurrentView(prefs)) {
+        loadAll();
+    }
+
+    SharedPreferences prefs;
+
+    void loadAll() {
+        if (mapboxMap.getMyLocation() != null)
+            moveCamera(new LatLng(mapboxMap.getMyLocation()));
+
+        Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
+        if (millisecondsAtRefresh > 0) {
+            //Load spots and display them as markers and polylines on the map
+            new DrawAnnotations().execute();
+        } else {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getResources().getString(R.string.general_network_unavailable_message))
-                    .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
-                    .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
+                    .setTitle(getString(R.string.mapview_hitchwiki_title))
+                    .setMessage(String.format(getString(R.string.empty_list_dialog_message), getString(R.string.tools_title)))
+                    .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
-                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
-
-                            openSpotsListView(true);
+                            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
                         }
                     })
-                    .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
-                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
-
-                            loadAll();
-                        }
-                    }).show();
-        } else {
-            loadAll();
+                    .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
         }
     }
 
-    void loadAll() {
-        //Load polylines
-        new DrawAnnotations().execute();
-    }
 
     protected boolean isDrawingAnnotations = false;
 
@@ -510,58 +441,24 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         return "";
     }
 
-    @NonNull
-    private static String getString(Spot mCurrentSpot) {
-        String spotLoc = spotLocationToString(mCurrentSpot).trim();
-        if (spotLoc != null && !spotLoc.isEmpty()) {// spotLoc = "- " + spotLoc;
-        } else if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null)
-            spotLoc = "(" + mCurrentSpot.getLatitude() + ", " + mCurrentSpot.getLongitude() + ")";
-        return spotLoc;
-    }
-
-   /* private static String dateTimeToString(Date dt) {
-        if (dt != null) {
-            SimpleDateFormat res;
-            String dateFormat = "dd/MMM', 'HH:mm";
-
-            if (Locale.getDefault() == Locale.US)
-                dateFormat = "MMM/dd', 'HH:mm";
-
-            try {
-                res = new SimpleDateFormat(dateFormat);
-                return res.format(dt);
-            } catch (Exception ex) {
-                Crashlytics.setString("date", dt.toString());
-                Crashlytics.logException(ex);
-            }
-        }
-        return "";
-    }*/
 
     @Override
     protected void onStart() {
-        Crashlytics.log(Log.INFO, TAG, "onStart called");
         super.onStart();
         mapView.onStart();
     }
 
     @Override
     protected void onStop() {
-        Crashlytics.log(Log.INFO, TAG, "onStop called");
         super.onStop();
         mapView.onStop();
     }
 
     @Override
     public void onResume() {
-        Crashlytics.log(Log.INFO, TAG, "onResume called");
         super.onResume();
+        Crashlytics.log(Log.INFO, TAG, "onResume called");
         mapView.onResume();
-
-
-        //If mapbox was already loaded, we should call updateUI() here in order to update its data
-        if (mapboxMap != null)
-            updateUI();
     }
 
     @Override
@@ -584,19 +481,14 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         }*/
     }
 
-    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_point_on_the_route_spot, ic_arrival_spot = null;
+    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
 
     List<Spot> spotList = new ArrayList<Spot>();
 
-    public void setValues(final List<Spot> list) {
-        spotList = list;
-    }
-
 
     @Override
     public void onPause() {
-        Crashlytics.log(Log.INFO, TAG, "onPause was called");
         super.onPause();
         mapView.onPause();
 
@@ -609,7 +501,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-        Crashlytics.log(Log.INFO, TAG, "onSaveInstanceState called");
         super.onSaveInstanceState(savedInstanceState);
         mapView.onSaveInstanceState(savedInstanceState);
 
@@ -632,71 +523,14 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     @Override
     protected void onDestroy() {
-        Crashlytics.log(Log.INFO, TAG, "onDestroy was called");
         super.onDestroy();
         mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
-        Crashlytics.log(Log.WARN, TAG, "onLowMemory was called");
         super.onLowMemory();
         mapView.onLowMemory();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.mapview_menu, menu);
-        return true;
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        boolean selectionHandled = false;
-
-        switch (item.getItemId()) {
-            case R.id.action_view_list:
-                openSpotsListView();
-                selectionHandled = true;
-                break;
-            case R.id.action_new_spot:
-                //If mapboxMap was not loaded, we can't track the user location using MapBox.
-                // Let's give the user an option to track his location using Google Play services instead, which is done by {@link #TrackLocationBaseActivity}
-                if (mapboxMap == null) {
-                    new AlertDialog.Builder(this)
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setTitle(getString(R.string.save_spot_button_text))
-                            .setMessage(getString(R.string.general_offline_mode_label)
-                                    + ". " + getString(R.string.map_error_alert_map_not_loaded_alternative_message))
-                            .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    openSpotsListView(true);
-                                }
-                            })
-                            .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
-                } else
-                    saveSpotButtonHandler(false);
-                selectionHandled = true;
-                break;
-        }
-
-        if (selectionHandled)
-            return true;
-        else
-            return super.onOptionsItemSelected(item);
-    }
-
-    void openSpotsListView(Boolean... shouldShowYouTab) {
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-        //When set to true, shouldShowYouTab will open MainActivity presenting the tab "You" instead of the tab "List"
-        if (shouldShowYouTab.length > 0)
-            intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab[0]);
-        startActivity(intent);
-        //startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
 
     protected void zoomOutToFitAllMarkers() {
@@ -761,10 +595,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
 
-    Boolean shouldShowOnlyGotARideMarkers = true;
-
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
-        private final ProgressDialog dialog = new ProgressDialog(MapViewActivity.this);
+        private final ProgressDialog dialog = new ProgressDialog(HitchwikiMapViewActivity.this);
 
         @Override
         protected void onPreExecute() {
@@ -786,10 +618,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 ArrayList<ExtendedMarkerViewOptions> singleSpots = new ArrayList<>();
 
                 //The spots are ordered from the last saved ones to the first saved ones, so we need to
-                // go through the list in the opposite direction in order to sum up the route's totals from their origin to their destinations
+                // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
                 for (int i = spotList.size() - 1; i >= 0; i--) {
                     Spot spot = spotList.get(i);
-                    String markerTitle = "";
 
                     ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
                             .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
@@ -797,94 +628,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     if (spot.getId() != null)
                         markerViewOptions.tag(spot.getId().toString());
 
-                    Icon icon = null;
 
-                    //If spot belongs to a route (it's not a single spot)
-                    if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
+                    markerViewOptions.icon(ic_single_spot);
+                    markerViewOptions.spotType(Constants.SPOT_TYPE_HITCHHIKING_SPOT);
 
-                        //If spot is a hitchhiking spot where the user is waiting for a ride
-                        if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
-                                spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
-                            //The spot is where the user is waiting for a ride
-
-                            markerTitle = getString(R.string.map_infoview_spot_type_waiting);
-                            icon = ic_waiting_spot;
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_WAITING);
-
-                        } else if (spot.getIsDestination() != null && spot.getIsDestination()) {
-                            //The spot is a destination
-
-                            markerTitle = getString(R.string.map_infoview_spot_type_destination);
-                            icon = ic_arrival_spot;
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_DESTINATION);
-
-                            //Center icon
-                            markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                        } else {
-                            if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
-                                //The spot is a hitchhiking spot
-                                markerViewOptions.spotType(Constants.SPOT_TYPE_HITCHHIKING_SPOT);
-
-                                switch (spot.getAttemptResult()) {
-                                    case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
-                                    default:
-                                        //The spot is a hitchhiking spot that was already evaluated
-                                        icon = getGotARideIconForRoute(trips.size());
-                                        markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
-                                        break;
-                                    case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
-                                        //The spot is a hitchhiking spot that was already evaluated
-                                        //icon = ic_took_a_break_spot;
-                                        icon = ic_point_on_the_route_spot;
-                                        markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                                        markerViewOptions.alpha((float) 0.5);
-                                        markerTitle = getString(R.string.map_infoview_spot_type_break);
-                                        break;
-                                   /* default:
-                                        //The spot is a hitchhiking spot that was not evaluated yet
-                                        //icon = getGotARideIconForRoute(-1);
-                                        icon = ic_point_on_the_route_spot;
-                                        markerTitle = getString(R.string.map_infoview_spot_type_not_evaluated);
-                                        markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                                        marker'/ViewOptions.alpha((float) 0.5);
-                                        break;*/
-                                }
-
-                            } else {
-                                //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
-                                icon = ic_point_on_the_route_spot;
-                                markerViewOptions.spotType(Constants.SPOT_TYPE_POINT_ON_THE_ROUTE);
-                                markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                                markerViewOptions.alpha((float) 0.5);
-                            }
-
-                            if (spots.size() == 0) {
-                                //The spot is the origin of a route
-                                markerViewOptions.spotType(Constants.SPOT_TYPE_ORIGIN);
-                                if (!markerTitle.isEmpty())
-                                    markerTitle = getString(R.string.map_infoview_spot_type_origin) + " " + markerTitle;
-                                else
-                                    markerTitle = getString(R.string.map_infoview_spot_type_origin);
-                            }
-                        }
-                    } else {
-                        //This spot doesn't belong to a route (it's a single spot)
-
-                        if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
-                            markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
-
-                            icon = ic_point_on_the_route_spot;
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_POINT_ON_THE_ROUTE);
-                            markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                            markerViewOptions.alpha((float) 0.5);
-                        } else {
-                            icon = ic_single_spot;
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);
-                        }
-                    }
-
-                    if (icon != null)
-                        markerViewOptions.icon(icon);
 
                     //Get location string
                     String firstLine = spotLocationToString(spot).trim();
@@ -902,8 +649,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     }*/
 
                     //Add waiting time
-                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
-                            spot.getWaitingTime() != null) {
+                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() && spot.getWaitingTime() != null) {
                         if (!secondLine.isEmpty())
                             secondLine += " ";
                         secondLine += "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
@@ -921,8 +667,13 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         snippetAllLines += "\n";
                     snippetAllLines += secondLine;
 
+                    //Get a hitchability string to set as title
+                    String title = "";
+                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
+                        title = Utils.getRatingOrDefaultAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability() != null ? spot.getHitchability() : 0));
+
                     //Set hitchability as title
-                    markerViewOptions.title(markerTitle.toUpperCase());
+                    markerViewOptions.title(title.toUpperCase());
 
                     // Customize map with markers, polylines, etc.
                     markerViewOptions.snippet(snippetAllLines);
@@ -949,12 +700,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+                        showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                                 "Loading spots failed.\n" + ex.getMessage()));
                     }
                 });
             }
-
             return new ArrayList<>();
         }
 
@@ -965,8 +715,6 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             super.onPostExecute(trips);
             try {
                 mapboxMap.clear();
-
-                updateUISaveButtons();
 
                 for (int lc = 0; lc < trips.size(); lc++) {
                     List<ExtendedMarkerViewOptions> spots = trips.get(lc);
@@ -995,10 +743,10 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             //Add polylines to map
                             mapboxMap.addPolyline(line);
                         }
+
+                        zoomOutToFitAllMarkers();
                     }
                 }
-
-                zoomOutToFitAllMarkers();
 
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
@@ -1014,72 +762,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     }
 
-
-    public void saveRegularSpotButtonHandler() {
-        saveSpotButtonHandler(false);
-    }
-
-    public void saveDestinationSpotButtonHandler() {
-        saveSpotButtonHandler(true);
-    }
-
-    protected static final String TAG = "map-view-activity";
-
-
-    /**
-     * Handles the Save Spot button and save current location. Does nothing if
-     * updates have already been requested.
-     */
-    public void saveSpotButtonHandler(boolean isDestination) {
-        Spot spot = null;
-        if (!mIsWaitingForARide) {
-            spot = new Spot();
-            spot.setIsHitchhikingSpot(!isDestination);
-            spot.setIsDestination(isDestination);
-            spot.setIsPartOfARoute(true);
-            if (mapboxMap != null) {
-                Location mCurrentLocation = mapboxMap.getMyLocation();
-                if (mCurrentLocation != null) {
-                    spot.setLatitude(mCurrentLocation.getLatitude());
-                    spot.setLongitude(mCurrentLocation.getLongitude());
-                    spot.setAccuracy(mCurrentLocation.getAccuracy());
-                    spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
-                }
-            }
-            Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a new spot is being created.");
-        } else {
-            spot = mCurrentWaitingSpot;
-            Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
-        }
-
-        Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        startActivity(intent);
-    }
-
-    public void gotARideButtonHandler() {
-        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        evaluateSpotButtonHandler();
-    }
-
-    public void tookABreakButtonHandler() {
-        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
-        evaluateSpotButtonHandler();
-    }
-
-    /**
-     * Handles the Got A Ride button, and requests removal of location updates. Does nothing if
-     * updates were not previously requested.
-     */
-    public void evaluateSpotButtonHandler() {
-        //mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
-
-        if (mIsWaitingForARide) {
-            Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
-            startActivity(intent);
-        }
-    }
+    protected static final String TAG = "hitchwikimap-view-activity";
 
     private Icon getGotARideIconForRoute(int routeIndex) {
         Icon i = ic_typeunknown_spot;

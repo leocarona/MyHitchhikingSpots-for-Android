@@ -18,6 +18,7 @@ package com.myhitchhikingspots;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +35,7 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.Utils;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -145,7 +147,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     boolean mIsWaitingForARide;
     boolean mWillItBeFirstSpotOfARoute;
 
-    public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
+    public void setValues(Boolean willItBeFirstSpotOfARoute, Spot currentWaitingSpot) {
         Crashlytics.log(Log.INFO, TAG, "setValues was called");
         try {
             mCurrentWaitingSpot = currentWaitingSpot;
@@ -156,7 +158,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
                 mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
 
-            mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+            mWillItBeFirstSpotOfARoute = willItBeFirstSpotOfARoute;
 
         } catch (Exception ex) {
             Crashlytics.logException(ex);
@@ -184,7 +186,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     }
 
     public Integer getSelectedHitchability() {
-        return findTheOpposit(Math.round(hitchability_ratingbar.getRating()));
+        return Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating()));
     }
 
     public void saveRegularSpotButtonHandler() {
@@ -205,7 +207,9 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         if (!mIsWaitingForARide) {
             requestCode = BaseActivity.SAVE_SPOT_REQUEST;
             spot = new Spot();
+            spot.setIsHitchhikingSpot(!isDestination);
             spot.setIsDestination(isDestination);
+            spot.setIsPartOfARoute(true);
             if (parentActivity.mCurrentLocation != null) {
                 spot.setLatitude(parentActivity.mCurrentLocation.getLatitude());
                 spot.setLongitude(parentActivity.mCurrentLocation.getLongitude());
@@ -218,13 +222,26 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
-        Bundle args = new Bundle();
-        args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+        if (spot.getLatitude() == null || spot.getLatitude() == 0 || spot.getLongitude() == null || spot.getLongitude() == 0)
+            showErrorAlert("No location data", "We couldn't fetch your current location, you might need an internet connection first and hopefully a next time you will no longer need it.");
+        else {
+            Bundle args = new Bundle();
+            args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+            args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
 
-        Intent intent = new Intent(getContext(), SpotFormActivity.class);
-        intent.putExtras(args);
-        startActivity(intent);
+            Intent intent = new Intent(getContext(), SpotFormActivity.class);
+            intent.putExtras(args);
+            startActivity(intent);
+        }
+    }
+
+    protected void showErrorAlert(String title, String msg) {
+        new AlertDialog.Builder(getContext())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
+                .show();
     }
 
     public void gotARideButtonHandler() {
@@ -242,7 +259,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      * updates were not previously requested.
      */
     public void evaluateSpotButtonHandler() {
-        mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
+        mCurrentWaitingSpot.setHitchability(Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating())));
 
         if (mIsWaitingForARide) {
             Bundle args = new Bundle();
@@ -402,55 +419,8 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-        mHitchabilityTextView.setText(getRatingString(Math.round(rating)));
+        mHitchabilityTextView.setText(Utils.getRatingAsString(getContext(), Math.round(rating)));
     }
 
-    private String getRatingString(Integer rating) {
-        String res = "";
-        switch (rating) {
-            case 1:
-                res = getResources().getString(R.string.hitchability_senseless);
-                break;
-            case 2:
-                res = getResources().getString(R.string.hitchability_bad);
-                break;
-            case 3:
-                res = getResources().getString(R.string.hitchability_average);
-                break;
-            case 4:
-                res = getResources().getString(R.string.hitchability_good);
-                break;
-            case 5:
-                res = getResources().getString(R.string.hitchability_very_good);
-                break;
-           /* default:
-                res = getResources().getString(R.string.hitchability_no_answer);
-                break;*/
-        }
-        return res;
-    }
 
-    private static Integer findTheOpposit(Integer rating) {
-        //NOTE: For sure there should be a math formula to find this result, I just didn't feel like using
-        // more time on this so why not a switch until you make it better =)
-        Integer res = 0;
-        switch (rating) {
-            case 1:
-                res = 5;
-                break;
-            case 2:
-                res = 4;
-                break;
-            case 3:
-                res = 3;
-                break;
-            case 4:
-                res = 2;
-                break;
-            case 5:
-                res = 1;
-                break;
-        }
-        return res;
-    }
 }
