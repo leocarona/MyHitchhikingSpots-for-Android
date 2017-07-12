@@ -178,7 +178,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     int lastSelectedTab = -1;
 
     LinearLayout panel_buttons, panel_info;
-    TextView panel_map_not_displayed, feedbacklabel;
+    TextView panel_map_not_displayed;
     RelativeLayout datePanel;
     MenuItem saveMenuItem;
     boolean wasSnackbarShown;
@@ -275,7 +275,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
         panel_info = (LinearLayout) findViewById(R.id.panel_info);
         panel_map_not_displayed = (TextView) findViewById(R.id.save_spot_map_not_displayed);
-        feedbacklabel = (TextView) findViewById(R.id.feedbacklabel);
         datePanel = (RelativeLayout) findViewById(R.id.date_panel);
 
         menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
@@ -368,28 +367,35 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         });
 
 
-        menu_bottom.setOnNavigationItemSelectedListener(
-                new BottomNavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        lastSelectedTab = item.getItemId();
-                        switch (lastSelectedTab) {
-                            case R.id.action_basic:
-                                spot_form_basic.setVisibility(View.VISIBLE);
-                                spot_form_evaluate.setVisibility(View.GONE);
+        menu_bottom.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                lastSelectedTab = item.getItemId();
+                switch (lastSelectedTab) {
+                    case R.id.action_basic:
+                        spot_form_basic.setVisibility(View.VISIBLE);
+                        spot_form_evaluate.setVisibility(View.GONE);
 
-                                //mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                                hideKeyboard();
-                                break;
-                            case R.id.action_evaluate:
-                                spot_form_basic.setVisibility(View.GONE);
-                                spot_form_evaluate.setVisibility(View.VISIBLE);
+                        //mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        hideKeyboard();
+                        break;
+                    case R.id.action_evaluate:
+                        if (mFormType == FormType.Create || !is_hitchhiking_spot_check_box.isChecked()) {
+                            //Show message to let the user know that Evaluate tab will be enabled after he clicks the Save button
+                            Toast.makeText(getBaseContext(), String.format(getString(R.string.spot_form_enable_evaluate_tab_message),
+                                    getString(R.string.spot_form_bottommenu_evaluate_tile)),
+                                    Toast.LENGTH_SHORT).show();
 
-                                break;
+                            return false;
+                        } else {
+                            spot_form_basic.setVisibility(View.GONE);
+                            spot_form_evaluate.setVisibility(View.VISIBLE);
                         }
-                        return true;
-                    }
-                });
+                        break;
+                }
+                return true;
+            }
+        });
 
        /* LISTENERS THAT WE STOPPED USING BECAUSE onCameraChangeListener IS CALLED AT RANDOM MOMENTS, NOT ONLY WHEN THE USER MOVES THE MAP MANUALLY.
        GOOD NEWS: The next version of gradle (current one when this comment is been written is: io.fabric.tools:gradle:1.22.2) should provide listeners
@@ -600,6 +606,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
         return "";
     }*/
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -1123,8 +1130,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             updateSelectedTab();
 
-            updateEnabledTabs();
-
             updateSaveButtonState();
 
         } catch (Exception ex) {
@@ -1155,28 +1160,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mSaveButton.setVisibility(View.GONE);
         else
             mSaveButton.setVisibility(View.VISIBLE);
-    }
-
-
-    private void updateEnabledTabs() {
-        Boolean shouldEnable = false;
-
-        if (mFormType == FormType.ReadOnly)
-            shouldEnable = mCurrentSpot.getIsHitchhikingSpot() != null && mCurrentSpot.getIsHitchhikingSpot();
-        else {
-            //If it is not a hitchhiking spot, the evaluate tab isn't used - let's disable evaluate_menuitem tab
-            if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                shouldEnable = is_hitchhiking_spot_check_box.isChecked();
-        }
-
-        //If you try to disable a tab when it is the current selected tab, the tab won't be disabled.
-        //So let's unselect it first.
-        if (!shouldEnable && menu_bottom.getSelectedItemId() == R.id.action_evaluate) {
-            lastSelectedTab = R.id.action_basic;
-            updateSelectedTab();
-        }
-
-        evaluate_menuitem.setEnabled(shouldEnable);
     }
 
     private void updateSelectedTab() {
@@ -1433,8 +1416,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 else
                     mFormType = FormType.Evaluate;
 
-                feedbacklabel.setVisibility(View.GONE);
-
                 Crashlytics.setString("mFormType", mFormType.toString());
 
                 refreshDatetimeAlertDialogWasShown = false;
@@ -1622,11 +1603,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     //If it is a hitchhiking spot, it can be a single spot
                     is_part_of_a_route_check_box.setEnabled(true);
 
-                    //If it is a hitchhiking spot, user might want to evaluate the spot
-                    if (mFormType == FormType.Create) {
-                        //Show message to let the user know that Evaluate tab will be enabled after he clicks the Save button
-                        feedbacklabel.setVisibility(View.VISIBLE);
-                    }
                 } else {
                     //It is not a hitchhiking spot
                     is_hitchhiking_spot_check_box.setTypeface(null, Typeface.NORMAL);
@@ -1636,15 +1612,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                     //If it is not a hitchhiking spot, it can be a single spot
                     is_part_of_a_route_check_box.setEnabled(true);
-
-                    //If it is not a hitchhiking spot, there's nothing to evaluate
-                    feedbacklabel.setVisibility(View.GONE);
                 }
 
                 break;
         }
-
-        updateEnabledTabs();
 
         //Set all checkedChangedListener
         is_destination_check_box.setOnCheckedChangeListener(this);

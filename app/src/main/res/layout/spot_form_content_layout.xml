@@ -354,18 +354,6 @@
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
                         android:text="@string/spot_form_is_destination_checkbox_text" />
 
-
-                    <TextView
-                        android:id="@+id/feedbacklabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="#FFFFD54D"
-                        android:gravity="center"
-                        android:padding="10dp"
-                        android:text="Save your spot to enable Evaluate tab."
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:visibility="gone" />
-
                 </LinearLayout>
             </LinearLayout>
         </android.support.v4.widget.NestedScrollView>

@@ -94,6 +94,7 @@
     <string name="spot_form_title_edit">Ændr sted</string>
     <string name="spot_form_lat_lng_label">Br %1$s L %2$s</string>
     <string name="spot_form_location_selected_label">Sted valgt.</string>
+    <string name="spot_form_enable_evaluate_tab_message">Save your hitchhiking spot to enable the %s tab.</string>
 
     <string name="waiting_for_connection">Venter på at forbindelsen bliver oprettet..</string>
     <string name="unable_to_find_location">Ude af stand til at hente position med Google api client :(</string>

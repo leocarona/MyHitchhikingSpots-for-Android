@@ -125,6 +125,7 @@
     <string name="spot_form_title_edit">Editar ponto</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
     <string name="spot_form_location_selected_label">Localização selecionada.</string>
+    <string name="spot_form_enable_evaluate_tab_message">Salve seu local de carona para habilitar a aba %s.</string>
 
     <string name="waiting_for_connection">Estabelecendo conexão..</string>
     <string name="unable_to_find_location">Nāo foi possível encontrar sua localizaçāo com o Google api client :(</string>

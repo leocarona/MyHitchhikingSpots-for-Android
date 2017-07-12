@@ -124,6 +124,7 @@
     <string name="spot_form_title_edit">Standort bearbeiten</string>
     <string name="spot_form_lat_lng_label">Bg %1$s Lg %2$s</string>
     <string name="spot_form_location_selected_label">Standort auswählen.</string>
+    <string name="spot_form_enable_evaluate_tab_message">Save your hitchhiking spot to enable the %s tab.</string>
 
     <string name="waiting_for_connection">Verbindung wird hergestellt..</string>
     <string name="unable_to_find_location">Nicht in der Lage, den Standort mit Google api abzurufen :(</string>
