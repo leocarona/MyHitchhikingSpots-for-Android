@@ -348,7 +348,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 }
 
                 if (spot != null) {
-                    Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+                    /*Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
 
                     //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
                     if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
@@ -359,7 +359,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                             Toast.makeText(getBaseContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
                             return true;
                         }
-                    }
+                    }*/
 
                     Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
                     //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
