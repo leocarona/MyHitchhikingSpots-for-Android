@@ -207,7 +207,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         if (!mIsWaitingForARide) {
             requestCode = BaseActivity.SAVE_SPOT_REQUEST;
             spot = new Spot();
-            spot.setIsHitchhikingSpot(true);
+            spot.setIsHitchhikingSpot(!isDestination);
             spot.setIsDestination(isDestination);
             spot.setIsPartOfARoute(true);
             if (parentActivity.mCurrentLocation != null) {

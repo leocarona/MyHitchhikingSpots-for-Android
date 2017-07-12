@@ -1034,7 +1034,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         Spot spot = null;
         if (!mIsWaitingForARide) {
             spot = new Spot();
-            spot.setIsHitchhikingSpot(true);
+            spot.setIsHitchhikingSpot(!isDestination);
             spot.setIsDestination(isDestination);
             spot.setIsPartOfARoute(true);
             if (mapboxMap != null) {
