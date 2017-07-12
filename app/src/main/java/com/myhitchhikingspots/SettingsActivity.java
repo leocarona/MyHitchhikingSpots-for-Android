@@ -87,7 +87,7 @@ public class SettingsActivity extends BaseActivity {
         Long millisecondsAtNow = System.currentTimeMillis();
         Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
         if (millisecondsLastCountriesRefresh > 0) {
-            strLastDownload += String.format("- Last update of countries list was done %s ago.",
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_countriesList_update_message),
                     SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh)));
         }
 
@@ -95,7 +95,7 @@ public class SettingsActivity extends BaseActivity {
         if (millisecondsLastExport > 0) {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
-            strLastDownload += String.format("- Last export was done %s ago.",
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_export_message),
                     SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport)));
         }
 
@@ -104,7 +104,7 @@ public class SettingsActivity extends BaseActivity {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
 
-            strLastDownload += String.format("- Last download was done %s ago.",
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_download_message),
                     SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh)));
         }
 

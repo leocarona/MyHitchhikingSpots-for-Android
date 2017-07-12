@@ -73,6 +73,9 @@
     <string name="settings_countriesList_is_empty_message">Once the country options are downloaded, you\'ll be able to download spots from Hitchwiki Maps for the countries of your preference. This means just a small part of your phone memory will be used. :-)\nWould you like to download the countries list now?</string>
     <string name="settings_exportdb_finish_successfull_message">Copied to:\n%s</string>
     <string name="settings_countriesList_download_failed_message">An exception occurred while trying to download the countries list.</string>
+    <string name="settings_last_countriesList_update_message">Last update of countries list was done %s ago.</string>
+    <string name="settings_last_export_message">Last export was done %s ago.</string>
+    <string name="settings_last_download_message">Last download was done %s ago.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -107,6 +110,7 @@
     <string name="main_activity_list_tab">Routen</string>
     <string name="spot_list_item_arrival_label">Ankunft</string>
     <string name="spot_list_item_waiting_label">Wartezeit</string>
+
     <string name="spot_form_save_button_text">Speichern</string>
     <string name="spot_form_delete_button_text">Löschen</string>
     <string name="spot_form_delete_dialog_title_text">Ort Löschen</string>

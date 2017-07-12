@@ -76,6 +76,9 @@
     <string name="settings_countriesList_is_empty_message">Uma vez que a lista de países estiver baixada, você poderá baixar locais de carona do Hitchwiki Maps para os países de sua escolha. Desta forma pouca memória do seu celular será consumida. :-)\nVocê gostaria de baixar a lista de países?</string>
     <string name="settings_exportdb_finish_successfull_message">Exportado para:\n%s</string>
     <string name="settings_countriesList_download_failed_message">Houve um erro ao tentar baixar a lista de países.</string>
+    <string name="settings_last_countriesList_update_message">Última atualização da lista de países foi feita há %s atrás.</string>
+    <string name="settings_last_export_message">Última vez que sua lista de locais foi exportada foi há %s atrás.</string>
+    <string name="settings_last_download_message">Último download de locais do Hitchwiki Maps foi feito há %s atrás.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -108,6 +111,7 @@
     <string name="main_activity_list_tab">rotas</string>
     <string name="spot_list_item_arrival_label">chegada</string>
     <string name="spot_list_item_waiting_label">aguardando</string>
+
     <string name="spot_form_save_button_text">salvar</string>
     <string name="spot_form_delete_button_text">deletar</string>
     <string name="spot_form_delete_dialog_title_text">Deletar local</string>
@@ -121,7 +125,6 @@
     <string name="spot_form_title_edit">Editar ponto</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
     <string name="spot_form_location_selected_label">Localização selecionada.</string>
-
 
     <string name="waiting_for_connection">Estabelecendo conexão..</string>
     <string name="unable_to_find_location">Nāo foi possível encontrar sua localizaçāo com o Google api client :(</string>
