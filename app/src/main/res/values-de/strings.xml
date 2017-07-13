@@ -83,7 +83,8 @@
 
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
-    <string name="spot_form_note_label">Notiz</string>
+    <string name="spot_form_note_hint">Kommentar</string>
+    <string name="spot_form_add_note_hint">Einen Kommentar hinzufügen</string>
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Datum</string>
     <string name="spot_form_time_label">Zeit</string>

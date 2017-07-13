@@ -534,6 +534,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         });
 
+        if (shouldRetrieveDetailsFromHW)
+            note_edittext.setHint(getString(R.string.spot_form_note_hint));
+        else
+            note_edittext.setHint(getString(R.string.spot_form_add_note_hint));
+
+
         //Add checkboxes listeners
         is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
         is_destination_check_box.setOnCheckedChangeListener(this);
@@ -566,9 +572,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         mShouldShowLeftMenu = true;
-        super.
-
-                onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);
 
     }
 

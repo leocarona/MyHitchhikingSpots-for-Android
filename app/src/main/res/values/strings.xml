@@ -79,7 +79,8 @@ The Hitchwiki team.
 
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
-    <string name="spot_form_note_label">Note</string>
+    <string name="spot_form_note_hint">Comment</string>
+    <string name="spot_form_add_note_hint">Add a comment</string>
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Date</string>
     <string name="spot_form_time_label">Time</string>
