@@ -24,7 +24,7 @@
     <string name="got_a_ride_button_text">Peguei carona</string>
     <string name="arrived_button_text">Cheguei ao destino</string>
     <string name="break_button_text">Fazer uma pausa</string>
-    <string name="evaluate_running_spot_required">Você deve selecionar \'Peguei carona\' ou \'Fazer uma pausa\' antes de criar/editar outro ponto.</string>
+    <string name="evaluate_running_spot_required">Você deve selecionar \'Peguei carona\' ou \'Fazer uma pausa\' antes de criar/editar outro local.</string>
 
     <string name="location_updated_message">Localização atualizada</string>
     <string name="update_location_switch">Atualizar minha localização</string>
@@ -124,9 +124,9 @@
     <string name="spot_form_delete_dialog_yes_option">Deletar</string>
     <string name="spot_form_is_part_of_a_route_checkbox_text">Este local faz parte de uma rota</string>
     <string name="spot_form_is_destination_checkbox_text">Este é meu destino nesta viagem</string>
-    <string name="spot_form_is_hitchhiking_spot_checkbox_text">Este é um ponto de carona</string>
-    <string name="spot_form_title_evaluate">Avaliar ponto</string>
-    <string name="spot_form_title_edit">Editar ponto</string>
+    <string name="spot_form_is_hitchhiking_spot_checkbox_text">Este é um local de carona</string>
+    <string name="spot_form_title_evaluate">Avaliar local</string>
+    <string name="spot_form_title_edit">Editar local</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
     <string name="spot_form_location_selected_label">Localização selecionada.</string>
     <string name="spot_form_enable_evaluate_tab_message">Salve seu local de carona para habilitar a aba %s.</string>
@@ -170,7 +170,7 @@
     <string name="invalid_lat_long_used">A latitude ou longitude utilizada nāo é válida</string>
     <string name="spot_form_location_info_copied">Texto copiado.</string>
 
-    <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
+    <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu local através do atalho :(</string>
 
     <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
     <string name="save_spot_error_map_not_loaded">Parece que o mapa não carregou.\nVocê precisará se conectar à internet para salvar esta alteração.</string>
