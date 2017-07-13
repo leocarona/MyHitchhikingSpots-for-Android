@@ -332,11 +332,13 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         //if(spot.getHitchability() != null)
                         //  hitchability = Utils.getRatingOrDefaultAsString(context, Utils.findTheOpposite(spot.getHitchability()));
 
+                        singleSpotIcon.setVisibility(View.VISIBLE);
+
+                    } else{
                         breakIcon.setImageResource(R.drawable.ic_point_on_the_route_black_24dp);
                         breakIcon.setVisibility(View.VISIBLE);
                         breakIcon.setAlpha((float) 0.5);
-                    } else
-                        singleSpotIcon.setVisibility(View.VISIBLE);
+                    }
                 }
 
                 Integer waitingTime = 0;
