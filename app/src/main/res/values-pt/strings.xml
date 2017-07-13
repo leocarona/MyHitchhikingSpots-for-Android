@@ -94,6 +94,10 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Quando</string>
     <string name="spot_form_more_options_edit_label">(editar)</string>
+    <string name="spot_form_comments_title">Comentários adicionados por outros caroneiros</string>
+    <string name="spot_form_comments_empty_list">Ninguém fez comentários sobre este local até o momento</string>
+    <string name="spot_form_view_comments_button_label">%s comentários</string>
+    <string name="general_author_label">de %s</string>
 
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo</string>

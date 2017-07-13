@@ -90,6 +90,10 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Wann</string>
     <string name="spot_form_more_options_edit_label">(bearbeiten)</string>
+    <string name="spot_form_comments_title">Comments added by other hitchhikers</string>
+    <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
+    <string name="spot_form_view_comments_button_label">%s comments</string>
+    <string name="general_author_label">by %s</string>
 
     <string name="mapview_master_title">Meine Karten</string>
     <string name="mapview_hitchwiki_title">Hitchwiki Karten</string>
