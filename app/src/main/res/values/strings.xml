@@ -88,8 +88,10 @@ The Hitchwiki team.
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">When</string>
     <string name="spot_form_more_options_edit_label">(edit)</string>
-    <string name="spot_form_comments_title">Comments by other hitchhikers</string>
+    <string name="spot_form_comments_title">Comments added by other hitchhikers</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
+    <string name="spot_form_view_comments_button_label">%s comments</string>
+    <string name="general_author_label">by %s</string>
 
     <string name="mapview_master_title">My Maps</string>
     <string name="mapview_hitchwiki_title">Hitchwiki Maps</string>
@@ -113,7 +115,6 @@ The Hitchwiki team.
 
     <string name="spot_form_save_button_text">save</string>
     <string name="spot_form_delete_button_text">delete</string>
-    <string name="spot_form_view_comments_button_label">view (%s) comments</string>
     <string name="spot_form_delete_dialog_title_text">Delete spot</string>
     <string name="spot_form_delete_dialog_message_text">Are you sure you want to permanently delete this spot?</string>
     <string name="spot_form_delete_dialog_no_option">Cancel</string>
@@ -142,7 +143,6 @@ The Hitchwiki team.
     <string name="general_refresh_label">Refresh</string>
     <string name="general_cancel_option">Cancel</string>
 
-    <string name="general_author_label">by %s</string>
     <string name="general_download_option">Download</string>
     <string name="general_downloading_message">Downloading&#8230;</string>
     <string name="general_items_downloaded_message">%d items were downloaded.</string>

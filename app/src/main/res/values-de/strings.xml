@@ -14,7 +14,6 @@
   limitations under the License.
 -->
 <resources>
-    <string name="app_name">My Hitchhiking Spots</string>
 
     <string name="latitude_label">Breitengrad</string>
     <string name="longitude_label">Längengrad</string>
@@ -92,8 +91,10 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Wann</string>
     <string name="spot_form_more_options_edit_label">(bearbeiten)</string>
-    <string name="spot_form_comments_title">Kommentare von anderen Trampern</string>
+    <string name="spot_form_comments_title">Comments added by other hitchhikers</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
+    <string name="spot_form_view_comments_button_label">%s comments</string>
+    <string name="general_author_label">by %s</string>
 
     <string name="mapview_master_title">Meine Karten</string>
     <string name="mapview_hitchwiki_title">Hitchwiki Karten</string>
@@ -117,7 +118,6 @@
 
     <string name="spot_form_save_button_text">Speichern</string>
     <string name="spot_form_delete_button_text">Löschen</string>
-    <string name="spot_form_view_comments_button_label">Ansicht (%s) Kommentare</string>
     <string name="spot_form_delete_dialog_title_text">Ort Löschen</string>
     <string name="spot_form_delete_dialog_message_text">Möchtest du diesen Ort wirklich für immer Löschen?</string>
     <string name="spot_form_delete_dialog_no_option">Abbrechen</string>
@@ -144,7 +144,6 @@
     <string name="general_no_option">Nein</string>
     <string name="general_cancel_option">Beenden</string>
 
-    <string name="general_author_label">by %s</string>
     <string name="general_download_option">Download</string>
     <string name="general_downloading_message">Downloading&#8230;</string>
     <string name="general_items_downloaded_message">%d items were downloaded.</string>

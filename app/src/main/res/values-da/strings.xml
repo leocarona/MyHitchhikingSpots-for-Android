@@ -61,8 +61,10 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Hvornår</string>
     <string name="spot_form_more_options_edit_label">(ændr)</string>
-    <string name="spot_form_comments_title">Kommentarer fra andre blaffere</string>
+    <string name="spot_form_comments_title">Comments added by other hitchhikers</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
+    <string name="spot_form_view_comments_button_label">%s kommentarer</string>
+    <string name="general_author_label">by %s</string>
 
     <string name="mapview_master_title">Min Kort</string>
     <string name="mapview_hitchwiki_title">Hitchwiki Kort</string>
@@ -86,7 +88,6 @@
 
     <string name="spot_form_save_button_text">gem</string>
     <string name="spot_form_delete_button_text">slet</string>
-    <string name="spot_form_view_comments_button_label">vis (%s) kommentarer</string>
     <string name="spot_form_delete_dialog_title_text">Slet sted</string>
     <string name="spot_form_delete_dialog_message_text">Er du sikker på, at du vil slette stedet permanent?</string>
     <string name="spot_form_delete_dialog_no_option">Fortryd</string>
@@ -113,7 +114,6 @@
     <string name="general_no_option">Nej</string>
     <string name="general_cancel_option">Fortryd</string>
 
-    <string name="general_author_label">by %s</string>
     <string name="general_download_option">Hent</string>
     <string name="general_downloading_message">Downloading&#8230;</string>
     <string name="general_items_downloaded_message">%d items were downloaded.</string>
