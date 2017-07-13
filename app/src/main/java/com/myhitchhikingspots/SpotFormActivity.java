@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -34,11 +35,13 @@ import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -49,6 +52,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
@@ -62,6 +66,7 @@ import com.dualquo.te.hitchwiki.classes.APICallCompletionListener;
 import com.dualquo.te.hitchwiki.classes.ApiManager;
 import com.dualquo.te.hitchwiki.entities.Error;
 import com.dualquo.te.hitchwiki.entities.PlaceInfoComplete;
+import com.dualquo.te.hitchwiki.entities.PlaceInfoCompleteComment;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -70,6 +75,7 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
+import com.myhitchhikingspots.adapters.CommentsListViewAdapter;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.MyLocation;
 import com.myhitchhikingspots.model.Spot;
@@ -119,6 +125,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     protected static final String SHOULD_GO_BACK_KEY = "should-go-back";
     protected static final String REFRESH_DATETIME_ALERT_SHOWN_KEY = "PREF_REFRESH_DATETIME_ALERT_SHOWN_KEY";
 
+    private Button placeButtonComments;
 
     /**
      * Tracks whether the user has requested an address. Becomes true when the user requests an
@@ -255,7 +262,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         mSaveButton = (Button) findViewById(R.id.save_button);
         mDeleteButton = (Button) findViewById(R.id.delete_button);
-        //mNewSpotButton = (Button) findViewById(R.id.new_spot_button);
+        placeButtonComments = (Button) findViewById(R.id.placeButtonComments);
         mViewMapButton = (Button) findViewById(R.id.view_map_button);
         note_edittext = (EditText) findViewById(R.id.spot_form_note_edittext);
         date_datepicker = (DatePicker) findViewById(R.id.spot_form_date_datepicker);
@@ -499,6 +506,39 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         };
 
+        placeButtonComments.setVisibility(View.GONE);
+
+        placeButtonComments.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+
+
+                //if number of comments is 0, we won't open comments dialog with listview as there's
+                //nothing to show, but will only inform user that there are no comments
+                if (placeWithCompleteDetails.getComments_count().contentEquals("0")) {
+                    showErrorAlert(getString(R.string.spot_form_comments_title), getString(R.string.spot_form_comments_empty_list));
+                } else {
+                    //If dialog was already created, we can just show it again. The list of comments shown in the dialog is still the same as of when the dialog was created.
+                    if (dialog == null) {
+                        //populate arrayList of comments first, only if there are comments (comment count not 0)
+                        ArrayList<PlaceInfoCompleteComment> arrayListOfComments = new ArrayList<PlaceInfoCompleteComment>();
+
+                        //Add comments
+                        for (int i = 0; i < placeWithCompleteDetails.getComments().length; i++) {
+                            arrayListOfComments.add(placeWithCompleteDetails.getComments()[i]);
+                        }
+
+                        showCommentsDialog(arrayListOfComments);
+                    } else
+                        dialog.show();
+                }
+            }
+        });
+
+        if (shouldRetrieveDetailsFromHW)
+            note_edittext.setHint(getString(R.string.spot_form_note_hint));
+        else
+            note_edittext.setHint(getString(R.string.spot_form_add_note_hint));
+
 
         //Add checkboxes listeners
         is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
@@ -532,9 +572,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         mShouldShowLeftMenu = true;
-        super.
-
-                onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);
 
     }
 
@@ -1481,6 +1519,54 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
     }
 
+    Dialog dialog;
+
+    //dialog for showing comments
+    @SuppressWarnings("deprecation")
+    private void showCommentsDialog(ArrayList<PlaceInfoCompleteComment> arrayListOfComments) {
+        if (dialog == null) {
+            //custom dialog
+            dialog = new Dialog(SpotFormActivity.this, android.R.style.Theme_Translucent);
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);   //if clicked on dim dialog will disappear
+            dialog.setCanceledOnTouchOutside(true);
+
+            //get dialog's window to set parameters about its appearance
+            Window window = dialog.getWindow();
+            WindowManager.LayoutParams wlp = window.getAttributes();
+
+            Display display = getWindowManager().getDefaultDisplay();
+            float screenWidth = display.getWidth();
+            float screenHeight = display.getHeight();
+
+            wlp.gravity = Gravity.CENTER;
+            wlp.width = (int) ((screenWidth * (0.9f)));
+            wlp.height = (int) (screenHeight * (0.9f));
+            wlp.dimAmount = 0.6f;
+            dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            window.setAttributes(wlp);
+        }
+
+        //Set the data
+        CommentsListViewAdapter commentsAdapter = new CommentsListViewAdapter(SpotFormActivity.this, arrayListOfComments);
+
+        RelativeLayout commentsLayout = (RelativeLayout) View.inflate(SpotFormActivity.this, R.layout.dialog_comments_layout, null);
+        ListView commentsListView = (ListView) commentsLayout.findViewById(R.id.layout_comments_listview);
+
+        //set adapter and bound it to commentsListView
+        commentsListView.setAdapter(commentsAdapter);
+
+        //set the whole inflated layout into dialog
+        dialog.setContentView(commentsLayout);
+
+
+        dialog.show();
+    }
+
+
+    public void dismissCommetsDialog(View view) {
+        if (dialog != null)
+            dialog.dismiss();
+    }
 
     Bundle getBundle(int result) {
         //NOTE: If finish() is called and a new activity is not called, the user will be sent back to the previous
@@ -1979,8 +2065,20 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         public void onComplete(boolean success, int intParam, String stringParam, Error error, PlaceInfoComplete object) {
             if (success) {
                 placeWithCompleteDetails = object;
+                if (placeWithCompleteDetails != null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            placeButtonComments.setVisibility(View.VISIBLE);
+                            placeButtonComments.setText(String.format(getString(R.string.spot_form_view_comments_button_label), placeWithCompleteDetails.getComments_count()));
+                        }
+                    });
+                }
             } else {
-                System.out.println("Error message : " + error.getErrorDescription());
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), error.getErrorDescription()));
+                Crashlytics.setBool("success", success);
+                Crashlytics.setInt("intParam", intParam);
+                Crashlytics.logException(new Exception("getPlaceCompleteDetails error description:\n" + error.getErrorDescription()));
             }
         }
     };
@@ -2043,23 +2141,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                     + "&mode=walking"
                             ));
                     startActivity(intent);
-                }
-            });
-
-            placeButtonComments.setOnClickListener(new Button.OnClickListener()
-            {
-                public void onClick(View v)
-                {
-                    //if number of comments is 0, we won't open comments dialog with listview as there's
-                    //nothing to show, but will only inform user that there are no comments
-                    if (placeWithCompleteDetails.getComments_count().contentEquals("0"))
-                    {
-                        Toast.makeText(context, "No comments yet :/", Toast.LENGTH_LONG).show();
-                    }
-                    else
-                    {
-                        showCommentsDialog(placeWithCompleteDetails);
-                    }
                 }
             });*/
 

@@ -159,7 +159,6 @@
                             android:ems="10"
                             android:focusableInTouchMode="true"
                             android:gravity="top"
-                            android:hint="@string/spot_form_note_label"
                             android:inputType="textMultiLine"
                             android:minLines="2" />
                     </android.support.design.widget.TextInputLayout>
@@ -557,6 +556,17 @@
             android:paddingBottom="15dp"
             android:paddingTop="15dp"
             android:text="@string/spot_form_delete_button_text" />
+
+        <Button
+            android:id="@+id/placeButtonComments"
+            style="@style/roundButtonTextStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/break_button"
+            android:padding="13dp"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
+            android:text="see comments" />
     </LinearLayout>
 
     <android.support.design.widget.BottomNavigationView

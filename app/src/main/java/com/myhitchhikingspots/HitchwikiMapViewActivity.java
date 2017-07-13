@@ -670,7 +670,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     //Get a hitchability string to set as title
                     String title = "";
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
-                        title = Utils.getRatingOrDefaultAsString(getBaseContext(), Utils.findTheOpposite(spot.getHitchability() != null ? spot.getHitchability() : 0));
+                        title = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
 
                     //Set hitchability as title
                     markerViewOptions.title(title.toUpperCase());

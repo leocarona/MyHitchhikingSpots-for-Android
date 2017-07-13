@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">My Hitchhiking Spots</string>
 
     <string name="latitude_label">Breddegrad</string>
     <string name="longitude_label">Længdegrad</string>
@@ -52,7 +53,8 @@
 
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
-    <string name="spot_form_note_label">Notat</string>
+    <string name="spot_form_note_hint">Kommentar</string>
+    <string name="spot_form_add_note_hint">Tilføj en kommentar</string>
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Dato</string>
     <string name="spot_form_time_label">Tid</string>
@@ -60,6 +62,8 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Hvornår</string>
     <string name="spot_form_more_options_edit_label">(ændr)</string>
+    <string name="spot_form_comments_title">Kommentarer fra andre blaffere</string>
+    <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
 
     <string name="mapview_master_title">Min Kort</string>
     <string name="mapview_hitchwiki_title">Hitchwiki Kort</string>
@@ -83,6 +87,7 @@
 
     <string name="spot_form_save_button_text">gem</string>
     <string name="spot_form_delete_button_text">slet</string>
+    <string name="spot_form_view_comments_button_label">vis (%s) kommentarer</string>
     <string name="spot_form_delete_dialog_title_text">Slet sted</string>
     <string name="spot_form_delete_dialog_message_text">Er du sikker på, at du vil slette stedet permanent?</string>
     <string name="spot_form_delete_dialog_no_option">Fortryd</string>
@@ -109,6 +114,7 @@
     <string name="general_no_option">Nej</string>
     <string name="general_cancel_option">Fortryd</string>
 
+    <string name="general_author_label">by %s</string>
     <string name="general_download_option">Hent</string>
     <string name="general_downloading_message">Downloading&#8230;</string>
     <string name="general_items_downloaded_message">%d items were downloaded.</string>

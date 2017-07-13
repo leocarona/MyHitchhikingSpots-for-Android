@@ -9,7 +9,7 @@ The Hitchwiki team.
 
 -->
 <resources>
-    <string name="app_name" translatable="false">MyHitchhikingSpots</string>
+    <string name="app_name">My Hitchhiking Spots</string>
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
@@ -79,7 +79,8 @@ The Hitchwiki team.
 
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
-    <string name="spot_form_note_label">Note</string>
+    <string name="spot_form_note_hint">Comment</string>
+    <string name="spot_form_add_note_hint">Add a comment</string>
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Date</string>
     <string name="spot_form_time_label">Time</string>
@@ -87,6 +88,8 @@ The Hitchwiki team.
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">When</string>
     <string name="spot_form_more_options_edit_label">(edit)</string>
+    <string name="spot_form_comments_title">Comments by other hitchhikers</string>
+    <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
 
     <string name="mapview_master_title">My Maps</string>
     <string name="mapview_hitchwiki_title">Hitchwiki Maps</string>
@@ -110,6 +113,7 @@ The Hitchwiki team.
 
     <string name="spot_form_save_button_text">save</string>
     <string name="spot_form_delete_button_text">delete</string>
+    <string name="spot_form_view_comments_button_label">view (%s) comments</string>
     <string name="spot_form_delete_dialog_title_text">Delete spot</string>
     <string name="spot_form_delete_dialog_message_text">Are you sure you want to permanently delete this spot?</string>
     <string name="spot_form_delete_dialog_no_option">Cancel</string>
@@ -138,6 +142,7 @@ The Hitchwiki team.
     <string name="general_refresh_label">Refresh</string>
     <string name="general_cancel_option">Cancel</string>
 
+    <string name="general_author_label">by %s</string>
     <string name="general_download_option">Download</string>
     <string name="general_downloading_message">Downloading&#8230;</string>
     <string name="general_items_downloaded_message">%d items were downloaded.</string>

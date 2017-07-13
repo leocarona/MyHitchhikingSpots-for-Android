@@ -14,6 +14,7 @@
   limitations under the License.
 -->
 <resources>
+    <string name="app_name">Meus Locais de Carona</string>
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
@@ -24,7 +25,7 @@
     <string name="got_a_ride_button_text">Peguei carona</string>
     <string name="arrived_button_text">Cheguei ao destino</string>
     <string name="break_button_text">Fazer uma pausa</string>
-    <string name="evaluate_running_spot_required">Você deve selecionar \'Peguei carona\' ou \'Fazer uma pausa\' antes de criar/editar outro ponto.</string>
+    <string name="evaluate_running_spot_required">Você deve selecionar \'Peguei carona\' ou \'Fazer uma pausa\' antes de criar/editar outro local.</string>
 
     <string name="location_updated_message">Localização atualizada</string>
     <string name="update_location_switch">Atualizar minha localização</string>
@@ -86,7 +87,8 @@
 
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
-    <string name="spot_form_note_label">Nota</string>
+    <string name="spot_form_note_hint">Comentário</string>
+    <string name="spot_form_add_note_hint">Adicione um comentário</string>
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Data</string>
     <string name="spot_form_time_label">Horário</string>
@@ -94,6 +96,8 @@
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Quando</string>
     <string name="spot_form_more_options_edit_label">(editar)</string>
+    <string name="spot_form_comments_title">Comentários de outros caroneiros</string>
+    <string name="spot_form_comments_empty_list">Ninguém fez comentários sobre este local até o momento</string>
 
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo</string>
@@ -114,15 +118,16 @@
 
     <string name="spot_form_save_button_text">salvar</string>
     <string name="spot_form_delete_button_text">deletar</string>
+    <string name="spot_form_view_comments_button_label">ver (%s) comentários</string>
     <string name="spot_form_delete_dialog_title_text">Deletar local</string>
     <string name="spot_form_delete_dialog_message_text">Você tem certeza que deseja deletar esse local permanentemente?</string>
     <string name="spot_form_delete_dialog_no_option">Cancelar</string>
     <string name="spot_form_delete_dialog_yes_option">Deletar</string>
     <string name="spot_form_is_part_of_a_route_checkbox_text">Este local faz parte de uma rota</string>
     <string name="spot_form_is_destination_checkbox_text">Este é meu destino nesta viagem</string>
-    <string name="spot_form_is_hitchhiking_spot_checkbox_text">Este é um ponto de carona</string>
-    <string name="spot_form_title_evaluate">Avaliar ponto</string>
-    <string name="spot_form_title_edit">Editar ponto</string>
+    <string name="spot_form_is_hitchhiking_spot_checkbox_text">Este é um local de carona</string>
+    <string name="spot_form_title_evaluate">Avaliar local</string>
+    <string name="spot_form_title_edit">Editar local</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
     <string name="spot_form_location_selected_label">Localização selecionada.</string>
     <string name="spot_form_enable_evaluate_tab_message">Salve seu local de carona para habilitar a aba %s.</string>
@@ -139,6 +144,7 @@
     <string name="general_no_option">Não</string>
     <string name="general_cancel_option">Cancelar</string>
 
+    <string name="general_author_label">de %s</string>
     <string name="general_download_option">Baixar</string>
     <string name="general_downloading_message">Baixando&#8230;</string>
     <string name="general_items_downloaded_message">%d items baixados.</string>
@@ -166,7 +172,7 @@
     <string name="invalid_lat_long_used">A latitude ou longitude utilizada nāo é válida</string>
     <string name="spot_form_location_info_copied">Texto copiado.</string>
 
-    <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu ponto através do atalho :(</string>
+    <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu local através do atalho :(</string>
 
     <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
     <string name="save_spot_error_map_not_loaded">Parece que o mapa não carregou.\nVocê precisará se conectar à internet para salvar esta alteração.</string>
