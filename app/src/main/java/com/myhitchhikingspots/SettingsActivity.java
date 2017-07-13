@@ -908,34 +908,9 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(String result) {
+            if (!result.contentEquals("countriesLoadedFromLocalStorage"))
+                saveCountriesListLocally(countriesContainer);
 
-            if (!result.contentEquals("countriesLoadedFromLocalStorage")) {
-                File file = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
-
-                try {
-                    FileOutputStream fileOutput = new FileOutputStream(file);
-
-                    Gson gsonC = new Gson();
-                    String placesContainerAsString = gsonC.toJson(countriesContainer);
-
-                    InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
-
-                    //create a buffer...
-                    byte[] buffer = new byte[1024];
-                    int bufferLength = 0; //used to store a temporary size of the buffer
-
-                    while ((bufferLength = inputStream.read(buffer)) > 0) {
-                        //add the data in the buffer to the file in the file output stream (the file on the sd card
-                        fileOutput.write(buffer, 0, bufferLength);
-                    }
-
-                    //close the output stream when done
-                    fileOutput.close();
-
-                } catch (Exception exception) {
-                    Crashlytics.logException(exception);
-                }
-            }
 
             if (result.contentEquals("countriesListDownloaded")) {
                 //also write into prefs that markers sync has occurred
@@ -1077,33 +1052,8 @@ public class SettingsActivity extends BaseActivity {
         @Override
         protected void onPostExecute(String result) {
             if (result.contentEquals("spotsDownloaded")) {
-                //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
-                //so we have to create file in storage folder and stream placesContainer into it using gson
-                File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
 
-                try {
-                    FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
-
-                    Gson gsonC = new Gson();
-                    String placesContainerAsString = gsonC.toJson(placesContainer);
-
-                    InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
-
-                    //create a buffer...
-                    byte[] buffer = new byte[1024];
-                    int bufferLength = 0; //used to store a temporary size of the buffer
-
-                    while ((bufferLength = inputStream.read(buffer)) > 0) {
-                        //add the data in the buffer to the file in the file output stream (the file on the sd card
-                        fileOutput.write(buffer, 0, bufferLength);
-                    }
-
-                    //close the output stream when done
-                    fileOutput.close();
-
-                } catch (Exception exception) {
-                    Crashlytics.logException(exception);
-                }
+                savePlacesListLocally(placesContainer);
 
                 //also write into prefs that markers sync has occurred
                 prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, System.currentTimeMillis()).apply();
@@ -1278,28 +1228,6 @@ public class SettingsActivity extends BaseActivity {
                     placesContainer.add(object[i]);
                 }
 
-                //prepare everything that Clusterkraf needs
-                //buildMarkerModels(placesContainer);
-
-                //now build array list of inputPoints
-                //buildInputPoints();
-            } else {
-                System.out.println("Error message : " + error.getErrorDescription());
-            }
-        }
-    };
-
-    APICallCompletionListener<PlaceInfoBasic> getPlaceBasicDetails = new APICallCompletionListener<PlaceInfoBasic>() {
-        @Override
-        public void onComplete(boolean success, int i, String s, Error error, PlaceInfoBasic placeInfoBasic) {
-            if (success) {
-                placesContainer.add(placeInfoBasic);
-
-                //prepare everything that Clusterkraf needs
-                //buildMarkerModels(placesContainer);
-
-                //now build array list of inputPoints
-                //buildInputPoints();
             } else {
                 System.out.println("Error message : " + error.getErrorDescription());
             }
@@ -1337,6 +1265,65 @@ public class SettingsActivity extends BaseActivity {
         crouton = Crouton.makeText(this, croutonText, Style.HITCHWIKI).setConfiguration(croutonConfiguration);
 
         crouton.show();*/
+    }
+
+    void savePlacesListLocally(List<PlaceInfoBasic> places) {
+        //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
+        //so we have to create file in storage folder and stream placesContainer into it using gson
+        File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
+
+        try {
+            FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
+
+            Gson gsonC = new Gson();
+            String placesContainerAsString = gsonC.toJson(places);
+
+            InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
+
+            //create a buffer...
+            byte[] buffer = new byte[1024];
+            int bufferLength = 0; //used to store a temporary size of the buffer
+
+            while ((bufferLength = inputStream.read(buffer)) > 0) {
+                //add the data in the buffer to the file in the file output stream (the file on the sd card
+                fileOutput.write(buffer, 0, bufferLength);
+            }
+
+            //close the output stream when done
+            fileOutput.close();
+
+        } catch (Exception exception) {
+            Crashlytics.logException(exception);
+        }
+
+    }
+
+    void saveCountriesListLocally(CountryInfoBasic[] countriesList) {
+        File file = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
+
+        try {
+            FileOutputStream fileOutput = new FileOutputStream(file);
+
+            Gson gsonC = new Gson();
+            String placesContainerAsString = gsonC.toJson(countriesList);
+
+            InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
+
+            //create a buffer...
+            byte[] buffer = new byte[1024];
+            int bufferLength = 0; //used to store a temporary size of the buffer
+
+            while ((bufferLength = inputStream.read(buffer)) > 0) {
+                //add the data in the buffer to the file in the file output stream (the file on the sd card
+                fileOutput.write(buffer, 0, bufferLength);
+            }
+
+            //close the output stream when done
+            fileOutput.close();
+
+        } catch (Exception exception) {
+            Crashlytics.logException(exception);
+        }
     }
 
     Snackbar snackbar;
