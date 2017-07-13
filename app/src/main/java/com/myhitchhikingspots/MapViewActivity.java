@@ -873,13 +873,13 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
                             markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
 
+                            icon = ic_single_spot;
+                            markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);
+                        } else {
                             icon = ic_point_on_the_route_spot;
                             markerViewOptions.spotType(Constants.SPOT_TYPE_POINT_ON_THE_ROUTE);
                             markerViewOptions.anchor((float) 0.5, (float) 0.5);
                             markerViewOptions.alpha((float) 0.5);
-                        } else {
-                            icon = ic_single_spot;
-                            markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);
                         }
                     }
 
