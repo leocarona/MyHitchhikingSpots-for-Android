@@ -14,6 +14,7 @@
   limitations under the License.
 -->
 <resources>
+    <string name="app_name">Meus Locais de Carona</string>
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>

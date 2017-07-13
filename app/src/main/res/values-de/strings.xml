@@ -14,6 +14,7 @@
   limitations under the License.
 -->
 <resources>
+    <string name="app_name">My Hitchhiking Spots</string>
 
     <string name="latitude_label">Breitengrad</string>
     <string name="longitude_label">Längengrad</string>
