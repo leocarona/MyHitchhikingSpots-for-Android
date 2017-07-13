@@ -9,7 +9,7 @@ The Hitchwiki team.
 
 -->
 <resources>
-    <string name="app_name" translatable="false">MyHitchhikingSpots</string>
+    <string name="app_name" translatable="false">My Hitchhiking Spots</string>
 
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
