@@ -1967,13 +1967,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         ArrayList<String> loc = new ArrayList();
         try {
-            if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                loc.add(spot.getCity().trim());
-            if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                loc.add(spot.getState().trim());
-            if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                loc.add(spot.getCountry().trim());
+            loc = Utils.spotLocationToList(spot);
 
+            //Join the strings
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Crashlytics.logException(ex);

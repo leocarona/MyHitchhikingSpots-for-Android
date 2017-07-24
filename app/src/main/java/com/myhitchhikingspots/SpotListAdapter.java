@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
@@ -127,14 +128,11 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         ArrayList<String> loc = new ArrayList();
         try {
-            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
-                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                    loc.add(spot.getCity().trim());
-                if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                    loc.add(spot.getState().trim());
-                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                    loc.add(spot.getCountry().trim());
-            }
+            //Show location string only if GpsResolved is set to true
+            if (spot.getGpsResolved() != null && spot.getGpsResolved())
+                loc = Utils.spotLocationToList(spot);
+
+            //Join the strings
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
@@ -272,6 +270,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 waitingTimeText.setVisibility(View.GONE);
                 viewParent.setBackgroundColor(Color.TRANSPARENT);
 
+                //String hitchability = "";
 
                 //If spot belongs to a route (it's not a single spot)
                 if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
@@ -299,6 +298,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                                     //The spot is a hitchhiking spot that was already evaluated
                                     //icon = getGotARideIconForRoute(trips.size());
+
+                                    //hitchability = Utils.getRatingOrDefaultAsString(spotListFragment.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
                                     break;
                                 case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                     //The spot is a hitchhiking spot that was already evaluated
@@ -357,6 +358,10 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 //Set the second line, show the first letter capitalized
                 if (secondLine != null && !secondLine.isEmpty())
                     secondLine = secondLine.substring(0, 1).toUpperCase() + secondLine.substring(1);
+
+                //Add hitchability to second line
+                //if (!hitchability.isEmpty())
+                //    secondLine = "(" + hitchability + ") " + secondLine;
 
                 notesText.setText(secondLine);
             } catch (Exception ex) {

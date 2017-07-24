@@ -24,6 +24,7 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -88,14 +89,9 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
 
         ArrayList<String> loc = new ArrayList();
         try {
+            loc = Utils.spotLocationToList(spot);
 
-            if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                loc.add(spot.getCity().trim());
-            if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                loc.add(spot.getState().trim());
-            if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                loc.add(spot.getCountry().trim());
-
+            //Join the strings
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Crashlytics.logException(ex);

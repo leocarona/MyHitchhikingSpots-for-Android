@@ -27,7 +27,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
+
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
@@ -424,15 +426,11 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         ArrayList<String> loc = new ArrayList();
         try {
-            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
-                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                    loc.add(spot.getCity().trim());
-                if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                    loc.add(spot.getState().trim());
-                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                    loc.add(spot.getCountry().trim());
-            }
+            //Show location string only if GpsResolved is set to true
+            if (spot.getGpsResolved() != null && spot.getGpsResolved())
+                loc = Utils.spotLocationToList(spot);
 
+            //Join the strings
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Crashlytics.log(Log.WARN, TAG, "Generating a string for the spot's address has failed");

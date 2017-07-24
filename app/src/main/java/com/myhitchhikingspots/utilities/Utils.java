@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -19,9 +20,11 @@ import android.text.format.DateUtils;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
+
 import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
+
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.Spot;
@@ -100,7 +103,7 @@ public class Utils {
                 Log.e("active internet check", "Error checking internet connection", e);
             }
         } else {
-            Log.d("active internet check",  "No network available!");
+            Log.d("active internet check", "No network available!");
         }
         return false;
     }
@@ -310,5 +313,38 @@ public class Utils {
                 break;
         }
         return res;
+    }
+
+    public static ArrayList<String> spotLocationToList(Spot spot) {
+        ArrayList<String> loc = new ArrayList();
+
+        //Add city
+        if (spot.getCity() != null && !spot.getCity().trim().isEmpty() && !spot.getCity().equals("null"))
+            loc.add(spot.getCity().trim());
+
+        //Add state
+        if (spot.getState() != null && !spot.getState().trim().isEmpty() && !spot.getState().equals("null"))
+            loc.add(spot.getState().trim());
+
+        //Add country code or country name
+        if (spot.getCountryCode() != null && !spot.getCountryCode().trim().isEmpty() && !spot.getCountryCode().equals("null"))
+            loc.add(spot.getCountryCode().trim());
+        else if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty() && !spot.getCountry().equals("null"))
+            loc.add(spot.getCountry().trim());
+
+        //If only 2 or less were added, add the street in the begining of the list
+        if (loc.size() <= 2 && spot.getStreet() != null && !spot.getStreet().trim().isEmpty() && !spot.getStreet().equals("null")) {
+            ArrayList<String> loc2 = new ArrayList();
+
+            //Add street
+            loc2.add(spot.getStreet().trim());
+
+            //Add all the others after adding the street, so that the street is written first
+            loc2.addAll(loc);
+
+            //Replace loc list for loc2
+            loc = loc2;
+        }
+        return loc;
     }
 }
