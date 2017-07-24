@@ -445,6 +445,7 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPreExecute() {
+            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
             ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             this.dialog.setIndeterminate(true);
             this.dialog.setCancelable(false);
@@ -500,6 +501,7 @@ public class SettingsActivity extends BaseActivity {
 
         protected void onPostExecute(final Boolean success) {
             dbExported = success;
+            //Remove the flag that keeps the screen from sleeping
             ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             if (this.dialog.isShowing()) {
                 this.dialog.dismiss();
@@ -760,6 +762,7 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPreExecute() {
+            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
             ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
             try {
@@ -808,6 +811,7 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPreExecute() {
+            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
             ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
             try {
@@ -850,6 +854,7 @@ public class SettingsActivity extends BaseActivity {
         protected void onPreExecute() {
             String strToShow = "Fetching countries list...";
 
+            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
             ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             if (shouldDeleteExisting)
                 strToShow = "Updating countries list...";
@@ -955,6 +960,8 @@ public class SettingsActivity extends BaseActivity {
             }
 
             this.loadingDialog.dismiss();
+
+            //Remove the flag that keeps the screen from sleeping
             ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
@@ -979,6 +986,7 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPreExecute() {
+            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
             ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
             this.loadingDialog.setIndeterminate(true);
@@ -1082,6 +1090,7 @@ public class SettingsActivity extends BaseActivity {
                     showErrorAlert(getString(R.string.general_error_dialog_title), "An exception occurred while trying to download spots from Hitchwiki Maps.");
             }
 
+            //Remove the flag that keeps the screen from sleeping
             ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             loadingDialog.dismiss();
         }
