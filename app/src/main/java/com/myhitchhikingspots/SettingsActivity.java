@@ -209,7 +209,7 @@ public class SettingsActivity extends BaseActivity {
         if (!Utils.isNetworkAvailable(this)) {
             showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_network_unavailable_message));
         } else
-            new retrievePlacesAsyncTask(dialogType).execute();
+            new downloadPlacesAsyncTask(dialogType).execute();
     }
 
     public void shareButtonHandler(View view) {
@@ -960,12 +960,12 @@ public class SettingsActivity extends BaseActivity {
     }
 
     //async task to retrieve markers
-    public class retrievePlacesAsyncTask extends AsyncTask<Void, Void, String> {
+    public class downloadPlacesAsyncTask extends AsyncTask<Void, Void, String> {
         private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
         String lstToDownload = "";
         String typeToDownload = "";
 
-        public retrievePlacesAsyncTask(String type) {
+        public downloadPlacesAsyncTask(String type) {
             typeToDownload = type;
             switch (type) {
                 case DIALOG_TYPE_CONTINENT:
