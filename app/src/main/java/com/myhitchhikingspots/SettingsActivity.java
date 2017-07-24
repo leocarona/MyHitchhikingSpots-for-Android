@@ -938,7 +938,7 @@ public class SettingsActivity extends BaseActivity {
                             Constants.CROUTON_DURATION_5000);
                 }
             } else if (!result.contentEquals("countriesLoadedFromLocalStorage") && !result.isEmpty())
-                showErrorAlert(getString(R.string.general_error_dialog_title), getString(R.string.settings_countriesList_download_failed_message));
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_countriesList_download_failed_message), result));
 
             if (result.contentEquals("countriesListDownloaded") || result.contentEquals("countriesLoadedFromLocalStorage")) {
                 if (countriesContainer.length == 0) {
@@ -1087,7 +1087,7 @@ public class SettingsActivity extends BaseActivity {
                 if (result.contentEquals("nothingToSync"))
                     showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
                 else if (!result.isEmpty())
-                    showErrorAlert(getString(R.string.general_error_dialog_title), "An exception occurred while trying to download spots from Hitchwiki Maps.");
+                    showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_hitchwikiMapsSpots_download_failed_message), result));
             }
 
             //Remove the flag that keeps the screen from sleeping
