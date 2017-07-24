@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Iterator;
+
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
@@ -182,21 +184,53 @@ public class JSONParser
 	      			placeInfoComplete.setWaiting_stats_avg_textual(waitingStatsObject.get("avg_textual").toString());
 	      			placeInfoComplete.setWaiting_stats_count(waitingStatsObject.get("count").toString());
 	      		}
-	      		
-	      	//description:
-	      		if(success.has("description"))
-	      		{
-	      			JSONObject descriptionObject = success.getJSONObject("description");
-	      			
-	      			if(descriptionObject.has("en_UK"))
-	      			{
-	      				JSONObject ENObject = descriptionObject.getJSONObject("en_UK");
-	      				
-	      				placeInfoComplete.setDescriptionENdatetime(ENObject.get("datetime").toString());
-		      			placeInfoComplete.setDescriptionENfk_user(ENObject.get("fk_user").toString());
-		      			placeInfoComplete.setDescriptionENdescription(ENObject.get("description").toString());
-	      			}
-	      		}
+
+				//NOTE: In previous versions we were only retrieving English descriptions, all related to description
+				// (author, description and datetime) below is a temporary workaround to include all descriptions.
+				//description:
+				if(success.has("description"))
+				{
+					JSONObject descriptionObject = success.getJSONObject("description");
+
+					String allDescriptions = "";
+					Iterator<?> i = descriptionObject.keys();
+					do{
+						String k = i.next().toString();
+						JSONObject rec = descriptionObject.getJSONObject(k);
+
+						String languageTitle = "";
+						if(k.toString().toLowerCase().contains("en_"))
+							languageTitle = "English";
+						else if(k.toString().toLowerCase().contains("pt_"))
+							languageTitle = "Português";
+						else if(k.toString().toLowerCase().contains("es_"))
+							languageTitle = "Español";
+						else if(k.toString().toLowerCase().contains("de_"))
+							languageTitle = "German";
+						else if(k.toString().toLowerCase().contains("da_"))
+							languageTitle = "Deutsch";
+						else
+							languageTitle = k;
+
+						System.out.println(k);
+
+						allDescriptions += "\n\n("+ languageTitle + ")\n" + rec.get("description").toString();
+
+						//Set the author, but if there are more authors this value will be changed after the loop
+						placeInfoComplete.setDescriptionENfk_user(rec.get("fk_user").toString());
+
+						//Just set any of the dates
+						placeInfoComplete.setDescriptionENdatetime(rec.get("datetime").toString());
+
+					}while(i.hasNext());
+
+					//Set all descriptions, not only the English ones
+					placeInfoComplete.setDescriptionENdescription(allDescriptions);
+
+					//If there were many descriptions, change author to "many"
+					if(descriptionObject.length() > 1)
+						placeInfoComplete.setDescriptionENfk_user("(many)");
+				}
 	      		
 	      	//finally     			      		
 	      		return placeInfoComplete;
