@@ -1,6 +1,8 @@
 package hitchwikiMapsSDK.entities;
 
-public class Error 
+import org.json.JSONObject;
+
+public class Error
 {	
 //	In case of error
 //	If API produces an error, it returns "error":"true" and possible error description.
@@ -40,5 +42,21 @@ public class Error
 	public void setErrorDescription(String errorDescription) 
 	{
 		this.errorDescription = errorDescription;
+	}
+
+	public String toJSONString() {
+		return String.format("{ " +
+				"\"error\":\"%1$s\", "+
+				"\"error_description\":\"%2$s\" "+
+				"}", isError(), getErrorDescription());
+	}
+
+	public JSONObject toJSONObject() {
+		JSONObject res = null;
+		try {
+			res = new JSONObject(toJSONString());
+		} catch (Exception e) {
+		}
+		return res;
 	}
 }

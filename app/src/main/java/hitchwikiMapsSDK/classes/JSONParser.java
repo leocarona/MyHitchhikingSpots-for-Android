@@ -16,58 +16,49 @@ public class JSONParser
 {
 	public Object parseGetPlaceBasicDetails(JSONObject json)
 	{
+		String errMsg = "";
 		try
-	   	 {    	
-	    	JSONObject success = new JSONObject();
-	    	success = json;
-	    	     	
-	      	if(success.has("error"))
-	      	//this gives Error object as "success" String value is false
-	      	{
-				Error errorObject = new Error(
-						true,
-						success.get("error_description").toString()
-	      									 );
-	      		return errorObject;
-	      	}
-	      	else
-	      	{
-	      		PlaceInfoBasic placeInfoBasic = new PlaceInfoBasic(
-	      				success.get("id").toString(),
-	      				success.get("lat").toString(),
-	      				success.get("lon").toString(),
-	      				success.get("rating").toString());
-	      			      			      		
-	      		return placeInfoBasic;
-	      	}
-   	 	}
-   	 	catch(JSONException e)        
-	   	 	{
-	        	 System.out.println("Error parsing parseGetPlaceBasicDetails!!!");
-	        }
-		
+		{
+			if(json.has("error"))
+				errMsg = json.get("error_description").toString();
+			else
+			{
+				JSONObject success = new JSONObject();
+				success = json;
+
+				PlaceInfoBasic placeInfoBasic = new PlaceInfoBasic(
+						success.get("id").toString(),
+						success.get("lat").toString(),
+						success.get("lon").toString(),
+						success.get("rating").toString());
+
+				return placeInfoBasic;
+			}
+		}
+		catch(Exception e)
+		{
+			errMsg = String.format("Error parsing parseGetPlaceBasicDetails!\n\"%s\"", e.getMessage());
+		}
+
+		if(!errMsg.isEmpty())
+			return new Error(true, errMsg);
+
 		return null;
 	}
 	
 	public Object parseGetPlaceCompleteDetails(JSONObject json)
 	{
+		String errMsg = "";
 		try
-	   	 {    	
-	    	JSONObject success = new JSONObject();
-	    	success = json;
-	    	     	
-	      	if(success.has("error"))
-	      	//this gives Error object as "success" String value is false
-	      	{
-				Error errorObject = new Error(
-						true,
-						success.get("error_description").toString()
-	      									 );
-	      		return errorObject;
-	      	}
+	   	 {
+			 if(json.has("error"))
+				 errMsg = json.get("error_description").toString();
 	      	else
 	      	{
-	      		//first, lets take comments because that's the only json array of objects
+				JSONObject success = new JSONObject();
+				success = json;
+
+				//first, lets take comments because that's the only json array of objects
 	      		int commentsCount = Integer.parseInt(success.get("comments_count").toString());
 	      		
 	      		PlaceInfoCompleteComment[] allComments = null;
@@ -114,18 +105,18 @@ public class JSONParser
 	      		}
 	      		
 	      		PlaceInfoComplete placeInfoComplete = new PlaceInfoComplete(
-	      				success.get("id").toString(), 
-	      				success.get("lat").toString(), 
-	      				success.get("lon").toString(), 
-	      				success.get("elevation").toString(), 
+	      				success.get("id").toString(),
+	      				success.get("lat").toString(),
+	      				success.get("lon").toString(),
+	      				success.get("elevation").toString(),
 	      				"", 
 	      				"", 
 	      				"", 
 	      				"", 
-	      				"", 
-	      				success.get("link").toString(), 
-	      				"", 
-	      				success.get("rating").toString(), 
+	      				"",
+	      				success.get("link").toString(),
+	      				"",
+	      				success.get("rating").toString(),
 	      				"",
 	      				"",
 	      				"",
@@ -236,28 +227,26 @@ public class JSONParser
 	      		return placeInfoComplete;
 	      	}
   	 	}
-  	 	catch(JSONException e)        
-	   	 	{
-	        	 System.out.println("Error parsing parseGetPlaceCompleteDetails!!!");
-	        }
+  	 	catch(Exception e)
+		{
+			errMsg = String.format("Error parsing parseGetPlaceCompleteDetails!\n\"%s\"", e.getMessage());
+		}
+
+		if(!errMsg.isEmpty())
+			return new Error(true, errMsg);
 		
 		return null;
 	}	
 	
 	public Object parseGetPlacesFromArea(String json)
 	{
+		String errMsg = "";
 		try
 	   	 {    	
-	      	if(json.startsWith("{"))
-	      	//this gives Error object as "success" String value is false
+	      	if(json.startsWith("{") && json.contains("error"))
 	      	{
 	      		JSONObject success = new JSONObject(json);
-	      		
-				Error errorObject = new Error(
-						true,
-						success.get("error_description").toString()
-	      									 );
-	      		return errorObject;
+				errMsg = success.get("error_description").toString();
 	      	}
 	      	else
 	      	{
@@ -286,29 +275,27 @@ public class JSONParser
 	      		}
 	      	}
    	 	}
-   	 	catch(JSONException e)        
-	   	 	{
-	        	 System.out.println("Error parsing parseGetPlacesFromArea!!!");
-	        }
-		
+   	 	catch(Exception e)
+		{
+			errMsg = String.format("Error parsing parseGetPlacesFromArea!\n\"%s\"", e.getMessage());;
+		}
+
+		if(!errMsg.isEmpty())
+			return new Error(true, errMsg);
+
 		return null;
 	}
 	
 	public Object parseGetPlacesByCountry(String json)
 	{
+		String errMsg = "";
 		try
-	   	 {    	
-	      	if(json.startsWith("{"))
-	      	//this gives Error object as "success" String value is false
-	      	{
-	      		JSONObject success = new JSONObject(json);
-	      		
-				Error errorObject = new Error(
-						true,
-						success.get("error_description").toString()
-	      									 );
-	      		return errorObject;
-	      	}
+		{
+			if(json.startsWith("{") && json.contains("error"))
+			{
+				JSONObject success = new JSONObject(json);
+				errMsg = success.get("error_description").toString();
+			}
 	      	else
 	      	{
 	      		JSONArray successArray = new JSONArray(json);
@@ -336,18 +323,23 @@ public class JSONParser
 	      		}
 	      	}
    	 	}
-   	 	catch(JSONException e)        
-	   	 	{
-	        	 System.out.println("Error parsing parseGetPlacesByCountry!!!");
-	        }
+   	 	catch(Exception e)
+		{
+			errMsg = String.format("Error parsing parseGetPlacesByCountry\n\"%s\"", e.getMessage());;
+		}
+
+		if(!errMsg.isEmpty())
+			return new Error(true, errMsg);
 		
 		return null;
 	}
 	
 	public Object parseGetCountriesWithCoordinates(String json)
 	{
+		//TODO: It looks like there's an obvious bug on this method - it should be fixed later
+		String errMsg = "";
 		try
-	   	 {    	
+	   	 {
 			String jsonCorrected = json.replaceFirst("\\{", "[");
 			jsonCorrected = jsonCorrected.substring(0, jsonCorrected.length()-2);
 			
@@ -369,17 +361,12 @@ public class JSONParser
 			}
 			
 			jsonCorrected = jsonCorrected.concat("]");
-			
+
 	      	if(jsonCorrected.startsWith("{"))
 	      	//this gives Error object as "success" String value is false
 	      	{
-	      		JSONObject success = new JSONObject(json);
-	      		
-				Error errorObject = new Error(
-						true,
-						success.get("error_description").toString()
-	      									 );
-	      		return errorObject;
+				JSONObject success = new JSONObject(json);
+				errMsg = success.get("error_description").toString();
 	      	}
 	      	else
 	      	{
@@ -412,11 +399,14 @@ public class JSONParser
 	      		}
 	      	}
    	 	}
-   	 	catch(JSONException e)        
-	   	 	{
-	        	 System.out.println("Error parsing parseGetCountriesWithCoordinates!!!");
-	        }
-		
+   	 	catch(Exception e)
+		{
+			errMsg = String.format("Error parsing parseGetCountriesWithCoordinates\n\"%s\"", e.getMessage());;
+		}
+
+		if(!errMsg.isEmpty())
+			return new Error(true, errMsg);
+
 		return null;
 	}
 }
