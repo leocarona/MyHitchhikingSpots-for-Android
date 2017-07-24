@@ -27,12 +27,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.dualquo.te.hitchwiki.classes.APICallCompletionListener;
-import com.dualquo.te.hitchwiki.classes.APIConstants;
-import com.dualquo.te.hitchwiki.classes.ApiManager;
-import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
-import com.dualquo.te.hitchwiki.entities.Error;
-import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
+import hitchwikiMapsSDK.classes.APICallCompletionListener;
+import hitchwikiMapsSDK.classes.APIConstants;
+import hitchwikiMapsSDK.classes.ApiManager;
+import hitchwikiMapsSDK.entities.CountryInfoBasic;
+import hitchwikiMapsSDK.entities.Error;
+import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 import com.google.gson.Gson;
 import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.PairParcelable;

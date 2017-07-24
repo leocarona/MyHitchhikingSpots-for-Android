@@ -82,7 +82,8 @@ dependencies {
     }
     //End: Dependencies for MapBox
 
-    compile fileTree(include: ['hitchwikiSDK.jar'], dir: 'libs')
+    compile group: 'cz.msebera.android' , name: 'httpclient', version: '4.4.1.1'
+
 
     //compile fileTree(include: ['*.jar'], dir: 'libs')
     //compile 'com.google.android.gms:play-services:8.4.0'

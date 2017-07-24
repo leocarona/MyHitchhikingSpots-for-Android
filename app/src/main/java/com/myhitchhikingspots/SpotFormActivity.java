@@ -62,11 +62,11 @@ import android.widget.Toast;
 
 
 import com.crashlytics.android.Crashlytics;
-import com.dualquo.te.hitchwiki.classes.APICallCompletionListener;
-import com.dualquo.te.hitchwiki.classes.ApiManager;
-import com.dualquo.te.hitchwiki.entities.Error;
-import com.dualquo.te.hitchwiki.entities.PlaceInfoComplete;
-import com.dualquo.te.hitchwiki.entities.PlaceInfoCompleteComment;
+import hitchwikiMapsSDK.classes.APICallCompletionListener;
+import hitchwikiMapsSDK.classes.ApiManager;
+import hitchwikiMapsSDK.entities.Error;
+import hitchwikiMapsSDK.entities.PlaceInfoComplete;
+import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;

@@ -1,1 +1,1 @@
-include ':app', ':myapplication', ':daogenerator'
+include ':app', ':hitchwikiMapsSDK', ':daogenerator'

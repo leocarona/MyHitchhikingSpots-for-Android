@@ -13,9 +13,11 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.crashlytics.android.Crashlytics;
-import com.dualquo.te.hitchwiki.entities.PlaceInfoCompleteComment;
+//import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.utilities.Utils;
+
+import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
 
 public class CommentsListViewAdapter extends ArrayAdapter<PlaceInfoCompleteComment> {
     private Context context;

@@ -19,9 +19,9 @@ import android.text.format.DateUtils;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
-import com.dualquo.te.hitchwiki.classes.ApiManager;
-import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
-import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
+import hitchwikiMapsSDK.classes.ApiManager;
+import hitchwikiMapsSDK.entities.CountryInfoBasic;
+import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.Spot;
@@ -147,7 +147,7 @@ public class Utils {
     }
 
     public static CountryInfoBasic[] parseGetCountriesWithCoordinates(String json) {
-        //NOTE: com.dualquo.te.hitchwiki.classes.JSONParser also provides a parseGetCountriesWithCoordinates, but it was creating an issue on the json parameter when it tried to fix something on it - maybe it tried to fix an old issue that no longer exist?
+        //NOTE: hitchwikiMapsSDK.classes.JSONParser also provides a parseGetCountriesWithCoordinates, but it was creating an issue on the json parameter when it tried to fix something on it - maybe it tried to fix an old issue that no longer exist?
 
         try {
             JSONArray var9 = new JSONArray(json);
