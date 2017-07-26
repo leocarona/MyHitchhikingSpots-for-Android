@@ -13,7 +13,6 @@ import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
@@ -24,13 +23,14 @@ import com.myhitchhikingspots.model.SpotDao;
 
 import org.greenrobot.greendao.database.Database;
 
-public class DatabaseImporter extends AsyncTask<String, String, String> {
+public class DatabaseImporter extends AsyncTask<Void, Void, String> {
 
     Activity activity;
     Context context;
     File file = null;
     ProgressDialog dialog;
     final String TAG = "database-importer";
+    Integer numberOfSpotsOnCSVFile = 0, numberOfSpotsSkipped = 0, numberOfSpotsFailedImporting = 0, numberOfSpotsImported = 0;
 
     public DatabaseImporter(Context context, Activity activity, File file) {
         this.context = context;
@@ -49,18 +49,53 @@ public class DatabaseImporter extends AsyncTask<String, String, String> {
     }
 
     @Override
-    protected String doInBackground(String... params) {
+    protected String doInBackground(Void... params) {
         Crashlytics.log(Log.INFO, TAG, "DatabaseImporter started executing..");
+        Crashlytics.setString("Chosen file", file.toString());
 
-        String res = "";
-        Log.d(getClass().getName(), file.toString());
+        String errorMessage = "";
+        if (file.getName().endsWith(".csv"))
+            errorMessage = importCSVFile();
+        else
+            showAlert("Selected file was not a .csv file", "File type not supported yet");
 
-        Integer numberOfSpotsOnCSVFile = 0, numberOfSpotsSkipped = 0, numberOfSpotsFailedImporting = 0, numberOfSpotsImported = 0;
+        return errorMessage;
+    }
+
+    protected void onPostExecute(String errorMessage) {
+        ArrayList<String> msgRes = new ArrayList<>();
 
         try {
-            CSVReader reader = new CSVReader(new FileReader(file));
-            String[] nextLine;
+            msgRes.add(String.format(context.getString(R.string.settings_import_total_spots_on_selected_file), numberOfSpotsOnCSVFile));
 
+            if (numberOfSpotsFailedImporting > 0)
+                msgRes.add(String.format(context.getString(R.string.settings_import_total_not_imported), numberOfSpotsFailedImporting));
+
+            if (numberOfSpotsSkipped > 0)
+                msgRes.add(String.format(context.getString(R.string.settings_import_total_spots_skipped), numberOfSpotsSkipped));
+
+            if (numberOfSpotsOnCSVFile.equals(numberOfSpotsImported))
+                msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), context.getString(R.string.general_all)));
+            else
+                msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), numberOfSpotsImported.toString()));
+        } catch (Exception e) {
+            Log.e("Error", "Error on importing file");
+            errorMessage += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
+            Crashlytics.logException(e);
+        }
+
+        if (!errorMessage.isEmpty())
+            msgRes.add("\n-----\n" + context.getString(R.string.general_one_or_more_errors_occured) + "\n" + errorMessage);
+
+        if (dialog.isShowing())
+            dialog.dismiss();
+
+        showAlert(context.getString(R.string.settings_importdb_button_label), TextUtils.join("\n", msgRes));
+    }
+
+    String importCSVFile() {
+        String errorMessage = "";
+        try {
             //here I am just displaying the CSV file contents, and you can store your file content into db from while loop...
             //DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.INTERNAL_DB_FILE_NAME, null);
             DaoSession daoSession = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME);
@@ -76,6 +111,8 @@ public class DatabaseImporter extends AsyncTask<String, String, String> {
             ArrayList<String> columnsNameList = new ArrayList<>();
             ArrayList<String> valuesList = new ArrayList();
             ArrayList<String> comparisonsList = new ArrayList<>();
+
+            CSVReader reader = new CSVReader(new FileReader(file));
 
             // Read header (first row)
             String[] csv_header_allvalues = reader.readNext();
@@ -152,7 +189,7 @@ public class DatabaseImporter extends AsyncTask<String, String, String> {
                 } catch (Exception ex) {
                     //Sum failure
                     numberOfSpotsFailedImporting++;
-                    res += "\n" + String.format(context.getString(R.string.general_error_dialog_message), ex.getMessage());
+                    errorMessage += "\n" + String.format(context.getString(R.string.general_error_dialog_message), ex.getMessage());
                 }
 
                 //Clear lists
@@ -165,51 +202,13 @@ public class DatabaseImporter extends AsyncTask<String, String, String> {
 
         } catch (Exception e) {
             Log.e("Error", "Error for importing file");
-            res += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
+            errorMessage += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
             Crashlytics.logException(e);
         }
 
-        ArrayList<String> msgRes = new ArrayList<>();
-
-        try {
-            msgRes.add(String.format(context.getString(R.string.settings_import_total_spots_on_selected_file), numberOfSpotsOnCSVFile));
-
-            if (numberOfSpotsFailedImporting > 0)
-                msgRes.add(String.format(context.getString(R.string.settings_import_total_not_imported), numberOfSpotsFailedImporting));
-
-            if (numberOfSpotsSkipped > 0)
-                msgRes.add(String.format(context.getString(R.string.settings_import_total_spots_skipped), numberOfSpotsSkipped));
-
-            if (numberOfSpotsOnCSVFile.equals(numberOfSpotsImported))
-                msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), context.getString(R.string.general_all)));
-            else
-                msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), numberOfSpotsImported.toString()));
-        } catch (Exception e) {
-            Log.e("Error", "Error for importing file");
-            res += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
-            Crashlytics.logException(e);
-        }
-
-        if (!res.isEmpty())
-            msgRes.add("\n-----\n" + context.getString(R.string.general_one_or_more_errors_occured) + "\n" + res);
-
-        return TextUtils.join("\n", msgRes);
+        return errorMessage;
     }
 
-    protected void onPostExecute(String data) {
-
-        if (dialog.isShowing()) {
-            dialog.dismiss();
-        }
-
-        showAlert(context.getString(R.string.settings_importdb_button_label), data);
-
-        if (data.length() != 0) {
-            //Toast.makeText(context, "File is built Successfully!" + "\n" + data, Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(context, "File fail to build", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     void showAlert(String title, String data) {
         new AlertDialog.Builder(context)
