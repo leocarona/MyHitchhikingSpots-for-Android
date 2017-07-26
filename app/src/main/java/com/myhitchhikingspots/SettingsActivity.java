@@ -36,9 +36,8 @@ import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 import com.google.gson.Gson;
-import com.myhitchhikingspots.model.SpotDao;
-import com.myhitchhikingspots.utilities.CSVWriter;
 import com.myhitchhikingspots.utilities.MyCSVFileReader;
+import com.myhitchhikingspots.utilities.DatabaseExporter;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -47,7 +46,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -230,7 +228,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public void pickFileButtonHandler(View view) {
-        if (!dbExported) {
+        /*if (!dbExported) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle("Database not backed up")//getResources().getString(R.string.spot_form_delete_dialog_message_text)
@@ -245,14 +243,14 @@ public class SettingsActivity extends BaseActivity {
                             intent.setType("*");
                             startActivityForResult(intent, PICK_DB_REQUEST);
                         }
-                    })*/
+                    })/
                     .setNegativeButton("OK", null)
                     .show();
-        } else {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            startActivityForResult(intent, PICK_DB_REQUEST);
-        }
+        } else {*/
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        startActivityForResult(intent, PICK_DB_REQUEST);
+        //}
     }
 
 
@@ -312,14 +310,12 @@ public class SettingsActivity extends BaseActivity {
         }
     }
 
-    boolean dbExported = false;
 
     public void exportButtonHandler(View view) {
         try {
-            new ExportDatabaseCSVTask().execute();
+            new DatabaseExporter().execute();
 
             /*String dbExportResult = exportDB(getBaseContext());
-            dbExported = !dbExportResult.isEmpty();
             mfeedbacklabel.setText(dbExportResult);*/
 
             //copyDataBase2(Constants.INTERNAL_DB_FILE_NAME);
@@ -448,87 +444,6 @@ public class SettingsActivity extends BaseActivity {
     }
 
     final String TAG = "settings-activity";
-
-
-    public class ExportDatabaseCSVTask extends AsyncTask<Void, Void, Boolean> {
-        private final ProgressDialog dialog = new ProgressDialog(SettingsActivity.this);
-
-        @Override
-        protected void onPreExecute() {
-            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            this.dialog.setIndeterminate(true);
-            this.dialog.setCancelable(false);
-            this.dialog.setTitle(getString(R.string.settings_exportdb_button_label));
-            this.dialog.setMessage(getString(R.string.settings_exporting_db_message));
-            this.dialog.show();
-        }
-
-        protected Boolean doInBackground(Void... args) {
-            Crashlytics.log(Log.INFO, TAG, "ExportDatabaseCSVTask started executing..");
-            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
-
-            File exportDir = new File(Constants.EXPORTED_DB_STORAGE_PATH);
-
-            if (!exportDir.exists()) {
-                Crashlytics.log(Log.INFO, TAG, "Directory created. " + exportDir.getPath());
-                exportDir.mkdirs();
-            }
-
-            String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
-            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-            String fileName = sdf.format(new Date()) + Constants.INTERNAL_DB_FILE_NAME + ".csv";
-
-            File file = new File(exportDir, fileName);
-            try {
-                file.createNewFile();
-                CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
-                Cursor curCSV = appContext.rawQuery("select * from " + SpotDao.TABLENAME, null);
-                csvWrite.writeNext(curCSV.getColumnNames());
-                while (curCSV.moveToNext()) {
-                    String arrStr[] = null;
-                    String[] mySecondStringArray = new String[curCSV.getColumnNames().length];
-                    for (int i = 0; i < curCSV.getColumnNames().length; i++) {
-                        mySecondStringArray[i] = curCSV.getString(i);
-                    }
-                    csvWrite.writeNext(mySecondStringArray);
-                }
-                csvWrite.close();
-                curCSV.close();
-
-                result = String.format(getString(R.string.settings_exportdb_finish_successfull_message), file.getPath());
-                Crashlytics.log(Log.DEBUG, TAG, result);
-
-                return true;
-            } catch (IOException e) {
-                dbExported = false;
-                Crashlytics.logException(e);
-                return false;
-            }
-        }
-
-        String result = "";
-
-        protected void onPostExecute(final Boolean success) {
-            dbExported = success;
-            //Remove the flag that keeps the screen from sleeping
-            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            if (this.dialog.isShowing()) {
-                this.dialog.dismiss();
-            }
-            if (success) {
-                mfeedbacklabel.setText(result);
-                mfeedbacklabel.setVisibility(View.VISIBLE);
-
-                Long currentMillis = System.currentTimeMillis();
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, currentMillis).apply();
-
-                Toast.makeText(SettingsActivity.this, getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(SettingsActivity.this, getString(R.string.general_export_finished_failed_message), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
     void exportDBToCSV() {
         //Send email with CSV attached. Copied from: http://stackoverflow.com/a/5403357/1094261
