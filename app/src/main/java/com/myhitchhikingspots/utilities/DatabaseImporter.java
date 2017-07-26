@@ -15,6 +15,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.DaoMaster;
@@ -23,14 +24,15 @@ import com.myhitchhikingspots.model.SpotDao;
 
 import org.greenrobot.greendao.database.Database;
 
-public class ImportCVSToSQLiteDataBase extends AsyncTask<String, String, String> {
+public class DatabaseImporter extends AsyncTask<String, String, String> {
 
     Activity activity;
     Context context;
     File file = null;
-    private ProgressDialog dialog;
+    ProgressDialog dialog;
+    final String TAG = "database-importer";
 
-    public ImportCVSToSQLiteDataBase(Context context, Activity activity, File file) {
+    public DatabaseImporter(Context context, Activity activity, File file) {
         this.context = context;
         this.activity = activity;
         this.file = file;
@@ -48,6 +50,7 @@ public class ImportCVSToSQLiteDataBase extends AsyncTask<String, String, String>
 
     @Override
     protected String doInBackground(String... params) {
+        Crashlytics.log(Log.INFO, TAG, "DatabaseImporter started executing..");
 
         String res = "";
         Log.d(getClass().getName(), file.toString());
@@ -163,6 +166,7 @@ public class ImportCVSToSQLiteDataBase extends AsyncTask<String, String, String>
         } catch (Exception e) {
             Log.e("Error", "Error for importing file");
             res += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
+            Crashlytics.logException(e);
         }
 
         ArrayList<String> msgRes = new ArrayList<>();
@@ -183,6 +187,7 @@ public class ImportCVSToSQLiteDataBase extends AsyncTask<String, String, String>
         } catch (Exception e) {
             Log.e("Error", "Error for importing file");
             res += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
+            Crashlytics.logException(e);
         }
 
         if (!res.isEmpty())

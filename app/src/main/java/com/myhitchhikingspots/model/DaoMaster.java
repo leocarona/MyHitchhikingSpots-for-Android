@@ -155,7 +155,7 @@ public class DaoMaster extends AbstractDaoMaster {
                 versionsUpdate.add(changesRequeriedByVersion3);
                 versionsUpdate.add(changesRequeriedByVersion4);
                 versionsUpdate.add(changesRequeriedByVersion5);
-                //WARN: FOR NEW COLUMN ADDED, REMEMBER TO UPDATE ImportCVSToSQLiteDataBase IF A DEFAULT VALUE SHOULD BE SET!
+                //WARN: FOR NEW COLUMN ADDED, REMEMBER TO UPDATE DatabaseImporter IF A DEFAULT VALUE SHOULD BE SET!
 
                 String changesRequiredByNewVersion = "";
 

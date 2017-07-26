@@ -36,8 +36,8 @@ import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 import com.google.gson.Gson;
-import com.myhitchhikingspots.utilities.MyCSVFileReader;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
+import com.myhitchhikingspots.utilities.FilePickerDialog;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -255,7 +255,7 @@ public class SettingsActivity extends BaseActivity {
 
 
     public void importButtonHandler(View view) {
-        MyCSVFileReader.openDialogToReadCSV(this, SettingsActivity.this);
+        FilePickerDialog.openDialog(this, SettingsActivity.this);
      /*if (!dbExported) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
