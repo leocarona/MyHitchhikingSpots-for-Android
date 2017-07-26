@@ -12,6 +12,7 @@ public class FilePickerDialog {
         File mPath = new File(Constants.EXPORTED_DB_STORAGE_PATH);
         FileDialog fileDialog = new FileDialog(activity, mPath);
         fileDialog.addFileEndsWith(".csv");
+        fileDialog.addFileEndsWith(".db");
         fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
 
             @Override

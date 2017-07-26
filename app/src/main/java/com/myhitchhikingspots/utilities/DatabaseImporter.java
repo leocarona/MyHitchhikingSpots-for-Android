@@ -18,7 +18,6 @@ import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.DaoMaster;
-import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.SpotDao;
 
 import org.greenrobot.greendao.database.Database;
@@ -30,6 +29,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     File file = null;
     ProgressDialog dialog;
     final String TAG = "database-importer";
+    final String TEMPORARY_COPY_DB_FILE_NAME = "temporary_copy.db";
     Integer numberOfSpotsOnCSVFile = 0, numberOfSpotsSkipped = 0, numberOfSpotsFailedImporting = 0, numberOfSpotsImported = 0;
 
     public DatabaseImporter(Context context, Activity activity, File file) {
@@ -53,11 +53,14 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         Crashlytics.log(Log.INFO, TAG, "DatabaseImporter started executing..");
         Crashlytics.setString("Chosen file", file.toString());
 
+
         String errorMessage = "";
-        if (file.getName().endsWith(".csv"))
+        if (file.getName().endsWith(".csv")) {
             errorMessage = importCSVFile();
-        else
-            showAlert("Selected file was not a .csv file", "File type not supported yet");
+        } else if (file.getName().endsWith(".db")) {
+            errorMessage = importDBFile();
+        } else
+            errorMessage = context.getString(R.string.general_selected_file_type_not_supported);
 
         return errorMessage;
     }
@@ -90,24 +93,20 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         if (dialog.isShowing())
             dialog.dismiss();
 
+
         showAlert(context.getString(R.string.settings_importdb_button_label), TextUtils.join("\n", msgRes));
     }
+
+    //%1$s : table name
+    //%2$ : column names sequence, on this format: "STREET, COUNTRY, NOTE"
+    //%3$s : the values, in the same sequence as the column names on %2$s
+    String sqlInsertStatement = "INSERT INTO %1$s (%2$s) VALUES (%3$s)";
+    String sqlSelectAllStatement = "SELECT * FROM %1$s";
+    String sqlSelectDuplicatedStatement = "SELECT * FROM %1$s WHERE %2$s LIMIT 1";
 
     String importCSVFile() {
         String errorMessage = "";
         try {
-            //here I am just displaying the CSV file contents, and you can store your file content into db from while loop...
-            //DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.INTERNAL_DB_FILE_NAME, null);
-            DaoSession daoSession = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME);
-            Database db = daoSession.getDatabase();
-            SpotDao spotDao = daoSession.getSpotDao();
-
-            //%1$s : table name
-            //%2$ : column names sequence, on this format: "STREET, COUNTRY, NOTE"
-            //%3$s : the values, in the same sequence as the column names specified in %1$s
-            String sqlInsertStatement = "INSERT INTO %1$s (%2$s) VALUES (%3$s)";
-            String sqlSelectStatement = "SELECT * FROM %1$s WHERE %2$s";
-
             ArrayList<String> columnsNameList = new ArrayList<>();
             ArrayList<String> valuesList = new ArrayList();
             ArrayList<String> comparisonsList = new ArrayList<>();
@@ -139,6 +138,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             if (!doesIsHitchhikingSpotColumnExist)
                 columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
 
+
             // Read all the rest of the lines
             for (; ; ) {
                 String[] csv_row_allvalues = reader.readNext();
@@ -146,13 +146,30 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     break;
 
                 try {
-                    // Ignore first column (ID column)
-                    for (int i = 1; i < csv_row_allvalues.length; i++) {
-                        String value = DatabaseUtils.sqlEscapeString(csv_row_allvalues[i]);
-                        valuesList.add(value);
+                    Boolean isDestination = false;
 
-                        //Notice: we must use csv_header_allvalues[i] instead of columnsNameList[i] because i starts from 1 to skip ID column
-                        comparisonsList.add(csv_header_allvalues[i] + "=" + value);
+                    // Read all columns, ignore first column (ID column)
+                    for (int i = 1; i < csv_row_allvalues.length; i++) {
+                        String rawValue = csv_row_allvalues[i];
+
+                        //If rawValue is null or empty, we should consider equivalent value any null or empty value
+                        if (rawValue == null || rawValue.isEmpty() || rawValue.equalsIgnoreCase("null")) {
+                            comparisonsList.add("(" + csv_header_allvalues[i] + "='null' or " +
+                                    csv_header_allvalues[i] + "='' or " +
+                                    csv_header_allvalues[i] + " IS NULL)");
+
+                            //Value will be copied into the local database as empty value
+                            valuesList.add("''");
+                        } else {
+                            String value = DatabaseUtils.sqlEscapeString(rawValue);
+
+                            //Notice: we must use csv_header_allvalues[i] instead of columnsNameList[i] here because i starts from 1 to skip ID column
+                            comparisonsList.add(csv_header_allvalues[i] + "=" + value);
+                            valuesList.add(value);
+                        }
+
+                        if (isDestinationColumnIndex == i && rawValue.equals("1"))
+                            isDestination = true;
                     }
 
                     //Set default values for IsPartOfARoute
@@ -162,29 +179,16 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     //Set default values for IsHitchhikingSpots
                     if (!doesIsHitchhikingSpotColumnExist) {
                         //If the spot is not a destination, then set IsHitchhikingSpot to default value
-                        if (isDestinationColumnIndex > -1 && !csv_row_allvalues[isDestinationColumnIndex].equals("1"))
+                        if (!isDestination)
                             valuesList.add(Constants.ISHITCHHIKINGSPOT_DEFAULT_VALUE);
                         else
                             valuesList.add("0");
                     }
 
-                    //Try to find spots that contain exactly the same data as the current one (ignoring ID, of course)
-                    Cursor duplicatedRecords = db.rawQuery(
-                            String.format(sqlSelectStatement,
-                                    SpotDao.TABLENAME,
-                                    TextUtils.join(" AND ", comparisonsList)),
-                            null);
-
-                    //If no spot already exists with the same data as the current one, add it
-                    if (duplicatedRecords != null && duplicatedRecords.getCount() == 0) {
-                        // Save on database
-                        db.execSQL(String.format(sqlInsertStatement,
-                                SpotDao.TABLENAME,
-                                TextUtils.join(", ", columnsNameList),
-                                TextUtils.join(", ", valuesList)));
-
+                    //Copy spot if it doesn't already exist in the local DB. If it exists, skip it so that it doesn't duplicate.
+                    if (copyIfDoesntExist(comparisonsList, columnsNameList, valuesList))
                         numberOfSpotsImported++;
-                    } else
+                    else
                         numberOfSpotsSkipped++;
                 } catch (Exception ex) {
                     //Sum failure
@@ -209,6 +213,155 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         return errorMessage;
     }
 
+    String importDBFile() {
+        String errorMessage = "";
+        try {
+            //Copy database into local storage
+            errorMessage = Utils.copySQLiteDBIntoLocalStorage(file, TEMPORARY_COPY_DB_FILE_NAME, context);
+
+            //If no error happened while copying the database
+            if (errorMessage.isEmpty()) {
+                //Get temporary db as Database object
+                Database originDB = DaoMaster.newDevSession(context, TEMPORARY_COPY_DB_FILE_NAME).getDatabase();
+
+                //Try to find spots that contain exactly the same data as the current one (ignoring ID, of course)
+                Cursor cursor = originDB.rawQuery(
+                        String.format(sqlSelectAllStatement,
+                                SpotDao.TABLENAME),
+                        null);
+
+                if (cursor != null) {
+                    ArrayList<String> columnsNameList = new ArrayList<>();
+                    ArrayList<String> valuesList = new ArrayList();
+                    ArrayList<String> comparisonsList = new ArrayList<>();
+
+                    Crashlytics.log(Log.INFO, TAG, "Will start copying all spots to local database");
+
+                    // Read header
+                    String[] csv_header_allvalues = cursor.getColumnNames();
+
+                    Boolean doesIsPartOfARouteColumnExist = false;
+                    Boolean doesIsHitchhikingSpotColumnExist = false;
+                    Integer isDestinationColumnIndex = -1;
+
+                    // Ignore first column (ID column)
+                    for (int i = 1; i < csv_header_allvalues.length; i++) {
+                        columnsNameList.add(csv_header_allvalues[i]);
+
+                        if (csv_header_allvalues[i].equals(SpotDao.Properties.IsPartOfARoute.columnName))
+                            doesIsPartOfARouteColumnExist = true;
+                        else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsHitchhikingSpot.columnName))
+                            doesIsHitchhikingSpotColumnExist = true;
+                        else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsDestination.columnName))
+                            isDestinationColumnIndex = i;
+                    }
+
+                    //Add a column for missing columns
+                    if (!doesIsPartOfARouteColumnExist)
+                        columnsNameList.add(SpotDao.Properties.IsPartOfARoute.columnName);
+                    if (!doesIsHitchhikingSpotColumnExist)
+                        columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
+
+
+                    // Read all the rest of the lines
+                    while (cursor.moveToNext()) {
+                        try {
+                            Boolean isDestination = false;
+
+                            // Read all columns, ignore first column (ID column)
+                            for (int i = 1; i < cursor.getColumnCount(); i++) {
+                                String rawValue = cursor.getString(i);
+
+                                //If rawValue is null or empty, we should consider equivalent value any null or empty value
+                                if (rawValue == null || rawValue.isEmpty() || rawValue.equalsIgnoreCase("null")) {
+                                    comparisonsList.add("(" + csv_header_allvalues[i] + "='null' or " +
+                                            csv_header_allvalues[i] + "='' or " +
+                                            csv_header_allvalues[i] + " IS NULL)");
+
+                                    //Value will be copied into the local database as empty value
+                                    valuesList.add("''");
+                                } else {
+                                    String value = DatabaseUtils.sqlEscapeString(rawValue);
+
+                                    //Notice: we must use csv_header_allvalues[i] instead of columnsNameList[i] here because i starts from 1 to skip ID column
+                                    comparisonsList.add(csv_header_allvalues[i] + "=" + value);
+                                    valuesList.add(value);
+                                }
+
+                                if (isDestinationColumnIndex == i && rawValue.equals("1"))
+                                    isDestination = true;
+                            }
+
+                            //Set default values for IsPartOfARoute
+                            if (!doesIsPartOfARouteColumnExist)
+                                valuesList.add(Constants.ISPARTOFAROUTE_DEFAULT_VALUE);
+
+                            //Set default values for IsHitchhikingSpots
+                            if (!doesIsHitchhikingSpotColumnExist) {
+                                //If the spot is not a destination, then set IsHitchhikingSpot to default value
+                                if (!isDestination)
+                                    valuesList.add(Constants.ISHITCHHIKINGSPOT_DEFAULT_VALUE);
+                                else
+                                    valuesList.add("0");
+                            }
+
+                            //Copy spot if it doesn't already exist in the local DB. If it exists, skip it so that it doesn't duplicate.
+                            if (copyIfDoesntExist(comparisonsList, columnsNameList, valuesList))
+                                numberOfSpotsImported++;
+                            else
+                                numberOfSpotsSkipped++;
+                        } catch (Exception ex) {
+                            //Sum failure
+                            numberOfSpotsFailedImporting++;
+                            errorMessage += "\n" + String.format(context.getString(R.string.general_error_dialog_message), ex.getMessage());
+                        }
+
+                        //Clear lists
+                        valuesList.clear();
+                        comparisonsList.clear();
+
+                        //Sum spot
+                        numberOfSpotsOnCSVFile++;
+                    }
+
+                    Crashlytics.log(Log.INFO, TAG, "Successfully finished copying all spots to local database");
+                }
+
+            }
+        } catch (Exception e) {
+            Log.e("Error", "Error for importing file: " + e.getMessage());
+            errorMessage += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
+            Crashlytics.logException(e);
+        }
+
+        return errorMessage;
+    }
+
+    Boolean copyIfDoesntExist(ArrayList<String> comparisonsList, ArrayList<String> columnsNameList, ArrayList<String> valuesList) {
+        Boolean spotAdded = false;
+
+        Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
+
+        //Try to find spots that contain exactly the same data as the current one (ignoring ID, of course)
+        Cursor duplicatedRecords = destinationDB.rawQuery(
+                String.format(sqlSelectDuplicatedStatement,
+                        SpotDao.TABLENAME,
+                        TextUtils.join(" AND ", comparisonsList)),
+                null);
+
+        //If no spot already exists with the same data as the current one, add it
+        if (duplicatedRecords != null && duplicatedRecords.getCount() == 0) {
+            // Save on database
+            destinationDB.execSQL(String.format(sqlInsertStatement,
+                    SpotDao.TABLENAME,
+                    TextUtils.join(", ", columnsNameList),
+                    TextUtils.join(", ", valuesList)));
+
+            spotAdded = true;
+        }
+
+        return spotAdded;
+    }
 
     void showAlert(String title, String data) {
         new AlertDialog.Builder(context)

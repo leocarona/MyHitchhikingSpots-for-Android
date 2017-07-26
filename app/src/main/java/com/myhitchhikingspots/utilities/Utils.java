@@ -3,11 +3,13 @@ package com.myhitchhikingspots.utilities;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 import android.annotation.SuppressLint;
@@ -15,6 +17,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Environment;
 import android.text.format.DateUtils;
 import android.util.Log;
 
@@ -219,6 +222,57 @@ public class Utils {
         return result;
     }
 
+    public static String copySQLiteDBIntoLocalStorage(String originFileName, String destinationFileName, Context context) {
+        Crashlytics.setString("originFileName", originFileName);
+        Crashlytics.setString("destinationFileName", destinationFileName);
+
+        //Get external storage directory
+        File origin = Environment.getExternalStorageDirectory();
+        Crashlytics.setString("origin", origin.getAbsolutePath());
+
+        //Get File object for the origin database
+        File originFile = new File(origin, originFileName);
+
+        return copySQLiteDBIntoLocalStorage(originFile, destinationFileName, context);
+    }
+
+    public static String copySQLiteDBIntoLocalStorage(File originFile, String destinationFileName, Context context) {
+        String errorMessage = "";
+        try {
+            //Get local storage directory
+            //File destination = Environment.getDataDirectory();
+            //Crashlytics.setString("destination", destination.getAbsolutePath());
+
+            //Build path to databases directory
+            String destinationFilePath = String.format("data/data/%1$s/databases/%2$s", context.getPackageName(), destinationFileName);
+            Crashlytics.setString("destinationFilePath", destinationFilePath);
+
+            //Get File object for the destination database
+            File destinationFile = new File(destinationFilePath);
+
+            if (destinationFile.canWrite()) {
+                Crashlytics.log(Log.INFO, TAG, "Will start copying originFile content into destinationFile.");
+
+                //Copy originFile content into destinationFile
+                if (originFile.exists()) {
+                    FileChannel src = new FileInputStream(originFile).getChannel();
+                    FileChannel dst = new FileOutputStream(destinationFile).getChannel();
+                    dst.transferFrom(src, 0, src.size());
+                    src.close();
+                    dst.close();
+                }
+
+                Crashlytics.log(Log.INFO, TAG, "Successfuly copied originFile content into destinationFile.");
+            } else {
+                Crashlytics.log(Log.WARN, TAG, "User doesn't have permission to write a file to destination.");
+                errorMessage = context.getString(R.string.general_not_enough_permission) + "\nPath: " + destinationFile.getAbsolutePath();
+            }
+        } catch (Exception e) {
+            Crashlytics.logException(e);
+            errorMessage = "\nerror happened: " + e.getMessage();
+        }
+        return errorMessage;
+    }
 
     public static String loadFileFromLocalStorage(String fileName) {
         Crashlytics.setString("Name of the file to load", fileName);

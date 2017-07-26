@@ -152,6 +152,8 @@
     <string name="general_refresh_label">Atualizar</string>
     <string name="general_cancel_option">Cancelar</string>
     <string name="general_all">Todos</string>
+    <string name="general_not_enough_permission">Desculpe, infelizmente você não parece ter as permissōes necessárias para executar esta ação.</string>
+    <string name="general_selected_file_type_not_supported">O tipo de arquivo selecionado não é suportado.</string>
 
     <string name="general_author_label">de %s</string>
     <string name="general_download_option">Baixar</string>

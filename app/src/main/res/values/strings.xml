@@ -149,6 +149,8 @@ The Hitchwiki team.
     <string name="general_refresh_label">Refresh</string>
     <string name="general_cancel_option">Cancel</string>
     <string name="general_all">All</string>
+    <string name="general_not_enough_permission">Sorry, unfortunatelly you seem to not have enough permission to do execute this action.</string>
+    <string name="general_selected_file_type_not_supported">Selected file was not of a supported type.</string>
 
     <string name="general_author_label">by %s</string>
     <string name="general_download_option">Download</string>
@@ -158,7 +160,7 @@ The Hitchwiki team.
     <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Something went wrong :(</string>
     <string name="general_error_dialog_message">"%s"</string>
-    <string name="general_one_or_more_errors_occured">One or more error occured:</string>
+    <string name="general_one_or_more_errors_occured">One or more error occurred:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
 
