@@ -22,14 +22,16 @@ public class FileDialog {
     public interface FileSelectedListener {
         void fileSelected(File file);
     }
+
     public interface DirectorySelectedListener {
         void directorySelected(File directory);
     }
+
     private ListenerList<FileSelectedListener> fileListenerList = new ListenerList<FileDialog.FileSelectedListener>();
     private ListenerList<DirectorySelectedListener> dirListenerList = new ListenerList<FileDialog.DirectorySelectedListener>();
     private final Activity activity;
     private boolean selectDirectoryOption;
-    private String fileEndsWith;
+    private ArrayList<String> fileEndsWith = new ArrayList<>();
 
     /**
      * @param activity
@@ -130,8 +132,15 @@ public class FileDialog {
                     if (!sel.canRead()) return false;
                     if (selectDirectoryOption) return sel.isDirectory();
                     else {
-                        boolean endsWith = fileEndsWith != null ? filename.toLowerCase().endsWith(fileEndsWith) : true;
-                        return endsWith || sel.isDirectory();
+                        if (sel.isDirectory())
+                            return true;
+
+                        Boolean doesFileEndsWith = false;
+                        for (int i = 0; i < fileEndsWith.size(); i++) {
+                            if (filename.toLowerCase().endsWith(fileEndsWith.get(i)))
+                                doesFileEndsWith = true;
+                        }
+                        return doesFileEndsWith;
                     }
                 }
             };
@@ -149,9 +158,11 @@ public class FileDialog {
 
 
     }
+
     //--------------------------------------------------------------
-    public void setFileEndsWith(String fileEndsWith) {
-        this.fileEndsWith = fileEndsWith != null ? fileEndsWith.toLowerCase() : fileEndsWith;
+    public void addFileEndsWith(String fileEndsWith) {
+        if (fileEndsWith != null && !fileEndsWith.isEmpty())
+            this.fileEndsWith.add(fileEndsWith.toLowerCase());
     }
 }
 
