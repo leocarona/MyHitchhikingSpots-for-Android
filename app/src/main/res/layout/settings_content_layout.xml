@@ -26,15 +26,6 @@
             android:text="pick file"
             android:visibility="gone" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="140dp"
-            android:onClick="importButtonHandler"
-            android:text="@string/settings_importdb_button_label"
-            android:visibility="gone" />
-
         <TextView
             style="?android:attr/listSeparatorTextViewStyle"
             android:layout_width="match_parent"
@@ -49,6 +40,20 @@
             android:onClick="exportButtonHandler"
             android:text="@string/settings_exportdb_button_label"
             android:textAllCaps="true" />
+
+        <TextView
+            style="?android:attr/listSeparatorTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Import" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:onClick="importButtonHandler"
+            android:text="@string/settings_importdb_button_label"
+            android:textAllCaps="true"/>
 
         <TextView
             android:layout_marginTop="20dp"

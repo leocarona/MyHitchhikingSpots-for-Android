@@ -48,6 +48,11 @@
     <string name="settings_last_countriesList_update_message">Last update of countries list was done %s ago.</string>
     <string name="settings_last_export_message">Last export was done %s ago.</string>
     <string name="settings_last_download_message">Last download was done %s ago.</string>
+    <string name="settings_import_total_spots_on_selected_file">There were %d spots on the selected CSV file.</string>
+    <string name="settings_import_total_not_imported">%d could not be imported.</string>
+    <string name="settings_import_total_spots_skipped">%d already existed and were skipped.</string>
+    <string name="settings_import_total_successfuly_imported">%s were imported.</string>
+    <string name="settings_import_happening_message">Importing hitchhiking spots from CSV file..</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -83,6 +88,7 @@
     <string name="main_activity_title">Mine Steder</string>
     <string name="main_activity_you_tab">dig</string>
     <string name="main_activity_list_tab">ruter</string>
+    <string name="main_activity_single_spots_list_tab">steder</string>
     <string name="spot_list_item_arrival_label">ankomst</string>
     <string name="spot_list_item_waiting_label">venter</string>
 
@@ -113,7 +119,10 @@
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>
     <string name="general_no_option">Nej</string>
+    <string name="general_thank_you_label">%s, tak</string>
+    <string name="general_refresh_label">Refresh</string>
     <string name="general_cancel_option">Fortryd</string>
+    <string name="general_all">All</string>
 
     <string name="general_author_label">by %s</string>
     <string name="general_download_option">Hent</string>
@@ -123,6 +132,7 @@
     <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Noget gik galt :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_one_or_more_errors_occured">One or more error occured:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
 
@@ -193,9 +203,6 @@
     <string name="continent_code_north_america">North America</string>
     <string name="continent_code_south_america">South America</string>
     <string name="continent_code_oceania">Oceania</string>
-    <string name="general_thank_you_label">%s, tak</string>
-    <string name="general_refresh_label">Refresh</string>
-    <string name="main_activity_single_spots_list_tab">steder</string>
 
     <string name="refresh_datetime_dialog_title">Update date and time?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>

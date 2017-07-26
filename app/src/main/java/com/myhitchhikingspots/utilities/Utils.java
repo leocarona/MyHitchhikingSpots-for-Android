@@ -15,7 +15,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Environment;
 import android.text.format.DateUtils;
 import android.util.Log;
 
@@ -177,7 +176,7 @@ public class Utils {
 
         try {
             //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = loadFileFromLocalStorage(Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
+            String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
             return parseGetCountriesWithCoordinates(placesContainerAsString);
         } catch (Exception exception) {
@@ -193,7 +192,7 @@ public class Utils {
 
         try {
             //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = loadFileFromLocalStorage(Constants.FILE_NAME_FOR_STORING_MARKERS);
+            String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
             Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
             Crashlytics.setString("placesContainerAsString", placesContainerAsString);
@@ -223,8 +222,7 @@ public class Utils {
 
     public static String loadFileFromLocalStorage(String fileName) {
         Crashlytics.setString("Name of the file to load", fileName);
-        File markersStorageFolder = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/" +
-                Constants.FOLDERFORSTORINGMARKERS);
+        File markersStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
         String result = "";
         File fl = new File(markersStorageFolder, fileName);

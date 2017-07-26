@@ -27,14 +27,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+
 import hitchwikiMapsSDK.classes.APICallCompletionListener;
 import hitchwikiMapsSDK.classes.APIConstants;
 import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
+
 import com.google.gson.Gson;
 import com.myhitchhikingspots.model.SpotDao;
+import com.myhitchhikingspots.utilities.CSVWriter;
+import com.myhitchhikingspots.utilities.MyCSVFileReader;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -47,8 +51,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
@@ -113,8 +115,7 @@ public class SettingsActivity extends BaseActivity {
             mfeedbacklabel.setVisibility(View.VISIBLE);
         }
 
-        hitchwikiStorageFolder = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/" +
-                Constants.FOLDERFORSTORINGMARKERS);
+        hitchwikiStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
@@ -148,7 +149,7 @@ public class SettingsActivity extends BaseActivity {
                 try {
                     // Get the URI that points to the selected contact
                     File mFile = new File(getPath(this, data.getData()));
-                    CopyChosenFile(mFile, getDatabasePath(Constants.dbName).getPath());
+                    CopyChosenFile(mFile, getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
                 } catch (Exception e) {
                     Crashlytics.logException(e);
                     Toast.makeText(getBaseContext(), "Can't read file.",
@@ -248,7 +249,8 @@ public class SettingsActivity extends BaseActivity {
 
 
     public void importButtonHandler(View view) {
-        if (!dbExported) {
+        MyCSVFileReader.openDialogToReadCSV(this, SettingsActivity.this);
+     /*if (!dbExported) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle("Database not backedup")//getResources().getString(R.string.spot_form_delete_dialog_message_text)
@@ -260,11 +262,11 @@ public class SettingsActivity extends BaseActivity {
                             exportDB();
                             importDB();
                         }
-                    })*/
+                    })/
                     .setNegativeButton("OK", null)
                     .show();
         } else
-            importDB();
+            importDB();*/
     }
 
     public void showContinentsDialog(View view) {
@@ -312,7 +314,7 @@ public class SettingsActivity extends BaseActivity {
             dbExported = !dbExportResult.isEmpty();
             mfeedbacklabel.setText(dbExportResult);*/
 
-            //copyDataBase2(Constants.dbName);
+            //copyDataBase2(Constants.INTERNAL_DB_FILE_NAME);
 
             ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
@@ -326,10 +328,10 @@ public class SettingsActivity extends BaseActivity {
         File sd = Environment.getExternalStorageDirectory();
 
         if (sd.canWrite()) {
-            String backupDBPath = DBBackupSubdirectory + "/" + Constants.dbName;
+            String backupDBPath = DBBackupSubdirectory + "/" + Constants.INTERNAL_DB_FILE_NAME;
             File backedupDB = new File(sd, backupDBPath);
 
-            CopyChosenFile(backedupDB, getDatabasePath(Constants.dbName).getPath());
+            CopyChosenFile(backedupDB, getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
 
         } else
             Toast.makeText(getBaseContext(), "Can't write to SD card.",
@@ -379,7 +381,7 @@ public class SettingsActivity extends BaseActivity {
             File sd = Environment.getExternalStorageDirectory();
 
             if (sd.canWrite()) {
-                currentDBPath = context.getDatabasePath(Constants.dbName).getPath();
+                currentDBPath = context.getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath();
 
                 File backupDir = new File(sd + DBBackupSubdirectory);
                 boolean success = false;
@@ -392,17 +394,17 @@ public class SettingsActivity extends BaseActivity {
                 File currentDB = new File(currentDBPath);
 
                 if (success && currentDB.exists()) {
-                    File backupDB = new File(backupDir, Constants.dbName);
+                    File backupDB = new File(backupDir, Constants.INTERNAL_DB_FILE_NAME);
 
                     //If a backup file already exists, RENAME it so that the new backup file we're generating now can use its name
                     if (backupDB.exists()) {
                         String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
                         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-                        String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.dbName;
+                        String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.INTERNAL_DB_FILE_NAME;
                         backupDB.renameTo(new File(backupDir, newname));
                     }
 
-                    backupDB = new File(backupDir, Constants.dbName);
+                    backupDB = new File(backupDir, Constants.INTERNAL_DB_FILE_NAME);
 
                     FileChannel src = new FileInputStream(currentDB).getChannel();
                     FileChannel dst = new FileOutputStream(backupDB).getChannel();
@@ -458,7 +460,7 @@ public class SettingsActivity extends BaseActivity {
             Crashlytics.log(Log.INFO, TAG, "ExportDatabaseCSVTask started executing..");
             MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
 
-            File exportDir = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/");
+            File exportDir = new File(Constants.EXPORTED_DB_STORAGE_PATH);
 
             if (!exportDir.exists()) {
                 Crashlytics.log(Log.INFO, TAG, "Directory created. " + exportDir.getPath());
@@ -467,7 +469,7 @@ public class SettingsActivity extends BaseActivity {
 
             String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
             SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-            String fileName = sdf.format(new Date()) + Constants.dbName + ".csv";
+            String fileName = sdf.format(new Date()) + Constants.INTERNAL_DB_FILE_NAME + ".csv";
 
             File file = new File(exportDir, fileName);
             try {
@@ -518,141 +520,6 @@ public class SettingsActivity extends BaseActivity {
                 Toast.makeText(SettingsActivity.this, getString(R.string.general_export_finished_failed_message), Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    public class CSVWriter {
-
-        private PrintWriter pw;
-
-        private char separator;
-
-        private char quotechar;
-
-        private char escapechar;
-
-        private String lineEnd;
-
-        /**
-         * The character used for escaping quotes.
-         */
-        public static final char DEFAULT_ESCAPE_CHARACTER = '"';
-
-        /**
-         * The default separator to use if none is supplied to the constructor.
-         */
-        public static final char DEFAULT_SEPARATOR = ',';
-
-        /**
-         * The default quote character to use if none is supplied to the
-         * constructor.
-         */
-        public static final char DEFAULT_QUOTE_CHARACTER = '"';
-
-        /**
-         * The quote constant to use when you wish to suppress all quoting.
-         */
-        public static final char NO_QUOTE_CHARACTER = '\u0000';
-
-        /**
-         * The escape constant to use when you wish to suppress all escaping.
-         */
-        public static final char NO_ESCAPE_CHARACTER = '\u0000';
-
-        /**
-         * Default line terminator uses platform encoding.
-         */
-        public static final String DEFAULT_LINE_END = "\n";
-
-        /**
-         * Constructs CSVWriter using a comma for the separator.
-         *
-         * @param writer the writer to an underlying CSV source.
-         */
-        public CSVWriter(Writer writer) {
-            this(writer, DEFAULT_SEPARATOR, DEFAULT_QUOTE_CHARACTER,
-                    DEFAULT_ESCAPE_CHARACTER, DEFAULT_LINE_END);
-        }
-
-        /**
-         * Constructs CSVWriter with supplied separator, quote char, escape char and line ending.
-         *
-         * @param writer     the writer to an underlying CSV source.
-         * @param separator  the delimiter to use for separating entries
-         * @param quotechar  the character to use for quoted elements
-         * @param escapechar the character to use for escaping quotechars or escapechars
-         * @param lineEnd    the line feed terminator to use
-         */
-        public CSVWriter(Writer writer, char separator, char quotechar, char escapechar, String lineEnd) {
-            this.pw = new PrintWriter(writer);
-            this.separator = separator;
-            this.quotechar = quotechar;
-            this.escapechar = escapechar;
-            this.lineEnd = lineEnd;
-        }
-
-        /**
-         * Writes the next line to the file.
-         *
-         * @param nextLine a string array with each comma-separated element as a separate
-         *                 entry.
-         */
-        public void writeNext(String[] nextLine) {
-
-            if (nextLine == null)
-                return;
-
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < nextLine.length; i++) {
-
-                if (i != 0) {
-                    sb.append(separator);
-                }
-
-                String nextElement = nextLine[i];
-                if (nextElement == null)
-                    continue;
-                if (quotechar != NO_QUOTE_CHARACTER)
-                    sb.append(quotechar);
-                for (int j = 0; j < nextElement.length(); j++) {
-                    char nextChar = nextElement.charAt(j);
-                    if (escapechar != NO_ESCAPE_CHARACTER && nextChar == quotechar) {
-                        sb.append(escapechar).append(nextChar);
-                    } else if (escapechar != NO_ESCAPE_CHARACTER && nextChar == escapechar) {
-                        sb.append(escapechar).append(nextChar);
-                    } else {
-                        sb.append(nextChar);
-                    }
-                }
-                if (quotechar != NO_QUOTE_CHARACTER)
-                    sb.append(quotechar);
-            }
-
-            sb.append(lineEnd);
-            pw.write(sb.toString());
-
-        }
-
-        /**
-         * Flush underlying stream to writer.
-         *
-         * @throws IOException if bad things happen
-         */
-        public void flush() throws IOException {
-
-            pw.flush();
-
-        }
-
-        /**
-         * Close the underlying stream writer flushing any buffered content.
-         *
-         * @throws IOException if bad things happen
-         */
-        public void close() throws IOException {
-            pw.flush();
-            pw.close();
-        }
-
     }
 
     void exportDBToCSV() {
@@ -731,9 +598,9 @@ public class SettingsActivity extends BaseActivity {
 
         int length;
         byte[] buffer = new byte[1024];
-        String databasePath = "/BackupFolder/" + Constants.dbName;
+        String databasePath = "/BackupFolder/" + Constants.INTERNAL_DB_FILE_NAME;
         try {
-            InputStream databaseInputFile = getAssets().open(Constants.dbName + ".db");
+            InputStream databaseInputFile = getAssets().open(Constants.INTERNAL_DB_FILE_NAME + ".db");
             OutputStream databaseOutputFile = new FileOutputStream(databasePath);
 
             while ((length = databaseInputFile.read(buffer)) > 0) {
@@ -884,7 +751,7 @@ public class SettingsActivity extends BaseActivity {
             countriesContainer = new CountryInfoBasic[0];
 
             //folder exists, but it may be a case that file with stored markers is missing, so lets check that
-            File fileCheck = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
+            File fileCheck = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
             String result = "";
             if ((fileCheck.exists() && fileCheck.length() == 0) || shouldDeleteExisting) {
@@ -1012,7 +879,7 @@ public class SettingsActivity extends BaseActivity {
             }
 
             //folder exists, but it may be a case that file with stored markers is missing, so lets check that
-            File fileCheck = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
+            File fileCheck = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
             fileCheck.delete();
             //recreate placesContainer, it might not be empty
             if (placesContainer == null)
@@ -1280,7 +1147,7 @@ public class SettingsActivity extends BaseActivity {
     void savePlacesListLocally(List<PlaceInfoBasic> places) {
         //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
         //so we have to create file in storage folder and stream placesContainer into it using gson
-        File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
+        File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
         try {
             FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
@@ -1309,7 +1176,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     void saveCountriesListLocally(CountryInfoBasic[] countriesList) {
-        File file = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
+        File file = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
         try {
             FileOutputStream fileOutput = new FileOutputStream(file);

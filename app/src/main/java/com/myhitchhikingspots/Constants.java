@@ -4,8 +4,6 @@ package com.myhitchhikingspots;
  * Created by leoboaventura on 08/03/2016.
  */
 public final class Constants {
-    public static String dbName = "my_hitchhiking_spots";
-
     public static final int SUCCESS_RESULT = 0;
 
     public static final int FAILURE_RESULT = 1;
@@ -52,9 +50,12 @@ public final class Constants {
     public static final int ZOOM_TO_SEE_CLOSE_TO_SPOT = 12;
     public static final int KEEP_ZOOM_LEVEL = -1;
 
-    public static final String FILE_NAME_FOR_STORING_MARKERS = "markersStorageFile";
-    public static final String FILE_NAME_FOR_STORING_COUNTRIES_LIST = "countriesStorageFile";
-    public static final String FOLDERFORSTORINGMARKERS = "/markersStorageFolder";
+    public static final String SDCARD_STORAGE_PATH =  android.os.Environment.getExternalStorageDirectory() + "/MyHitchhikingSpots/";
+    public static final String EXPORTED_DB_STORAGE_PATH = SDCARD_STORAGE_PATH + "/backup/";
+    public static final String INTERNAL_DB_FILE_NAME = "my_hitchhiking_spots";
+    public static final String HITCHWIKI_MAPS_STORAGE_PATH = SDCARD_STORAGE_PATH + "/markersStorageFolder/";
+    public static final String HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME = "markersStorageFile";
+    public static final String HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME = "countriesStorageFile";
 
     public static final String PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD = "hitchwikiSpotsTimestamp";
     public static final String PREFS_TIMESTAMP_OF_BACKUP = "backupTimestamp";
@@ -70,6 +71,8 @@ public final class Constants {
     public static final int CROUTON_DURATION_5000 = 5000;
     public static final int CROUTON_DURATION_1500 = 1500;
 
+    public static final String ISPARTOFAROUTE_DEFAULT_VALUE = "1";
+    public static final String ISHITCHHIKINGSPOT_DEFAULT_VALUE = "1";
 
     public static final String SHOULD_SYNC_EU = "SHOULD_SYNC_EU";
     public static final String SHOULD_SYNC_AS = "SHOULD_SYNC_AS";
@@ -78,5 +81,4 @@ public final class Constants {
     public static final String SHOULD_SYNC_SA = "SHOULD_SYNC_SA";
     public static final String SHOULD_SYNC_AN = "SHOULD_SYNC_AN";
     public static final String SHOULD_SYNC_OC = "SHOULD_SYNC_OC";
-
 }
