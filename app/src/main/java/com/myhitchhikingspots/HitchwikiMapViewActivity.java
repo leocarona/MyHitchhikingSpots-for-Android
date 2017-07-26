@@ -49,6 +49,7 @@ import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -146,6 +147,14 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 }
             }
         };
+
+        //Rename old Hitchwiki Maps directory to something more intuitive for the user
+        if (prefs.getBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, false)) {
+            File oldFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
+            File newFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            oldFolder.renameTo(newFolder);
+            prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
+        }
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);

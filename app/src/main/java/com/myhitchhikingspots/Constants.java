@@ -53,7 +53,8 @@ public final class Constants {
     public static final String SDCARD_STORAGE_PATH =  android.os.Environment.getExternalStorageDirectory() + "/MyHitchhikingSpots/";
     public static final String EXPORTED_DB_STORAGE_PATH = SDCARD_STORAGE_PATH + "/backup/";
     public static final String INTERNAL_DB_FILE_NAME = "my_hitchhiking_spots";
-    public static final String HITCHWIKI_MAPS_STORAGE_PATH = SDCARD_STORAGE_PATH + "/markersStorageFolder/";
+    public static final String HITCHWIKI_MAPS_STORAGE_OLDPATH = SDCARD_STORAGE_PATH + "/markersStorageFolder/";
+    public static final String HITCHWIKI_MAPS_STORAGE_PATH = SDCARD_STORAGE_PATH + "/HitchwikiMapsDownloads/";
     public static final String HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME = "markersStorageFile";
     public static final String HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME = "countriesStorageFile";
 
@@ -63,6 +64,7 @@ public final class Constants {
     public static final String PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN = "lastOfflineModeWarnTimestamp";
     public static final String PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW = "shouldLoadCurrentView";
     public static final String PREFS_MAPBOX_WAS_EVER_LOADED = "mapBoxWasEverLoaded";
+    public static final String PREFS_HITCHWIKI_STORAGE_RENAMED = "hitchwikiStorageRenamed";
 
     public static final String PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD = "PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD";
     public static final String PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD = "PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD";
