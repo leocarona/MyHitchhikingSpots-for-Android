@@ -902,7 +902,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                             spot.getWaitingTime() != null) {
                         if (!secondLine.isEmpty())
                             secondLine += " ";
-                        secondLine += "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
+                        secondLine += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), getBaseContext()) + ")";
                     }
 
                     //Add note

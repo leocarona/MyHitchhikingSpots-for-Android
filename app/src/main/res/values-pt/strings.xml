@@ -145,6 +145,11 @@
     <string name="destination_spot_totals_format">TOTAL | %1$d caronas | %2$s</string>
     <string name="waiting_for_gps">Aguardando atualização da sua localizaçāo..</string>
 
+    <string name="general_weeks_label">%02ds</string>
+    <string name="general_days_label">%02dd</string>
+    <string name="general_hours_label">%02dh</string>
+    <string name="general_minutes_label">%02dmin</string>
+
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>

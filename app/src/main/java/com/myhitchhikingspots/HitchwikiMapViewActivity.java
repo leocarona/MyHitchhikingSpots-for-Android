@@ -659,7 +659,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() && spot.getWaitingTime() != null) {
                         if (!secondLine.isEmpty())
                             secondLine += " ";
-                        secondLine += "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
+                        secondLine += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), getBaseContext()) + ")";
                     }
 
                     //Add note

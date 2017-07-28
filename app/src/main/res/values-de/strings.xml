@@ -146,6 +146,11 @@
 
     <string name="waiting_for_gps">Warte auf deine Standorterkennung..</string>
 
+    <string name="general_weeks_label">%02dW</string>
+    <string name="general_days_label">%02dT</string>
+    <string name="general_hours_label">%02dS</string>
+    <string name="general_minutes_label">%02dMin</string>
+
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>
     <string name="general_no_option">Nein</string>

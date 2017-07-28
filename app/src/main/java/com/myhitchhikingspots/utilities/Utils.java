@@ -18,6 +18,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 import android.util.Log;
 
@@ -398,5 +399,40 @@ public class Utils {
             loc = loc2;
         }
         return loc;
+    }
+
+    @NonNull
+    public static String getWaitingTimeAsString(Integer waitingTime, Context context) {
+        int weeks = waitingTime / 7 / 24 / 60;
+        int days = waitingTime / 24 / 60;
+        int hours = waitingTime / 60 % 24;
+        int minutes = waitingTime % 60;
+        String dateFormated = "";
+
+        if (weeks > 0)
+            days = days % 7;
+
+        if (weeks > 0)
+            dateFormated += String.format(context.getString(R.string.general_weeks_label), weeks);
+
+        if ((days > 0 || hours > 0 || minutes > 0) && !dateFormated.isEmpty())
+            dateFormated += " ";
+
+        if (days > 0 || ((hours > 0 || minutes > 0) && !dateFormated.isEmpty()))
+            dateFormated += String.format(context.getString(R.string.general_days_label), days);
+
+        if ((hours > 0 || minutes > 0) && !dateFormated.isEmpty())
+            dateFormated += " ";
+
+        if (hours > 0 || (minutes > 0 && !dateFormated.isEmpty()))
+            dateFormated += String.format(context.getString(R.string.general_hours_label), hours);
+
+        if (minutes > 0 && !dateFormated.isEmpty())
+            dateFormated += " ";
+
+        if (minutes > 0 || dateFormated.isEmpty())
+            dateFormated += String.format(context.getString(R.string.general_minutes_label), minutes);
+
+        return dateFormated;
     }
 }

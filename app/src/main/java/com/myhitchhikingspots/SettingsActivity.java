@@ -87,16 +87,16 @@ public class SettingsActivity extends BaseActivity {
         Long millisecondsAtNow = System.currentTimeMillis();
         Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
         if (millisecondsLastCountriesRefresh > 0) {
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_countriesList_update_message),
-                    SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh)));
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh), getBaseContext());
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_countriesList_update_message), timePast);
         }
 
         Long millisecondsLastExport = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, 0);
         if (millisecondsLastExport > 0) {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_export_message),
-                    SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport)));
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport), getBaseContext());
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_export_message), timePast);
         }
 
         Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
@@ -104,8 +104,8 @@ public class SettingsActivity extends BaseActivity {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
 
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_download_message),
-                    SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh)));
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh), getBaseContext());
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_download_message), timePast);
         }
 
         if (!strLastDownload.isEmpty()) {

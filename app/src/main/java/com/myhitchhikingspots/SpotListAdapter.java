@@ -80,8 +80,10 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         minutes = Minutes.minutesBetween(startDateTime, endDateTime).getMinutes();
                     }
 
+                    String waiting_time = Utils.getWaitingTimeAsString((minutes), spotListFragment.getContext());
                     String formatedStr = String.format(spotListFragment.getResources().getString(R.string.destination_spot_totals_format),
-                            totalRides, getWaitingTimeAsString(minutes));
+                            totalRides, waiting_time);
+
                     totalsToDestinations.put(spot.getId(), formatedStr);
 
                     //totalWaitingTimeMinutes = 0;
@@ -164,42 +166,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             }
         }
         return "";
-    }
-
-    @NonNull
-    public static String getWaitingTimeAsString(Integer waitingTime) {
-        int weeks = waitingTime / 7 / 24 / 60;
-        int days = waitingTime / 24 / 60;
-        int hours = waitingTime / 60 % 24;
-        int minutes = waitingTime % 60;
-        String format = "%02d";
-        String dateFormated = "";
-
-        if (weeks > 0)
-            days = days % 7;
-
-        if (weeks > 0)
-            dateFormated += String.format(format, weeks) + "w";
-
-        if ((days > 0 || hours > 0 || minutes > 0) && !dateFormated.isEmpty())
-            dateFormated += " ";
-
-        if (days > 0 || ((hours > 0 || minutes > 0) && !dateFormated.isEmpty()))
-            dateFormated += String.format(format, days) + "d";
-
-        if ((hours > 0 || minutes > 0) && !dateFormated.isEmpty())
-            dateFormated += " ";
-
-        if (hours > 0 || (minutes > 0 && !dateFormated.isEmpty()))
-            dateFormated += String.format(format, hours) + "h";
-
-        if (minutes > 0 && !dateFormated.isEmpty())
-            dateFormated += " ";
-
-        if (minutes > 0 || dateFormated.isEmpty())
-            dateFormated += String.format(format, minutes) + "min";
-
-        return dateFormated;
     }
 
     @Override
@@ -345,7 +311,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 Integer waitingTime = 0;
                 if (spot.getWaitingTime() != null)
                     waitingTime = spot.getWaitingTime();
-                waitingTimeText.setText(getWaitingTimeAsString(waitingTime));
+                waitingTimeText.setText(Utils.getWaitingTimeAsString(waitingTime, context));
 
                 //Set the date and time
                 if (spot.getStartDateTime() != null)
