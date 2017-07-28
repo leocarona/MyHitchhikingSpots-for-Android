@@ -994,7 +994,12 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     }
                 }
 
-                zoomOutToFitAllMarkers();
+                //Automatically zoom out to fit all markers only the first time that spots are loaded.
+                // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
+                if (shouldZoomToFitAllMarkers) {
+                    zoomOutToFitAllMarkers();
+                    shouldZoomToFitAllMarkers = false;
+                }
 
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
@@ -1010,6 +1015,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     }
 
+    Boolean shouldZoomToFitAllMarkers = true;
 
     public void saveRegularSpotButtonHandler() {
         saveSpotButtonHandler(false);
