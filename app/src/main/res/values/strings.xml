@@ -150,6 +150,8 @@ The Hitchwiki team.
     <string name="general_minutes_label">%02dmin</string>
 
     <string name="general_edit_list">Edit list</string>
+    <string name="general_hide_icons_label">Hide icons</string>
+    <string name="general_show_icons_label">Show icons</string>
     <string name="general_close_editing_mode_label" translatable="false">Close editing mode</string>
     <string name="general_ok_option">OK</string>
     <string name="general_yes_option">Yes</string>
@@ -158,7 +160,7 @@ The Hitchwiki team.
     <string name="general_refresh_label">Refresh</string>
     <string name="general_cancel_option">Cancel</string>
     <string name="general_all">All</string>
-    <string name="general_not_enough_permission">Sorry, unfortunatelly you seem to not have enough permission to do execute this action.</string>
+    <string name="general_not_enough_permission">Sorry, unfortunately you seem to not have enough permission to do execute this action.</string>
     <string name="general_selected_file_type_not_supported">Selected file was not of a supported type.</string>
 
     <string name="general_author_label">by %s</string>

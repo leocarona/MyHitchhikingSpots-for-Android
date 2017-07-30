@@ -153,6 +153,8 @@
     <string name="general_minutes_label">%02dmin</string>
 
     <string name="general_edit_list">Editar lista</string>
+    <string name="general_hide_icons_label">Esconder botōes</string>
+    <string name="general_show_icons_label">Mostrar botōes</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>

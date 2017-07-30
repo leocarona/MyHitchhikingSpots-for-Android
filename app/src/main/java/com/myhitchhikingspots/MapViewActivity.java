@@ -62,7 +62,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
-
+    Boolean shouldDisplayIcons = true;
     boolean wasSnackbarShown;
 
     //WARNING: in order to use BaseActivity the method onCreate must be overridden
@@ -676,6 +676,24 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 } else
                     saveSpotButtonHandler(false);
                 selectionHandled = true;
+                break;
+
+            case R.id.action_toggle_icons:
+                shouldDisplayIcons = !shouldDisplayIcons;
+                if (shouldDisplayIcons) {
+                    fabLocateUser.setVisibility(View.VISIBLE);
+                    fabShowAll.setVisibility(View.VISIBLE);
+                    item.setTitle(getString(R.string.general_hide_icons_label));
+
+                    //Call configureBottomFABButtons to show only the buttons that should be shown
+                    configureBottomFABButtons();
+                } else {
+                    fabLocateUser.setVisibility(View.GONE);
+                    fabShowAll.setVisibility(View.GONE);
+                    fabSpotAction1.setVisibility(View.GONE);
+                    fabSpotAction2.setVisibility(View.GONE);
+                    item.setTitle(getString(R.string.general_show_icons_label));
+                }
                 break;
         }
 
