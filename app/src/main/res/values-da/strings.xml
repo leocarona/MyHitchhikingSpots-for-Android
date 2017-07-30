@@ -97,6 +97,8 @@
     <string name="spot_form_view_comments_button_label">vis (%s) kommentarer</string>
     <string name="spot_form_delete_dialog_title_text">Slet sted</string>
     <string name="spot_form_delete_dialog_message_text">Er du sikker på, at du vil slette stedet permanent?</string>
+    <string name="spot_form_delete_dialog_message_for_many_text">%d spots selected. Are you sure you want to delete those spots? You won\'t be able to recover them.</string>
+    <string name="spot_form_delete_dialog_yes_for_many_option">Delete %d spots</string>
     <string name="spot_form_delete_dialog_no_option">Fortryd</string>
     <string name="spot_form_delete_dialog_yes_option">Slet</string>
     <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
@@ -121,6 +123,7 @@
     <string name="general_hours_label">%02dt</string>
     <string name="general_minutes_label">%02dmin</string>
 
+    <string name="general_edit_list">Edit list</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>
     <string name="general_no_option">Nej</string>

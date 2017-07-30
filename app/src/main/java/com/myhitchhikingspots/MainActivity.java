@@ -17,6 +17,7 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -92,7 +94,8 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        if (mSectionsPagerAdapter == null)
+            mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -301,6 +304,42 @@ public class MainActivity extends TrackLocationBaseActivity {
                 //GotARideShortcut();
                 selectionHandled = true;
                 break;
+            case R.id.action_edit_list:
+                if (mSectionsPagerAdapter != null)
+                    switch (mViewPager.getCurrentItem()) {
+                        case SectionsPagerAdapter.TAB_ROUTES_INDEX:
+                            //Toggle isEditMode
+                            mSectionsPagerAdapter.toggleRoutesListEditMode();
+
+                          /*Commenting this out because when user changes the selected tab, the isEditMode value is different for the other tab/fragment
+                          //Update string to show "Edit list" or "Close edit mode" depending on isEditMode
+                            if (!mSectionsPagerAdapter.getTabRoutesIsEditMode())
+                                item.setTitle(getString(R.string.general_edit_list));
+                            else
+                                item.setTitle(getString(R.string.general_close_editing_mode_label));*/
+
+                            break;
+                        case SectionsPagerAdapter.TAB_SPOTS_INDEX:
+                            //Toggle isEditMode
+                            mSectionsPagerAdapter.toggleSpotsListEditMode();
+
+                            /*Commenting this out because when user changes the selected tab, the isEditMode value is different for the other tab/fragment
+                            //Update string to show "Edit list" or "Close edit mode" depending on isEditMode
+                            if (!mSectionsPagerAdapter.getTabSpotsIsEditMode())
+                                item.setTitle(getString(R.string.general_edit_list));
+                            else
+                                item.setTitle(getString(R.string.general_close_editing_mode_label));*/
+
+                            break;
+                        default:
+                            Toast.makeText(this,
+                                    String.format("Select tab '%1$s' or '%2$s'",
+                                            getString(R.string.main_activity_list_tab),
+                                            getString(R.string.main_activity_single_spots_list_tab)),
+                                    Toast.LENGTH_LONG).show();
+                            break;
+                    }
+                break;
         }
 
         if (selectionHandled)
@@ -405,6 +444,12 @@ public class MainActivity extends TrackLocationBaseActivity {
                     SpotListFragment tab_list = (SpotListFragment) createdFragment;
                     tab_list.setValues(routeSpots);
                     this.tab_route_spots_list = tab_list;
+                    this.tab_route_spots_list.setOnOneOrMoreSpotsDeleted(new ListListener() {
+                        @Override
+                        public void onSelectedSpotsListChanged() {
+                            showSpotDeletedSnackbar();
+                        }
+                    });
                     break;
                 case 1:
                     SpotListFragment tab_single_spots_list = (SpotListFragment) createdFragment;
@@ -431,6 +476,8 @@ public class MainActivity extends TrackLocationBaseActivity {
             return 3;
         }
 
+        public final static int TAB_ROUTES_INDEX = 0;
+        public final static int TAB_SPOTS_INDEX = 1;
         public final static int TAB_YOU_INDEX = 2;
 
         @Override
@@ -498,6 +545,28 @@ public class MainActivity extends TrackLocationBaseActivity {
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
             }
+        }
+
+        public Boolean getTabRoutesIsEditMode() {
+            if (tab_route_spots_list != null)
+                return tab_route_spots_list.getIsEditMode();
+            return false;
+        }
+
+        public Boolean getTabSpotsIsEditMode() {
+            if (tab_single_spots_list != null)
+                return tab_single_spots_list.getIsEditMode();
+            return false;
+        }
+
+        public void toggleRoutesListEditMode() {
+            if (tab_route_spots_list != null)
+                tab_route_spots_list.setIsEditMode(!tab_route_spots_list.getIsEditMode());
+        }
+
+        public void toggleSpotsListEditMode() {
+            if (tab_single_spots_list != null)
+                tab_single_spots_list.setIsEditMode(!tab_single_spots_list.getIsEditMode());
         }
 
         public void saveSpotButtonHandler(Boolean isDestination) {

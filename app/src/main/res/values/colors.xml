@@ -21,6 +21,8 @@
     <color name="ic_got_a_ride_color_lighter">#B3E61A</color>
     <color name="ic_break_color_lighter">#ffd54d</color>
 
+    <color name="ic_selected_bg_color">#a8ffd54d</color>
+
     <color name="ic_standard_fab_color">#009688</color>
     <color name="ic_standard_fab_color_lighter">#33C9BB</color>
 
