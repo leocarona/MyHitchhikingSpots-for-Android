@@ -313,7 +313,7 @@ public class SettingsActivity extends BaseActivity {
 
     public void exportButtonHandler(View view) {
         try {
-            new DatabaseExporter().execute();
+            new DatabaseExporter(this).execute();
 
             /*String dbExportResult = exportDB(getBaseContext());
             mfeedbacklabel.setText(dbExportResult);*/

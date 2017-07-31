@@ -25,12 +25,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
-     ProgressDialog dialog;
+    ProgressDialog dialog;
     Context context;
     SharedPreferences prefs;
     final String TAG = "database-exporter";
 
-    public void ExportDatabaseCSVTask(Context context){
+    public DatabaseExporter(Context context) {
         this.context = context;
         prefs = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
     }
