@@ -232,5 +232,8 @@
 
     <string name="refresh_datetime_dialog_title">Atualizar data e hora?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutos já passaram desde que você abriu esta janela pela primeira vez. Você gostaria de atualizar a data e hora deste novo local? A atualização será feita de %2$s para %3$s.</string>
+    <string name="settings_export_section_title">Export</string>
+    <string name="settings_import_section_title">Import</string>
+    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
 
 </resources>

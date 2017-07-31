@@ -160,7 +160,7 @@ The Hitchwiki team.
     <string name="general_refresh_label">Refresh</string>
     <string name="general_cancel_option">Cancel</string>
     <string name="general_all">All</string>
-    <string name="general_not_enough_permission">Sorry, unfortunately you seem to not have enough permission to do execute this action.</string>
+    <string name="general_not_enough_permission">Sorry, unfortunately you seem to not have enough permission to execute this action.</string>
     <string name="general_selected_file_type_not_supported">Selected file was not of a supported type.</string>
 
     <string name="general_author_label">by %s</string>
@@ -230,5 +230,8 @@ The Hitchwiki team.
 
     <string name="refresh_datetime_dialog_title">Update date and time?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
+    <string name="settings_export_section_title">Export</string>
+    <string name="settings_import_section_title">Import</string>
+    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
 
 </resources>
