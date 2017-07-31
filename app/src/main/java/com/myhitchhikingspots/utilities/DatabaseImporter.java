@@ -69,7 +69,8 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         ArrayList<String> msgRes = new ArrayList<>();
 
         try {
-            msgRes.add(String.format(context.getString(R.string.settings_import_total_spots_on_selected_file), numberOfSpotsOnCSVFile));
+            if (numberOfSpotsOnCSVFile > 0 || errorMessage.isEmpty())
+                msgRes.add(String.format(context.getString(R.string.settings_import_total_spots_on_selected_file), numberOfSpotsOnCSVFile));
 
             if (numberOfSpotsFailedImporting > 0)
                 msgRes.add(String.format(context.getString(R.string.settings_import_total_not_imported), numberOfSpotsFailedImporting));
@@ -77,7 +78,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             if (numberOfSpotsSkipped > 0)
                 msgRes.add(String.format(context.getString(R.string.settings_import_total_spots_skipped), numberOfSpotsSkipped));
 
-            if (numberOfSpotsOnCSVFile.equals(numberOfSpotsImported))
+            if (numberOfSpotsOnCSVFile > 0 || numberOfSpotsOnCSVFile.equals(numberOfSpotsImported))
                 msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), context.getString(R.string.general_all)));
             else
                 msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), numberOfSpotsImported.toString()));
@@ -87,8 +88,12 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             Crashlytics.logException(e);
         }
 
-        if (!errorMessage.isEmpty())
-            msgRes.add("\n-----\n" + context.getString(R.string.general_one_or_more_errors_occured) + "\n" + errorMessage);
+        if (!errorMessage.isEmpty()) {
+            String errorMessageFormat = "\n%1$s\n%2$s";
+            if (msgRes.size() > 0)
+                errorMessageFormat = "\n-----\n%1$s\n%2$s";
+            msgRes.add(String.format(errorMessageFormat, context.getString(R.string.general_one_or_more_errors_occured), errorMessage));
+        }
 
         if (dialog.isShowing())
             dialog.dismiss();
