@@ -29,6 +29,7 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
     Context context;
     SharedPreferences prefs;
     final String TAG = "database-exporter";
+    String result = "";
 
     public DatabaseExporter(Context context) {
         this.context = context;
@@ -51,23 +52,23 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
 
     protected Boolean doInBackground(Void... args) {
         Crashlytics.log(Log.INFO, TAG, "DatabaseExporter started executing..");
-        MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) context.getApplicationContext());
-
-        File exportDir = new File(Constants.EXPORTED_DB_STORAGE_PATH);
-
-        if (!exportDir.exists()) {
-            Crashlytics.log(Log.INFO, TAG, "Directory created. " + exportDir.getPath());
-            exportDir.mkdirs();
-        }
-
-        String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-        String fileName = sdf.format(new Date()) + Constants.INTERNAL_DB_FILE_NAME + ".csv";
-
-        File file = new File(exportDir, fileName);
         try {
-            file.createNewFile();
-            CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
+            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) context.getApplicationContext());
+
+            File exportDir = new File(Constants.EXPORTED_DB_STORAGE_PATH);
+
+            if (!exportDir.exists()) {
+                Crashlytics.log(Log.INFO, TAG, "Directory created. " + exportDir.getPath());
+                exportDir.mkdirs();
+            }
+
+            String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
+            String fileName = sdf.format(new Date()) + Constants.INTERNAL_DB_FILE_NAME + ".csv";
+
+            File destinationFile = new File(exportDir, fileName);
+            destinationFile.createNewFile();
+            CSVWriter csvWrite = new CSVWriter(new FileWriter(destinationFile));
             Cursor curCSV = appContext.rawQuery("select * from " + SpotDao.TABLENAME, null);
             csvWrite.writeNext(curCSV.getColumnNames());
             while (curCSV.moveToNext()) {
@@ -81,16 +82,14 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
             csvWrite.close();
             curCSV.close();
 
-            result = String.format(context.getString(R.string.settings_exportdb_finish_successfull_message), file.getPath());
+            result = String.format(context.getString(R.string.settings_exportdb_finish_successfull_message), destinationFile.getPath());
 
             return true;
         } catch (IOException e) {
             Crashlytics.logException(e);
-            return false;
         }
+        return false;
     }
-
-    String result = "";
 
     protected void onPostExecute(final Boolean success) {
 

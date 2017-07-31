@@ -324,6 +324,7 @@ public class SettingsActivity extends BaseActivity {
 
         } catch (Exception e) {
             Crashlytics.logException(e);
+            showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
         }
     }
 
