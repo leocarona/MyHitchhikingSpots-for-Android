@@ -7,5 +7,6 @@ import com.myhitchhikingspots.model.Spot;
  */
 
 public interface CheckboxListener {
-    void onSpotCheckedChanged(Spot spot, Boolean isChecked);
+    void notifySpotCheckedChanged(Spot spot, Boolean isChecked);
+    void notifySpotClicked(Spot spot);
 }

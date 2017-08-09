@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -15,7 +14,7 @@ import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.MyHitchhikingSpotsApplication;
 import com.myhitchhikingspots.R;
-import com.myhitchhikingspots.SettingsActivity;
+import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.model.SpotDao;
 
 import java.io.File;
@@ -25,15 +24,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
-    ProgressDialog dialog;
-    Context context;
-    SharedPreferences prefs;
-    final String TAG = "database-exporter";
-    String result = "";
+    private ProgressDialog dialog;
+    private Context context;
+    private AsyncTaskListener<String> onFinished;
+    private final String TAG = "database-exporter";
+    private String result = "";
 
     public DatabaseExporter(Context context) {
         this.context = context;
-        prefs = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
     }
 
     @Override
@@ -50,7 +48,7 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
         this.dialog.show();
     }
 
-    protected Boolean doInBackground(Void... args) {
+    protected Boolean doInBackground(Void... params) {
         Crashlytics.log(Log.INFO, TAG, "DatabaseExporter started executing..");
         try {
             MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) context.getApplicationContext());
@@ -62,9 +60,7 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
                 exportDir.mkdirs();
             }
 
-            String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
-            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-            String fileName = sdf.format(new Date()) + Constants.INTERNAL_DB_FILE_NAME + ".csv";
+            String fileName = Utils.getExportFileName(new Date());
 
             File destinationFile = new File(exportDir, fileName);
             destinationFile.createNewFile();
@@ -72,7 +68,6 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
             Cursor curCSV = appContext.rawQuery("select * from " + SpotDao.TABLENAME, null);
             csvWrite.writeNext(curCSV.getColumnNames());
             while (curCSV.moveToNext()) {
-                String arrStr[] = null;
                 String[] mySecondStringArray = new String[curCSV.getColumnNames().length];
                 for (int i = 0; i < curCSV.getColumnNames().length; i++) {
                     mySecondStringArray[i] = curCSV.getString(i);
@@ -82,6 +77,7 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
             csvWrite.close();
             curCSV.close();
 
+            //Build "Copied to" string so that the user knows where the exported database file was copied to
             result = String.format(context.getString(R.string.settings_exportdb_finish_successfull_message), destinationFile.getPath());
 
             return true;
@@ -100,16 +96,12 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
         }
 
         Crashlytics.setString("doInBackground result", result);
-        if (success) {
-            //mfeedbacklabel.setText(result);
-            //mfeedbacklabel.setVisibility(View.VISIBLE);
 
-            Long currentMillis = System.currentTimeMillis();
-            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, currentMillis).apply();
+        if (onFinished != null)
+            onFinished.notifyTaskFinished(success, result);
+    }
 
-            Toast.makeText(context, context.getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(context, context.getString(R.string.general_export_finished_failed_message), Toast.LENGTH_SHORT).show();
-        }
+    public void addListener(AsyncTaskListener<String> doWhenFinished) {
+        onFinished = doWhenFinished;
     }
 }

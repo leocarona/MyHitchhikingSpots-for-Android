@@ -1,98 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    android:orientation="vertical"
     tools:showIn="@layout/settings_master_layout">
 
-
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="pickFileButtonHandler"
-            android:text="pick file"
-            android:visibility="gone" />
-
-        <TextView
-            style="?android:attr/listSeparatorTextViewStyle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Export" />
+            android:orientation="vertical"
+            >
 
-        <Button
-            android:id="@+id/export"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="exportButtonHandler"
-            android:text="@string/settings_exportdb_button_label"
-            android:textAllCaps="true" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="pickFileButtonHandler"
+                android:text="pick file"
+                android:visibility="gone" />
 
-        <TextView
-            style="?android:attr/listSeparatorTextViewStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Import" />
+            <TextView
+                style="?android:attr/listSeparatorTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_export_section_title" />
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="importButtonHandler"
-            android:text="@string/settings_importdb_button_label"
-            android:textAllCaps="true"/>
+            <Button
+                android:id="@+id/export"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="exportButtonHandler"
+                android:text="@string/settings_exportdb_button_label"
+                android:textAllCaps="true" />
 
-        <TextView
-            android:layout_marginTop="20dp"
-            style="?android:attr/listSeparatorTextViewStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/settings_downloadHDSpots_button_label" />
+            <TextView
+                style="?android:attr/listSeparatorTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_import_section_title" />
 
-        <Button
-            android:id="@+id/select_continents"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="showContinentsDialog"
-            android:text="@string/settings_select_continents_button_label"
-            android:textAllCaps="true" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="importButtonHandler"
+                android:text="@string/settings_importdb_button_label"
+                android:textAllCaps="true" />
 
-        <Button
-            android:id="@+id/select_countries"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="showCountriesDialog"
-            android:text="@string/settings_select_countries_button_label"
-            android:textAllCaps="true" />
+            <TextView
+                style="?android:attr/listSeparatorTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/settings_downloadHDSpots_button_label" />
+
+            <Button
+                android:id="@+id/select_continents"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="showContinentsDialog"
+                android:text="@string/settings_select_continents_button_label"
+                android:textAllCaps="true" />
+
+            <Button
+                android:id="@+id/select_countries"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="showCountriesDialog"
+                android:text="@string/settings_select_countries_button_label"
+                android:textAllCaps="true" />
 
 
-        <TextView
-            style="?android:attr/listSeparatorTextViewStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <TextView
+                style="?android:attr/listSeparatorTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-        <TextView
-            android:id="@+id/feedbacklabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:background="#FFFFD54D"
-            android:padding="10dp"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-    </LinearLayout>
-</RelativeLayout>
+            <TextView
+                android:id="@+id/feedbacklabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:background="#FFFFD54D"
+                android:padding="10dp"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+        </LinearLayout>
+    </RelativeLayout>
+</ScrollView>

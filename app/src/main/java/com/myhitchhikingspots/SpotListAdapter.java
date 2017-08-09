@@ -2,9 +2,7 @@ package com.myhitchhikingspots;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.AppCompatCheckBox;
@@ -17,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.interfaces.CheckboxListener;
@@ -120,7 +117,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         CheckboxListener onCheckedChanged = new CheckboxListener() {
             @Override
-            public void onSpotCheckedChanged(Spot spot, Boolean isChecked) {
+            public void notifySpotCheckedChanged(Spot spot, Boolean isChecked) {
 
                 //If isChecked add spot id to previouslySelectedSpots
                 if (isChecked)
@@ -139,7 +136,12 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         selectedSpots.remove(index);
                 }
 
-                onSelectedSpotsListChanged();
+                onListOfSelectedSpotsChanged();
+            }
+
+            @Override
+            public void notifySpotClicked(Spot spot) {
+                onSpotClicked(spot);
             }
         };
 
@@ -228,10 +230,16 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     }
 
     @Override
-    public void onSelectedSpotsListChanged() {
+    public void onListOfSelectedSpotsChanged() {
         // Notify everybody that may be interested.
         if (onSelectedSpotsListChangedListener != null)
-            onSelectedSpotsListChangedListener.onSelectedSpotsListChanged();
+            onSelectedSpotsListChangedListener.onListOfSelectedSpotsChanged();
+    }
+
+    @Override
+    public void onSpotClicked(Spot spot) {
+        if (onSelectedSpotsListChangedListener != null)
+            onSelectedSpotsListChangedListener.onSpotClicked(spot);
     }
 
     Boolean isEditMode = false;
@@ -249,7 +257,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         public Spot spot;
         public View viewParent;
         public AppCompatCheckBox cbx;
-        CheckboxListener itemCheckedChangedListener = null;
+        CheckboxListener itemListener = null;
         Boolean isEditMode = false;
 
         public ViewHolder(View itemLayoutView, Activity activity) {
@@ -273,45 +281,26 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         @Override
         public void onClick(View v) {
-            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getCurrentSpot();
-
-            //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-            if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
-                    mCurrentWaitingSpot.getIsWaitingForARide()) {
-
-                if (mCurrentWaitingSpot.getId().equals(spot.getId()))
-                    spot.setAttemptResult(null);
-                else {
-                    Toast.makeText(activity, viewParent.getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
-
-            Bundle args = new Bundle();
-            //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-            args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-            args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-
-            Intent intent = new Intent(activity, SpotFormActivity.class);
-            intent.putExtras(args);
-            activity.startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
+            if (itemListener != null)
+                itemListener.notifySpotClicked(spot);
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if (buttonView.getId() == R.id.spot_delete_checkbox && itemCheckedChangedListener != null) {
+            if (buttonView.getId() == R.id.spot_delete_checkbox && itemListener != null) {
                 //Set background color
                 if (isChecked)
                     buttonView.setBackgroundColor(ContextCompat.getColor(activity, R.color.ic_selected_bg_color));
                 else
                     buttonView.setBackgroundColor(Color.TRANSPARENT);
 
-                itemCheckedChangedListener.onSpotCheckedChanged(spot, isChecked);
+                if (itemListener != null)
+                    itemListener.notifySpotCheckedChanged(spot, isChecked);
             }
         }
 
-        public void setSpotCheckedChangedListener(CheckboxListener itemCheckedChangedListener) {
-            this.itemCheckedChangedListener = itemCheckedChangedListener;
+        public void setSpotCheckedChangedListener(CheckboxListener itemListener) {
+            this.itemListener = itemListener;
         }
 
         public void setIsEditMode(Boolean isEditMode) {

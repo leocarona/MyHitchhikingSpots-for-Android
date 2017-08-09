@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.location.Address;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -13,13 +14,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.SpotDao;
-import com.myhitchhikingspots.utilities.Utils;
 
 import org.greenrobot.greendao.database.Database;
 
@@ -136,7 +137,7 @@ public class SpotListFragment extends Fragment {
                                         } else
                                             //Let parent activity handle this
                                             if (onOneOrMoreSpotsDeleted != null)
-                                                onOneOrMoreSpotsDeleted.onSelectedSpotsListChanged();
+                                                onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged();
                                     }
                                 })
                         .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
@@ -149,8 +150,38 @@ public class SpotListFragment extends Fragment {
         if (mAdapter == null) {
             ListListener listener = new ListListener() {
                 @Override
-                public void onSelectedSpotsListChanged() {
+                public void onListOfSelectedSpotsChanged() {
+                    //Show or hide delete button. When one or more spot are delete, onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged() is fired
                     updateDeleteButtons();
+                }
+
+                @Override
+                public void onSpotClicked(Spot spot) {
+                    Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
+
+                    //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+                    if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
+                            mCurrentWaitingSpot.getIsWaitingForARide()) {
+
+                        if (mCurrentWaitingSpot.getId().equals(spot.getId()))
+                            spot.setAttemptResult(null);
+                        else {
+                            Toast.makeText(getContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    }
+
+                    Bundle args = new Bundle();
+                    //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
+                    args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+                    args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+
+                    Intent intent = new Intent(getContext(), SpotFormActivity.class);
+                    intent.putExtras(args);
+                    startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
+
+                    if (onOneOrMoreSpotsDeleted != null)
+                        onOneOrMoreSpotsDeleted.onSpotClicked(spot);
                 }
             };
 
@@ -243,7 +274,7 @@ public class SpotListFragment extends Fragment {
             updateUI();
     }
 
-    @Override
+   /* @Override
     public void onDestroyView() {
         super.onDestroyView();
     }
@@ -251,7 +282,7 @@ public class SpotListFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-    }
+    }*/
 
     /**
      * Runs when user clicks the Fetch Address button. Starts the service to fetch the address if

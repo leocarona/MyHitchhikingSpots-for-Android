@@ -37,8 +37,14 @@ public class FileDialog {
      * @param activity
      * @param path
      */
-    public FileDialog(Activity activity, File path) {
+    public FileDialog(Activity activity, File path, String... typesOfFilesToShow) {
         this.activity = activity;
+
+        //Add files extension that should be shown
+        for (String type : typesOfFilesToShow) {
+            this.fileEndsWith.add(type.toLowerCase());
+        }
+
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
         loadFileList(path);
     }
@@ -157,12 +163,6 @@ public class FileDialog {
         else return new File(currentPath, fileChosen);
 
 
-    }
-
-    //--------------------------------------------------------------
-    public void addFileEndsWith(String fileEndsWith) {
-        if (fileEndsWith != null && !fileEndsWith.isEmpty())
-            this.fileEndsWith.add(fileEndsWith.toLowerCase());
     }
 }
 

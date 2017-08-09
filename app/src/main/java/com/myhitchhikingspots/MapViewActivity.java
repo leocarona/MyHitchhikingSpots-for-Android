@@ -22,6 +22,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -773,6 +774,16 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
      */
     private void moveCamera(LatLng latLng) {
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
+    }
+
+    public boolean onKeyDown(int keycode, KeyEvent e) {
+        switch (keycode) {
+            case KeyEvent.KEYCODE_MENU:
+                Toast.makeText(this, "HALLO!", Toast.LENGTH_SHORT).show();
+                return true;
+        }
+
+        return super.onKeyDown(keycode, e);
     }
 
     Boolean shouldShowOnlyGotARideMarkers = true;

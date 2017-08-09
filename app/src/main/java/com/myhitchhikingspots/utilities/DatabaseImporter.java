@@ -17,24 +17,32 @@ import android.util.Log;
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
+import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.SpotDao;
 
 import org.greenrobot.greendao.database.Database;
 
 public class DatabaseImporter extends AsyncTask<Void, Void, String> {
+    private Context context;
+    private File file = null;
+    private ProgressDialog dialog;
+    private AsyncTaskListener<ArrayList<String>> onFinished;
+    private final String TAG = "database-importer";
+    private final String TEMPORARY_COPY_DB_FILE_NAME = "temporary_db_copy.db";
+    private Integer numberOfSpotsOnCSVFile = 0, numberOfSpotsSkipped = 0, numberOfSpotsFailedImporting = 0, numberOfSpotsImported = 0;
 
-    Activity activity;
-    Context context;
-    File file = null;
-    ProgressDialog dialog;
-    final String TAG = "database-importer";
-    final String TEMPORARY_COPY_DB_FILE_NAME = "temporary_copy.db";
-    Integer numberOfSpotsOnCSVFile = 0, numberOfSpotsSkipped = 0, numberOfSpotsFailedImporting = 0, numberOfSpotsImported = 0;
 
-    public DatabaseImporter(Context context, Activity activity, File file) {
+    //%1$s : table name
+    //%2$ : column names sequence, on this format: "STREET, COUNTRY, NOTE"
+    //%3$s : the values, in the same sequence as the column names on %2$s
+    private String sqlInsertStatement = "INSERT INTO %1$s (%2$s) VALUES (%3$s)";
+    private String sqlSelectAllStatement = "SELECT * FROM %1$s";
+    private String sqlSelectDuplicatedStatement = "SELECT * FROM %1$s WHERE %2$s LIMIT 1";
+
+
+    public DatabaseImporter(Context context, File file) {
         this.context = context;
-        this.activity = activity;
         this.file = file;
     }
 
@@ -52,7 +60,6 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     protected String doInBackground(Void... params) {
         Crashlytics.log(Log.INFO, TAG, "DatabaseImporter started executing..");
         Crashlytics.setString("Chosen file", file.toString());
-
 
         String errorMessage = "";
         if (file.getName().endsWith(".csv")) {
@@ -78,10 +85,12 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             if (numberOfSpotsSkipped > 0)
                 msgRes.add(String.format(context.getString(R.string.settings_import_total_spots_skipped), numberOfSpotsSkipped));
 
-            if (numberOfSpotsOnCSVFile > 0 || numberOfSpotsOnCSVFile.equals(numberOfSpotsImported))
-                msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), context.getString(R.string.general_all)));
-            else
-                msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), numberOfSpotsImported.toString()));
+            if (numberOfSpotsOnCSVFile > 0 || !errorMessage.isEmpty()) {
+                if (numberOfSpotsOnCSVFile > 0 && numberOfSpotsOnCSVFile.equals(numberOfSpotsImported))
+                    msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), context.getString(R.string.general_all)));
+                else
+                    msgRes.add(String.format(context.getString(R.string.settings_import_total_successfuly_imported), numberOfSpotsImported.toString()));
+            }
         } catch (Exception e) {
             Log.e("Error", "Error on importing file");
             errorMessage += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
@@ -98,18 +107,15 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         if (dialog.isShowing())
             dialog.dismiss();
 
-
-        showAlert(context.getString(R.string.settings_importdb_button_label), TextUtils.join("\n", msgRes));
+        if (onFinished != null)
+            onFinished.notifyTaskFinished(errorMessage.isEmpty(), msgRes);
     }
 
-    //%1$s : table name
-    //%2$ : column names sequence, on this format: "STREET, COUNTRY, NOTE"
-    //%3$s : the values, in the same sequence as the column names on %2$s
-    String sqlInsertStatement = "INSERT INTO %1$s (%2$s) VALUES (%3$s)";
-    String sqlSelectAllStatement = "SELECT * FROM %1$s";
-    String sqlSelectDuplicatedStatement = "SELECT * FROM %1$s WHERE %2$s LIMIT 1";
+    public void addListener(AsyncTaskListener<ArrayList<String>> doWhenFinished) {
+        onFinished = doWhenFinished;
+    }
 
-    String importCSVFile() {
+    private String importCSVFile() {
         String errorMessage = "";
         try {
             ArrayList<String> columnsNameList = new ArrayList<>();
@@ -143,6 +149,8 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             if (!doesIsHitchhikingSpotColumnExist)
                 columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
 
+
+            Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
 
             // Read all the rest of the lines
             for (; ; ) {
@@ -191,7 +199,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     }
 
                     //Copy spot if it doesn't already exist in the local DB. If it exists, skip it so that it doesn't duplicate.
-                    if (copyIfDoesntExist(comparisonsList, columnsNameList, valuesList))
+                    if (copyIfDoesntExist(comparisonsList, columnsNameList, valuesList, destinationDB))
                         numberOfSpotsImported++;
                     else
                         numberOfSpotsSkipped++;
@@ -209,6 +217,8 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                 numberOfSpotsOnCSVFile++;
             }
 
+            destinationDB.close();
+            reader.close();
         } catch (Exception e) {
             Log.e("Error", "Error for importing file");
             errorMessage += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
@@ -218,11 +228,15 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         return errorMessage;
     }
 
-    String importDBFile() {
+    private String importDBFile() {
         String errorMessage = "";
         try {
+            //Build path to databases directory
+            String destinationFilePath = Utils.getLocalStoragePathToFile(TEMPORARY_COPY_DB_FILE_NAME, context);
+            Crashlytics.setString("destinationFilePath", destinationFilePath);
+
             //Copy database into local storage
-            errorMessage = Utils.copySQLiteDBIntoLocalStorage(file, TEMPORARY_COPY_DB_FILE_NAME, context);
+            errorMessage = Utils.copySQLiteDBIntoLocalStorage(file, destinationFilePath, context);
 
             //If no error happened while copying the database
             if (errorMessage.isEmpty()) {
@@ -268,6 +282,8 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                         columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
 
 
+                    Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
+
                     // Read all the rest of the lines
                     while (cursor.moveToNext()) {
                         try {
@@ -311,7 +327,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                             }
 
                             //Copy spot if it doesn't already exist in the local DB. If it exists, skip it so that it doesn't duplicate.
-                            if (copyIfDoesntExist(comparisonsList, columnsNameList, valuesList))
+                            if (copyIfDoesntExist(comparisonsList, columnsNameList, valuesList, destinationDB))
                                 numberOfSpotsImported++;
                             else
                                 numberOfSpotsSkipped++;
@@ -330,11 +346,17 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     }
 
                     Crashlytics.log(Log.INFO, TAG, "Successfully finished copying all spots to local database");
+                    destinationDB.close();
                 }
-
+                cursor.close();
+                originDB.close();
+                if (!context.deleteDatabase(TEMPORARY_COPY_DB_FILE_NAME)) {
+                    errorMessage += "For some reason the temporary copy of the database could not be deleted.";
+                    Crashlytics.log(Log.WARN, TAG, "For some reason the temporary copy of the database could not be deleted.");
+                }
             }
         } catch (Exception e) {
-            Log.e("Error", "Error for importing file: " + e.getMessage());
+            Log.e("Error", "Error importing file: " + e.getMessage());
             errorMessage += String.format(context.getString(R.string.general_error_dialog_message), e.getMessage());
             Crashlytics.logException(e);
         }
@@ -342,10 +364,8 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         return errorMessage;
     }
 
-    Boolean copyIfDoesntExist(ArrayList<String> comparisonsList, ArrayList<String> columnsNameList, ArrayList<String> valuesList) {
+    Boolean copyIfDoesntExist(ArrayList<String> comparisonsList, ArrayList<String> columnsNameList, ArrayList<String> valuesList, Database destinationDB) {
         Boolean spotAdded = false;
-
-        Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
 
         //Try to find spots that contain exactly the same data as the current one (ignoring ID, of course)
         Cursor duplicatedRecords = destinationDB.rawQuery(
@@ -368,13 +388,5 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         return spotAdded;
     }
 
-    void showAlert(String title, String data) {
-        new AlertDialog.Builder(context)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(title)
-                .setMessage(data)
-                .setNegativeButton(context.getString(R.string.general_ok_option), null)
-                .show();
-    }
 
 }

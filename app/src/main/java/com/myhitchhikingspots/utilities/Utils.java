@@ -10,13 +10,17 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.logging.ErrorManager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
@@ -28,6 +32,7 @@ import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
+import com.myhitchhikingspots.BuildConfig;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.Spot;
@@ -223,9 +228,29 @@ public class Utils {
         return result;
     }
 
-    public static String copySQLiteDBIntoLocalStorage(String originFileName, String destinationFileName, Context context) {
+    public static String getExportFileName(Date date) {
+        String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
+        return String.format("%s.csv", sdf.format(date) + Constants.INTERNAL_DB_FILE_NAME);
+    }
+
+    public static String getLocalStoragePathToFile(String destinationFileName, Context context) {
+        //The fuild condition >=17 was copied from https://stackoverflow.com/q/37699373/1094261
+
+        //Build path to databases directory
+        String destinationFilePath = "";
+        if (android.os.Build.VERSION.SDK_INT >= 17)
+            destinationFilePath = String.format("%1$s/databases/%2$s", context.getApplicationInfo().dataDir, destinationFileName);
+        else
+            destinationFilePath = String.format("data/data/%1$s/databases/%2$s", context.getPackageName(), destinationFileName);
+
+        Crashlytics.setString("destinationFilePath", destinationFilePath);
+        return destinationFilePath;
+    }
+
+    public static String copySQLiteDBIntoLocalStorage(String originFileName, String destinationFilePath, Context context) {
         Crashlytics.setString("originFileName", originFileName);
-        Crashlytics.setString("destinationFileName", destinationFileName);
+        Crashlytics.setString("destinationFileName", destinationFilePath);
 
         //Get external storage directory
         File origin = Environment.getExternalStorageDirectory();
@@ -234,43 +259,39 @@ public class Utils {
         //Get File object for the origin database
         File originFile = new File(origin, originFileName);
 
-        return copySQLiteDBIntoLocalStorage(originFile, destinationFileName, context);
+        return copySQLiteDBIntoLocalStorage(originFile, destinationFilePath, context);
     }
 
-    public static String copySQLiteDBIntoLocalStorage(File originFile, String destinationFileName, Context context) {
+    public static String copySQLiteDBIntoLocalStorage(File originFile, String destinationFilePath, Context context) {
         String errorMessage = "";
         try {
-            //Get local storage directory
-            //File destination = Environment.getDataDirectory();
-            //Crashlytics.setString("destination", destination.getAbsolutePath());
-
-            //Build path to databases directory
-            String destinationFilePath = String.format("data/data/%1$s/databases/%2$s", context.getPackageName(), destinationFileName);
-            Crashlytics.setString("destinationFilePath", destinationFilePath);
-
             //Get File object for the destination database
             File destinationFile = new File(destinationFilePath);
 
-            if (destinationFile.canWrite()) {
-                Crashlytics.log(Log.INFO, TAG, "Will start copying originFile content into destinationFile.");
+            Crashlytics.log(Log.INFO, TAG, "destinationFilePath: " + destinationFilePath);
 
-                //Copy originFile content into destinationFile
-                if (originFile.exists()) {
-                    FileChannel src = new FileInputStream(originFile).getChannel();
-                    FileChannel dst = new FileOutputStream(destinationFile).getChannel();
-                    dst.transferFrom(src, 0, src.size());
-                    src.close();
-                    dst.close();
-                }
+            // if (destinationFile.canWrite()) {
+            Crashlytics.log(Log.INFO, TAG, "Will start copying originFile content into destinationFile.");
 
-                Crashlytics.log(Log.INFO, TAG, "Successfuly copied originFile content into destinationFile.");
-            } else {
-                Crashlytics.log(Log.WARN, TAG, "User doesn't have permission to write a file to destination.");
-                errorMessage = context.getString(R.string.general_not_enough_permission) + "\nPath: " + destinationFile.getAbsolutePath();
+            //Copy originFile content into destinationFile
+            if (originFile.exists()) {
+                FileChannel src = new FileInputStream(originFile).getChannel();
+                FileChannel dst = new FileOutputStream(destinationFile).getChannel();
+                dst.transferFrom(src, 0, src.size());
+                src.close();
+                dst.close();
             }
+
+            Crashlytics.log(Log.INFO, TAG, "Successfuly copied originFile content into destinationFile.");
+           /* } else {
+                Crashlytics.log(Log.WARN, TAG, "User doesn't have permission to write a file to destination.");
+                errorMessage = context.getString(R.string.general_not_enough_permission);
+                if (BuildConfig.DEBUG)
+                    errorMessage += "\n\nPath: " + destinationFile.getAbsolutePath();
+            }*/
         } catch (Exception e) {
             Crashlytics.logException(e);
-            errorMessage = "\nerror happened: " + e.getMessage();
+            errorMessage = "\nError happened while trying to make a local copy of your file:\n'" + e.getMessage() + "'";
         }
         return errorMessage;
     }

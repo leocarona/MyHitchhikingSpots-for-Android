@@ -17,7 +17,6 @@ import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -61,6 +60,7 @@ public class MainActivity extends TrackLocationBaseActivity {
     static final String SNACKBAR_SHOWED_KEY = "snackbar-showed-key";
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
+    ListListener spotsListListener = null;
 
     int indexOfLastOpenTab = 0;
 
@@ -99,14 +99,26 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
 
         if (shouldShowYouTab)
             indexOfLastOpenTab = SectionsPagerAdapter.TAB_YOU_INDEX;
-        selectTab(indexOfLastOpenTab);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+
+        spotsListListener = new ListListener() {
+            @Override
+            public void onListOfSelectedSpotsChanged() {
+                showSpotDeletedSnackbar();
+            }
+
+            @Override
+            public void onSpotClicked(Spot spot) {
+                indexOfLastOpenTab = mViewPager.getCurrentItem();
+                //onSaveInstanceState will be executed right after onSpotClicked because when a spot is clicked, the fragment starts SpotFormActivity
+            }
+        };
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -250,8 +262,11 @@ public class MainActivity extends TrackLocationBaseActivity {
         mCurrentSpot = appContext.getCurrentSpot();
 
         //Update fragments
-        if (mSectionsPagerAdapter != null)
+        if (mSectionsPagerAdapter != null) {
             mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
+            mViewPager.setAdapter(mSectionsPagerAdapter);
+            selectTab(indexOfLastOpenTab);
+        }
     }
 
     @Override
@@ -266,11 +281,15 @@ public class MainActivity extends TrackLocationBaseActivity {
         }*/
 
 
-        if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
+        /*if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
             showSpotSavedSnackbar();
 
         if (resultCode == RESULT_OBJECT_DELETED)
-            showSpotDeletedSnackbar();
+            showSpotDeletedSnackbar();*/
+
+        if (data != null)
+            updateValuesFromBundle(data.getExtras());
+
         // }
     }
 
@@ -351,8 +370,9 @@ public class MainActivity extends TrackLocationBaseActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        indexOfLastOpenTab = mViewPager.getCurrentItem();
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
-        savedInstanceState.putInt(LAST_TAB_OPENED_KEY, mViewPager.getCurrentItem());
+        savedInstanceState.putInt(LAST_TAB_OPENED_KEY, indexOfLastOpenTab);
     }
 
 
@@ -444,17 +464,13 @@ public class MainActivity extends TrackLocationBaseActivity {
                     SpotListFragment tab_list = (SpotListFragment) createdFragment;
                     tab_list.setValues(routeSpots);
                     this.tab_route_spots_list = tab_list;
-                    this.tab_route_spots_list.setOnOneOrMoreSpotsDeleted(new ListListener() {
-                        @Override
-                        public void onSelectedSpotsListChanged() {
-                            showSpotDeletedSnackbar();
-                        }
-                    });
+                    this.tab_route_spots_list.setOnOneOrMoreSpotsDeleted(spotsListListener);
                     break;
                 case 1:
                     SpotListFragment tab_single_spots_list = (SpotListFragment) createdFragment;
                     tab_single_spots_list.setValues(singleSpots);
                     this.tab_single_spots_list = tab_single_spots_list;
+                    this.tab_single_spots_list.setOnOneOrMoreSpotsDeleted(spotsListListener);
                     break;
                 case 2:
                     MyLocationFragment tab_you = (MyLocationFragment) createdFragment;

@@ -20,6 +20,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -36,10 +37,14 @@ import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 import com.google.gson.Gson;
+import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
+import com.myhitchhikingspots.utilities.DatabaseImporter;
 import com.myhitchhikingspots.utilities.FilePickerDialog;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
+
+import org.joda.time.DateTime;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -255,24 +260,39 @@ public class SettingsActivity extends BaseActivity {
 
 
     public void importButtonHandler(View view) {
-        FilePickerDialog.openDialog(this, SettingsActivity.this);
-     /*if (!dbExported) {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle("Database not backedup")//getResources().getString(R.string.spot_form_delete_dialog_message_text)
-                    .setMessage("You must export the current database first before importing a new one.")
-                    /*.setPositiveButton(getResources().getString(R.string.settings_exportdb_button_label), new DialogInterface.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            exportDB();
-                            importDB();
-                        }
-                    })/
-                    .setNegativeButton("OK", null)
-                    .show();
-        } else
-            importDB();*/
+        FilePickerDialog dialog = new FilePickerDialog();
+        //Add listener to be called when task finished
+        dialog.addListener(new AsyncTaskListener<File>() {
+            @Override
+            public void notifyTaskFinished(Boolean success, File file) {
+                //Start import task
+                importPickedFile(file);
+            }
+        });
+        dialog.openDialog(this, SettingsActivity.this);
+    }
+
+    void importPickedFile(File fileToImport) {
+        DatabaseImporter t = new DatabaseImporter(context, fileToImport);
+
+        //Add listener to be called when task finished
+        t.addListener(new AsyncTaskListener<ArrayList<String>>() {
+            @Override
+            public void notifyTaskFinished(Boolean success, ArrayList<String> messages) {
+                String title = context.getString(R.string.general_import_finished_successfull_message);
+
+                if (!success)
+                    title = context.getString(R.string.general_import_finished_failed_message);
+
+                showErrorAlert(title, TextUtils.join("\n", messages));
+
+                //Show toast
+                if (success)
+                    Toast.makeText(context, title, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        t.execute(); //execute asyncTask to import data into database from selected file.
     }
 
     public void showContinentsDialog(View view) {
@@ -313,12 +333,28 @@ public class SettingsActivity extends BaseActivity {
 
     public void exportButtonHandler(View view) {
         try {
-            new DatabaseExporter(this).execute();
+            DatabaseExporter t = new DatabaseExporter(this);
+            //Add listener to be called when task finished
+            t.addListener(new AsyncTaskListener<String>() {
+                @Override
+                public void notifyTaskFinished(Boolean success, String message) {
 
-            /*String dbExportResult = exportDB(getBaseContext());
-            mfeedbacklabel.setText(dbExportResult);*/
+                    if (success) {
+                        DateTime now = DateTime.now();
+                        //Set date of last time an export (backup) was made
+                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
 
-            //copyDataBase2(Constants.INTERNAL_DB_FILE_NAME);
+                        //Show result message returned by DatabaseExporter
+                        mfeedbacklabel.setText(message);
+                        mfeedbacklabel.setVisibility(View.VISIBLE);
+
+                        //Show toast
+                        Toast.makeText(context, context.getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
+                    } else
+                        showErrorAlert(context.getString(R.string.general_export_finished_failed_message), message);
+                }
+            });
+            t.execute();
 
             ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
@@ -327,6 +363,7 @@ public class SettingsActivity extends BaseActivity {
             showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
         }
     }
+
 
     //importing database
     private void importDB() {
