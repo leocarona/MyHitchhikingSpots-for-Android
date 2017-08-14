@@ -1,69 +1,57 @@
 package hitchwikiMapsSDK.entities;
 
-public class CountryInfoBasic
-{
-	private String iso;
-	private String name;
-	private String places;
-	private String lat;
-	private String lon;
+public class CountryInfoBasic {
+    private String iso;
+    private String name;
+    private String places;
+    private String lat;
+    private String lon;
 
-	public CountryInfoBasic(String iso, String name, String places, String lat, String lon)
-	{
-		this.iso = iso;
-		this.name = name;
-		this.places = places;
-		this.lat = lat;
-		this.lon = lon;
-	}
-	
-	public String getIso()
-	{
-		return iso;
-	}
+    public CountryInfoBasic(String iso, String name, String places, String lat, String lon) {
+        this.iso = iso;
+        this.name = name;
+        this.places = places;
+        this.lat = lat;
+        this.lon = lon;
+    }
 
-	public void setIso(String iso)
-	{
-		this.iso = iso;
-	}
+    public String getIso() {
+        return iso;
+    }
 
-	public String getName()
-	{
-		return name;
-	}
+    public void setIso(String iso) {
+        this.iso = iso;
+    }
 
-	public void setName(String name)
-	{
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getPlaces()
-	{
-		return places;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setPlaces(String places)
-	{
-		this.places = places;
-	}
+    public String getPlaces() {
+        return places;
+    }
 
-	public String getLat()
-	{
-		return lat;
-	}
+    public void setPlaces(String places) {
+        this.places = places;
+    }
 
-	public void setLat(String lat)
-	{
-		this.lat = lat;
-	}
+    public String getLat() {
+        return lat;
+    }
 
-	public String getLon()
-	{
-		return lon;
-	}
+    public void setLat(String lat) {
+        this.lat = lat;
+    }
 
-	public void setLon(String lon)
-	{
-		this.lon = lon;
-	}
+    public String getLon() {
+        return lon;
+    }
+
+    public void setLon(String lon) {
+        this.lon = lon;
+    }
 }

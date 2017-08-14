@@ -12,31 +12,30 @@ import cz.msebera.android.httpclient.HttpEntity;
 import cz.msebera.android.httpclient.HttpResponse;
 import cz.msebera.android.httpclient.client.methods.HttpPost;
 import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import hitchwikiMapsSDK.entities.Error;
 
-public class ServerRequest
-{
-	String json = null;
-	InputStream is = null;
+public class ServerRequest {
+    String json = null;
+    InputStream is = null;
     JSONObject jObj;
     JSONArray jArray;
     static String TAG = "server-request";
 
     //hitchwiki
 
-	public JSONObject postRequest(String url)
-	{
+    public JSONObject postRequest(String url) {
         // Making HTTP request
         Crashlytics.log(Log.INFO, TAG, "Posting to url: " + url);
         json = "";
         jObj = null;
         String errorMsg = "";
 
-		try
-		{
+        try {
             // defaultHttpClient
             DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpPost httpPost = new HttpPost(url);
@@ -46,33 +45,31 @@ public class ServerRequest
             HttpEntity httpEntity = httpResponse.getEntity();
             is = httpEntity.getContent();
             Crashlytics.log(Log.INFO, TAG, "Received result:" + is.toString());
-        }
-		catch (Exception e)
-		{
+        } catch (Exception e) {
             errorMsg = e.getMessage();
             Crashlytics.logException(e);
         }
 
         //Read through the received result and convert into string (No idea why this is needed and got no time to analyse. This comes from an old code)
-         if(errorMsg.isEmpty()) {
-             try {
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(is, "iso-8859-1"), 8);
-                 StringBuilder sb = new StringBuilder();
-                 String line = null;
-                 while ((line = reader.readLine()) != null) {
-                     sb.append(line + "n");
-                 }
-                 is.close();
-                 sb.deleteCharAt(sb.length() - 1);
-                 json = sb.toString();
-                 Crashlytics.log(Log.INFO, TAG, "Received result converted into string:" + json);
-             } catch (Exception e) {
-                 errorMsg = e.getMessage();
-                 Crashlytics.logException(e);
-             }
-         }
+        if (errorMsg.isEmpty()) {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is, "iso-8859-1"), 8);
+                StringBuilder sb = new StringBuilder();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "n");
+                }
+                is.close();
+                sb.deleteCharAt(sb.length() - 1);
+                json = sb.toString();
+                Crashlytics.log(Log.INFO, TAG, "Received result converted into string:" + json);
+            } catch (Exception e) {
+                errorMsg = e.getMessage();
+                Crashlytics.logException(e);
+            }
+        }
 
-        if(errorMsg.isEmpty()) {
+        if (errorMsg.isEmpty()) {
             // try parse the string to a JSON object
             try {
                 jObj = new JSONObject(json);
@@ -82,7 +79,7 @@ public class ServerRequest
             }
         }
 
-        if(!errorMsg.isEmpty()) {
+        if (!errorMsg.isEmpty()) {
             Error er = new Error(true, errorMsg);
             jObj = er.toJSONObject();
             json = er.toJSONString();
@@ -90,15 +87,14 @@ public class ServerRequest
 
         // return JSON object
         return jObj;
-	}
+    }
 
-	public String postRequestString(String url)
-	{
+    public String postRequestString(String url) {
         postRequest(url);
 
         // return JSON string
         return json;
-	}
+    }
 
 //	public JSONObject getRequest(String url, String token, String xApiKey)
 //	{

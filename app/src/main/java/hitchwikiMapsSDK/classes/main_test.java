@@ -7,13 +7,12 @@ import hitchwikiMapsSDK.entities.PlaceInfoComplete;
 
 public class main_test {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) 
-	{
-		final ApiManager a = new ApiManager();
-		
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        final ApiManager a = new ApiManager();
+
 //		final APICallCompletionListener<PlaceInfoBasic> createAccountCallback = new APICallCompletionListener<PlaceInfoBasic>() 
 //				{
 //					@Override
@@ -73,41 +72,35 @@ public class main_test {
 //						}
 //					}
 //				};
-				
-	APICallCompletionListener<CountryInfoBasic[]> getCountriesAndCoordinates = new APICallCompletionListener<CountryInfoBasic[]>() 
-	{
-		@Override
-		public void onComplete
-					(boolean success,
-							int k,
-							String s,
-				Error error,
-				CountryInfoBasic[] object) 
-		{
-			if(success)
-			{
-				System.out.println(object.length);
-				
-				for(int i = 0; i < object.length; i++)
-				{
-					System.out.println("country is = " + object[i].getName() + ", iso is = " + object[i].getIso());
+
+        APICallCompletionListener<CountryInfoBasic[]> getCountriesAndCoordinates = new APICallCompletionListener<CountryInfoBasic[]>() {
+            @Override
+            public void onComplete
+                    (boolean success,
+                     int k,
+                     String s,
+                     Error error,
+                     CountryInfoBasic[] object) {
+                if (success) {
+                    System.out.println(object.length);
+
+                    for (int i = 0; i < object.length; i++) {
+                        System.out.println("country is = " + object[i].getName() + ", iso is = " + object[i].getIso());
 //											a.getPlaceBasicDetails(Integer.valueOf(object[i].getId()), createAccountCallback);
-				}
-			}
-			else
-			{
-				System.out.println("Error message : " + error.getErrorDescription());
-			}
-		}
-	};
-				
+                    }
+                } else {
+                    System.out.println("Error message : " + error.getErrorDescription());
+                }
+            }
+        };
+
 //		a.getPlacesFromArea(63.375129767984f,65.208716083434f,22.544799804826f,25.190063476196f, getPlacesByArea);
 //		a.getPlacesByContinent("EU", getPlacesByArea);
-		
-//		a.getPlaceCompleteDetails(6874, getCompletePlaceCallback);
-		
-		a.getCountriesWithCoordinatesAndMarkersNumber(getCountriesAndCoordinates);
 
-	}
+//		a.getPlaceCompleteDetails(6874, getCompletePlaceCallback);
+
+        a.getCountriesWithCoordinatesAndMarkersNumber(getCountriesAndCoordinates);
+
+    }
 
 }
