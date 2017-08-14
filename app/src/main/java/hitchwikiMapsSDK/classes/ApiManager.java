@@ -1,5 +1,7 @@
 package hitchwikiMapsSDK.classes;
 
+import com.crashlytics.android.Crashlytics;
+
 import org.json.JSONObject;
 
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
@@ -18,12 +20,7 @@ public class ApiManager
 	}
 	
 	public void getPlaceBasicDetails(final int id, final APICallCompletionListener<PlaceInfoBasic> callback)
-	{		
-		Runnable r = new Runnable() 
-		{	 
-			@Override
-			public void run() 
-			{
+	{
 				JSONObject response= mServerRequest.postRequest
 						(
 						APIConstants.ENDPOINT_PREFIX + 
@@ -50,26 +47,17 @@ public class ApiManager
 					throw new RuntimeException(errMsg);
 				} else
 						callback.onComplete(true, -1, "", null, (PlaceInfoBasic)resultObject);
-			}
-		};
-		
-		r.run();
 	}
 	
 	public void getPlaceCompleteDetails(final int id, final APICallCompletionListener<PlaceInfoComplete> callback)
-	{		
-		Runnable r = new Runnable() 
-		{	 
-			@Override
-			public void run() 
-			{
+	{
 				JSONObject response= mServerRequest.postRequest
 						(
 						APIConstants.ENDPOINT_PREFIX + 
 						APIConstants.PLACE_INFO_BASIC_PREFIX + 
 						String.valueOf(id)
 						);
-				
+
 				JSONParser parser = new JSONParser();
 				
 				Object resultObject = parser.parseGetPlaceCompleteDetails(response);
@@ -88,10 +76,6 @@ public class ApiManager
 					throw new RuntimeException(errMsg);
 				} else
 						callback.onComplete(true, -1, "", null, (PlaceInfoComplete)resultObject);
-			}
-		};
-		
-		r.run();
 	}
 	
 	public void getPlacesFromArea(final float latFrom, 
@@ -99,12 +83,7 @@ public class ApiManager
 								  final float lonFrom, 
 								  final float lonTo, 
 								  final APICallCompletionListener<PlaceInfoBasic[]> callback)
-	{		
-		Runnable r = new Runnable() 
-		{	 
-			@Override
-			public void run() 
-			{
+	{
 				String response = mServerRequest.postRequestString
 						(
 						APIConstants.ENDPOINT_PREFIX + 
@@ -136,10 +115,6 @@ public class ApiManager
 					throw new RuntimeException(errMsg);
 				} else
 						callback.onComplete(true, -1, "", null, (PlaceInfoBasic[])resultObject);
-			}
-		};
-		
-		r.run();
 	}
 	
 	public void getPlacesByCountry
@@ -148,11 +123,6 @@ public class ApiManager
 			  final APICallCompletionListener<PlaceInfoBasic[]> callback
 			 )
 	{
-		Runnable r = new Runnable() 
-		{
-			@Override
-			public void run() 
-			{
 				String response = mServerRequest.postRequestString
 							(
 								APIConstants.ENDPOINT_PREFIX
@@ -178,10 +148,6 @@ public class ApiManager
 					throw new RuntimeException(errMsg);
 				} else
 						callback.onComplete(true, -1, "", null, (PlaceInfoBasic[]) resultObject);
-			}
-		};
-
-		r.run();
 	}
 	
 	public void getPlacesByContinent
@@ -190,11 +156,6 @@ public class ApiManager
 			  final APICallCompletionListener<PlaceInfoBasic[]> callback
 			 )
 	 {
-		Runnable r = new Runnable() 
-		{
-			@Override
-			public void run() 
-			{
 				String response = mServerRequest.postRequestString
 						(
 								APIConstants.ENDPOINT_PREFIX
@@ -220,10 +181,7 @@ public class ApiManager
 					throw new RuntimeException(errMsg);
 				} else
 						callback.onComplete(true, -1, continentCode, null,	(PlaceInfoBasic[]) resultObject);
-			}
-		};
 
-		r.run();
 	}
 	
 	public PlaceInfoBasic[] getPlacesByContinenFromLocalFile(String responseFromLocalFile)
@@ -240,11 +198,6 @@ public class ApiManager
 	  final APICallCompletionListener<CountryInfoBasic[]> callback
 	 )
 	{
-		Runnable r = new Runnable() 
-		{
-			@Override
-			public void run() 
-			{
 				String response = mServerRequest.postRequestString
 						(
 								APIConstants.ENDPOINT_PREFIX
@@ -269,10 +222,6 @@ public class ApiManager
 					throw new RuntimeException(errMsg);
 				} else
 					callback.onComplete(true, -1, "", null,	(CountryInfoBasic[]) resultObject);
-			}
-		};
-	
-	r.run();
 	}
 	
 	
