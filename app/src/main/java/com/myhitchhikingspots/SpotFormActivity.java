@@ -62,11 +62,14 @@ import android.widget.Toast;
 
 
 import com.crashlytics.android.Crashlytics;
+
 import hitchwikiMapsSDK.classes.APICallCompletionListener;
 import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoComplete;
 import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
+
+import com.github.florent37.viewtooltip.ViewTooltip;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -191,6 +194,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     boolean wasSnackbarShown;
     Context context;
     Boolean shouldRetrieveDetailsFromHW = false;
+    double cameraZoomFromBundle = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -220,6 +224,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     showViewMapSnackbar();
             }
             mCurrentSpot = (Spot) getIntent().getSerializableExtra(Constants.SPOT_BUNDLE_EXTRA_KEY);
+            cameraZoomFromBundle = getIntent().getDoubleExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, -1);
             shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
             wasSnackbarShown = true;
             shouldShowButtonsPanel = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
@@ -745,7 +750,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 && mCurrentSpot.getLongitude() != null && mCurrentSpot.getLongitude() != 0) {
             //Set start position for map camera: set it to the current waiting spot
             cameraPositionTo = new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude());
-            cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+
+            if (mFormType == FormType.Create && cameraZoomFromBundle != -1)
+                cameraZoomTo = (int) cameraZoomFromBundle;
+            else
+                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
         } else {
             /*LocationEngine locationEngine = LocationSource.getLocationEngine(this);
             if (locationEngine.getLastLocation() != null) {
@@ -781,6 +790,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             mapboxMap.setOnCameraChangeListener(null);
             moveCamera(cameraPositionTo, cameraZoomTo);
+
+            if (mFormType == FormType.Create) {
+                ViewTooltip
+                        .on(fabLocateUser)
+                        .autoHide(true, 5000)
+                        .corner(30)
+                        .position(ViewTooltip.Position.RIGHT)
+                        .text(getString(R.string.spot_form_locate_button_tooltip_text))
+                        .show();
+            }
 
             /*if (shouldShowButtonsPanel) {
                 //Remove camera listener when requested position was reached and

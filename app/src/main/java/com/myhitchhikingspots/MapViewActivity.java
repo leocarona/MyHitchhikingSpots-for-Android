@@ -1062,6 +1062,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
      * updates have already been requested.
      */
     public void saveSpotButtonHandler(boolean isDestination) {
+        double cameraZoom = -1;
         Spot spot = null;
         if (!mIsWaitingForARide) {
             spot = new Spot();
@@ -1069,13 +1070,22 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             spot.setIsDestination(isDestination);
             spot.setIsPartOfARoute(true);
             if (mapboxMap != null) {
-                Location mCurrentLocation = mapboxMap.getMyLocation();
+                // Keep the same center point of the map.
+                // The user will have a locate button to move the camera to his current position if he wants to do that.
+                if (mapboxMap.getCameraPosition() != null && mapboxMap.getCameraPosition().target != null) {
+                    LatLng selectedLocation = mapboxMap.getCameraPosition().target;
+
+                    spot.setLatitude(selectedLocation.getLatitude());
+                    spot.setLongitude(selectedLocation.getLongitude());
+                    cameraZoom = mapboxMap.getCameraPosition().zoom;
+                }
+                /* Location mCurrentLocation = mapboxMap.getMyLocation();
                 if (mCurrentLocation != null) {
                     spot.setLatitude(mCurrentLocation.getLatitude());
                     spot.setLongitude(mCurrentLocation.getLongitude());
                     spot.setAccuracy(mCurrentLocation.getAccuracy());
                     spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
-                }
+                }*/
             }
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a new spot is being created.");
         } else {
@@ -1085,6 +1095,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
         Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
         intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+        intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
         startActivity(intent);
     }
 
