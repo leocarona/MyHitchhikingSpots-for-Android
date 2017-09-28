@@ -11,6 +11,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
@@ -1026,7 +1027,32 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 //Automatically zoom out to fit all markers only the first time that spots are loaded.
                 // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
                 if (shouldZoomToFitAllMarkers) {
-                    zoomOutToFitAllMarkers();
+                    //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slower when it has all spots
+                    // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
+                    if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
+                        //Zoom close to current position or to the last saved position
+                        LatLng cameraPositionTo = null;
+                        int cameraZoomTo = -1;
+                        if (mapboxMap.getMyLocation() != null) {
+                            cameraPositionTo = new LatLng(mapboxMap.getMyLocation());
+                            cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+                        } else {
+                            //Set start position for map camera: set it to the last spot saved
+                            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
+                            if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
+                                    && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
+                                cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+
+                                //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
+                                if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
+                                    cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+                                else
+                                    cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+                            }
+                        }
+                        moveCamera(cameraPositionTo, cameraZoomTo);
+                    } else
+                        zoomOutToFitAllMarkers();
                     shouldZoomToFitAllMarkers = false;
                 }
 
