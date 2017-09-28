@@ -222,6 +222,11 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         snackbar.show();
     }
 
+    void dismissSnackbar() {
+        if (snackbar != null && snackbar.isShown())
+            snackbar.dismiss();
+    }
+
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
 
@@ -499,8 +504,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         super.onPause();
         mapView.onPause();
 
-        if (snackbar != null)
-            snackbar.dismiss();
+        dismissSnackbar();
+        dismissProgressDialog();
     }
 
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
@@ -602,15 +607,29 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
 
+    private ProgressDialog loadingDialog;
+
+    private void showProgressDialog() {
+        if (loadingDialog == null) {
+            loadingDialog = new ProgressDialog(HitchwikiMapViewActivity.this);
+            loadingDialog.setIndeterminate(true);
+            loadingDialog.setCancelable(false);
+            loadingDialog.setMessage(getResources().getString(R.string.map_loading_dialog));
+        }
+        loadingDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+    }
+
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
         private final ProgressDialog dialog = new ProgressDialog(HitchwikiMapViewActivity.this);
 
         @Override
         protected void onPreExecute() {
-            this.dialog.setIndeterminate(true);
-            this.dialog.setCancelable(false);
-            this.dialog.setMessage(getResources().getString(R.string.map_loading_dialog));
-            this.dialog.show();
+            showProgressDialog();
         }
 
         @Override
@@ -720,6 +739,9 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         @Override
         protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
             super.onPostExecute(trips);
+            if (HitchwikiMapViewActivity.this.isFinishing())
+                return;
+
             try {
                 mapboxMap.clear();
 
@@ -761,7 +783,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                         "Adding markers failed - " + ex.getMessage()));
             }
 
-            this.dialog.dismiss();
+            dismissProgressDialog();
 
             isDrawingAnnotations = false;
 

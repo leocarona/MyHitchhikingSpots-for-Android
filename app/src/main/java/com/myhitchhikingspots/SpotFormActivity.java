@@ -952,8 +952,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         mapView.onPause();
 
-        if (snackbar != null)
-            snackbar.dismiss();
+        dismissSnackbar();
+        dismissProgressDialog();
+        dismissCommetsDialog(null);
     }
 
     @Override
@@ -1538,6 +1539,28 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
     }
 
+    ProgressDialog loadingDialog;
+
+    private void showProgressDialog() {
+        if (loadingDialog == null) {
+            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            loadingDialog = new ProgressDialog(SpotFormActivity.this);
+            loadingDialog.setIndeterminate(true);
+            loadingDialog.setCancelable(false);
+            loadingDialog.setTitle(getString(R.string.general_loading_dialog_title));
+            loadingDialog.setMessage(getString(R.string.general_loading_dialog_message));
+        }
+        loadingDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        //first set progressBar to invisible
+        ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
+    }
+
     Dialog dialog;
 
     //dialog for showing comments
@@ -1583,7 +1606,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
     public void dismissCommetsDialog(View view) {
-        if (dialog != null)
+        if (dialog != null && dialog.isShowing())
             dialog.dismiss();
     }
 
@@ -1898,6 +1921,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 });
     }
 
+    void dismissSnackbar() {
+        if (snackbar != null && snackbar.isShown())
+            snackbar.dismiss();
+    }
+
 
     /**
      * Runs when user clicks the Fetch Address button. Starts the service to fetch the address if
@@ -2100,16 +2128,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     //async task to retrieve details about clicked marker (point) on a map
     private class retrievePlaceDetailsAsyncTask extends AsyncTask<String, Void, String> {
-        private final ProgressDialog dialog = new ProgressDialog(SpotFormActivity.this);
 
         @Override
         protected void onPreExecute() {
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            this.dialog.setIndeterminate(true);
-            this.dialog.setCancelable(false);
-            this.dialog.setTitle(getString(R.string.general_loading_dialog_title));
-            this.dialog.setMessage(getString(R.string.general_loading_dialog_message));
-            this.dialog.show();
+            showProgressDialog();
         }
 
         @Override
@@ -2136,7 +2158,8 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
         @Override
         protected void onPostExecute(String result) {
-
+            if (SpotFormActivity.this.isFinishing())
+                return;
             //button listeners
            /* placeButtonNavigate.setOnClickListener(new Button.OnClickListener()
             {
@@ -2187,9 +2210,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
             updateUI();
 
-            //first set progressBar to invisible
-            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            this.dialog.dismiss();
+            dismissProgressDialog();
 
             if (!errMsgToShow.isEmpty())
                 showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), errMsgToShow));

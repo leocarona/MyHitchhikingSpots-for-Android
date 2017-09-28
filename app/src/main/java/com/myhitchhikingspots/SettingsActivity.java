@@ -170,6 +170,14 @@ public class SettingsActivity extends BaseActivity {
         }
     }
 
+    @Override
+    public void onPause() {
+        Crashlytics.log(Log.INFO, TAG, "onPause was called");
+        super.onPause();
+
+        dismissProgressDialog();
+    }
+
     public static String getPath(Context context, Uri uri) throws URISyntaxException {
         /*if ("content".equalsIgnoreCase(uri.getScheme())) {
             String[] projection = { "_data" };
@@ -585,23 +593,32 @@ public class SettingsActivity extends BaseActivity {
 
     }
 
+    ProgressDialog progressDialog;
+
+    private void showProgressDialog(String title, String message) {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(SettingsActivity.this);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setCancelable(false);
+        }
+
+        progressDialog.setTitle(title);
+        progressDialog.setMessage(message);
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        //Remove the flag that keeps the screen from sleeping
+        ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (progressDialog != null && progressDialog.isShowing())
+            progressDialog.dismiss();
+    }
+
     public class showCountriesDialogAsyncTask extends AsyncTask<Void, Void, PairParcelable[]> {
-        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
 
         @Override
         protected void onPreExecute() {
-            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-            try {
-                this.loadingDialog.setIndeterminate(true);
-                this.loadingDialog.setCancelable(false);
-                this.loadingDialog.setTitle(getString(R.string.general_loading_dialog_title));
-                this.loadingDialog.setMessage(getString(R.string.general_loading_dialog_message));
-                this.loadingDialog.show();
-            } catch (Exception ex) {
-                Crashlytics.logException(ex);
-            }
+            showProgressDialog(getString(R.string.general_loading_dialog_title), getString(R.string.general_loading_dialog_message));
         }
 
         @SuppressWarnings("unchecked")
@@ -629,28 +646,17 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(PairParcelable[] result) {
+            if (SettingsActivity.this.isFinishing())
+                return;
             showSelectionDialog(result, DIALOG_TYPE_COUNTRY);
-            this.loadingDialog.dismiss();
+            dismissProgressDialog();
         }
     }
 
     public class showContinentsDialogAsyncTask extends AsyncTask<Void, Void, PairParcelable[]> {
-        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
-
         @Override
         protected void onPreExecute() {
-            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-            try {
-                this.loadingDialog.setIndeterminate(true);
-                this.loadingDialog.setCancelable(false);
-                this.loadingDialog.setTitle(getString(R.string.general_loading_dialog_title));
-                this.loadingDialog.setMessage(getString(R.string.general_loading_dialog_message));
-                this.loadingDialog.show();
-            } catch (Exception ex) {
-                Crashlytics.logException(ex);
-            }
+            showProgressDialog(getString(R.string.general_loading_dialog_title), getString(R.string.general_loading_dialog_message));
         }
 
         @SuppressWarnings("unchecked")
@@ -664,14 +670,15 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(PairParcelable[] result) {
-
-            this.loadingDialog.dismiss();
+            if (SettingsActivity.this.isFinishing())
+                return;
+            dismissProgressDialog();
             showSelectionDialog(result, DIALOG_TYPE_CONTINENT);
         }
     }
 
+
     public class getCountriesAsyncTask extends AsyncTask<Void, Void, String> {
-        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
         Boolean shouldDeleteExisting;
 
         public getCountriesAsyncTask(Boolean shouldDeleteExisting) {
@@ -682,16 +689,10 @@ public class SettingsActivity extends BaseActivity {
         protected void onPreExecute() {
             String strToShow = "Fetching countries list...";
 
-            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             if (shouldDeleteExisting)
                 strToShow = "Updating countries list...";
 
-            this.loadingDialog.setIndeterminate(true);
-            this.loadingDialog.setCancelable(false);
-            this.loadingDialog.setTitle(getString(R.string.settings_downloadCountriesList_button_label));
-            this.loadingDialog.setMessage(strToShow);
-            this.loadingDialog.show();
+            showProgressDialog(getString(R.string.settings_downloadCountriesList_button_label), strToShow);
         }
 
         @SuppressWarnings("unchecked")
@@ -741,6 +742,8 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(String result) {
+            if (SettingsActivity.this.isFinishing())
+                return;
 
             if (!result.contentEquals("countriesLoadedFromLocalStorage"))
                 saveCountriesListLocally(countriesContainer);
@@ -788,16 +791,12 @@ public class SettingsActivity extends BaseActivity {
                     new showCountriesDialogAsyncTask().execute();
             }
 
-            this.loadingDialog.dismiss();
-
-            //Remove the flag that keeps the screen from sleeping
-            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            dismissProgressDialog();
         }
     }
 
     //async task to retrieve markers
     public class downloadPlacesAsyncTask extends AsyncTask<Void, Void, String> {
-        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
         String lstToDownload = "";
         String typeToDownload = "";
 
@@ -815,14 +814,7 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPreExecute() {
-            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-            this.loadingDialog.setIndeterminate(true);
-            this.loadingDialog.setCancelable(false);
-            this.loadingDialog.setTitle(getString(R.string.settings_downloadHDSpots_button_label));
-            this.loadingDialog.setMessage(String.format(getString(R.string.general_downloading_something_message), lstToDownload));
-            this.loadingDialog.show();
+            showProgressDialog(getString(R.string.settings_downloadHDSpots_button_label), String.format(getString(R.string.general_downloading_something_message), lstToDownload));
         }
 
         @SuppressWarnings("unchecked")
@@ -888,6 +880,9 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(String result) {
+            if (SettingsActivity.this.isFinishing())
+                return;
+
             if (result.contentEquals("spotsDownloaded")) {
 
                 savePlacesListLocally(placesContainer);
@@ -919,9 +914,7 @@ public class SettingsActivity extends BaseActivity {
                     showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_hitchwikiMapsSpots_download_failed_message), result));
             }
 
-            //Remove the flag that keeps the screen from sleeping
-            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            loadingDialog.dismiss();
+            dismissProgressDialog();
         }
     }
 

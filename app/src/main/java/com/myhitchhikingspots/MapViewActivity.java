@@ -256,6 +256,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         snackbar.show();
     }
 
+    void dismissSnackbar() {
+        if (snackbar != null && snackbar.isShown())
+            snackbar.dismiss();
+    }
+
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
 
@@ -598,8 +603,8 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         super.onPause();
         mapView.onPause();
 
-        if (snackbar != null)
-            snackbar.dismiss();
+        dismissSnackbar();
+        dismissProgressDialog();
     }
 
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
@@ -789,15 +794,28 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     Boolean shouldShowOnlyGotARideMarkers = true;
 
+    private ProgressDialog loadingDialog;
+
+    private void showProgressDialog() {
+        if (loadingDialog == null) {
+            loadingDialog = new ProgressDialog(MapViewActivity.this);
+            loadingDialog.setIndeterminate(true);
+            loadingDialog.setCancelable(false);
+            loadingDialog.setMessage(getResources().getString(R.string.map_loading_dialog));
+        }
+        loadingDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+    }
+
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
-        private final ProgressDialog dialog = new ProgressDialog(MapViewActivity.this);
 
         @Override
         protected void onPreExecute() {
-            this.dialog.setIndeterminate(true);
-            this.dialog.setCancelable(false);
-            this.dialog.setMessage(getResources().getString(R.string.map_loading_dialog));
-            this.dialog.show();
+            showProgressDialog();
         }
 
         @Override
@@ -989,6 +1007,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         @Override
         protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
             super.onPostExecute(trips);
+            if (MapViewActivity.this.isFinishing())
+                return;
+
             try {
                 mapboxMap.clear();
 
@@ -1062,7 +1083,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                         "Adding markers failed - " + ex.getMessage()));
             }
 
-            this.dialog.dismiss();
+            dismissProgressDialog();
 
             isDrawingAnnotations = false;
 
