@@ -262,19 +262,19 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     private void loadMarkerIcons() {
-        ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
+        ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, -1);
 
-        ic_point_on_the_route_spot = IconUtils.drawableToIcon(this, R.drawable.ic_point_on_the_route_black_24dp, -1);
-        ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
-        ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
-        ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
+        ic_point_on_the_route_spot = IconUtils.drawableToIcon(this, R.drawable.ic_point_on_the_route_black_24dp, -1, 0.9, 0.9);
+        ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1, 0.9, 0.9);
+        ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1, 0.9, 0.9);
+        ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1, 0.9, 0.9);
 
         ic_typeunknown_spot = IconUtils.drawableToIcon(this, R.drawable.ic_edit_location_black_24dp, getIdentifierColorStateList(-1));
-        ic_got_a_ride_spot0 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(0));
-        ic_got_a_ride_spot1 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(1));
-        ic_got_a_ride_spot2 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(2));
-        ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(3));
-        ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(4));
+        ic_got_a_ride_spot0 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(0));
+        ic_got_a_ride_spot1 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(1));
+        ic_got_a_ride_spot2 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(2));
+        ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
+        ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
     }
 
     Spot mCurrentWaitingSpot;
@@ -874,6 +874,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                                     default:
                                         //The spot is a hitchhiking spot that was already evaluated
                                         icon = getGotARideIconForRoute(trips.size());
+                                        markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                         markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
                                         break;
                                     case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:

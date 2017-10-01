@@ -31,16 +31,23 @@ public class IconUtils {
     /**
      * Demonstrates converting any Drawable to an Icon, for use as a marker icon.
      */
-    public static Icon drawableToIcon(@NonNull Context context, @DrawableRes int id, @ColorInt int colorRes) {
+    public static Icon drawableToIcon(@NonNull Context context, @DrawableRes int id, @ColorInt int colorRes, double width, double height) {
         Drawable vectorDrawable = ResourcesCompat.getDrawable(context.getResources(), id, context.getTheme());
         Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
                 vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        vectorDrawable.setBounds(0, 0, (int) (canvas.getWidth() * width), (int) (canvas.getHeight() * height));
         if (colorRes != -1)
             DrawableCompat.setTint(vectorDrawable, colorRes);
         vectorDrawable.draw(canvas);
         return IconFactory.getInstance(context).fromBitmap(bitmap);
+    }
+
+    /**
+     * Demonstrates converting any Drawable to an Icon, for use as a marker icon.
+     */
+    public static Icon drawableToIcon(@NonNull Context context, @DrawableRes int id, @ColorInt int colorRes) {
+        return drawableToIcon(context, id, colorRes, 1, 1);
     }
 
     /**
