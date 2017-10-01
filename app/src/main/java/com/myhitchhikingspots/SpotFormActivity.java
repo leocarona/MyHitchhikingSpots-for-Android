@@ -834,24 +834,22 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     private LatLng requestToPositionAt = null;
 
-    /**
-     * Move the map camera to the given position
-     *
-     * @param latLng Target location to change to
-     * @param zoom   Zoom level to change to
-     */
-
 
     /**
      * Move the map camera to the given position with zoom Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT
      *
      * @param latLng Target location to change to
      */
-
     private void moveCamera(LatLng latLng) {
         moveCamera(latLng, Constants.KEEP_ZOOM_LEVEL);
     }
 
+    /**
+     * Move the map camera to the given position
+     *
+     * @param latLng Target location to change to
+     * @param zoom   Zoom level to change to
+     */
     private void moveCamera(LatLng latLng, long zoom) {
         if (latLng != null) {
             if (mapboxMap == null)
