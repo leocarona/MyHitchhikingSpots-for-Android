@@ -26,6 +26,9 @@
     <color name="ic_standard_fab_color">#009688</color>
     <color name="ic_standard_fab_color_lighter">#33C9BB</color>
 
+    <!--This color is a copy of the Mapbox private color R.color.mapbox_my_location_ring
+     (we can't reference private colors, so we copied it)-->
+    <color name="mapbox_my_location_ring_copy">#1E8CAB</color>
 
     <!--BEGIN: SpotForm bottom menu-->
     <color name="colorPrimary">#3F51B5</color>
