@@ -70,10 +70,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     // Please always make sure this is been done!
     protected void onCreate(Bundle savedInstanceState) {
 
-        // Mapbox access token is configured here. This needs to be called either in your application
-        // object or in the same activity which contains the mapview.
-        Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
-
         setContentView(R.layout.hitchwikimapview_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable

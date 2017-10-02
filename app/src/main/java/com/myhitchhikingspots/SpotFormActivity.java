@@ -198,11 +198,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Crashlytics.log(Log.INFO, TAG, "onCreate called");
-
-        // Mapbox access token is configured here. This needs to be called either in your application
-        // object or in the same activity which contains the mapview.
-        Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
 
         setContentView(R.layout.spot_form_master_layout);
 

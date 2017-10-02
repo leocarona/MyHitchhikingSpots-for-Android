@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
@@ -29,6 +30,10 @@ public class MyHitchhikingSpotsApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Fabric.with(this, new Crashlytics());
+
+        // Mapbox access token is configured here. This needs to be called either in your application
+        // object or in the same activity which contains the mapview.
+        Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
 
         loadDatabase();
     }
