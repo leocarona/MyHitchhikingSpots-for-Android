@@ -5,7 +5,7 @@ buildscript {
 
     dependencies {
         //find the latest io.fabric.tools:gradle here: https://s3.amazonaws.com/fabric-artifacts/public/io/fabric/tools/gradle/maven-metadata.xml
-        classpath 'io.fabric.tools:gradle:1.22.2'
+        classpath 'io.fabric.tools:gradle:1.24.2'
     }
 }
 apply plugin: 'com.android.application'
@@ -36,7 +36,7 @@ android {
         }
     }
     compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    buildToolsVersion '25.0.3'
     defaultConfig {
         vectorDrawables.useSupportLibrary = true
         manifestPlaceholders = [fabricApiKey: otherPrivateProperties['fabricApiKey']]
@@ -77,13 +77,12 @@ dependencies {
     //Begin: Dependencies for MapBox
     //compile fileTree(dir: 'libs', include: ['*.jar'])
     // add the Mapbox SDK dependency below
-    compile ('com.mapbox.mapboxsdk:mapbox-android-sdk:5.1.4@aar'){
-        transitive=true
+    compile('com.mapbox.mapboxsdk:mapbox-android-sdk:5.1.4@aar') {
+        transitive = true
     }
     //End: Dependencies for MapBox
 
-    compile group: 'cz.msebera.android' , name: 'httpclient', version: '4.4.1.1'
-
+    compile group: 'cz.msebera.android', name: 'httpclient', version: '4.4.1.1'
 
     //compile fileTree(include: ['*.jar'], dir: 'libs')
     //compile 'com.google.android.gms:play-services:8.4.0'
@@ -100,5 +99,4 @@ dependencies {
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.github.florent37:viewtooltip:1.0.8'
-    //testCompile 'junit:junit:4.12'
 }
