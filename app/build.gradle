@@ -26,6 +26,10 @@ otherPrivateProperties.load(new FileInputStream(otherPrivatePropertiesFile))
 
 def minSdk = hasProperty('minSdk') ? minSdk : 15
 
+ext {
+    supportLibVersion = '25.3.1'
+}
+
 android {
     signingConfigs {
         config {
@@ -91,12 +95,12 @@ dependencies {
         transitive = true;
     }
     compile 'org.greenrobot:greendao:3.2.0'
-    compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.google.android.gms:play-services-location:11.0.1'
-    compile 'com.android.support:recyclerview-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
     compile 'joda-time:joda-time:2.9.2'
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.github.florent37:viewtooltip:1.0.8'
+    compile "com.android.support:appcompat-v7:${supportLibVersion}"
+    compile "com.android.support:recyclerview-v7:${supportLibVersion}"
+    compile "com.android.support:design:${supportLibVersion}"
 }
