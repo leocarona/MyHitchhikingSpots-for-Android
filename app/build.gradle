@@ -79,7 +79,6 @@ repositories {
 
 dependencies {
     //Begin: Dependencies for MapBox
-    //compile fileTree(dir: 'libs', include: ['*.jar'])
     // add the Mapbox SDK dependency below
     compile('com.mapbox.mapboxsdk:mapbox-android-sdk:5.1.4@aar') {
         transitive = true
@@ -88,9 +87,6 @@ dependencies {
 
     compile group: 'cz.msebera.android', name: 'httpclient', version: '4.4.1.1'
 
-    //compile fileTree(include: ['*.jar'], dir: 'libs')
-    //compile 'com.google.android.gms:play-services:8.4.0'
-    //compile 'com.github.clans:fab:1.6.4'
     compile('com.crashlytics.sdk.android:crashlytics:2.6.7@aar') {
         transitive = true;
     }
