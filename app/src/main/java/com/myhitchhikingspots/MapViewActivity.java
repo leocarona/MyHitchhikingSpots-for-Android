@@ -250,8 +250,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     void dismissSnackbar() {
-        if (snackbar != null && snackbar.isShown())
-            snackbar.dismiss();
+        try {
+            if (snackbar != null && snackbar.isShown())
+                snackbar.dismiss();
+        } catch (Exception e) {
+        }
     }
 
     private void loadMarkerIcons() {
@@ -809,8 +812,11 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     }
 
     private void dismissProgressDialog() {
-        if (loadingDialog != null && loadingDialog.isShowing())
-            loadingDialog.dismiss();
+        try {
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
+        } catch (Exception e) {
+        }
     }
 
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {

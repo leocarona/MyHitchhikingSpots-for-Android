@@ -1430,9 +1430,12 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     private void dismissProgressDialog() {
         //first set progressBar to invisible
         ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        if (loadingDialog != null && loadingDialog.isShowing())
-            loadingDialog.dismiss();
+        try {
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
 
+        } catch (Exception e) {
+        }
     }
 
     Dialog dialog;
@@ -1480,8 +1483,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
 
     public void dismissCommetsDialog(View view) {
-        if (dialog != null && dialog.isShowing())
-            dialog.dismiss();
+        try {
+            if (dialog != null && dialog.isShowing())
+                dialog.dismiss();
+        } catch (Exception e) {
+        }
     }
 
     Bundle getBundle(int result) {
@@ -1796,8 +1802,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     void dismissSnackbar() {
-        if (snackbar != null && snackbar.isShown())
-            snackbar.dismiss();
+        try {
+            if (snackbar != null && snackbar.isShown())
+                snackbar.dismiss();
+        } catch (Exception e) {
+        }
     }
 
 
