@@ -887,30 +887,32 @@ public class SettingsActivity extends BaseActivity {
 
                 savePlacesListLocally(placesContainer);
 
+                //Get current datetime in milliseconds
+                Long millisecondsAtRefresh = System.currentTimeMillis();
+
                 //also write into prefs that markers sync has occurred
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, System.currentTimeMillis()).apply();
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
 
                 //TODO: show how many megabytes were downloaded or saved locally
 
                 Toast.makeText(SettingsActivity.this, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
-                Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
-                if (millisecondsAtRefresh != 0) {
-                    //convert millisecondsAtRefresh to some kind of date and time text
-                    SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-                    Date resultdate = new Date(millisecondsAtRefresh);
-                    String timeStamp = sdf.format(resultdate);
 
-                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()) +
-                                    " " + String.format(getString(R.string.general_last_sync_date), timeStamp),
-                            Constants.CROUTON_DURATION_5000);
-                } else {
-                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()),
-                            Constants.CROUTON_DURATION_5000);
-                }
+                //convert millisecondsAtRefresh to some kind of date and time text
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+                Date resultdate = new Date(millisecondsAtRefresh);
+                String timeStamp = sdf.format(resultdate);
+
+                showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()) +
+                                " " + String.format(getString(R.string.general_last_sync_date), timeStamp),
+                        Constants.CROUTON_DURATION_5000);
+
             } else {
-                if (result.contentEquals("nothingToSync"))
+                if (result.contentEquals("nothingToSync")) {
+                    //also write into prefs that markers sync has occurred
+                    prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
+
                     showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
-                else if (!result.isEmpty())
+                } else if (!result.isEmpty())
                     showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_hitchwikiMapsSpots_download_failed_message), result));
             }
 
