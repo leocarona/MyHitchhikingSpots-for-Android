@@ -427,10 +427,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             }
         });
 
-        if (shouldRetrieveDetailsFromHW)
+        /*if (shouldRetrieveDetailsFromHW)
             note_edittext.setHint(getString(R.string.spot_form_note_hint));
         else
-            note_edittext.setHint(getString(R.string.spot_form_add_note_hint));
+            note_edittext.setHint(getString(R.string.spot_form_add_note_hint));*/
 
 
         //Add checkboxes listeners
