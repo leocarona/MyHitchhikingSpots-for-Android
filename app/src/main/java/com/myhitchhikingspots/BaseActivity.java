@@ -33,38 +33,20 @@ public class BaseActivity extends AppCompatActivity
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        if (mShouldShowLeftMenu)
-            ShowMenu();
-    }
+        if (mShouldShowLeftMenu) {
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            if (toolbar != null) {
+                setSupportActionBar(toolbar);
 
+                if (drawer != null) {
+                    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                            this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                    drawer.setDrawerListener(toggle);
+                    toggle.syncState();
 
-    protected void ShowMenu() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-
-            if (drawer != null) {
-                ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-                drawer.setDrawerListener(toggle);
-                toggle.syncState();
-
-                NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-                if (navigationView != null) {
-
-                    //Apply selected style to the open activity
-                    String currentActivityName = getClass().getName();
-                    if (currentActivityName.equals(SettingsActivity.class.getName()))
-                        navigationView.setCheckedItem(R.id.nav_tools);
-                    else if (currentActivityName.equals(MapViewActivity.class.getName()))
-                        navigationView.setCheckedItem(R.id.nav_my_map);
-                    else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
-                        navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
-                    else if (currentActivityName.equals(MainActivity.class.getName()))
-                        navigationView.setCheckedItem(R.id.nav_no_internet);
-
-                    navigationView.setVisibility(View.VISIBLE);
-                    navigationView.setNavigationItemSelectedListener(this);
+                    NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+                    if (navigationView != null)
+                        navigationView.setVisibility(View.VISIBLE);
                 }
             }
         }
@@ -77,6 +59,35 @@ public class BaseActivity extends AppCompatActivity
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateCheckedItem();
+    }
+
+    private void updateCheckedItem() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        navigationView.setNavigationItemSelectedListener(null);
+
+        if (navigationView != null) {
+            //Apply selected style to the open activity
+            String currentActivityName = getClass().getName();
+            if (currentActivityName.equals(SettingsActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_tools);
+            else if (currentActivityName.equals(MapViewActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_my_map);
+            else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
+            else if (currentActivityName.equals(MainActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_no_internet);
+            else
+                navigationView.setCheckedItem(R.id.nav_unselect);
+        }
+
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
     //Todo: consider using onActivityResult to information about new spots added/edited/deleted to update them in the spotList instead of fetching the whole list again from database
@@ -93,7 +104,6 @@ public class BaseActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         String currentActivityName = getClass().getName();
 
         switch (item.getItemId()) {

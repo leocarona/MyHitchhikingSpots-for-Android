@@ -18,6 +18,10 @@
             android:id="@+id/nav_tools"
             android:icon="@drawable/ic_settings_black_24dp"
             android:title="@string/tools_title" />
+        <item
+            android:id="@+id/nav_unselect"
+            android:title=""
+            android:visible="false"/>
     </group>
 
 </menu>
