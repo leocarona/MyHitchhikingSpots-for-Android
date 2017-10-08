@@ -45,7 +45,7 @@ import io.fabric.sdk.android.services.common.Crash;
 /**
  * Download, view, navigate to, and delete an offline region.
  */
-public class OfflineManagerActivity extends AppCompatActivity {
+public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCallback {
 
     private static final String TAG = "OffManActivity";
 
@@ -74,7 +74,7 @@ public class OfflineManagerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         // This contains the MapView in XML and needs to be called after the access token is configured.
-        setContentView(R.layout.offline_map_layout);
+        setContentView(R.layout.offline_map_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
@@ -168,7 +168,7 @@ public class OfflineManagerActivity extends AppCompatActivity {
         // Set up the offlineManager
         offlineManager = OfflineManager.getInstance(this);
 
-        // mShouldShowLeftMenu = true;
+        mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
     }
 
