@@ -83,6 +83,8 @@ public class BaseActivity extends AppCompatActivity
                 navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
             else if (currentActivityName.equals(MainActivity.class.getName()))
                 navigationView.setCheckedItem(R.id.nav_no_internet);
+            else if(currentActivityName.equals(OfflineManagerActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_offline_map);
             else
                 navigationView.setCheckedItem(R.id.nav_unselect);
         }
@@ -131,6 +133,10 @@ public class BaseActivity extends AppCompatActivity
                     intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, currentActivityName.equals(MapViewActivity.class.getName()));
                     startActivity(intent);
                 }
+                break;
+            case R.id.nav_offline_map:
+                if (!currentActivityName.equals(OfflineManagerActivity.class.getName()))
+                    startActivity(new Intent(getApplicationContext(), OfflineManagerActivity.class));
                 break;
         }
 

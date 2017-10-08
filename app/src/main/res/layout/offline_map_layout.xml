@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="OfflineManagerActivity">
+
+    <com.mapbox.mapboxsdk.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        mapbox:mapbox_styleUrl="@string/mapbox_style_light" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_locate_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:useCompatPadding="true"
+        mapbox:srcCompat="@drawable/ic_my_location_24dp"
+        tools:ignore="VectorDrawableCompat" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_zoom_in"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="65dp"
+        android:alpha="0.5"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:useCompatPadding="true"
+        mapbox:srcCompat="@drawable/ic_zoom_in_white_24dp"
+        tools:ignore="VectorDrawableCompat" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_zoom_out"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="120dp"
+        android:alpha="0.5"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:useCompatPadding="true"
+        mapbox:srcCompat="@drawable/ic_zoom_out_white_24dp"
+        tools:ignore="VectorDrawableCompat" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="bottom|center_horizontal"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:paddingBottom="60dp">
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="25dp"
+            android:gravity="bottom|center_horizontal"
+            android:layout_alignParentBottom="true"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/download_button"
+            style="@style/roundButtonTextStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/arrived_button"
+            android:onClick="saveButtonHandler"
+            android:padding="15dp"
+            android:text="@string/download_region_button_text" />
+    </LinearLayout>
+
+    <android.support.design.widget.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom"
+        android:background="@color/ic_standard_fab_color"
+        android:fitsSystemWindows="true"
+        app:itemBackground="@color/ic_standard_fab_color"
+        app:itemIconTint="@color/menu_bottom_selector"
+        app:itemTextColor="@color/menu_bottom_selector"
+        app:menu="@menu/offline_map_bottom_menu" />
+</RelativeLayout>

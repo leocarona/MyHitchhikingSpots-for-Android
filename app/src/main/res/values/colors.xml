@@ -37,4 +37,6 @@
 
     <color name="white">#FFFFFF</color>
     <!--END: SpotForm bottom menu-->
+
+    <color name="mapboxWhite">#ffffff</color>
 </resources>
