@@ -329,10 +329,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null) {
-                    if (mapboxMap.getMyLocation() != null)
-                        moveCamera(new LatLng(mapboxMap.getMyLocation()));
-                    else
-                        locateUser();
+                    moveCameraToLastKnownLocation();
+
+                    locateUser();
                 }
             }
         });
@@ -475,19 +474,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         displayAddressOutput();
     }
 
-    private void fetchAddressOnCameraIdle(final Location location) {
-        mapboxMap.setOnCameraIdleListener(new MapboxMap.OnCameraIdleListener() {
-            @Override
-            public void onCameraIdle() {
-                mapboxMap.setOnCameraIdleListener(null);
-
-                //Automatically fetch address for the received location
-                if (!shouldShowButtonsPanel)
-                    fetchAddress(new MyLocation(location.getLatitude(), location.getLongitude()));
-            }
-        });
-    }
-
     void updateMapVisibility() {
         if (prefs.getBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, false)) {
             //mapView.setVisibility(View.VISIBLE);
@@ -517,9 +503,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             if (!mapboxMap.isMyLocationEnabled())
                 mapboxMap.setMyLocationEnabled(true);
 
-            Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT).show();
+            final Toast t = Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
+            t.show();
 
-
+            //Make map camera follow GPS updates
             mapboxMap.setOnMyLocationChangeListener(new MapboxMap.OnMyLocationChangeListener() {
                 @Override
                 public void onMyLocationChange(Location location) {
@@ -535,8 +522,14 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                         mapboxMap.setOnMyLocationChangeListener(null);
 
                         //Try to fetch address for the received location
-                        fetchAddressOnCameraIdle(location);
+                        fetchAddress(new MyLocation(location.getLatitude(), location.getLongitude()));
                     }
+
+                    //Hide "Waiting to receive your current location" toast, if it's still shown
+                    t.cancel();
+
+                    //Show "Location updated" toast
+                    Toast.makeText(getBaseContext(), getString(R.string.location_updated_message), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -629,19 +622,17 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Customize the user location icon using the getMyLocationViewSettings object.
         this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")
 
-        // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(SpotFormActivity.this) && !mapboxMap.isMyLocationEnabled())
-            mapboxMap.setMyLocationEnabled(true);
-
         //Add click listener to make map camera stop following GPS position if the user moves the camera manually
         mapboxMap.setOnMapClickListener(new MapboxMap.OnMapClickListener() {
             public void onMapClick(@NonNull LatLng point) {
-                //Stop listening to location updates
-                mapboxMap.setOnMyLocationChangeListener(null);
+                if (!shouldShowButtonsPanel) {
+                    //Stop listening to location updates
+                    mapboxMap.setOnMyLocationChangeListener(null);
 
-                //Collapse the bottomSheet and hide keyboard
-                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                hideKeyboard();
+                    //Collapse the bottomSheet and hide keyboard
+                    mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    hideKeyboard();
+                }
             }
         });
 
@@ -663,54 +654,74 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         //Add "target" icon to the center of the map
         addTargetIconToCenter();
 
-        LatLng moveCameraPositionTo = null;
-        int moveCameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
 
         if (mCurrentSpot != null) {
             //If the spot informs a coordinate, move the map camera to there
             if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null
                     && mCurrentSpot.getLatitude() != 0.0 && mCurrentSpot.getLongitude() != 0.0) {
+                LatLng moveCameraPositionTo = null;
+                int moveCameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+
                 moveCameraPositionTo = new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude());
 
                 //Use same camera zoom that user was using on previous activity
                 if (mFormType == FormType.Create && cameraZoomFromBundle != -1)
                     moveCameraZoomTo = (int) cameraZoomFromBundle;
+
+                moveCamera(moveCameraPositionTo, moveCameraZoomTo);
             } else {
                 //If a coordinate was not informed, let's place the map camera at a last known position
 
-                //If we know the current position of the user, move the map camera to there
-                if (mapboxMap.getMyLocation() != null) {
-                    moveCameraPositionTo = new LatLng(mapboxMap.getMyLocation());
-                } else {
-                    //The user might still be close to the last spot saved, move the map camera there
-                    Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
-                    if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
-                            && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
-                        moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+                moveCameraToLastKnownLocation();
+            }
+        }
 
-                        //If at the last added spot the user got a ride, then he might not be so close to that spot - zoom a bit farther from it
-                        if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE)
-                            moveCameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
-                    }
-                }
+
+        // If buttons panel is shown, make the camera follow GPS updates,
+        // otherwise just show GPS location on the map without necessarily moving the camera to it
+        if (shouldShowButtonsPanel)
+            locateUser();
+        else {
+            //Show GPS location on the map without making the map camera follow it
+            if (PermissionsManager.areLocationPermissionsGranted(SpotFormActivity.this) && !mapboxMap.isMyLocationEnabled())
+                mapboxMap.setMyLocationEnabled(true);
+
+            // If it's Create mode, highlight Locate button so that user can make the map camera follow GPS updates
+            if (mFormType == FormType.Create && !shouldShowButtonsPanel) {
+                //Highlight the Locate button
+                ViewTooltip
+                        .on(fabLocateUser)
+                        .autoHide(true, 5000)
+                        .corner(30)
+                        .position(ViewTooltip.Position.RIGHT)
+                        .text(getString(R.string.spot_form_locate_button_tooltip_text))
+                        .show();
+            }
+        }
+    }
+
+    private void moveCameraToLastKnownLocation() {
+        LatLng moveCameraPositionTo = null;
+        int moveCameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+
+        //If we know the current position of the user, move the map camera to there
+        if (mapboxMap.getMyLocation() != null) {
+            moveCameraPositionTo = new LatLng(mapboxMap.getMyLocation());
+        } else {
+            //The user might still be close to the last spot saved, move the map camera there
+            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
+            if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
+                    && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
+                moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+
+                //If at the last added spot the user got a ride, then he might not be so close to that spot - zoom a bit farther from it
+                if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE)
+                    moveCameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
             }
         }
 
         if (moveCameraPositionTo != null)
             moveCamera(moveCameraPositionTo, moveCameraZoomTo);
-        else if (mFormType == FormType.Create)
-            locateUser();
-
-        if (mFormType == FormType.Create) {
-            //Highlight the Locate button
-            ViewTooltip
-                    .on(fabLocateUser)
-                    .autoHide(true, 5000)
-                    .corner(30)
-                    .position(ViewTooltip.Position.RIGHT)
-                    .text(getString(R.string.spot_form_locate_button_tooltip_text))
-                    .show();
-        }
     }
 
     private LatLng requestToPositionAt = null;
@@ -840,7 +851,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // been made yet.
         if (mapboxMap != null) {
             mapboxMap.setOnMyLocationChangeListener(null);
-            mapboxMap.setOnCameraIdleListener(null);
             mapboxMap.setOnCameraMoveStartedListener(null);
         }
     }
@@ -1161,11 +1171,11 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         updateSaveButtonState();
         updateSelectedTab();
 
-        //Automatically resolve gps
-        fetchAddressButtonHandler(null);
-
         //If location is been listened, stop listening to it and keep current location
         mapboxMap.setOnMyLocationChangeListener(null);
+
+        //Automatically resolve gps
+        fetchAddressButtonHandler(null);
     }
 
     public void viewMapButtonHandler(View view) {
@@ -1952,9 +1962,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
          */
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
-            //Stop listening to location updates
-            mapboxMap.setOnMyLocationChangeListener(null);
-
             String strResult = "";
 
             // Show a toast message notifying whether an address was found.
