@@ -522,7 +522,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:layout_gravity="bottom"
-        android:paddingBottom="60dp"
+        android:paddingBottom="80dp"
         android:orientation="horizontal">
 
         <Button
@@ -576,7 +576,7 @@
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@color/ic_standard_fab_color"
         android:fitsSystemWindows="true"
