@@ -124,16 +124,7 @@ public class OfflineManagerActivity extends AppCompatActivity {
         // Set up the MapView
         mapView = (MapView) findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(MapboxMap mapboxMap) {
-                OfflineManagerActivity.this.mapboxMap = mapboxMap;
-
-                moveCameraToLastKnownLocation();
-
-                locateUser();
-            }
-        });
+        mapView.getMapAsync(this);
 
         fabLocateUser = (FloatingActionButton) findViewById(R.id.fab_locate_user);
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
@@ -179,6 +170,15 @@ public class OfflineManagerActivity extends AppCompatActivity {
 
         // mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onMapReady(final MapboxMap mapboxMap) {
+        this.mapboxMap = mapboxMap;
+
+        moveCameraToLastKnownLocation();
+
+        locateUser();
     }
 
     // Override Activity lifecycle methods
@@ -263,7 +263,8 @@ public class OfflineManagerActivity extends AppCompatActivity {
 
                     int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
-                    if (requestToPositionAt == null)
+                    //If current zoom level is default (world level)
+                    if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
                         zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
 
                     //Move the map camera to the received location
@@ -331,8 +332,14 @@ public class OfflineManagerActivity extends AppCompatActivity {
             }
         }
 
+        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+
+        //If current zoom level is default (world level)
+        if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
+            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+
         if (moveCameraPositionTo != null)
-            moveCamera(moveCameraPositionTo, Constants.KEEP_ZOOM_LEVEL);
+            moveCamera(moveCameraPositionTo, zoomLevel);
     }
 
     private void downloadRegionDialog() {
