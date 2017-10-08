@@ -1225,7 +1225,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             mCurrentSpot.setIsDestination(is_destination_check_box.isChecked());
 
             //Set note
-            mCurrentSpot.setNote(note_edittext.getText().toString());
+            mCurrentSpot.setNote(note_edittext.getText().toString().trim());
 
             //Set chosen date & time
             DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
@@ -2062,7 +2062,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             String errMsgToShow = "";
             if (result.equalsIgnoreCase("Executed")) {
                 try {
-                    mCurrentSpot.setNote(placeWithCompleteDetails.getDescriptionENdescription());
+                    String note = placeWithCompleteDetails.getDescriptionENdescription();
+                    if (note != null)
+                        note = note.trim();
+                    mCurrentSpot.setNote(note);
                     mCurrentSpot.setCountryCode(placeWithCompleteDetails.getCountry_iso());
                     mCurrentSpot.setCountry(placeWithCompleteDetails.getCountry_name());
                     mCurrentSpot.setCity(placeWithCompleteDetails.getLocality());
