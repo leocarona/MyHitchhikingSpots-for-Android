@@ -44,8 +44,6 @@ import java.util.ArrayList;
  */
 public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCallback {
 
-    private static final String TAG = "OffManActivity";
-
     // JSON encoding/decoding
     public static final String JSON_CHARSET = "UTF-8";
     public static final String JSON_FIELD_REGION_NAME = "FIELD_REGION_NAME";
@@ -318,7 +316,7 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     private void moveCamera(LatLng latLng, long zoom) {
         if (latLng != null) {
             if (mapboxMap == null)
-                Crashlytics.log(Log.INFO, TAG, "For some reason map was not loaded, therefore mapboxMap.moveCamera() was skipped to avoid crash. Shouldn't the map be loaded at this point?");
+                Crashlytics.log("For some reason map was not loaded, therefore mapboxMap.moveCamera() was skipped to avoid crash. Shouldn't the map be loaded at this point?");
             else {
                 requestToPositionAt = latLng;
 
@@ -421,7 +419,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
             String json = jsonObject.toString();
             metadata = json.getBytes(JSON_CHARSET);
         } catch (Exception exception) {
-            Log.e(TAG, "Failed to encode metadata: " + exception.getMessage());
+            Crashlytics.log("Failed to encode metadata.");
+            Crashlytics.logException(exception);
             metadata = null;
         }
 
@@ -429,14 +428,14 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         offlineManager.createOfflineRegion(definition, metadata, new OfflineManager.CreateOfflineRegionCallback() {
             @Override
             public void onCreate(OfflineRegion offlineRegion) {
-                Log.d(TAG, "Offline region created: " + regionName);
+                Crashlytics.log("Offline region created: " + regionName);
                 OfflineManagerActivity.this.offlineRegion = offlineRegion;
                 launchDownload();
             }
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "Error: " + error);
+                Crashlytics.logException(new Exception("Error: " + error));
             }
         });
     }
@@ -463,9 +462,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
                     }
 
                     // Log what is being currently downloaded
-                    Log.d(TAG, String.format("%s/%s resources; %s bytes downloaded.",
-                            String.valueOf(status.getCompletedResourceCount()),
-                            String.valueOf(status.getRequiredResourceCount()),
+                    Crashlytics.log(String.format("%s%% of download is complete; %s bytes downloaded.",
+                            String.valueOf(status.getCompletedResourceCount() / status.getRequiredResourceCount()),
                             String.valueOf(status.getCompletedResourceSize())));
                 } catch (Exception ex) {
                     Crashlytics.logException(ex);
@@ -474,13 +472,27 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
 
             @Override
             public void onError(OfflineRegionError error) {
-                Log.e(TAG, "onError reason: " + error.getReason());
-                Log.e(TAG, "onError message: " + error.getMessage());
+                // endProgress(getString(R.string.general_error_dialog_title));
+                Crashlytics.log("onError message: " + error.getMessage());
+                Crashlytics.logException(new Exception("onError reason: " + error.getReason()));
             }
 
+            /*
+             * Implement this method to be notified when the limit on the number of Mapbox
+             * tiles stored for offline regions has been reached.
+             *
+             * Once the limit has been reached, the SDK will not download further offline
+             * tiles from Mapbox APIs until existing tiles have been removed. Contact your
+             * Mapbox sales representative to raise the limit.
+             *
+             * This limit does not apply to non-Mapbox tile sources.
+             *
+             * This method will be executed on the main thread.
+             */
             @Override
             public void mapboxTileCountLimitExceeded(long limit) {
-                Log.e(TAG, "Mapbox tile count limit exceeded: " + limit);
+                endProgress("This region is too big, download was stopped");
+                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded: " + limit));
             }
         });
 
@@ -592,7 +604,7 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
 
             @Override
             public void onError(String error) {
-                Log.e(TAG, "Error: " + error);
+                Crashlytics.logException(new Exception("Error: " + error));
             }
         });
     }
@@ -607,7 +619,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
             JSONObject jsonObject = new JSONObject(json);
             regionName = jsonObject.getString(JSON_FIELD_REGION_NAME);
         } catch (Exception exception) {
-            Log.e(TAG, "Failed to decode metadata: " + exception.getMessage());
+            Crashlytics.log("Failed to decode metadata.");
+            Crashlytics.logException(exception);
             regionName = String.format(getString(R.string.region_name), offlineRegion.getID());
         }
         return regionName;
