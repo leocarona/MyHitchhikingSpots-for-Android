@@ -176,6 +176,10 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     public void onMapReady(final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
 
+        //Show GPS location on the map without making the map camera follow it
+        if (PermissionsManager.areLocationPermissionsGranted(OfflineManagerActivity.this) && !mapboxMap.isMyLocationEnabled())
+            mapboxMap.setMyLocationEnabled(true);
+
         moveCameraToLastKnownLocation();
 
         locateUser();
