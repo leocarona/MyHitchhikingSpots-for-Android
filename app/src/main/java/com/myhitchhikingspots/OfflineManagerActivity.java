@@ -553,11 +553,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
                         .setNeutralButton(getString(R.string.navigate_neutral_button_title), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int id) {
-                                // Make progressBar indeterminate and
-                                // set it to visible to signal that
-                                // the deletion process has begun
-                                progressBar.setIndeterminate(true);
-                                progressBar.setVisibility(View.VISIBLE);
+                                // Start the progressBar
+                                startProgress();
 
                                 // Begin the deletion process
                                 offlineRegions[regionSelected].delete(new OfflineRegion.OfflineRegionDeleteCallback() {
@@ -565,17 +562,13 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
                                     public void onDelete() {
                                         // Once the region is deleted, remove the
                                         // progressBar and display a toast
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                        progressBar.setIndeterminate(false);
-                                        Toast.makeText(getApplicationContext(), getString(R.string.toast_region_deleted),
-                                                Toast.LENGTH_LONG).show();
+                                        endProgress(getString(R.string.toast_region_deleted));
                                     }
 
                                     @Override
                                     public void onError(String error) {
-                                        progressBar.setVisibility(View.INVISIBLE);
-                                        progressBar.setIndeterminate(false);
-                                        Log.e(TAG, "Error: " + error);
+                                        endProgress(getString(R.string.general_error_dialog_title));
+                                        Crashlytics.logException(new Exception("Error: " + error));
                                     }
                                 });
 
