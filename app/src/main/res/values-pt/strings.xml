@@ -238,5 +238,6 @@
     <string name="settings_import_section_title">Import</string>
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="spot_form_locate_button_tooltip_text">Mover para sua localização</string>
+    <string name="offline_map_in_progress_toast_message">Operação em andamento, aguarde..</string>
 
 </resources>

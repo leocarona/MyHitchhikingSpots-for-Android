@@ -253,4 +253,5 @@ The Hitchwiki team.
     <string name="navigate_title" translatable="false">List</string>
     <string name="region_name" translatable="false">Region %1$d</string>
     <string name="set_region_name_hint" translatable="false">Enter name</string>
+    <string name="offline_map_in_progress_toast_message">Still in progress, please wait</string>
 </resources>

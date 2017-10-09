@@ -8,12 +8,11 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,8 +38,6 @@ import com.myhitchhikingspots.model.Spot;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-
-import io.fabric.sdk.android.services.common.Crash;
 
 /**
  * Download, view, navigate to, and delete an offline region.
@@ -86,9 +83,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
             @Override
             public void onClick(View v) {
                 if (isInProgress) {
-                    //Show message to let the user know that this tab will be enabled when the progress finish
-                    Toast.makeText(getBaseContext(), "Still in progress, please wait",
-                            Toast.LENGTH_SHORT).show();
+                    //Show a toast to indicate that the download is still in progress
+                    showStillInProgressToast();
                 } else {
                     // Download offline button
                     downloadRegionDialog();
@@ -130,14 +126,19 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mapboxMap != null) {
-                    moveCameraToLastKnownLocation();
+                if (isInProgress) {
+                    //Show a toast to indicate that the download is still in progress
+                    showStillInProgressToast();
+                } else {
+                    if (mapboxMap != null) {
+                        moveCameraToLastKnownLocation();
 
-                    if (waiting_GPS_update == null)
-                        waiting_GPS_update = Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
-                    waiting_GPS_update.show();
+                        if (waiting_GPS_update == null)
+                            waiting_GPS_update = Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
+                        waiting_GPS_update.show();
 
-                    locateUser();
+                        locateUser();
+                    }
                 }
             }
         });
@@ -146,8 +147,12 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         fabZoomIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mapboxMap != null) {
-                    mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
+                if (isInProgress) {
+                    //Show a toast to indicate that the download is still in progress
+                    showStillInProgressToast();
+                } else {
+                    if (mapboxMap != null)
+                        mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
                 }
             }
         });
@@ -156,8 +161,12 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         fabZoomOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mapboxMap != null) {
-                    mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
+                if (isInProgress) {
+                    //Show a toast to indicate that the download is still in progress
+                    showStillInProgressToast();
+                } else {
+                    if (mapboxMap != null)
+                        mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
                 }
             }
         });
@@ -617,6 +626,15 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         isInProgress = true;
         progressBar.setIndeterminate(true);
         progressBar.setVisibility(View.VISIBLE);
+
+        // Disable map until download finishes
+        mapView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                showStillInProgressToast();
+                return true;
+            }
+        });
     }
 
     private void setPercentage(final int percentage) {
@@ -637,5 +655,25 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
 
         // Show a toast
         Toast.makeText(OfflineManagerActivity.this, message, Toast.LENGTH_LONG).show();
+
+
+        // Enable map until download finishes
+        mapView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return false;
+            }
+        });
+    }
+
+
+    Toast stillInProgressToast;
+
+    void showStillInProgressToast() {
+        //Show a toast to indicate that the download is still in progress
+        // so the user can guess that everything will be enabled again when the progress finishes
+        if (stillInProgressToast == null)
+            stillInProgressToast = Toast.makeText(getBaseContext(), R.string.offline_map_in_progress_toast_message, Toast.LENGTH_SHORT);
+        stillInProgressToast.show();
     }
 }
