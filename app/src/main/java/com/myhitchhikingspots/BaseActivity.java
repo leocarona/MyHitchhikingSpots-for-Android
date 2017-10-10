@@ -82,7 +82,7 @@ public class BaseActivity extends AppCompatActivity
             else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
                 navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
             else if (currentActivityName.equals(MainActivity.class.getName()))
-                navigationView.setCheckedItem(R.id.nav_no_internet);
+                navigationView.setCheckedItem(R.id.nav_my_routes);
             else if(currentActivityName.equals(OfflineManagerActivity.class.getName()))
                 navigationView.setCheckedItem(R.id.nav_offline_map);
             else
@@ -121,7 +121,7 @@ public class BaseActivity extends AppCompatActivity
                 if (!currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
                     startActivity(new Intent(getApplicationContext(), HitchwikiMapViewActivity.class));
                 break;
-            case R.id.nav_no_internet:
+            case R.id.nav_my_routes:
                 //If the current activity is MainActivity, select the tab "you"
                 if (currentActivityName.equals(MainActivity.class.getName()))
                     ((MainActivity) this).selectTab(MainActivity.SectionsPagerAdapter.TAB_YOU_INDEX);

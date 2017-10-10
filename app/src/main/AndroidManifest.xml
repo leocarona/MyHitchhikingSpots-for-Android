@@ -66,12 +66,12 @@ limitations under the License.
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".MapViewActivity"
-            android:label="@string/mapview_master_title"
+            android:label="@string/menu_my_maps"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar"/>
         <activity
             android:name=".HitchwikiMapViewActivity"
-            android:label="@string/mapview_hitchwiki_title"
+            android:label="@string/menu_hitchwiki_maps"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar"/>
         <activity

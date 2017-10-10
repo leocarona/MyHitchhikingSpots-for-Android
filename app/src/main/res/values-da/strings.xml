@@ -30,8 +30,6 @@
     <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
     <string name="attempt_result_gave_up">@string/break_button_text</string>
 
-    <string name="menu_home">Intet 3G? Brug det her</string>
-
     <string name="tools_title">Værktøjer</string>
     <string name="settings_importdb_button_label">Importer database</string>
     <string name="settings_exportdb_button_label">Eksporter database</string>
@@ -71,8 +69,11 @@
     <string name="spot_form_comments_title">Kommentarer fra andre blaffere</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
 
-    <string name="mapview_master_title">Min Kort</string>
-    <string name="mapview_hitchwiki_title">Hitchwiki Kort</string>
+    <string name="menu_my_maps">Min Kort</string>
+    <string name="menu_hitchwiki_maps">Hitchwiki Kort</string>
+    <string name="menu_my_routes">Intet 3G? Brug det her</string>
+    <string name="menu_tools">@string/tools_title</string>
+    <string name="menu_offline_maps">@string/offline_map</string>
 
     <string name="action_settings">Indstillinger</string>
     <string name="spot_saved_successfuly">Sted gemt</string>

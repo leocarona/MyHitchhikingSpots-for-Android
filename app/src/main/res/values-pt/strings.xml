@@ -60,10 +60,11 @@
         <item>@string/attempt_result_gave_up</item>
     </string-array>
 
-    <string name="mapview_master_title">Meu Mapa</string>
-    <string name="mapview_hitchwiki_title">Hitchwiki Maps</string>
-
-    <string name="menu_home">Sem 3G? Use esse</string>
+    <string name="menu_my_maps">Meu Mapa</string>
+    <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
+    <string name="menu_my_routes">Sem 3G? Use esse</string>
+    <string name="menu_tools">@string/tools_title</string>
+    <string name="menu_offline_maps">@string/offline_map</string>
 
     <string name="tools_title">Ferramentas</string>
     <string name="settings_importdb_button_label">Importar banco de dados</string>

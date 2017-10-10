@@ -60,8 +60,6 @@
         <item>@string/attempt_result_gave_up</item>
     </string-array>
 
-    <string name="menu_home">Keine 3G? Benutze das</string>
-
     <string name="tools_title">Werkzeuge</string>
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export database</string>
@@ -101,8 +99,11 @@
     <string name="spot_form_comments_title">Kommentare von anderen Trampern</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
 
-    <string name="mapview_master_title">Meine Karten</string>
-    <string name="mapview_hitchwiki_title">Hitchwiki Karten</string>
+    <string name="menu_my_maps">Meine Karten</string>
+    <string name="menu_hitchwiki_maps">Hitchwiki Karten</string>
+    <string name="menu_my_routes">Keine 3G? Benutze das</string>
+    <string name="menu_tools">@string/tools_title</string>
+    <string name="menu_offline_maps">@string/offline_map</string>
 
     <string name="action_settings">Einstellungen</string>
     <string name="spot_saved_successfuly">Standort gespeichert</string>
