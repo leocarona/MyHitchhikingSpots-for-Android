@@ -238,21 +238,21 @@ The Hitchwiki team.
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="spot_form_locate_button_tooltip_text">Move to your location</string>
 
-    <string name="offline_map" translatable="false">Offline Maps</string>
-    <string name="download_region_button_text" translatable="false">Download this region</string>
-    <string name="dialog_title" translatable="false">Name new region</string>
-    <string name="dialog_message" translatable="false">Downloads the map region you currently are viewing</string>
-    <string name="dialog_positive_button" translatable="false">Download</string>
-    <string name="dialog_negative_button" translatable="false">Cancel</string>
-    <string name="dialog_toast" translatable="false">Region name cannot be empty.</string>
-    <string name="end_progress_success" translatable="false">Region downloaded successfully.</string>
-    <string name="toast_no_regions_yet" translatable="false">You have no regions yet.</string>
-    <string name="toast_region_deleted" translatable="false">Region deleted</string>
-    <string name="navigate_positive_button" translatable="false">Navigate to</string>
-    <string name="navigate_neutral_button_title" translatable="false">Delete</string>
-    <string name="navigate_negative_button_title" translatable="false">Cancel</string>
-    <string name="navigate_title" translatable="false">List</string>
-    <string name="region_name" translatable="false">Region %1$d</string>
-    <string name="set_region_name_hint" translatable="false">Enter name</string>
+    <string name="offline_map">Offline Maps</string>
+    <string name="download_region_button_text">Download this region</string>
+    <string name="dialog_title">Name new region</string>
+    <string name="dialog_message">Downloads the map region you currently are viewing</string>
+    <string name="dialog_positive_button">Download</string>
+    <string name="dialog_negative_button">Cancel</string>
+    <string name="dialog_toast">Region name cannot be empty.</string>
+    <string name="end_progress_success">Region downloaded successfully.</string>
+    <string name="toast_no_regions_yet">You have no regions yet.</string>
+    <string name="toast_region_deleted">Region deleted</string>
+    <string name="navigate_positive_button">Navigate to</string>
+    <string name="navigate_neutral_button_title">Delete</string>
+    <string name="navigate_negative_button_title">Cancel</string>
+    <string name="navigate_title">List</string>
+    <string name="region_name">Region %1$d</string>
+    <string name="set_region_name_hint">Enter name</string>
     <string name="offline_map_in_progress_toast_message">Still in progress, please wait</string>
 </resources>

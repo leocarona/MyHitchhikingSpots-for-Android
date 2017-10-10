@@ -239,6 +239,23 @@
     <string name="settings_import_section_title">Import</string>
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="spot_form_locate_button_tooltip_text">Mover para sua localização</string>
+
+    <string name="offline_map">Mapa Offline</string>
+    <string name="download_region_button_text">Baixar esta região</string>
+    <string name="dialog_title">Dê um nome para esta região</string>
+    <string name="dialog_message">Baixa a região do mapa que você está visualizando atualmente</string>
+    <string name="dialog_positive_button">Baixar</string>
+    <string name="dialog_negative_button">Cancelar</string>
+    <string name="dialog_toast">O nome da região não pode ficar em branco.</string>
+    <string name="end_progress_success">Região baixada com sucesso.</string>
+    <string name="toast_no_regions_yet">Você ainda não baixou nenhuma região.</string>
+    <string name="toast_region_deleted">Região deletada</string>
+    <string name="navigate_positive_button">Visualizar</string>
+    <string name="navigate_neutral_button_title">Deletar</string>
+    <string name="navigate_negative_button_title">Cancelar</string>
+    <string name="navigate_title">Lista</string>
+    <string name="region_name">Região %1$d</string>
+    <string name="set_region_name_hint">Informe um nome</string>
     <string name="offline_map_in_progress_toast_message">Operação em andamento, aguarde..</string>
 
 </resources>
