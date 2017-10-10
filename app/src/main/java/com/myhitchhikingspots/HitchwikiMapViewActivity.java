@@ -58,7 +58,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     private MapboxMap mapboxMap;
     //private LocationEngine locationEngine;
     //private LocationEngineListener locationEngineListener;
-    private FloatingActionButton fabLocateUser, fabShowAll;
+    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
 
@@ -105,7 +105,25 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             }
         });
 
-        fabShowAll = (FloatingActionButton) findViewById(R.id.fab_show_all);
+        fabZoomIn = (FloatingActionButton) findViewById(R.id.fab_zoom_in);
+        fabZoomIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mapboxMap != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
+            }
+        });
+
+        fabZoomOut = (FloatingActionButton) findViewById(R.id.fab_zoom_out);
+        fabZoomOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mapboxMap != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
+            }
+        });
+
+        /*fabShowAll = (FloatingActionButton) findViewById(R.id.fab_show_all);
         fabShowAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -113,7 +131,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     zoomOutToFitAllMarkers();
                 }
             }
-        });
+        });*/
 
 
         // Get the location engine object for later use.
@@ -778,7 +796,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                         zoomOutToFitAllMarkers();
                     }
                 }
-
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),

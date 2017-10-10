@@ -10,6 +10,10 @@
         android:orderInCategory="100"
         app:showAsAction="always"
         android:icon="@drawable/ic_add_new_black_24dp" />
+    <item android:id="@+id/action_zoom_to_fit_all"
+        android:title="@string/general_zoom_to_fit_all"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
     <item android:id="@+id/action_toggle_icons"
         android:title="@string/general_hide_icons_label"
         android:orderInCategory="100"

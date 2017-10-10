@@ -165,6 +165,7 @@
     <string name="general_all">All</string>
     <string name="general_not_enough_permission">Sorry, unfortunatelly you seem to not have enough permission to do execute this action.</string>
     <string name="general_selected_file_type_not_supported">Selected file was not of a supported type.</string>
+    <string name="general_zoom_to_fit_all">View all spots</string>
 
     <string name="general_author_label">by %s</string>
     <string name="general_download_option">Download</string>

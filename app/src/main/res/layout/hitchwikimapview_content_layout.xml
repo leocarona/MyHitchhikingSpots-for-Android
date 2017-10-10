@@ -36,6 +36,35 @@
         app:fabSize="mini"/>
 
     <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_zoom_in"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="65dp"
+        android:alpha="0.5"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:useCompatPadding="true"
+        mapbox:srcCompat="@drawable/ic_zoom_in_white_24dp"
+        tools:ignore="VectorDrawableCompat" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_zoom_out"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="120dp"
+        android:alpha="0.5"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:useCompatPadding="true"
+        mapbox:srcCompat="@drawable/ic_zoom_out_white_24dp"
+        tools:ignore="VectorDrawableCompat" />
+
+    <!--<android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_show_all"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -51,7 +80,7 @@
         app:srcCompat="@drawable/ic_zoom_out_map_white_24dp"
         tools:ignore="VectorDrawableCompat"
         app:useCompatPadding="true"
-        app:fabSize="mini" />
+        app:fabSize="mini" />-->
 
 
 

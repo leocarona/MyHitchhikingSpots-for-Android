@@ -58,7 +58,7 @@ import java.util.List;
 public class MapViewActivity extends BaseActivity implements OnMapReadyCallback {
     private MapView mapView;
     private MapboxMap mapboxMap;
-    private FloatingActionButton fabLocateUser, fabShowAll;
+    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
@@ -106,7 +106,25 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
             }
         });
 
-        fabShowAll = (FloatingActionButton) findViewById(R.id.fab_show_all);
+        fabZoomIn = (FloatingActionButton) findViewById(R.id.fab_zoom_in);
+        fabZoomIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mapboxMap != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
+            }
+        });
+
+        fabZoomOut = (FloatingActionButton) findViewById(R.id.fab_zoom_out);
+        fabZoomOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mapboxMap != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
+            }
+        });
+
+        /*fabShowAll = (FloatingActionButton) findViewById(R.id.fab_show_all);
         fabShowAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -114,7 +132,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     zoomOutToFitAllMarkers();
                 }
             }
-        });
+        });*/
 
         fabSpotAction1 = (FloatingActionButton) findViewById(R.id.fab_spot_action_1);
         fabSpotAction1.setOnClickListener(new View.OnClickListener() {
@@ -694,17 +712,26 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                 shouldDisplayIcons = !shouldDisplayIcons;
                 if (shouldDisplayIcons) {
                     fabLocateUser.setVisibility(View.VISIBLE);
-                    fabShowAll.setVisibility(View.VISIBLE);
+                    //fabShowAll.setVisibility(View.VISIBLE);
+                    fabZoomIn.setVisibility(View.VISIBLE);
+                    fabZoomOut.setVisibility(View.VISIBLE);
                     item.setTitle(getString(R.string.general_hide_icons_label));
 
                     //Call configureBottomFABButtons to show only the buttons that should be shown
                     configureBottomFABButtons();
                 } else {
                     fabLocateUser.setVisibility(View.GONE);
-                    fabShowAll.setVisibility(View.GONE);
+                    //fabShowAll.setVisibility(View.GONE);
+                    fabZoomIn.setVisibility(View.GONE);
+                    fabZoomOut.setVisibility(View.GONE);
                     fabSpotAction1.setVisibility(View.GONE);
                     fabSpotAction2.setVisibility(View.GONE);
                     item.setTitle(getString(R.string.general_show_icons_label));
+                }
+                break;
+            case R.id.action_zoom_to_fit_all:
+                if (mapboxMap != null) {
+                    zoomOutToFitAllMarkers();
                 }
                 break;
         }
