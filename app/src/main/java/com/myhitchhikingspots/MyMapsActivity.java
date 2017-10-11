@@ -742,13 +742,13 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback {
     }
 
     void openSpotsListView(Boolean... shouldShowYouTab) {
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        Intent intent = new Intent(getApplicationContext(), MyRoutesActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-        /*//When set to true, shouldShowYouTab will open MainActivity presenting the tab "You" instead of the tab "List"
+        /*//When set to true, shouldShowYouTab will open MyRoutesActivity presenting the tab "You" instead of the tab "List"
         if (shouldShowYouTab.length > 0)
             intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab[0]);*/
         startActivity(intent);
-        //startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        //startActivity(new Intent(getApplicationContext(), MyRoutesActivity.class));
     }
 
     protected void zoomOutToFitAllMarkers() {

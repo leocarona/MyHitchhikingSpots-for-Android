@@ -55,7 +55,7 @@ limitations under the License.
                 android:value="com.myhitchhikingspots.BaseActivity" />-->
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".MyRoutesActivity"
             android:label="@string/main_activity_title"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />

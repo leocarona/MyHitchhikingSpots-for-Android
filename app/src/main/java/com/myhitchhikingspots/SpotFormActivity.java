@@ -1957,7 +1957,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         }
 
         /**
-         * Receives data sent from FetchAddressIntentService and updates the UI in MainActivity.
+         * Receives data sent from FetchAddressIntentService and updates the UI in MyRoutesActivity.
          */
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {

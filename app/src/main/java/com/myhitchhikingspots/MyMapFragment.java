@@ -180,8 +180,8 @@ public class MyMapFragment extends Fragment implements OnMapReadyCallback {
 
                      /*
                         // Create an Icon object for the marker to use
-                        IconFactory iconFactory = IconFactory.getInstance(MainActivity.this);
-                        Drawable iconDrawable = ContextCompat.getDrawable(MainActivity.this, R.drawable.blue_marker);
+                        IconFactory iconFactory = IconFactory.getInstance(MyRoutesActivity.this);
+                        Drawable iconDrawable = ContextCompat.getDrawable(MyRoutesActivity.this, R.drawable.blue_marker);
                         Icon destinationIcon = iconFactory.fromDrawable(iconDrawable);
                         Icon waitingIcon = iconFactory.fromDrawable(iconDrawable);
                         Icon currentLocationIcon = iconFactory.fromDrawable(iconDrawable);

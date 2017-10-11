@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends BaseActivity {
+public class MyRoutesActivity extends BaseActivity {
 
     /**
      * The {@link PagerAdapter} that will provide
@@ -66,7 +66,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.main_activity_layout);
+        setContentView(R.layout.my_routes_activity_layout);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
@@ -219,7 +219,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.master, menu);
+        getMenuInflater().inflate(R.menu.my_routes_menu, menu);
         return true;
     }
 
