@@ -229,20 +229,6 @@ public class MainActivity extends BaseActivity {
         boolean selectionHandled = false;
 
         switch (item.getItemId()) {
-            case R.id.action_view_map:
-                //If MyMapsActivity was the one who opened the current MainActivity, then we don't need to start a new instance of MainActivity, just call finish() instead
-
-                if (shouldGoBackToPreviousActivity)
-                    finish();
-                else
-                    startActivity(new Intent(getApplicationContext(), MyMapsActivity.class));
-                selectionHandled = true;
-                break;
-            case R.id.action_new_spot:
-                mSectionsPagerAdapter.saveSpotButtonHandler(false);
-                //GotARideShortcut();
-                selectionHandled = true;
-                break;
             case R.id.action_edit_list:
                 if (mSectionsPagerAdapter != null)
                     switch (mViewPager.getCurrentItem()) {
