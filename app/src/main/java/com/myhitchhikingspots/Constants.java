@@ -44,7 +44,7 @@ public final class Constants {
     public static final String SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = PACKAGE_NAME + ".SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY";
     public static final String SHOULD_SHOW_BUTTONS_KEY = PACKAGE_NAME + ".SHOULD_SHOW_BUTTONS_KEY";
     public static final String SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY = PACKAGE_NAME + ".SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY";
-    public static final String SHOULD_SHOW_YOU_TAB_KEY = PACKAGE_NAME + ".SHOULD_SHOW_YOU_TAB_KEY";
+    //public static final String SHOULD_SHOW_YOU_TAB_KEY = PACKAGE_NAME + ".SHOULD_SHOW_YOU_TAB_KEY";
 
     //Zoom to a level that makes it easier for the user to find his new position (he might not be too far from the location shown)
     public static final int ZOOM_TO_SEE_FARTHER_DISTANCE = 6;
