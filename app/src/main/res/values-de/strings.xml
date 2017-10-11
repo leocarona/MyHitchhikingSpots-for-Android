@@ -101,7 +101,6 @@
 
     <string name="menu_my_maps">Meine Karten</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Karten</string>
-    <string name="menu_my_routes">Keine 3G? Benutze das</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
 

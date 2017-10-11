@@ -62,7 +62,6 @@
 
     <string name="menu_my_maps">Meu Mapa</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
-    <string name="menu_my_routes">Sem 3G? Use esse</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
 

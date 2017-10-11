@@ -11,10 +11,6 @@
             android:icon="@android:drawable/ic_menu_mapmode"
             android:title="@string/menu_hitchwiki_maps" />
         <item
-            android:id="@+id/nav_my_routes"
-            android:icon="@drawable/ic_signal_cellular_connected_no_internet_0_bar_black_24dp"
-            android:title="@string/menu_my_routes" />
-        <item
             android:id="@+id/nav_offline_map"
             android:icon="@drawable/ic_get_app_24dp"
             android:title="@string/menu_offline_maps" />

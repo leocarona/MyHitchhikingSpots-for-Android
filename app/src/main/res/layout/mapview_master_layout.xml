@@ -41,7 +41,7 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/main_nav_header"
-        app:menu="@menu/activity_master_drawer"
+        app:menu="@menu/app_menu"
         android:visibility="gone">
 
         <ImageView

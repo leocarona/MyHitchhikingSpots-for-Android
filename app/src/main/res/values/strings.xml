@@ -97,7 +97,6 @@ The Hitchwiki team.
 
     <string name="menu_my_maps">My Maps</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
-    <string name="menu_my_routes">No 3G? Use this</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
 

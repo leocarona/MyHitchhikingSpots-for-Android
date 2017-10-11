@@ -71,7 +71,6 @@
 
     <string name="menu_my_maps">Min Kort</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Kort</string>
-    <string name="menu_my_routes">Intet 3G? Brug det her</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
 
