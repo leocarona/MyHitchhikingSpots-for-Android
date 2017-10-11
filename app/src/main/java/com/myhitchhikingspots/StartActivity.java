@@ -20,7 +20,7 @@ public class StartActivity extends Activity {
         // If it was a spot that is still waiting for a ride, show SpotForm so that the user can evalute it.
         // If it was none of the previous cases, then the user is not waiting for a ride and we can present SpotForm so that a next spot can be added to the route.
         if (lastRouteSpot == null || (lastRouteSpot.getIsDestination() != null && lastRouteSpot.getIsDestination()))
-            startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+            startActivity(new Intent(getApplicationContext(), MyMapsActivity.class));
         else {
             //User is probably on the road right now!
             Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);

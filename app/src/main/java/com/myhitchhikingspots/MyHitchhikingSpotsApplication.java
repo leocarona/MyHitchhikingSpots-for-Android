@@ -1,23 +1,18 @@
 package com.myhitchhikingspots;
 
 import android.app.Application;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Debug;
-import android.support.multidex.MultiDex;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.Mapbox;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 
 import io.fabric.sdk.android.Fabric;
-
-import org.joda.time.DateTime;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -36,11 +31,15 @@ public class MyHitchhikingSpotsApplication extends Application {
         super.onCreate();
         Fabric.with(this, new Crashlytics());
 
+        // Mapbox access token is configured here. This needs to be called either in your application
+        // object or in the same activity which contains the mapview.
+        Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
+
         loadDatabase();
     }
 
     public void loadDatabase() {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.dbName, null);
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.INTERNAL_DB_FILE_NAME, null);
         SQLiteDatabase db = helper.getWritableDatabase();
         Integer v1 = db.getVersion();
         //helper.onUpgrade(db, 1, 2);
@@ -53,7 +52,7 @@ public class MyHitchhikingSpotsApplication extends Application {
     }
 
     public Cursor rawQuery(String sql, String[] selectionArgs) {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.dbName, null);
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.INTERNAL_DB_FILE_NAME, null);
         SQLiteDatabase db = helper.getWritableDatabase();
         return db.rawQuery(sql, selectionArgs);
     }

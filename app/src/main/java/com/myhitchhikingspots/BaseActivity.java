@@ -33,38 +33,20 @@ public class BaseActivity extends AppCompatActivity
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        if (mShouldShowLeftMenu)
-            ShowMenu();
-    }
+        if (mShouldShowLeftMenu) {
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            if (toolbar != null) {
+                setSupportActionBar(toolbar);
 
+                if (drawer != null) {
+                    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                            this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                    drawer.setDrawerListener(toggle);
+                    toggle.syncState();
 
-    protected void ShowMenu() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-
-            if (drawer != null) {
-                ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-                drawer.setDrawerListener(toggle);
-                toggle.syncState();
-
-                NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-                if (navigationView != null) {
-
-                    //Apply selected style to the open activity
-                    String currentActivityName = getClass().getName();
-                    if (currentActivityName.equals(SettingsActivity.class.getName()))
-                        navigationView.setCheckedItem(R.id.nav_tools);
-                    else if (currentActivityName.equals(MapViewActivity.class.getName()))
-                        navigationView.setCheckedItem(R.id.nav_my_map);
-                    else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
-                        navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
-                    else if (currentActivityName.equals(MainActivity.class.getName()))
-                        navigationView.setCheckedItem(R.id.nav_no_internet);
-
-                    navigationView.setVisibility(View.VISIBLE);
-                    navigationView.setNavigationItemSelectedListener(this);
+                    NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+                    if (navigationView != null)
+                        navigationView.setVisibility(View.VISIBLE);
                 }
             }
         }
@@ -77,6 +59,37 @@ public class BaseActivity extends AppCompatActivity
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateCheckedItem();
+    }
+
+    private void updateCheckedItem() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        navigationView.setNavigationItemSelectedListener(null);
+
+        if (navigationView != null) {
+            //Apply selected style to the open activity
+            String currentActivityName = getClass().getName();
+            if (currentActivityName.equals(SettingsActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_tools);
+            else if (currentActivityName.equals(MyMapsActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_my_map);
+            else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
+            /*else if (currentActivityName.equals(MyRoutesActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_my_routes);*/
+            else if (currentActivityName.equals(OfflineManagerActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_offline_map);
+            else
+                navigationView.setCheckedItem(R.id.nav_unselect);
+        }
+
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
     //Todo: consider using onActivityResult to information about new spots added/edited/deleted to update them in the spotList instead of fetching the whole list again from database
@@ -93,7 +106,6 @@ public class BaseActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         String currentActivityName = getClass().getName();
 
         switch (item.getItemId()) {
@@ -102,25 +114,30 @@ public class BaseActivity extends AppCompatActivity
                     startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
                 break;
             case R.id.nav_my_map:
-                if (!currentActivityName.equals(MapViewActivity.class.getName()))
-                    startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+                if (!currentActivityName.equals(MyMapsActivity.class.getName()))
+                    startActivity(new Intent(getApplicationContext(), MyMapsActivity.class));
                 break;
             case R.id.nav_hitchwiki_map:
                 if (!currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
                     startActivity(new Intent(getApplicationContext(), HitchwikiMapViewActivity.class));
                 break;
-            case R.id.nav_no_internet:
-                //If the current activity is MainActivity, select the tab "you"
-                if (currentActivityName.equals(MainActivity.class.getName()))
-                    ((MainActivity) this).selectTab(MainActivity.SectionsPagerAdapter.TAB_YOU_INDEX);
+            /*case R.id.nav_my_routes:
+                //If the current activity is MyRoutesActivity, select the tab "you"
+                if (currentActivityName.equals(MyRoutesActivity.class.getName()))
+                    ((MyRoutesActivity) this).selectTab(MyRoutesActivity.SectionsPagerAdapter.TAB_YOU_INDEX);
                 else {
-                    //Start MainActivity presenting "you" tab.
-                    // If the current activity is MapViewActivity, we want the user to be sent back here if he clicks in "map" button in the next activity - (SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = true) will do that.
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, true);
-                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, currentActivityName.equals(MapViewActivity.class.getName()));
+                //Start MyRoutesActivity presenting "you" tab.
+                // If the current activity is MyMapsActivity, we want the user to be sent back here if he clicks in "map" button in the next activity - (SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = true) will do that.
+
+                    Intent intent = new Intent(getApplicationContext(), MyRoutesActivity.class);
+                    //intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, true);
+                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, currentActivityName.equals(MyMapsActivity.class.getName()));
                     startActivity(intent);
                 }
+                break;*/
+            case R.id.nav_offline_map:
+                if (!currentActivityName.equals(OfflineManagerActivity.class.getName()))
+                    startActivity(new Intent(getApplicationContext(), OfflineManagerActivity.class));
                 break;
         }
 

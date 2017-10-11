@@ -27,7 +27,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
+
+import hitchwikiMapsSDK.entities.PlaceInfoBasic;
+
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
@@ -47,6 +49,7 @@ import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,7 +58,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     private MapboxMap mapboxMap;
     //private LocationEngine locationEngine;
     //private LocationEngineListener locationEngineListener;
-    private FloatingActionButton fabLocateUser, fabShowAll;
+    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
 
@@ -66,10 +69,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     // and then calling super.onCreate AFTER setContentView.
     // Please always make sure this is been done!
     protected void onCreate(Bundle savedInstanceState) {
-
-        // Mapbox access token is configured here. This needs to be called either in your application
-        // object or in the same activity which contains the mapview.
-        Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
 
         setContentView(R.layout.hitchwikimapview_master_layout);
 
@@ -106,7 +105,25 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             }
         });
 
-        fabShowAll = (FloatingActionButton) findViewById(R.id.fab_show_all);
+        fabZoomIn = (FloatingActionButton) findViewById(R.id.fab_zoom_in);
+        fabZoomIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mapboxMap != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
+            }
+        });
+
+        fabZoomOut = (FloatingActionButton) findViewById(R.id.fab_zoom_out);
+        fabZoomOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mapboxMap != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
+            }
+        });
+
+        /*fabShowAll = (FloatingActionButton) findViewById(R.id.fab_show_all);
         fabShowAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -114,7 +131,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     zoomOutToFitAllMarkers();
                 }
             }
-        });
+        });*/
 
 
         // Get the location engine object for later use.
@@ -144,6 +161,14 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 }
             }
         };
+
+        //Rename old Hitchwiki Maps directory to something more intuitive for the user
+        if (prefs.getBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, false)) {
+            File oldFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
+            File newFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            oldFolder.renameTo(newFolder);
+            prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
+        }
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -209,6 +234,14 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         snackbarView.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color));
 
         snackbar.show();
+    }
+
+    void dismissSnackbar() {
+        try {
+            if (snackbar != null && snackbar.isShown())
+                snackbar.dismiss();
+        } catch (Exception e) {
+        }
     }
 
     private void loadMarkerIcons() {
@@ -326,7 +359,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         // Customize the user location icon using the getMyLocationViewSettings object.
         //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
-        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring));//Color.parseColor("#56B881")
+        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")
 
         // Enable the location layer on the map
         if (PermissionsManager.areLocationPermissionsGranted(HitchwikiMapViewActivity.this) && !mapboxMap.isMyLocationEnabled())
@@ -403,7 +436,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         } else {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getString(R.string.mapview_hitchwiki_title))
+                    .setTitle(getString(R.string.menu_hitchwiki_maps))
                     .setMessage(String.format(getString(R.string.empty_list_dialog_message), getString(R.string.tools_title)))
                     .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
                         @Override
@@ -424,15 +457,11 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         ArrayList<String> loc = new ArrayList();
         try {
-            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
-                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                    loc.add(spot.getCity().trim());
-                if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                    loc.add(spot.getState().trim());
-                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                    loc.add(spot.getCountry().trim());
-            }
+            //Show location string only if GpsResolved is set to true
+            if (spot.getGpsResolved() != null && spot.getGpsResolved())
+                loc = Utils.spotLocationToList(spot);
 
+            //Join the strings
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Crashlytics.log(Log.WARN, TAG, "Generating a string for the spot's address has failed");
@@ -492,8 +521,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         super.onPause();
         mapView.onPause();
 
-        if (snackbar != null)
-            snackbar.dismiss();
+        dismissSnackbar();
+        dismissProgressDialog();
     }
 
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
@@ -595,15 +624,32 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
 
+    private ProgressDialog loadingDialog;
+
+    private void showProgressDialog() {
+        if (loadingDialog == null) {
+            loadingDialog = new ProgressDialog(HitchwikiMapViewActivity.this);
+            loadingDialog.setIndeterminate(true);
+            loadingDialog.setCancelable(false);
+            loadingDialog.setMessage(getResources().getString(R.string.map_loading_dialog));
+        }
+        loadingDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        try {
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
+        } catch (Exception e) {
+        }
+    }
+
     private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
         private final ProgressDialog dialog = new ProgressDialog(HitchwikiMapViewActivity.this);
 
         @Override
         protected void onPreExecute() {
-            this.dialog.setIndeterminate(true);
-            this.dialog.setCancelable(false);
-            this.dialog.setMessage(getResources().getString(R.string.map_loading_dialog));
-            this.dialog.show();
+            showProgressDialog();
         }
 
         @Override
@@ -652,7 +698,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() && spot.getWaitingTime() != null) {
                         if (!secondLine.isEmpty())
                             secondLine += " ";
-                        secondLine += "(" + SpotListAdapter.getWaitingTimeAsString(spot.getWaitingTime()) + ")";
+                        secondLine += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), getBaseContext()) + ")";
                     }
 
                     //Add note
@@ -713,6 +759,9 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         @Override
         protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
             super.onPostExecute(trips);
+            if (HitchwikiMapViewActivity.this.isFinishing())
+                return;
+
             try {
                 mapboxMap.clear();
 
@@ -747,14 +796,13 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                         zoomOutToFitAllMarkers();
                     }
                 }
-
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
                 showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                         "Adding markers failed - " + ex.getMessage()));
             }
 
-            this.dialog.dismiss();
+            dismissProgressDialog();
 
             isDrawingAnnotations = false;
 

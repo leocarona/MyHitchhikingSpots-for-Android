@@ -141,10 +141,10 @@ public class DaoMaster extends AbstractDaoMaster {
                         "ALTER TABLE " + SpotDao.TABLENAME + " ADD COLUMN '" + SpotDao.Properties.Accuracy.columnName + "' " + SpotDao.Properties.Accuracy.type.getSimpleName() + ";"
                 };
                 String[] changesRequeriedByVersion4 = new String[]{
-                        "ALTER TABLE " + SpotDao.TABLENAME + " ADD '" + SpotDao.Properties.IsPartOfARoute.columnName + "' " + SpotDao.Properties.IsPartOfARoute.type.getSimpleName() + " DEFAULT 1;"
+                        "ALTER TABLE " + SpotDao.TABLENAME + " ADD '" + SpotDao.Properties.IsPartOfARoute.columnName + "' " + SpotDao.Properties.IsPartOfARoute.type.getSimpleName() + " DEFAULT " + Constants.ISPARTOFAROUTE_DEFAULT_VALUE + ";"
                 };
                 String[] changesRequeriedByVersion5 = new String[]{
-                        "ALTER TABLE " + SpotDao.TABLENAME + " ADD '" + SpotDao.Properties.IsHitchhikingSpot.columnName + "' " + SpotDao.Properties.IsHitchhikingSpot.type.getSimpleName() + " DEFAULT 1;",
+                        "ALTER TABLE " + SpotDao.TABLENAME + " ADD '" + SpotDao.Properties.IsHitchhikingSpot.columnName + "' " + SpotDao.Properties.IsHitchhikingSpot.type.getSimpleName() + " DEFAULT " + Constants.ISHITCHHIKINGSPOT_DEFAULT_VALUE + ";",
                         "UPDATE " + SpotDao.TABLENAME +
                                 " SET " + SpotDao.Properties.IsHitchhikingSpot.columnName + " = '0' " +
                                 " WHERE " + SpotDao.Properties.IsDestination.columnName + " = '1'"
@@ -155,6 +155,7 @@ public class DaoMaster extends AbstractDaoMaster {
                 versionsUpdate.add(changesRequeriedByVersion3);
                 versionsUpdate.add(changesRequeriedByVersion4);
                 versionsUpdate.add(changesRequeriedByVersion5);
+                //WARN: FOR NEW COLUMN ADDED, REMEMBER TO UPDATE DatabaseImporter IF A DEFAULT VALUE SHOULD BE SET!
 
                 String changesRequiredByNewVersion = "";
 

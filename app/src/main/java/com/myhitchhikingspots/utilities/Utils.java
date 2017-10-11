@@ -3,25 +3,36 @@ package com.myhitchhikingspots.utilities;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.logging.ErrorManager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
-import com.dualquo.te.hitchwiki.classes.ApiManager;
-import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
-import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
+
+import hitchwikiMapsSDK.classes.ApiManager;
+import hitchwikiMapsSDK.entities.CountryInfoBasic;
+import hitchwikiMapsSDK.entities.PlaceInfoBasic;
+
+import com.myhitchhikingspots.BuildConfig;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.Spot;
@@ -100,7 +111,7 @@ public class Utils {
                 Log.e("active internet check", "Error checking internet connection", e);
             }
         } else {
-            Log.d("active internet check",  "No network available!");
+            Log.d("active internet check", "No network available!");
         }
         return false;
     }
@@ -147,7 +158,7 @@ public class Utils {
     }
 
     public static CountryInfoBasic[] parseGetCountriesWithCoordinates(String json) {
-        //NOTE: com.dualquo.te.hitchwiki.classes.JSONParser also provides a parseGetCountriesWithCoordinates, but it was creating an issue on the json parameter when it tried to fix something on it - maybe it tried to fix an old issue that no longer exist?
+        //NOTE: hitchwikiMapsSDK.classes.JSONParser also provides a parseGetCountriesWithCoordinates, but it was creating an issue on the json parameter when it tried to fix something on it - maybe it tried to fix an old issue that no longer exist?
 
         try {
             JSONArray var9 = new JSONArray(json);
@@ -174,7 +185,7 @@ public class Utils {
 
         try {
             //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = loadFileFromLocalStorage(Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
+            String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
             return parseGetCountriesWithCoordinates(placesContainerAsString);
         } catch (Exception exception) {
@@ -190,7 +201,7 @@ public class Utils {
 
         try {
             //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = loadFileFromLocalStorage(Constants.FILE_NAME_FOR_STORING_MARKERS);
+            String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
             Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
             Crashlytics.setString("placesContainerAsString", placesContainerAsString);
@@ -217,11 +228,77 @@ public class Utils {
         return result;
     }
 
+    public static String getExportFileName(Date date) {
+        String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
+        return String.format("%s.csv", sdf.format(date) + Constants.INTERNAL_DB_FILE_NAME);
+    }
+
+    public static String getLocalStoragePathToFile(String destinationFileName, Context context) {
+        //The fuild condition >=17 was copied from https://stackoverflow.com/q/37699373/1094261
+
+        //Build path to databases directory
+        String destinationFilePath = "";
+        if (android.os.Build.VERSION.SDK_INT >= 17)
+            destinationFilePath = String.format("%1$s/databases/%2$s", context.getApplicationInfo().dataDir, destinationFileName);
+        else
+            destinationFilePath = String.format("data/data/%1$s/databases/%2$s", context.getPackageName(), destinationFileName);
+
+        Crashlytics.setString("destinationFilePath", destinationFilePath);
+        return destinationFilePath;
+    }
+
+    public static String copySQLiteDBIntoLocalStorage(String originFileName, String destinationFilePath, Context context) {
+        Crashlytics.setString("originFileName", originFileName);
+        Crashlytics.setString("destinationFileName", destinationFilePath);
+
+        //Get external storage directory
+        File origin = Environment.getExternalStorageDirectory();
+        Crashlytics.setString("origin", origin.getAbsolutePath());
+
+        //Get File object for the origin database
+        File originFile = new File(origin, originFileName);
+
+        return copySQLiteDBIntoLocalStorage(originFile, destinationFilePath, context);
+    }
+
+    public static String copySQLiteDBIntoLocalStorage(File originFile, String destinationFilePath, Context context) {
+        String errorMessage = "";
+        try {
+            //Get File object for the destination database
+            File destinationFile = new File(destinationFilePath);
+
+            Crashlytics.log(Log.INFO, TAG, "destinationFilePath: " + destinationFilePath);
+
+            // if (destinationFile.canWrite()) {
+            Crashlytics.log(Log.INFO, TAG, "Will start copying originFile content into destinationFile.");
+
+            //Copy originFile content into destinationFile
+            if (originFile.exists()) {
+                FileChannel src = new FileInputStream(originFile).getChannel();
+                FileChannel dst = new FileOutputStream(destinationFile).getChannel();
+                dst.transferFrom(src, 0, src.size());
+                src.close();
+                dst.close();
+            }
+
+            Crashlytics.log(Log.INFO, TAG, "Successfuly copied originFile content into destinationFile.");
+           /* } else {
+                Crashlytics.log(Log.WARN, TAG, "User doesn't have permission to write a file to destination.");
+                errorMessage = context.getString(R.string.general_not_enough_permission);
+                if (BuildConfig.DEBUG)
+                    errorMessage += "\n\nPath: " + destinationFile.getAbsolutePath();
+            }*/
+        } catch (Exception e) {
+            Crashlytics.logException(e);
+            errorMessage = "\nError happened while trying to make a local copy of your file:\n'" + e.getMessage() + "'";
+        }
+        return errorMessage;
+    }
 
     public static String loadFileFromLocalStorage(String fileName) {
         Crashlytics.setString("Name of the file to load", fileName);
-        File markersStorageFolder = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/" +
-                Constants.FOLDERFORSTORINGMARKERS);
+        File markersStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
         String result = "";
         File fl = new File(markersStorageFolder, fileName);
@@ -310,5 +387,73 @@ public class Utils {
                 break;
         }
         return res;
+    }
+
+    public static ArrayList<String> spotLocationToList(Spot spot) {
+        ArrayList<String> loc = new ArrayList();
+
+        //Add city
+        if (spot.getCity() != null && !spot.getCity().trim().isEmpty() && !spot.getCity().equals("null"))
+            loc.add(spot.getCity().trim());
+
+        //Add state
+        if (spot.getState() != null && !spot.getState().trim().isEmpty() && !spot.getState().equals("null"))
+            loc.add(spot.getState().trim());
+
+        //Add country code or country name
+        if (spot.getCountryCode() != null && !spot.getCountryCode().trim().isEmpty() && !spot.getCountryCode().equals("null"))
+            loc.add(spot.getCountryCode().trim());
+        else if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty() && !spot.getCountry().equals("null"))
+            loc.add(spot.getCountry().trim());
+
+        //If only 2 or less were added, add the street in the begining of the list
+        if (loc.size() <= 2 && spot.getStreet() != null && !spot.getStreet().trim().isEmpty() && !spot.getStreet().equals("null")) {
+            ArrayList<String> loc2 = new ArrayList();
+
+            //Add street
+            loc2.add(spot.getStreet().trim());
+
+            //Add all the others after adding the street, so that the street is written first
+            loc2.addAll(loc);
+
+            //Replace loc list for loc2
+            loc = loc2;
+        }
+        return loc;
+    }
+
+    @NonNull
+    public static String getWaitingTimeAsString(Integer waitingTime, Context context) {
+        int weeks = waitingTime / 7 / 24 / 60;
+        int days = waitingTime / 24 / 60;
+        int hours = waitingTime / 60 % 24;
+        int minutes = waitingTime % 60;
+        String dateFormated = "";
+
+        if (weeks > 0)
+            days = days % 7;
+
+        if (weeks > 0)
+            dateFormated += String.format(context.getString(R.string.general_weeks_label), weeks);
+
+        if ((days > 0 || hours > 0 || minutes > 0) && !dateFormated.isEmpty())
+            dateFormated += " ";
+
+        if (days > 0 || ((hours > 0 || minutes > 0) && !dateFormated.isEmpty()))
+            dateFormated += String.format(context.getString(R.string.general_days_label), days);
+
+        if ((hours > 0 || minutes > 0) && !dateFormated.isEmpty())
+            dateFormated += " ";
+
+        if (hours > 0 || (minutes > 0 && !dateFormated.isEmpty()))
+            dateFormated += String.format(context.getString(R.string.general_hours_label), hours);
+
+        if (minutes > 0 && !dateFormated.isEmpty())
+            dateFormated += " ";
+
+        if (minutes > 0 || dateFormated.isEmpty())
+            dateFormated += String.format(context.getString(R.string.general_minutes_label), minutes);
+
+        return dateFormated;
     }
 }

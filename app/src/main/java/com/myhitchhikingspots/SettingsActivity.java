@@ -20,6 +20,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -27,28 +28,32 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.dualquo.te.hitchwiki.classes.APICallCompletionListener;
-import com.dualquo.te.hitchwiki.classes.APIConstants;
-import com.dualquo.te.hitchwiki.classes.ApiManager;
-import com.dualquo.te.hitchwiki.entities.CountryInfoBasic;
-import com.dualquo.te.hitchwiki.entities.Error;
-import com.dualquo.te.hitchwiki.entities.PlaceInfoBasic;
+
+import hitchwikiMapsSDK.classes.APICallCompletionListener;
+import hitchwikiMapsSDK.classes.APIConstants;
+import hitchwikiMapsSDK.classes.ApiManager;
+import hitchwikiMapsSDK.entities.CountryInfoBasic;
+import hitchwikiMapsSDK.entities.Error;
+import hitchwikiMapsSDK.entities.PlaceInfoBasic;
+
 import com.google.gson.Gson;
-import com.myhitchhikingspots.model.SpotDao;
+import com.myhitchhikingspots.interfaces.AsyncTaskListener;
+import com.myhitchhikingspots.utilities.DatabaseExporter;
+import com.myhitchhikingspots.utilities.DatabaseImporter;
+import com.myhitchhikingspots.utilities.FilePickerDialog;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
+
+import org.joda.time.DateTime;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
@@ -87,16 +92,16 @@ public class SettingsActivity extends BaseActivity {
         Long millisecondsAtNow = System.currentTimeMillis();
         Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
         if (millisecondsLastCountriesRefresh > 0) {
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_countriesList_update_message),
-                    SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh)));
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh), getBaseContext());
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_countriesList_update_message), timePast);
         }
 
         Long millisecondsLastExport = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, 0);
         if (millisecondsLastExport > 0) {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_export_message),
-                    SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport)));
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport), getBaseContext());
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_export_message), timePast);
         }
 
         Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
@@ -104,8 +109,8 @@ public class SettingsActivity extends BaseActivity {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
 
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_download_message),
-                    SpotListAdapter.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh)));
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh), getBaseContext());
+            strLastDownload += "- " + String.format(getString(R.string.settings_last_download_message), timePast);
         }
 
         if (!strLastDownload.isEmpty()) {
@@ -113,8 +118,7 @@ public class SettingsActivity extends BaseActivity {
             mfeedbacklabel.setVisibility(View.VISIBLE);
         }
 
-        hitchwikiStorageFolder = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/" +
-                Constants.FOLDERFORSTORINGMARKERS);
+        hitchwikiStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
@@ -128,6 +132,14 @@ public class SettingsActivity extends BaseActivity {
         continentsContainer[4] = new PairParcelable(APIConstants.CODE_CONTINENT_NORTH_AMERICA, getString(R.string.continent_code_north_america));
         continentsContainer[5] = new PairParcelable(APIConstants.CODE_CONTINENT_SOUTH_AMERICA, getString(R.string.continent_code_south_america));
         continentsContainer[6] = new PairParcelable(APIConstants.CODE_CONTINENT_AUSTRALIA, getString(R.string.continent_code_oceania));
+
+        //Rename old Hitchwiki Maps directory to something more intuitive for the user
+        if (prefs.getBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, false)) {
+            File oldFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
+            File newFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            oldFolder.renameTo(newFolder);
+            prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
+        }
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -148,7 +160,7 @@ public class SettingsActivity extends BaseActivity {
                 try {
                     // Get the URI that points to the selected contact
                     File mFile = new File(getPath(this, data.getData()));
-                    CopyChosenFile(mFile, getDatabasePath(Constants.dbName).getPath());
+                    CopyChosenFile(mFile, getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
                 } catch (Exception e) {
                     Crashlytics.logException(e);
                     Toast.makeText(getBaseContext(), "Can't read file.",
@@ -156,6 +168,14 @@ public class SettingsActivity extends BaseActivity {
                 }
             }
         }
+    }
+
+    @Override
+    public void onPause() {
+        Crashlytics.log(Log.INFO, TAG, "onPause was called");
+        super.onPause();
+
+        dismissProgressDialog();
     }
 
     public static String getPath(Context context, Uri uri) throws URISyntaxException {
@@ -209,7 +229,7 @@ public class SettingsActivity extends BaseActivity {
         if (!Utils.isNetworkAvailable(this)) {
             showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_network_unavailable_message));
         } else
-            new retrievePlacesAsyncTask(dialogType).execute();
+            new downloadPlacesAsyncTask(dialogType).execute();
     }
 
     public void shareButtonHandler(View view) {
@@ -221,7 +241,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public void pickFileButtonHandler(View view) {
-        if (!dbExported) {
+        /*if (!dbExported) {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle("Database not backed up")//getResources().getString(R.string.spot_form_delete_dialog_message_text)
@@ -236,35 +256,51 @@ public class SettingsActivity extends BaseActivity {
                             intent.setType("*");
                             startActivityForResult(intent, PICK_DB_REQUEST);
                         }
-                    })*/
+                    })/
                     .setNegativeButton("OK", null)
                     .show();
-        } else {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            startActivityForResult(intent, PICK_DB_REQUEST);
-        }
+        } else {*/
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        startActivityForResult(intent, PICK_DB_REQUEST);
+        //}
     }
 
 
     public void importButtonHandler(View view) {
-        if (!dbExported) {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle("Database not backedup")//getResources().getString(R.string.spot_form_delete_dialog_message_text)
-                    .setMessage("You must export the current database first before importing a new one.")
-                    /*.setPositiveButton(getResources().getString(R.string.settings_exportdb_button_label), new DialogInterface.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            exportDB();
-                            importDB();
-                        }
-                    })*/
-                    .setNegativeButton("OK", null)
-                    .show();
-        } else
-            importDB();
+        FilePickerDialog dialog = new FilePickerDialog();
+        //Add listener to be called when task finished
+        dialog.addListener(new AsyncTaskListener<File>() {
+            @Override
+            public void notifyTaskFinished(Boolean success, File file) {
+                //Start import task
+                importPickedFile(file);
+            }
+        });
+        dialog.openDialog(this, SettingsActivity.this);
+    }
+
+    void importPickedFile(File fileToImport) {
+        DatabaseImporter t = new DatabaseImporter(context, fileToImport);
+
+        //Add listener to be called when task finished
+        t.addListener(new AsyncTaskListener<ArrayList<String>>() {
+            @Override
+            public void notifyTaskFinished(Boolean success, ArrayList<String> messages) {
+                String title = context.getString(R.string.general_import_finished_successfull_message);
+
+                if (!success)
+                    title = context.getString(R.string.general_import_finished_failed_message);
+
+                showErrorAlert(title, TextUtils.join("\n", messages));
+
+                //Show toast
+                if (success)
+                    Toast.makeText(context, title, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        t.execute(); //execute asyncTask to import data into database from selected file.
     }
 
     public void showContinentsDialog(View view) {
@@ -302,34 +338,50 @@ public class SettingsActivity extends BaseActivity {
         }
     }
 
-    boolean dbExported = false;
 
     public void exportButtonHandler(View view) {
         try {
-            new ExportDatabaseCSVTask().execute();
+            DatabaseExporter t = new DatabaseExporter(this);
+            //Add listener to be called when task finished
+            t.addListener(new AsyncTaskListener<String>() {
+                @Override
+                public void notifyTaskFinished(Boolean success, String message) {
 
-            /*String dbExportResult = exportDB(getBaseContext());
-            dbExported = !dbExportResult.isEmpty();
-            mfeedbacklabel.setText(dbExportResult);*/
+                    if (success) {
+                        DateTime now = DateTime.now();
+                        //Set date of last time an export (backup) was made
+                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
 
-            //copyDataBase2(Constants.dbName);
+                        //Show result message returned by DatabaseExporter
+                        mfeedbacklabel.setText(message);
+                        mfeedbacklabel.setVisibility(View.VISIBLE);
+
+                        //Show toast
+                        Toast.makeText(context, context.getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
+                    } else
+                        showErrorAlert(context.getString(R.string.general_export_finished_failed_message), message);
+                }
+            });
+            t.execute();
 
             ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
         } catch (Exception e) {
             Crashlytics.logException(e);
+            showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
         }
     }
+
 
     //importing database
     private void importDB() {
         File sd = Environment.getExternalStorageDirectory();
 
         if (sd.canWrite()) {
-            String backupDBPath = DBBackupSubdirectory + "/" + Constants.dbName;
+            String backupDBPath = DBBackupSubdirectory + "/" + Constants.INTERNAL_DB_FILE_NAME;
             File backedupDB = new File(sd, backupDBPath);
 
-            CopyChosenFile(backedupDB, getDatabasePath(Constants.dbName).getPath());
+            CopyChosenFile(backedupDB, getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
 
         } else
             Toast.makeText(getBaseContext(), "Can't write to SD card.",
@@ -379,7 +431,7 @@ public class SettingsActivity extends BaseActivity {
             File sd = Environment.getExternalStorageDirectory();
 
             if (sd.canWrite()) {
-                currentDBPath = context.getDatabasePath(Constants.dbName).getPath();
+                currentDBPath = context.getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath();
 
                 File backupDir = new File(sd + DBBackupSubdirectory);
                 boolean success = false;
@@ -392,17 +444,17 @@ public class SettingsActivity extends BaseActivity {
                 File currentDB = new File(currentDBPath);
 
                 if (success && currentDB.exists()) {
-                    File backupDB = new File(backupDir, Constants.dbName);
+                    File backupDB = new File(backupDir, Constants.INTERNAL_DB_FILE_NAME);
 
                     //If a backup file already exists, RENAME it so that the new backup file we're generating now can use its name
                     if (backupDB.exists()) {
                         String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
                         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-                        String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.dbName;
+                        String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.INTERNAL_DB_FILE_NAME;
                         backupDB.renameTo(new File(backupDir, newname));
                     }
 
-                    backupDB = new File(backupDir, Constants.dbName);
+                    backupDB = new File(backupDir, Constants.INTERNAL_DB_FILE_NAME);
 
                     FileChannel src = new FileInputStream(currentDB).getChannel();
                     FileChannel dst = new FileOutputStream(backupDB).getChannel();
@@ -438,220 +490,6 @@ public class SettingsActivity extends BaseActivity {
     }
 
     final String TAG = "settings-activity";
-
-
-    public class ExportDatabaseCSVTask extends AsyncTask<Void, Void, Boolean> {
-        private final ProgressDialog dialog = new ProgressDialog(SettingsActivity.this);
-
-        @Override
-        protected void onPreExecute() {
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            this.dialog.setIndeterminate(true);
-            this.dialog.setCancelable(false);
-            this.dialog.setTitle(getString(R.string.settings_exportdb_button_label));
-            this.dialog.setMessage(getString(R.string.settings_exporting_db_message));
-            this.dialog.show();
-        }
-
-        protected Boolean doInBackground(Void... args) {
-            Crashlytics.log(Log.INFO, TAG, "ExportDatabaseCSVTask started executing..");
-            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
-
-            File exportDir = new File(Environment.getExternalStorageDirectory(), "/MyHitchhikingSpots/");
-
-            if (!exportDir.exists()) {
-                Crashlytics.log(Log.INFO, TAG, "Directory created. " + exportDir.getPath());
-                exportDir.mkdirs();
-            }
-
-            String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
-            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-            String fileName = sdf.format(new Date()) + Constants.dbName + ".csv";
-
-            File file = new File(exportDir, fileName);
-            try {
-                file.createNewFile();
-                CSVWriter csvWrite = new CSVWriter(new FileWriter(file));
-                Cursor curCSV = appContext.rawQuery("select * from " + SpotDao.TABLENAME, null);
-                csvWrite.writeNext(curCSV.getColumnNames());
-                while (curCSV.moveToNext()) {
-                    String arrStr[] = null;
-                    String[] mySecondStringArray = new String[curCSV.getColumnNames().length];
-                    for (int i = 0; i < curCSV.getColumnNames().length; i++) {
-                        mySecondStringArray[i] = curCSV.getString(i);
-                    }
-                    csvWrite.writeNext(mySecondStringArray);
-                }
-                csvWrite.close();
-                curCSV.close();
-
-                result = String.format(getString(R.string.settings_exportdb_finish_successfull_message), file.getPath());
-                Crashlytics.log(Log.DEBUG, TAG, result);
-
-                return true;
-            } catch (IOException e) {
-                dbExported = false;
-                Crashlytics.logException(e);
-                return false;
-            }
-        }
-
-        String result = "";
-
-        protected void onPostExecute(final Boolean success) {
-            dbExported = success;
-            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            if (this.dialog.isShowing()) {
-                this.dialog.dismiss();
-            }
-            if (success) {
-                mfeedbacklabel.setText(result);
-                mfeedbacklabel.setVisibility(View.VISIBLE);
-
-                Long currentMillis = System.currentTimeMillis();
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, currentMillis).apply();
-
-                Toast.makeText(SettingsActivity.this, getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(SettingsActivity.this, getString(R.string.general_export_finished_failed_message), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    public class CSVWriter {
-
-        private PrintWriter pw;
-
-        private char separator;
-
-        private char quotechar;
-
-        private char escapechar;
-
-        private String lineEnd;
-
-        /**
-         * The character used for escaping quotes.
-         */
-        public static final char DEFAULT_ESCAPE_CHARACTER = '"';
-
-        /**
-         * The default separator to use if none is supplied to the constructor.
-         */
-        public static final char DEFAULT_SEPARATOR = ',';
-
-        /**
-         * The default quote character to use if none is supplied to the
-         * constructor.
-         */
-        public static final char DEFAULT_QUOTE_CHARACTER = '"';
-
-        /**
-         * The quote constant to use when you wish to suppress all quoting.
-         */
-        public static final char NO_QUOTE_CHARACTER = '\u0000';
-
-        /**
-         * The escape constant to use when you wish to suppress all escaping.
-         */
-        public static final char NO_ESCAPE_CHARACTER = '\u0000';
-
-        /**
-         * Default line terminator uses platform encoding.
-         */
-        public static final String DEFAULT_LINE_END = "\n";
-
-        /**
-         * Constructs CSVWriter using a comma for the separator.
-         *
-         * @param writer the writer to an underlying CSV source.
-         */
-        public CSVWriter(Writer writer) {
-            this(writer, DEFAULT_SEPARATOR, DEFAULT_QUOTE_CHARACTER,
-                    DEFAULT_ESCAPE_CHARACTER, DEFAULT_LINE_END);
-        }
-
-        /**
-         * Constructs CSVWriter with supplied separator, quote char, escape char and line ending.
-         *
-         * @param writer     the writer to an underlying CSV source.
-         * @param separator  the delimiter to use for separating entries
-         * @param quotechar  the character to use for quoted elements
-         * @param escapechar the character to use for escaping quotechars or escapechars
-         * @param lineEnd    the line feed terminator to use
-         */
-        public CSVWriter(Writer writer, char separator, char quotechar, char escapechar, String lineEnd) {
-            this.pw = new PrintWriter(writer);
-            this.separator = separator;
-            this.quotechar = quotechar;
-            this.escapechar = escapechar;
-            this.lineEnd = lineEnd;
-        }
-
-        /**
-         * Writes the next line to the file.
-         *
-         * @param nextLine a string array with each comma-separated element as a separate
-         *                 entry.
-         */
-        public void writeNext(String[] nextLine) {
-
-            if (nextLine == null)
-                return;
-
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < nextLine.length; i++) {
-
-                if (i != 0) {
-                    sb.append(separator);
-                }
-
-                String nextElement = nextLine[i];
-                if (nextElement == null)
-                    continue;
-                if (quotechar != NO_QUOTE_CHARACTER)
-                    sb.append(quotechar);
-                for (int j = 0; j < nextElement.length(); j++) {
-                    char nextChar = nextElement.charAt(j);
-                    if (escapechar != NO_ESCAPE_CHARACTER && nextChar == quotechar) {
-                        sb.append(escapechar).append(nextChar);
-                    } else if (escapechar != NO_ESCAPE_CHARACTER && nextChar == escapechar) {
-                        sb.append(escapechar).append(nextChar);
-                    } else {
-                        sb.append(nextChar);
-                    }
-                }
-                if (quotechar != NO_QUOTE_CHARACTER)
-                    sb.append(quotechar);
-            }
-
-            sb.append(lineEnd);
-            pw.write(sb.toString());
-
-        }
-
-        /**
-         * Flush underlying stream to writer.
-         *
-         * @throws IOException if bad things happen
-         */
-        public void flush() throws IOException {
-
-            pw.flush();
-
-        }
-
-        /**
-         * Close the underlying stream writer flushing any buffered content.
-         *
-         * @throws IOException if bad things happen
-         */
-        public void close() throws IOException {
-            pw.flush();
-            pw.close();
-        }
-
-    }
 
     void exportDBToCSV() {
         //Send email with CSV attached. Copied from: http://stackoverflow.com/a/5403357/1094261
@@ -729,9 +567,9 @@ public class SettingsActivity extends BaseActivity {
 
         int length;
         byte[] buffer = new byte[1024];
-        String databasePath = "/BackupFolder/" + Constants.dbName;
+        String databasePath = "/BackupFolder/" + Constants.INTERNAL_DB_FILE_NAME;
         try {
-            InputStream databaseInputFile = getAssets().open(Constants.dbName + ".db");
+            InputStream databaseInputFile = getAssets().open(Constants.INTERNAL_DB_FILE_NAME + ".db");
             OutputStream databaseOutputFile = new FileOutputStream(databasePath);
 
             while ((length = databaseInputFile.read(buffer)) > 0) {
@@ -755,22 +593,32 @@ public class SettingsActivity extends BaseActivity {
 
     }
 
+    ProgressDialog progressDialog;
+
+    private void showProgressDialog(String title, String message) {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(SettingsActivity.this);
+            progressDialog.setIndeterminate(true);
+            progressDialog.setCancelable(false);
+        }
+
+        progressDialog.setTitle(title);
+        progressDialog.setMessage(message);
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        //Remove the flag that keeps the screen from sleeping
+        ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (progressDialog != null && progressDialog.isShowing())
+            progressDialog.dismiss();
+    }
+
     public class showCountriesDialogAsyncTask extends AsyncTask<Void, Void, PairParcelable[]> {
-        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
 
         @Override
         protected void onPreExecute() {
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-            try {
-                this.loadingDialog.setIndeterminate(true);
-                this.loadingDialog.setCancelable(false);
-                this.loadingDialog.setTitle(getString(R.string.general_loading_dialog_title));
-                this.loadingDialog.setMessage(getString(R.string.general_loading_dialog_message));
-                this.loadingDialog.show();
-            } catch (Exception ex) {
-                Crashlytics.logException(ex);
-            }
+            showProgressDialog(getString(R.string.general_loading_dialog_title), getString(R.string.general_loading_dialog_message));
         }
 
         @SuppressWarnings("unchecked")
@@ -798,27 +646,17 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(PairParcelable[] result) {
+            if (SettingsActivity.this.isFinishing())
+                return;
             showSelectionDialog(result, DIALOG_TYPE_COUNTRY);
-            this.loadingDialog.dismiss();
+            dismissProgressDialog();
         }
     }
 
     public class showContinentsDialogAsyncTask extends AsyncTask<Void, Void, PairParcelable[]> {
-        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
-
         @Override
         protected void onPreExecute() {
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-            try {
-                this.loadingDialog.setIndeterminate(true);
-                this.loadingDialog.setCancelable(false);
-                this.loadingDialog.setTitle(getString(R.string.general_loading_dialog_title));
-                this.loadingDialog.setMessage(getString(R.string.general_loading_dialog_message));
-                this.loadingDialog.show();
-            } catch (Exception ex) {
-                Crashlytics.logException(ex);
-            }
+            showProgressDialog(getString(R.string.general_loading_dialog_title), getString(R.string.general_loading_dialog_message));
         }
 
         @SuppressWarnings("unchecked")
@@ -832,14 +670,15 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(PairParcelable[] result) {
-
-            this.loadingDialog.dismiss();
+            if (SettingsActivity.this.isFinishing())
+                return;
+            dismissProgressDialog();
             showSelectionDialog(result, DIALOG_TYPE_CONTINENT);
         }
     }
 
+
     public class getCountriesAsyncTask extends AsyncTask<Void, Void, String> {
-        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
         Boolean shouldDeleteExisting;
 
         public getCountriesAsyncTask(Boolean shouldDeleteExisting) {
@@ -850,15 +689,10 @@ public class SettingsActivity extends BaseActivity {
         protected void onPreExecute() {
             String strToShow = "Fetching countries list...";
 
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             if (shouldDeleteExisting)
                 strToShow = "Updating countries list...";
 
-            this.loadingDialog.setIndeterminate(true);
-            this.loadingDialog.setCancelable(false);
-            this.loadingDialog.setTitle(getString(R.string.settings_downloadCountriesList_button_label));
-            this.loadingDialog.setMessage(strToShow);
-            this.loadingDialog.show();
+            showProgressDialog(getString(R.string.settings_downloadCountriesList_button_label), strToShow);
         }
 
         @SuppressWarnings("unchecked")
@@ -879,7 +713,7 @@ public class SettingsActivity extends BaseActivity {
             countriesContainer = new CountryInfoBasic[0];
 
             //folder exists, but it may be a case that file with stored markers is missing, so lets check that
-            File fileCheck = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
+            File fileCheck = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
             String result = "";
             if ((fileCheck.exists() && fileCheck.length() == 0) || shouldDeleteExisting) {
@@ -908,6 +742,9 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(String result) {
+            if (SettingsActivity.this.isFinishing())
+                return;
+
             if (!result.contentEquals("countriesLoadedFromLocalStorage"))
                 saveCountriesListLocally(countriesContainer);
 
@@ -933,7 +770,7 @@ public class SettingsActivity extends BaseActivity {
                             Constants.CROUTON_DURATION_5000);
                 }
             } else if (!result.contentEquals("countriesLoadedFromLocalStorage") && !result.isEmpty())
-                showErrorAlert(getString(R.string.general_error_dialog_title), getString(R.string.settings_countriesList_download_failed_message));
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_countriesList_download_failed_message), result));
 
             if (result.contentEquals("countriesListDownloaded") || result.contentEquals("countriesLoadedFromLocalStorage")) {
                 if (countriesContainer.length == 0) {
@@ -954,18 +791,16 @@ public class SettingsActivity extends BaseActivity {
                     new showCountriesDialogAsyncTask().execute();
             }
 
-            this.loadingDialog.dismiss();
-            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            dismissProgressDialog();
         }
     }
 
     //async task to retrieve markers
-    public class retrievePlacesAsyncTask extends AsyncTask<Void, Void, String> {
-        private final ProgressDialog loadingDialog = new ProgressDialog(SettingsActivity.this);
+    public class downloadPlacesAsyncTask extends AsyncTask<Void, Void, String> {
         String lstToDownload = "";
         String typeToDownload = "";
 
-        public retrievePlacesAsyncTask(String type) {
+        public downloadPlacesAsyncTask(String type) {
             typeToDownload = type;
             switch (type) {
                 case DIALOG_TYPE_CONTINENT:
@@ -979,13 +814,7 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPreExecute() {
-            ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-            this.loadingDialog.setIndeterminate(true);
-            this.loadingDialog.setCancelable(false);
-            this.loadingDialog.setTitle(getString(R.string.settings_downloadHDSpots_button_label));
-            this.loadingDialog.setMessage(String.format(getString(R.string.general_downloading_something_message), lstToDownload));
-            this.loadingDialog.show();
+            showProgressDialog(getString(R.string.settings_downloadHDSpots_button_label), String.format(getString(R.string.general_downloading_something_message), lstToDownload));
         }
 
         @SuppressWarnings("unchecked")
@@ -1003,7 +832,7 @@ public class SettingsActivity extends BaseActivity {
             }
 
             //folder exists, but it may be a case that file with stored markers is missing, so lets check that
-            File fileCheck = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
+            File fileCheck = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
             fileCheck.delete();
             //recreate placesContainer, it might not be empty
             if (placesContainer == null)
@@ -1051,39 +880,43 @@ public class SettingsActivity extends BaseActivity {
 
         @Override
         protected void onPostExecute(String result) {
+            if (SettingsActivity.this.isFinishing())
+                return;
+
             if (result.contentEquals("spotsDownloaded")) {
 
                 savePlacesListLocally(placesContainer);
 
+                //Get current datetime in milliseconds
+                Long millisecondsAtRefresh = System.currentTimeMillis();
+
                 //also write into prefs that markers sync has occurred
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, System.currentTimeMillis()).apply();
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
 
                 //TODO: show how many megabytes were downloaded or saved locally
 
                 Toast.makeText(SettingsActivity.this, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
-                Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
-                if (millisecondsAtRefresh != 0) {
-                    //convert millisecondsAtRefresh to some kind of date and time text
-                    SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-                    Date resultdate = new Date(millisecondsAtRefresh);
-                    String timeStamp = sdf.format(resultdate);
 
-                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()) +
-                                    " " + String.format(getString(R.string.general_last_sync_date), timeStamp),
-                            Constants.CROUTON_DURATION_5000);
-                } else {
-                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()),
-                            Constants.CROUTON_DURATION_5000);
-                }
+                //convert millisecondsAtRefresh to some kind of date and time text
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+                Date resultdate = new Date(millisecondsAtRefresh);
+                String timeStamp = sdf.format(resultdate);
+
+                showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()) +
+                                " " + String.format(getString(R.string.general_last_sync_date), timeStamp),
+                        Constants.CROUTON_DURATION_5000);
+
             } else {
-                if (result.contentEquals("nothingToSync"))
+                if (result.contentEquals("nothingToSync")) {
+                    //also write into prefs that markers sync has occurred
+                    prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
+
                     showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
-                else if (!result.isEmpty())
-                    showErrorAlert(getString(R.string.general_error_dialog_title), "An exception occurred while trying to download spots from Hitchwiki Maps.");
+                } else if (!result.isEmpty())
+                    showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_hitchwikiMapsSpots_download_failed_message), result));
             }
 
-            ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            loadingDialog.dismiss();
+            dismissProgressDialog();
         }
     }
 
@@ -1270,7 +1103,7 @@ public class SettingsActivity extends BaseActivity {
     void savePlacesListLocally(List<PlaceInfoBasic> places) {
         //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
         //so we have to create file in storage folder and stream placesContainer into it using gson
-        File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_MARKERS);
+        File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
         try {
             FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
@@ -1299,7 +1132,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     void saveCountriesListLocally(CountryInfoBasic[] countriesList) {
-        File file = new File(hitchwikiStorageFolder, Constants.FILE_NAME_FOR_STORING_COUNTRIES_LIST);
+        File file = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
         try {
             FileOutputStream fileOutput = new FileOutputStream(file);

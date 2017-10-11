@@ -56,14 +56,15 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/main_nav_header"
-        app:menu="@menu/activity_master_drawer"
+        app:menu="@menu/app_menu"
         android:visibility="gone">
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="20px"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/general_hitchwiki_logo_label"
             android:src="@drawable/wiki_logo" />
     </android.support.design.widget.NavigationView>
 

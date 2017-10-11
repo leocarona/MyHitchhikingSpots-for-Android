@@ -16,7 +16,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,19 +24,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 
-import org.joda.time.DateTime;
-import org.joda.time.Minutes;
-
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
-public class MainActivity extends TrackLocationBaseActivity {
+public class MyRoutesActivity extends BaseActivity {
 
     /**
      * The {@link PagerAdapter} that will provide
@@ -59,6 +55,7 @@ public class MainActivity extends TrackLocationBaseActivity {
     static final String SNACKBAR_SHOWED_KEY = "snackbar-showed-key";
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
+    ListListener spotsListListener = null;
 
     int indexOfLastOpenTab = 0;
 
@@ -69,17 +66,14 @@ public class MainActivity extends TrackLocationBaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.main_activity_layout);
+        setContentView(R.layout.my_routes_activity_layout);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
-        Boolean shouldShowYouTab = false;
-
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
             shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
-            shouldShowYouTab = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, false);
             if (!wasSnackbarShown) {
                 if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
                     showSpotSavedSnackbar();
@@ -92,18 +86,28 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        if (mSectionsPagerAdapter == null)
+            mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        if (shouldShowYouTab)
-            indexOfLastOpenTab = SectionsPagerAdapter.TAB_YOU_INDEX;
-        selectTab(indexOfLastOpenTab);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+
+        spotsListListener = new ListListener() {
+            @Override
+            public void onListOfSelectedSpotsChanged() {
+                showSpotDeletedSnackbar();
+            }
+
+            @Override
+            public void onSpotClicked(Spot spot) {
+                indexOfLastOpenTab = mViewPager.getCurrentItem();
+                //onSaveInstanceState will be executed right after onSpotClicked because when a spot is clicked, the fragment starts SpotFormActivity
+            }
+        };
 
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
@@ -145,7 +149,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                         if (shouldGoBackToPreviousActivity)
                             finish();
                         else
-                            startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+                            startActivity(new Intent(getBaseContext(), MyMapsActivity.class));
                     }
                 });
     }
@@ -155,72 +159,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 null, null);
     }
 
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        int action = event.getAction();
-        int keyCode = event.getKeyCode();
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_UP:
-                if (action == KeyEvent.ACTION_DOWN) {
-                    GotARideShortcut();
-                }
-                return true;
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (action == KeyEvent.ACTION_DOWN) {
-                    GotARideShortcut();
-                }
-                return true;
-            default:
-                return super.dispatchKeyEvent(event);
-        }
-    }
-
-    protected void GotARideShortcut() {
-        try {
-            //Get currentSpot and update it
-            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
-            mCurrentSpot = appContext.getCurrentSpot();
-
-            if (mCurrentSpot == null || mCurrentSpot.getIsWaitingForARide() == null || !mCurrentSpot.getIsWaitingForARide()) {
-                if (mCurrentLocation == null)
-                    return;
-                mCurrentSpot = new Spot();
-                mCurrentSpot.setIsHitchhikingSpot(true);
-                mCurrentSpot.setStartDateTime(new Date());
-                mCurrentSpot.setIsWaitingForARide(true);
-                mCurrentSpot.setIsDestination(false);
-                mCurrentSpot.setLatitude(mCurrentLocation.getLatitude());
-                mCurrentSpot.setLongitude(mCurrentLocation.getLongitude());
-                mCurrentSpot.setIsPartOfARoute(true);
-            } else {
-                DateTime date = new DateTime(mCurrentSpot.getStartDateTime());
-                Integer waiting_time = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
-
-                mCurrentSpot.setWaitingTime(waiting_time);
-                mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-                mCurrentSpot.setIsWaitingForARide(false);
-
-                if (mSectionsPagerAdapter != null)
-                    mCurrentSpot.setHitchability(mSectionsPagerAdapter.getSelectedHitchability());
-            }
-
-            //Persist on DB
-            DaoSession daoSession = appContext.getDaoSession();
-            SpotDao spotDao = daoSession.getSpotDao();
-            spotDao.insertOrReplace(mCurrentSpot);
-            ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
-            Toast.makeText(getApplicationContext(), R.string.spot_saved_successfuly, Toast.LENGTH_LONG).show();
-
-            loadValues();
-
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
-            ((BaseActivity) getParent()).showErrorAlert("Save shortcut", getString(R.string.shortcut_save_button_failed));
-        }
-    }
-
     List<Spot> mSpotList;
-    Spot mCurrentSpot;
 
     @Override
     public void onResume() {
@@ -244,11 +183,13 @@ public class MainActivity extends TrackLocationBaseActivity {
         SpotDao spotDao = daoSession.getSpotDao();
 
         mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
-        mCurrentSpot = appContext.getCurrentSpot();
 
         //Update fragments
-        if (mSectionsPagerAdapter != null)
-            mSectionsPagerAdapter.setValues(mSpotList, mCurrentSpot);
+        if (mSectionsPagerAdapter != null) {
+            mSectionsPagerAdapter.setValues(mSpotList);
+            mViewPager.setAdapter(mSectionsPagerAdapter);
+            selectTab(indexOfLastOpenTab);
+        }
     }
 
     @Override
@@ -263,18 +204,22 @@ public class MainActivity extends TrackLocationBaseActivity {
         }*/
 
 
-        if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
+        /*if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
             showSpotSavedSnackbar();
 
         if (resultCode == RESULT_OBJECT_DELETED)
-            showSpotDeletedSnackbar();
+            showSpotDeletedSnackbar();*/
+
+        if (data != null)
+            updateValuesFromBundle(data.getExtras());
+
         // }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.master, menu);
+        getMenuInflater().inflate(R.menu.my_routes_menu, menu);
         return true;
     }
 
@@ -284,22 +229,41 @@ public class MainActivity extends TrackLocationBaseActivity {
         boolean selectionHandled = false;
 
         switch (item.getItemId()) {
-            case R.id.action_view_map:
-                //If MapViewActivity was the one who opened the current MainActivity, then we don't need to start a new instance of MainActivity, just call finish() instead
+            case R.id.action_edit_list:
+                if (mSectionsPagerAdapter != null)
+                    switch (mViewPager.getCurrentItem()) {
+                        case SectionsPagerAdapter.TAB_ROUTES_INDEX:
+                            //Toggle isEditMode
+                            mSectionsPagerAdapter.toggleRoutesListEditMode();
 
-                /*ComponentName callingActivity = getCallingActivity();
-                if (callingActivity != null && callingActivity.getClassName() != null
-                        && callingActivity.getClassName().equals(MapViewActivity.class.getName())*/
-                if (shouldGoBackToPreviousActivity)
-                    finish();
-                else
-                    startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
-                selectionHandled = true;
-                break;
-            case R.id.action_new_spot:
-                mSectionsPagerAdapter.saveSpotButtonHandler(false);
-                //GotARideShortcut();
-                selectionHandled = true;
+                          /*Commenting this out because when user changes the selected tab, the isEditMode value is different for the other tab/fragment
+                          //Update string to show "Edit list" or "Close edit mode" depending on isEditMode
+                            if (!mSectionsPagerAdapter.getTabRoutesIsEditMode())
+                                item.setTitle(getString(R.string.general_edit_list));
+                            else
+                                item.setTitle(getString(R.string.general_close_editing_mode_label));*/
+
+                            break;
+                        case SectionsPagerAdapter.TAB_SPOTS_INDEX:
+                            //Toggle isEditMode
+                            mSectionsPagerAdapter.toggleSpotsListEditMode();
+
+                            /*Commenting this out because when user changes the selected tab, the isEditMode value is different for the other tab/fragment
+                            //Update string to show "Edit list" or "Close edit mode" depending on isEditMode
+                            if (!mSectionsPagerAdapter.getTabSpotsIsEditMode())
+                                item.setTitle(getString(R.string.general_edit_list));
+                            else
+                                item.setTitle(getString(R.string.general_close_editing_mode_label));*/
+
+                            break;
+                        default:
+                            Toast.makeText(this,
+                                    String.format("Select tab '%1$s' or '%2$s'",
+                                            getString(R.string.main_activity_list_tab),
+                                            getString(R.string.main_activity_single_spots_list_tab)),
+                                    Toast.LENGTH_LONG).show();
+                            break;
+                    }
                 break;
         }
 
@@ -312,8 +276,9 @@ public class MainActivity extends TrackLocationBaseActivity {
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
+        indexOfLastOpenTab = mViewPager.getCurrentItem();
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
-        savedInstanceState.putInt(LAST_TAB_OPENED_KEY, mViewPager.getCurrentItem());
+        savedInstanceState.putInt(LAST_TAB_OPENED_KEY, indexOfLastOpenTab);
     }
 
 
@@ -332,22 +297,6 @@ public class MainActivity extends TrackLocationBaseActivity {
         }
     }
 
-
-    protected void updateUILabels() {
-        if (mSectionsPagerAdapter != null)
-            mSectionsPagerAdapter.updateUILabels();
-    }
-
-    protected void updateUILocationSwitch() {
-        if (mSectionsPagerAdapter != null)
-            mSectionsPagerAdapter.updateUILocationSwitch();
-    }
-
-    protected void updateUISaveButtons() {
-        if (mSectionsPagerAdapter != null)
-            mSectionsPagerAdapter.updateUISaveButtons();
-    }
-
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -355,7 +304,6 @@ public class MainActivity extends TrackLocationBaseActivity {
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         private SpotListFragment tab_route_spots_list;
         private SpotListFragment tab_single_spots_list;
-        private MyLocationFragment tab_you;
 
         List<Spot> routeSpots = new ArrayList<>(), singleSpots = new ArrayList<>();
 
@@ -379,11 +327,6 @@ public class MainActivity extends TrackLocationBaseActivity {
                     Bundle args2 = new Bundle();
                     singleSpotsListFrag.setArguments(args2);
                     return singleSpotsListFrag;
-                case 2:
-                    MyLocationFragment youFrag = new MyLocationFragment();
-                    Bundle args = new Bundle();
-                    youFrag.setArguments(args);
-                    return youFrag;
             }
             return null;
         }
@@ -405,33 +348,25 @@ public class MainActivity extends TrackLocationBaseActivity {
                     SpotListFragment tab_list = (SpotListFragment) createdFragment;
                     tab_list.setValues(routeSpots);
                     this.tab_route_spots_list = tab_list;
+                    this.tab_route_spots_list.setOnOneOrMoreSpotsDeleted(spotsListListener);
                     break;
                 case 1:
                     SpotListFragment tab_single_spots_list = (SpotListFragment) createdFragment;
                     tab_single_spots_list.setValues(singleSpots);
                     this.tab_single_spots_list = tab_single_spots_list;
-                    break;
-                case 2:
-                    MyLocationFragment tab_you = (MyLocationFragment) createdFragment;
-                    tab_you.setValues(getWillBeFirstSpotOfARoute(routeSpots), mCurrentSpot);
-                    this.tab_you = tab_you;
+                    this.tab_single_spots_list.setOnOneOrMoreSpotsDeleted(spotsListListener);
                     break;
             }
             return createdFragment;
         }
 
-        Boolean getWillBeFirstSpotOfARoute(List<Spot> lst) {
-            return lst.size() == 0 ||
-                    (lst.get(0).getIsPartOfARoute() == null || !lst.get(0).getIsPartOfARoute()) ||
-                    (lst.get(0).getIsDestination() != null && lst.get(0).getIsDestination());
-        }
-
         @Override
         public int getCount() {
-            return 3;
+            return 2;
         }
 
-        public final static int TAB_YOU_INDEX = 2;
+        public final static int TAB_ROUTES_INDEX = 0;
+        public final static int TAB_SPOTS_INDEX = 1;
 
         @Override
         public CharSequence getPageTitle(int position) {
@@ -443,36 +378,11 @@ public class MainActivity extends TrackLocationBaseActivity {
                 case 1:
                     res = getString(R.string.main_activity_single_spots_list_tab);
                     break;
-                case 2:
-                    res = getString(R.string.main_activity_you_tab);
-                    break;
             }
             return res;
         }
 
-        public void updateUILabels() {
-            if (tab_you != null)
-                tab_you.updateUILabels();
-        }
-
-        public void updateUILocationSwitch() {
-            if (tab_you != null)
-                tab_you.updateUILocationSwitch();
-        }
-
-        public void updateUISaveButtons() {
-            if (tab_you != null)
-                tab_you.updateUISaveButtons();
-        }
-
-        public Integer getSelectedHitchability() {
-            if (tab_you == null)
-                return 0;
-            else
-                return tab_you.getSelectedHitchability();
-        }
-
-        public void setValues(List<Spot> lst, Spot spot) {
+        public void setValues(List<Spot> lst) {
             Crashlytics.log(Log.INFO, TAG, "SectionsPagerAdapter.setValues called");
             try {
                 routeSpots = new ArrayList<>();
@@ -487,9 +397,6 @@ public class MainActivity extends TrackLocationBaseActivity {
             }
 
             try {
-                if (tab_you != null)
-                    tab_you.setValues(getWillBeFirstSpotOfARoute(routeSpots), spot);
-
                 if (tab_route_spots_list != null)
                     tab_route_spots_list.setValues(routeSpots);
 
@@ -500,9 +407,14 @@ public class MainActivity extends TrackLocationBaseActivity {
             }
         }
 
-        public void saveSpotButtonHandler(Boolean isDestination) {
-            if (tab_you != null)
-                tab_you.saveSpotButtonHandler(isDestination);
+        public void toggleRoutesListEditMode() {
+            if (tab_route_spots_list != null)
+                tab_route_spots_list.setIsEditMode(!tab_route_spots_list.getIsEditMode());
+        }
+
+        public void toggleSpotsListEditMode() {
+            if (tab_single_spots_list != null)
+                tab_single_spots_list.setIsEditMode(!tab_single_spots_list.getIsEditMode());
         }
     }
 }

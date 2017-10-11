@@ -1,23 +1,26 @@
 package com.myhitchhikingspots;
 
+import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.myhitchhikingspots.interfaces.CheckboxListener;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.Utils;
+import com.myhitchhikingspots.interfaces.ListListener;
 
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
@@ -32,19 +35,24 @@ import java.util.Locale;
 /**
  * Created by leocarona on 04/03/2016.
  */
-public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHolder> {
+public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHolder> implements ListListener {
     protected static final String TAG = "spot-list-adapter";
     private List<Spot> mData;
-    private SpotListFragment spotListFragment;
+    private Activity activity;
     public Hashtable<Long, String> totalsToDestinations;
+    public ArrayList<Integer> selectedSpots = new ArrayList<>();
+    ListListener onSelectedSpotsListChangedListener;
 
-    public SpotListAdapter(List<Spot> data, SpotListFragment spotListFragment) {
-        this.mData = data;
-        this.spotListFragment = spotListFragment;
-
-        SumRouteTotalsAndUpdateTheirDestinationNotes(data);
+    public SpotListAdapter(ListListener listListener, Activity activity) {
+        this.activity = activity;
+        this.onSelectedSpotsListChangedListener = listListener;
     }
 
+    void setSpotList(List<Spot> spotsList) {
+        mData = spotsList;
+
+        SumRouteTotalsAndUpdateTheirDestinationNotes(mData);
+    }
 
     private void SumRouteTotalsAndUpdateTheirDestinationNotes(List<Spot> data) {
         Crashlytics.log(Log.INFO, TAG, "Summing up the total of rides gotten and hours traveling");
@@ -79,8 +87,10 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                         minutes = Minutes.minutesBetween(startDateTime, endDateTime).getMinutes();
                     }
 
-                    String formatedStr = String.format(spotListFragment.getResources().getString(R.string.destination_spot_totals_format),
-                            totalRides, getWaitingTimeAsString(minutes));
+                    String waiting_time = Utils.getWaitingTimeAsString((minutes), activity);
+                    String formatedStr = String.format(activity.getResources().getString(R.string.destination_spot_totals_format),
+                            totalRides, waiting_time);
+
                     totalsToDestinations.put(spot.getId(), formatedStr);
 
                     //totalWaitingTimeMinutes = 0;
@@ -103,8 +113,41 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 .inflate(R.layout.spot_list_item, null);
 
         // create ViewHolder
+        ViewHolder viewHolder = new SpotListAdapter.ViewHolder(itemLayoutView, activity);
 
-        ViewHolder viewHolder = new SpotListAdapter.ViewHolder(itemLayoutView, spotListFragment);
+        CheckboxListener onCheckedChanged = new CheckboxListener() {
+            @Override
+            public void notifySpotCheckedChanged(Spot spot, Boolean isChecked) {
+
+                //If isChecked add spot id to previouslySelectedSpots
+                if (isChecked)
+                    selectedSpots.add(spot.getId().intValue());
+                else {
+
+                    //Find position on the list
+                    int index = -1;
+                    for (int i = 0; i < selectedSpots.size() && index == -1; i++) {
+                        if (selectedSpots.get(i) == spot.getId().intValue())
+                            index = i;
+                    }
+
+                    //Remove it from previouslySelectedSpots
+                    if (index > -1)
+                        selectedSpots.remove(index);
+                }
+
+                onListOfSelectedSpotsChanged();
+            }
+
+            @Override
+            public void notifySpotClicked(Spot spot) {
+                onSpotClicked(spot);
+            }
+        };
+
+        viewHolder.setSpotCheckedChangedListener(onCheckedChanged);
+        viewHolder.setIsEditMode(isEditMode);
+
         return viewHolder;
     }
 
@@ -118,7 +161,15 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         else if (spot.getNote() != null)
             secondLine = spot.getNote();
 
-        viewHolder.setFields(spot, secondLine, spotListFragment.getContext());
+        //Find position on the list
+        int index = -1;
+        for (int i = 0; i < selectedSpots.size() && index == -1; i++) {
+            if (selectedSpots.get(i).equals(spot.getId().intValue()))
+                index = i;
+        }
+
+        viewHolder.setFields(spot, secondLine, index > -1, activity);
+        viewHolder.setIsEditMode(isEditMode);
     }
 
     static String locationSeparator = ", ";
@@ -127,14 +178,11 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         ArrayList<String> loc = new ArrayList();
         try {
-            if (spot.getGpsResolved() != null && spot.getGpsResolved()) {
-                if (spot.getCity() != null && !spot.getCity().trim().isEmpty())
-                    loc.add(spot.getCity().trim());
-                if (spot.getState() != null && !spot.getState().trim().isEmpty())
-                    loc.add(spot.getState().trim());
-                if (spot.getCountry() != null && !spot.getCountry().trim().isEmpty())
-                    loc.add(spot.getCountry().trim());
-            }
+            //Show location string only if GpsResolved is set to true
+            if (spot.getGpsResolved() != null && spot.getGpsResolved())
+                loc = Utils.spotLocationToList(spot);
+
+            //Join the strings
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
@@ -168,58 +216,53 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         return "";
     }
 
-    @NonNull
-    public static String getWaitingTimeAsString(Integer waitingTime) {
-        int weeks = waitingTime / 7 / 24 / 60;
-        int days = waitingTime / 24 / 60;
-        int hours = waitingTime / 60 % 24;
-        int minutes = waitingTime % 60;
-        String format = "%02d";
-        String dateFormated = "";
-
-        if (weeks > 0)
-            days = days % 7;
-
-        if (weeks > 0)
-            dateFormated += String.format(format, weeks) + "w";
-
-        if ((days > 0 || hours > 0 || minutes > 0) && !dateFormated.isEmpty())
-            dateFormated += " ";
-
-        if (days > 0 || ((hours > 0 || minutes > 0) && !dateFormated.isEmpty()))
-            dateFormated += String.format(format, days) + "d";
-
-        if ((hours > 0 || minutes > 0) && !dateFormated.isEmpty())
-            dateFormated += " ";
-
-        if (hours > 0 || (minutes > 0 && !dateFormated.isEmpty()))
-            dateFormated += String.format(format, hours) + "h";
-
-        if (minutes > 0 && !dateFormated.isEmpty())
-            dateFormated += " ";
-
-        if (minutes > 0 || dateFormated.isEmpty())
-            dateFormated += String.format(format, minutes) + "min";
-
-        return dateFormated;
-    }
-
     @Override
     public int getItemCount() {
         return mData.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public void setSelectedSpotsList(ArrayList<Integer> selectedSpots) {
+        this.selectedSpots = selectedSpots;
+    }
+
+    public ArrayList<Integer> getSelectedSpots() {
+        return this.selectedSpots;
+    }
+
+    @Override
+    public void onListOfSelectedSpotsChanged() {
+        // Notify everybody that may be interested.
+        if (onSelectedSpotsListChangedListener != null)
+            onSelectedSpotsListChangedListener.onListOfSelectedSpotsChanged();
+    }
+
+    @Override
+    public void onSpotClicked(Spot spot) {
+        if (onSelectedSpotsListChangedListener != null)
+            onSelectedSpotsListChangedListener.onSpotClicked(spot);
+    }
+
+    Boolean isEditMode = false;
+
+    public void setIsEditMode(Boolean isEditMode) {
+        this.isEditMode = isEditMode;
+        notifyDataSetChanged();
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
         public TextView dateTime, cityNameText, notesText, waitingTimeText;
         public ImageView waitingIcon, destinationIcon, singleSpotIcon, breakIcon;
-        public SpotListFragment spotListFragment;
+        public Activity activity;
         public Spot spot;
         public View viewParent;
+        public AppCompatCheckBox cbx;
+        CheckboxListener itemListener = null;
+        Boolean isEditMode = false;
 
-        public ViewHolder(View itemLayoutView, SpotListFragment spotListFragment) {
+        public ViewHolder(View itemLayoutView, Activity activity) {
             super(itemLayoutView);
-            this.spotListFragment = spotListFragment;
+            this.activity = activity;
 
             dateTime = (TextView) itemLayoutView.findViewById(R.id.date_time_layout_textview);
             cityNameText = (TextView) itemLayoutView.findViewById(R.id.spot_city_name_layout_textview);
@@ -230,38 +273,48 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             singleSpotIcon = (ImageView) itemLayoutView.findViewById(R.id.single_icon_layout_imageview);
             breakIcon = (ImageView) itemLayoutView.findViewById(R.id.break_icon_layout_imageview);
 
-
             viewParent = itemLayoutView.findViewById(R.id.spot_list_item_parent);
             viewParent.setOnClickListener(this);
+
+            cbx = (AppCompatCheckBox) itemLayoutView.findViewById(R.id.spot_delete_checkbox);
         }
 
         @Override
         public void onClick(View v) {
-            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) spotListFragment.getActivity().getApplicationContext()).getCurrentSpot();
-
-            //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-            if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
-                    mCurrentWaitingSpot.getIsWaitingForARide()) {
-
-                if (mCurrentWaitingSpot.getId() == spot.getId())
-                    spot.setAttemptResult(null);
-                else {
-                    Toast.makeText(spotListFragment.getActivity(), viewParent.getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
-                    return;
-                }
-            }
-
-            Bundle args = new Bundle();
-            //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-            args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-            args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-
-            Intent intent = new Intent(spotListFragment.getActivity(), SpotFormActivity.class);
-            intent.putExtras(args);
-            spotListFragment.startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
+            if (itemListener != null)
+                itemListener.notifySpotClicked(spot);
         }
 
-        public void setFields(Spot spot, String secondLine, Context context) {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if (buttonView.getId() == R.id.spot_delete_checkbox && itemListener != null) {
+                //Set background color
+                if (isChecked)
+                    buttonView.setBackgroundColor(ContextCompat.getColor(activity, R.color.ic_selected_bg_color));
+                else
+                    buttonView.setBackgroundColor(Color.TRANSPARENT);
+
+                if (itemListener != null)
+                    itemListener.notifySpotCheckedChanged(spot, isChecked);
+            }
+        }
+
+        public void setSpotCheckedChangedListener(CheckboxListener itemListener) {
+            this.itemListener = itemListener;
+        }
+
+        public void setIsEditMode(Boolean isEditMode) {
+            this.isEditMode = isEditMode;
+
+            if (cbx != null) {
+                if (isEditMode)
+                    cbx.setVisibility(View.VISIBLE);
+                else
+                    cbx.setVisibility(View.GONE);
+            }
+        }
+
+        public void setFields(Spot spot, String secondLine, Boolean isChecked, Context context) {
             try {
                 this.spot = spot;
 
@@ -272,6 +325,18 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 waitingTimeText.setVisibility(View.GONE);
                 viewParent.setBackgroundColor(Color.TRANSPARENT);
 
+                //Remove listener, apply checked/unchecked and set listener again
+                cbx.setOnCheckedChangeListener(null);
+                cbx.setChecked(isChecked);
+                cbx.setOnCheckedChangeListener(this);
+
+                //Set background color
+                if (isChecked)
+                    cbx.setBackgroundColor(ContextCompat.getColor(activity, R.color.ic_selected_bg_color));
+                else
+                    cbx.setBackgroundColor(Color.TRANSPARENT);
+
+                //String hitchability = "";
 
                 //If spot belongs to a route (it's not a single spot)
                 if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
@@ -299,6 +364,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                                     //The spot is a hitchhiking spot that was already evaluated
                                     //icon = getGotARideIconForRoute(trips.size());
+
+                                    //hitchability = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
                                     break;
                                 case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                     //The spot is a hitchhiking spot that was already evaluated
@@ -334,7 +401,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                         singleSpotIcon.setVisibility(View.VISIBLE);
 
-                    } else{
+                    } else {
                         breakIcon.setImageResource(R.drawable.ic_point_on_the_route_black_24dp);
                         breakIcon.setVisibility(View.VISIBLE);
                         breakIcon.setAlpha((float) 0.5);
@@ -344,7 +411,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 Integer waitingTime = 0;
                 if (spot.getWaitingTime() != null)
                     waitingTime = spot.getWaitingTime();
-                waitingTimeText.setText(getWaitingTimeAsString(waitingTime));
+                waitingTimeText.setText(Utils.getWaitingTimeAsString(waitingTime, context));
 
                 //Set the date and time
                 if (spot.getStartDateTime() != null)
@@ -358,12 +425,16 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 if (secondLine != null && !secondLine.isEmpty())
                     secondLine = secondLine.substring(0, 1).toUpperCase() + secondLine.substring(1);
 
+                //Add hitchability to second line
+                //if (!hitchability.isEmpty())
+                //    secondLine = "(" + hitchability + ") " + secondLine;
+
                 notesText.setText(secondLine);
+
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
             }
         }
-
 
         @NonNull
         private static String getString(Spot mCurrentSpot) {

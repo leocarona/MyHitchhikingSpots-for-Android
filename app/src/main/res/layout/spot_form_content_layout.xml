@@ -146,6 +146,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:paddingTop="10dp"
                     android:visibility="visible">
 
                     <android.support.design.widget.TextInputLayout
@@ -159,9 +160,11 @@
                             android:ems="10"
                             android:focusableInTouchMode="true"
                             android:gravity="top"
+                            android:hint="@string/spot_form_note_hint"
                             android:inputType="textMultiLine"
                             android:minLines="2" />
                     </android.support.design.widget.TextInputLayout>
+
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -232,6 +235,7 @@
                             tools:ignore="VectorDrawableCompat" />
 
                     </RelativeLayout>
+
 
                     <RelativeLayout
                         android:id="@+id/date_panel"

@@ -6,13 +6,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".MainActivity"
-    tools:openDrawer="start">
+    tools:openDrawer="start"
+    tools:context="com.myhitchhikingspots.GoogleLocationTrackingActivity">
+
+    <!--
+       TO REUSE THIS MASTER FILE, REPLACE:
+           tools:context=".."
+       AND
+           <include layout="..">
+    -->
 
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/coordinatorLayout"
         android:fitsSystemWindows="true">
 
         <android.support.design.widget.AppBarLayout
@@ -22,22 +28,26 @@
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize" />
-
-            <android.support.design.widget.TabLayout
-                android:id="@+id/tabs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary" />
 
         </android.support.design.widget.AppBarLayout>
 
-        <android.support.v4.view.ViewPager
-            android:id="@+id/container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        <include layout="@layout/my_location_fragment_layout" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_spot_action_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/fab_margin"
+            android:src="@android:drawable/ic_input_add" />
 
     </android.support.design.widget.CoordinatorLayout>
+
+    <!--
+        TO USE THE LEFT MENU (NavigationView / drawer) BESIDES
+    -->
 
     <android.support.design.widget.NavigationView
         android:id="@+id/nav_view"
@@ -46,14 +56,15 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/main_nav_header"
-        app:menu="@menu/activity_master_drawer"
+        app:menu="@menu/app_menu"
         android:visibility="gone">
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="20px"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/general_hitchwiki_logo_label"
             android:src="@drawable/wiki_logo" />
     </android.support.design.widget.NavigationView>
 

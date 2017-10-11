@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:paddingLeft="11dp"
     android:paddingRight="11dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
@@ -19,10 +21,11 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:layout_marginLeft="10dp"
+        android:layout_height="match_parent"
         android:gravity="center_vertical"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -42,6 +45,13 @@
                 android:layout_height="match_parent"
                 android:visibility="gone"
                 app:srcCompat="@drawable/ic_arrival_icon" />
+
+            <ImageView
+                android:id="@+id/break_icon_layout_imageview"
+                android:layout_width="18dp"
+                android:layout_height="match_parent"
+                app:srcCompat="@drawable/ic_point_on_the_route_black_24dp"
+                />
 
             <TextView
                 android:id="@+id/waiting_time_layout_textview"
@@ -68,28 +78,23 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/break_icon_layout_imageview"
-                android:layout_width="18dp"
-                android:layout_height="match_parent"
-                app:srcCompat="@drawable/ic_break_spot_icon" />
-
-            <ImageView
                 android:id="@+id/single_icon_layout_imageview"
                 android:layout_width="18dp"
                 android:layout_height="match_parent"
-                app:srcCompat="@drawable/ic_marker_got_a_ride_24dp" />
+                app:srcCompat="@drawable/ic_marker_got_a_ride_24dp"
+                android:maxLines="1"/>
 
             <TextView
                 android:id="@+id/spot_notes_layout_textview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:layout_marginLeft="5dp"
                 android:layout_marginStart="5dp"
                 android:maxLines="1"
                 android:text="user's notes go here they can be quite long so we need to shrink it..." />
 
         </LinearLayout>
-
 
         <TextView
             android:id="@+id/textView7"
@@ -100,5 +105,12 @@
             android:visibility="invisible" />
 
     </LinearLayout>
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:id="@+id/spot_delete_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:checked="true"
+        android:layout_gravity="end"/>
 
 </LinearLayout>

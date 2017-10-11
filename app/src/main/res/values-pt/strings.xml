@@ -60,10 +60,10 @@
         <item>@string/attempt_result_gave_up</item>
     </string-array>
 
-    <string name="mapview_master_title">Meu Mapa</string>
-    <string name="mapview_hitchwiki_title">Hitchwiki Maps</string>
-
-    <string name="menu_home">Sem 3G? Use esse</string>
+    <string name="menu_my_maps">Meu Mapa</string>
+    <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
+    <string name="menu_tools">@string/tools_title</string>
+    <string name="menu_offline_maps">@string/offline_map</string>
 
     <string name="tools_title">Ferramentas</string>
     <string name="settings_importdb_button_label">Importar banco de dados</string>
@@ -76,14 +76,19 @@
     <string name="settings_countriesList_is_empty_title">Lista de países não baixada</string>
     <string name="settings_countriesList_is_empty_message">Uma vez que a lista de países estiver baixada, você poderá baixar locais de carona do Hitchwiki Maps para os países de sua escolha. Desta forma pouca memória do seu celular será consumida. :-)\nVocê gostaria de baixar a lista de países?</string>
     <string name="settings_exportdb_finish_successfull_message">Exportado para:\n%s</string>
-    <string name="settings_countriesList_download_failed_message">Houve um erro ao tentar baixar a lista de países.</string>
+    <string name="settings_countriesList_download_failed_message">Houve um erro ao tentar baixar a lista de países.\n"%s"</string>
+    <string name="settings_hitchwikiMapsSpots_download_failed_message">Houve um erro ao tentar baixar pontos de carona do Hitchwiki Maps.\n"%s"</string>
     <string name="settings_last_countriesList_update_message">Última atualização da lista de países foi feita há %s atrás.</string>
     <string name="settings_last_export_message">Última vez que sua lista de locais foi exportada foi há %s atrás.</string>
     <string name="settings_last_download_message">Último download de locais do Hitchwiki Maps foi feito há %s atrás.</string>
+    <string name="settings_import_total_spots_on_selected_file">Existem %d locais no arquivo CSV selecionado.</string>
+    <string name="settings_import_total_not_imported">%d não puderam ser importados.</string>
+    <string name="settings_import_total_spots_skipped">%d já existiam e foram ignorados.</string>
+    <string name="settings_import_total_successfuly_imported">%s foram importados.</string>
+    <string name="settings_import_happening_message">Importando locais de carona do arquivo CSV..</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
 
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
@@ -113,6 +118,7 @@
     <string name="main_activity_title">Meus Locais</string>
     <string name="main_activity_you_tab">você</string>
     <string name="main_activity_list_tab">rotas</string>
+    <string name="main_activity_single_spots_list_tab">locais</string>
     <string name="spot_list_item_arrival_label">chegada</string>
     <string name="spot_list_item_waiting_label">aguardando</string>
 
@@ -121,6 +127,8 @@
     <string name="spot_form_view_comments_button_label">ver (%s) comentários</string>
     <string name="spot_form_delete_dialog_title_text">Deletar local</string>
     <string name="spot_form_delete_dialog_message_text">Você tem certeza que deseja deletar esse local permanentemente?</string>
+    <string name="spot_form_delete_dialog_message_for_many_text">%d locais selecionados. Você tem certeza que deseja excluí-los? Não será possível recuperá-los.</string>
+    <string name="spot_form_delete_dialog_yes_for_many_option">Deletar %d locais</string>
     <string name="spot_form_delete_dialog_no_option">Cancelar</string>
     <string name="spot_form_delete_dialog_yes_option">Deletar</string>
     <string name="spot_form_is_part_of_a_route_checkbox_text">Este local faz parte de uma rota</string>
@@ -139,10 +147,24 @@
     <string name="destination_spot_totals_format">TOTAL | %1$d caronas | %2$s</string>
     <string name="waiting_for_gps">Aguardando atualização da sua localizaçāo..</string>
 
+    <string name="general_weeks_label">%02ds</string>
+    <string name="general_days_label">%02dd</string>
+    <string name="general_hours_label">%02dh</string>
+    <string name="general_minutes_label">%02dmin</string>
+
+    <string name="general_edit_list">Editar lista</string>
+    <string name="general_hide_icons_label">Esconder botōes</string>
+    <string name="general_show_icons_label">Mostrar botōes</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>
+    <string name="general_thank_you_label">%s, obrigado</string>
+    <string name="general_refresh_label">Atualizar</string>
     <string name="general_cancel_option">Cancelar</string>
+    <string name="general_all">Todos</string>
+    <string name="general_not_enough_permission">Desculpe, infelizmente você não parece ter as permissōes necessárias para executar esta ação.</string>
+    <string name="general_selected_file_type_not_supported">O tipo de arquivo selecionado não é suportado.</string>
+    <string name="general_zoom_to_fit_all">Ver todos locais</string>
 
     <string name="general_author_label">de %s</string>
     <string name="general_download_option">Baixar</string>
@@ -152,6 +174,7 @@
     <string name="general_download_finished_successffull_message">Download concluído com sucesso</string>
     <string name="general_error_dialog_title">Houve uma falha :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_one_or_more_errors_occured">Um ou alguns erros aconteceram:</string>
     <string name="general_loading_dialog_title">Carregando&#8230;</string>
     <string name="general_loading_dialog_message">Aguarde</string>
 
@@ -161,6 +184,8 @@
     <string name="general_export_finished_successfull_message">Exportado com sucesso!</string>
     <string name="general_export_finished_failed_message">Falha na exportação</string>
     <string name="general_last_sync_date">Última sincronização realizada em %s.</string>
+    <string name="general_import_finished_successfull_message">Importado com sucesso!</string>
+    <string name="general_import_finished_failed_message">Falha na importação</string>
 
     <string name="empty_list_dialog_message">Para visualizar locais adicionados por outros caroneiros ao Hitchwiki Maps, acesse o menu %s.</string>
 
@@ -207,11 +232,30 @@
     <string name="continent_code_north_america">América do Norte</string>
     <string name="continent_code_south_america">América do Sul (Brasil)</string>
     <string name="continent_code_oceania">Oceania</string>
-    <string name="general_thank_you_label">%s, obrigado</string>
-    <string name="general_refresh_label">Atualizar</string>
-    <string name="main_activity_single_spots_list_tab">locais</string>
 
     <string name="refresh_datetime_dialog_title">Atualizar data e hora?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutos já passaram desde que você abriu esta janela pela primeira vez. Você gostaria de atualizar a data e hora deste novo local? A atualização será feita de %2$s para %3$s.</string>
+    <string name="settings_export_section_title">Export</string>
+    <string name="settings_import_section_title">Import</string>
+    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
+    <string name="spot_form_locate_button_tooltip_text">Mover para sua localização</string>
+
+    <string name="offline_map">Mapa Offline</string>
+    <string name="download_region_button_text">Baixar esta região</string>
+    <string name="dialog_title">Dê um nome para esta região</string>
+    <string name="dialog_message">Baixa a região do mapa que você está visualizando atualmente</string>
+    <string name="dialog_positive_button">Baixar</string>
+    <string name="dialog_negative_button">Cancelar</string>
+    <string name="dialog_toast">O nome da região não pode ficar em branco.</string>
+    <string name="end_progress_success">Região baixada com sucesso.</string>
+    <string name="toast_no_regions_yet">Você ainda não baixou nenhuma região.</string>
+    <string name="toast_region_deleted">Região deletada</string>
+    <string name="navigate_positive_button">Visualizar</string>
+    <string name="navigate_neutral_button_title">Deletar</string>
+    <string name="navigate_negative_button_title">Cancelar</string>
+    <string name="navigate_title">Lista</string>
+    <string name="region_name">Região %1$d</string>
+    <string name="set_region_name_hint">Informe um nome</string>
+    <string name="offline_map_in_progress_toast_message">Operação em andamento, aguarde..</string>
 
 </resources>

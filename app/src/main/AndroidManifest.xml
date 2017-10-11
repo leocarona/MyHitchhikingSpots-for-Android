@@ -34,7 +34,7 @@ limitations under the License.
         android:theme="@style/Theme.Base.NoActionBar">
 
         <!-- Begin: Necessary for MapBox -->
-        <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" />
+        <service android:name="com.mapbox.services.android.telemetry.service.TelemetryService"/>
         <!-- End: Necessary for MapBox -->
 
         <meta-data
@@ -55,7 +55,7 @@ limitations under the License.
                 android:value="com.myhitchhikingspots.BaseActivity" />-->
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".MyRoutesActivity"
             android:label="@string/main_activity_title"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
@@ -65,13 +65,18 @@ limitations under the License.
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
-            android:name=".MapViewActivity"
-            android:label="@string/mapview_master_title"
+            android:name=".MyMapsActivity"
+            android:label="@string/menu_my_maps"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar"/>
         <activity
             android:name=".HitchwikiMapViewActivity"
-            android:label="@string/mapview_hitchwiki_title"
+            android:label="@string/menu_hitchwiki_maps"
+            android:parentActivityName=".BaseActivity"
+            android:theme="@style/Theme.Base.NoActionBar"/>
+        <activity
+            android:name=".OfflineManagerActivity"
+            android:label="@string/offline_map"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar"/>
         <!--

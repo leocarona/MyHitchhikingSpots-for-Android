@@ -30,8 +30,6 @@
     <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
     <string name="attempt_result_gave_up">@string/break_button_text</string>
 
-    <string name="menu_home">Intet 3G? Brug det her</string>
-
     <string name="tools_title">Værktøjer</string>
     <string name="settings_importdb_button_label">Importer database</string>
     <string name="settings_exportdb_button_label">Eksporter database</string>
@@ -43,10 +41,16 @@
     <string name="settings_countriesList_is_empty_title">Countries list not downloaded</string>
     <string name="settings_countriesList_is_empty_message">Once the country options are downloaded, you\'ll be able to download spots from Hitchwiki Maps for the countries of your preference. This means just a small part of your phone memory will be used. :-)\nWould you like to download the countries list now?</string>
     <string name="settings_exportdb_finish_successfull_message">Copied to:\n%s</string>
-    <string name="settings_countriesList_download_failed_message">An exception occurred while trying to download the countries list.</string>
+    <string name="settings_countriesList_download_failed_message">An exception occurred while trying to download the countries list.\n"%s"</string>
+    <string name="settings_hitchwikiMapsSpots_download_failed_message">An exception occurred while trying to download hitchhiking spots from Hitchwiki Maps.\n"%s"</string>
     <string name="settings_last_countriesList_update_message">Last update of countries list was done %s ago.</string>
     <string name="settings_last_export_message">Last export was done %s ago.</string>
     <string name="settings_last_download_message">Last download was done %s ago.</string>
+    <string name="settings_import_total_spots_on_selected_file">There were %d spots on the selected CSV file.</string>
+    <string name="settings_import_total_not_imported">%d could not be imported.</string>
+    <string name="settings_import_total_spots_skipped">%d already existed and were skipped.</string>
+    <string name="settings_import_total_successfuly_imported">%s were imported.</string>
+    <string name="settings_import_happening_message">Importing hitchhiking spots from CSV file..</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -65,8 +69,10 @@
     <string name="spot_form_comments_title">Kommentarer fra andre blaffere</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
 
-    <string name="mapview_master_title">Min Kort</string>
-    <string name="mapview_hitchwiki_title">Hitchwiki Kort</string>
+    <string name="menu_my_maps">Min Kort</string>
+    <string name="menu_hitchwiki_maps">Hitchwiki Kort</string>
+    <string name="menu_tools">@string/tools_title</string>
+    <string name="menu_offline_maps">@string/offline_map</string>
 
     <string name="action_settings">Indstillinger</string>
     <string name="spot_saved_successfuly">Sted gemt</string>
@@ -82,6 +88,7 @@
     <string name="main_activity_title">Mine Steder</string>
     <string name="main_activity_you_tab">dig</string>
     <string name="main_activity_list_tab">ruter</string>
+    <string name="main_activity_single_spots_list_tab">steder</string>
     <string name="spot_list_item_arrival_label">ankomst</string>
     <string name="spot_list_item_waiting_label">venter</string>
 
@@ -90,6 +97,8 @@
     <string name="spot_form_view_comments_button_label">vis (%s) kommentarer</string>
     <string name="spot_form_delete_dialog_title_text">Slet sted</string>
     <string name="spot_form_delete_dialog_message_text">Er du sikker på, at du vil slette stedet permanent?</string>
+    <string name="spot_form_delete_dialog_message_for_many_text">%d spots selected. Are you sure you want to delete those spots? You won\'t be able to recover them.</string>
+    <string name="spot_form_delete_dialog_yes_for_many_option">Delete %d spots</string>
     <string name="spot_form_delete_dialog_no_option">Fortryd</string>
     <string name="spot_form_delete_dialog_yes_option">Slet</string>
     <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
@@ -109,10 +118,24 @@
 
     <string name="waiting_for_gps">Venter på at modtage din nuværende position..</string>
 
+    <string name="general_weeks_label">%02dw</string>
+    <string name="general_days_label">%02dd</string>
+    <string name="general_hours_label">%02dt</string>
+    <string name="general_minutes_label">%02dmin</string>
+
+    <string name="general_edit_list">Edit list</string>
+    <string name="general_hide_icons_label">Hide buttons</string>
+    <string name="general_show_icons_label">Show buttons</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>
     <string name="general_no_option">Nej</string>
+    <string name="general_thank_you_label">%s, tak</string>
+    <string name="general_refresh_label">Refresh</string>
     <string name="general_cancel_option">Fortryd</string>
+    <string name="general_all">All</string>
+    <string name="general_not_enough_permission">Sorry, unfortunatelly you seem to not have enough permission to do execute this action.</string>
+    <string name="general_selected_file_type_not_supported">Selected file was not of a supported type.</string>
+    <string name="general_zoom_to_fit_all">View all spots</string>
 
     <string name="general_author_label">by %s</string>
     <string name="general_download_option">Hent</string>
@@ -122,6 +145,7 @@
     <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Noget gik galt :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_one_or_more_errors_occured">One or more error occured:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
 
@@ -131,6 +155,8 @@
     <string name="general_export_finished_successfull_message">Exported successfully!</string>
     <string name="general_export_finished_failed_message">Export failed</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>
+    <string name="general_import_finished_successfull_message">Imported successfully!</string>
+    <string name="general_import_finished_failed_message">Import failed</string>
 
     <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 
@@ -192,11 +218,29 @@
     <string name="continent_code_north_america">North America</string>
     <string name="continent_code_south_america">South America</string>
     <string name="continent_code_oceania">Oceania</string>
-    <string name="general_thank_you_label">%s, tak</string>
-    <string name="general_refresh_label">Refresh</string>
-    <string name="main_activity_single_spots_list_tab">steder</string>
 
     <string name="refresh_datetime_dialog_title">Update date and time?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
+    <string name="settings_export_section_title">Export</string>
+    <string name="settings_import_section_title">Import</string>
+    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
+    <string name="spot_form_locate_button_tooltip_text">Move to your location</string>
 
+    <string name="offline_map">Offline Maps</string>
+    <string name="download_region_button_text">Download this region</string>
+    <string name="dialog_title">Name new region</string>
+    <string name="dialog_message">Downloads the map region you currently are viewing</string>
+    <string name="dialog_positive_button">Download</string>
+    <string name="dialog_negative_button">Cancel</string>
+    <string name="dialog_toast">Region name cannot be empty.</string>
+    <string name="end_progress_success">Region downloaded successfully.</string>
+    <string name="toast_no_regions_yet">You have no regions yet.</string>
+    <string name="toast_region_deleted">Region deleted</string>
+    <string name="navigate_positive_button">Navigate to</string>
+    <string name="navigate_neutral_button_title">Delete</string>
+    <string name="navigate_negative_button_title">Cancel</string>
+    <string name="navigate_title">List</string>
+    <string name="region_name">Region %1$d</string>
+    <string name="set_region_name_hint">Enter name</string>
+    <string name="offline_map_in_progress_toast_message">Still in progress, please wait</string>
 </resources>
