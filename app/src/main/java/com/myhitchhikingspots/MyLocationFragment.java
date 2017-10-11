@@ -39,7 +39,6 @@ import com.myhitchhikingspots.utilities.Utils;
 
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Getting Location Updates.
@@ -316,16 +315,16 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
     }
 
 
-    private MapViewActivity.pageType currentPage;
+    private MyMapsActivity.pageType currentPage;
 
     protected void showCurrentPage() {
-        if (currentPage == MapViewActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE || currentPage == MapViewActivity.pageType.WILL_BE_REGULAR_SPOT) {
+        if (currentPage == MyMapsActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE || currentPage == MyMapsActivity.pageType.WILL_BE_REGULAR_SPOT) {
             mWaitingToGetCurrentLocationTextView.setVisibility(View.GONE);
             mSaveSpotPanel.setVisibility(View.VISIBLE);
             mCurrentLocationPanel.setVisibility(View.VISIBLE);
         }
 
-        if (currentPage != MapViewActivity.pageType.WAITING_FOR_A_RIDE) {
+        if (currentPage != MyMapsActivity.pageType.WAITING_FOR_A_RIDE) {
             mGetLocationSwitch.setVisibility(View.VISIBLE);
             mEvaluatePanel.setVisibility(View.GONE);//setEnabled(false);
         }
@@ -358,19 +357,19 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         if (!mIsWaitingForARide) {
            /* if (parentActivity.mGoogleApiClient == null || parentActivity.mCurrentLocation == null || !parentActivity.mGoogleApiClient.isConnected()
                     || !parentActivity.mRequestingLocationUpdates) {
-                currentPage = MapViewActivity.pageType.NOT_FETCHING_LOCATION;
+                currentPage = MyMapsActivity.pageType.NOT_FETCHING_LOCATION;
             } else {
                 if (parentActivity.mRequestingLocationUpdates) {*/
             if (mWillItBeFirstSpotOfARoute)
-                currentPage = MapViewActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
+                currentPage = MyMapsActivity.pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
             else
-                currentPage = MapViewActivity.pageType.WILL_BE_REGULAR_SPOT;
+                currentPage = MyMapsActivity.pageType.WILL_BE_REGULAR_SPOT;
             //    }
             // }
 
 
         } else {
-            currentPage = MapViewActivity.pageType.WAITING_FOR_A_RIDE;
+            currentPage = MyMapsActivity.pageType.WAITING_FOR_A_RIDE;
         }
 
         showCurrentPage();

@@ -31,7 +31,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
@@ -55,7 +54,7 @@ import com.myhitchhikingspots.utilities.Utils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapViewActivity extends BaseActivity implements OnMapReadyCallback {
+public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
@@ -215,7 +214,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
                     .setAction("enable", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            ActivityCompat.requestPermissions(MapViewActivity.this, new String[]{
+                            ActivityCompat.requestPermissions(MyMapsActivity.this, new String[]{
                                     Manifest.permission.ACCESS_COARSE_LOCATION,
                                     Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_LOCATION);
                         }
@@ -414,7 +413,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")
 
         // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(MapViewActivity.this) && !mapboxMap.isMyLocationEnabled())
+        if (PermissionsManager.areLocationPermissionsGranted(MyMapsActivity.this) && !mapboxMap.isMyLocationEnabled())
             mapboxMap.setMyLocationEnabled(true);
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
@@ -463,7 +462,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         final MarkerViewManager markerViewManager = mapboxMap.getMarkerViewManager();
         // if you want to customise a ViewMarker you need to extend ViewMarker and provide an adapter implementation
         // set adapters for child classes of ViewMarker
-        markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(MapViewActivity.this));
+        markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(MyMapsActivity.this));
 
         updateUI();
     }
@@ -673,7 +672,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.mapview_menu, menu);
+        getMenuInflater().inflate(R.menu.my_maps_menu, menu);
         return true;
     }
 
@@ -745,9 +744,9 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
     void openSpotsListView(Boolean... shouldShowYouTab) {
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-        //When set to true, shouldShowYouTab will open MainActivity presenting the tab "You" instead of the tab "List"
+        /*//When set to true, shouldShowYouTab will open MainActivity presenting the tab "You" instead of the tab "List"
         if (shouldShowYouTab.length > 0)
-            intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab[0]);
+            intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab[0]);*/
         startActivity(intent);
         //startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
@@ -830,7 +829,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
 
     private void showProgressDialog() {
         if (loadingDialog == null) {
-            loadingDialog = new ProgressDialog(MapViewActivity.this);
+            loadingDialog = new ProgressDialog(MyMapsActivity.this);
             loadingDialog.setIndeterminate(true);
             loadingDialog.setCancelable(false);
             loadingDialog.setMessage(getResources().getString(R.string.map_loading_dialog));
@@ -1043,7 +1042,7 @@ public class MapViewActivity extends BaseActivity implements OnMapReadyCallback 
         @Override
         protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
             super.onPostExecute(trips);
-            if (MapViewActivity.this.isFinishing())
+            if (MyMapsActivity.this.isFinishing())
                 return;
 
             try {

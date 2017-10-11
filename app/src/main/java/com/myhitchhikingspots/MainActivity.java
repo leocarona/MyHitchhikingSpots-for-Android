@@ -160,7 +160,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                         if (shouldGoBackToPreviousActivity)
                             finish();
                         else
-                            startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+                            startActivity(new Intent(getBaseContext(), MyMapsActivity.class));
                     }
                 });
     }
@@ -307,7 +307,7 @@ public class MainActivity extends TrackLocationBaseActivity {
 
         switch (item.getItemId()) {
             case R.id.action_view_map:
-                //If MapViewActivity was the one who opened the current MainActivity, then we don't need to start a new instance of MainActivity, just call finish() instead
+                //If MyMapsActivity was the one who opened the current MainActivity, then we don't need to start a new instance of MainActivity, just call finish() instead
 
                 /*ComponentName callingActivity = getCallingActivity();
                 if (callingActivity != null && callingActivity.getClassName() != null
@@ -315,7 +315,7 @@ public class MainActivity extends TrackLocationBaseActivity {
                 if (shouldGoBackToPreviousActivity)
                     finish();
                 else
-                    startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+                    startActivity(new Intent(getApplicationContext(), MyMapsActivity.class));
                 selectionHandled = true;
                 break;
             case R.id.action_new_spot:

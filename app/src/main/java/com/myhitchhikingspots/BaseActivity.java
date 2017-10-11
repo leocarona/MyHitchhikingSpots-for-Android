@@ -77,7 +77,7 @@ public class BaseActivity extends AppCompatActivity
             String currentActivityName = getClass().getName();
             if (currentActivityName.equals(SettingsActivity.class.getName()))
                 navigationView.setCheckedItem(R.id.nav_tools);
-            else if (currentActivityName.equals(MapViewActivity.class.getName()))
+            else if (currentActivityName.equals(MyMapsActivity.class.getName()))
                 navigationView.setCheckedItem(R.id.nav_my_map);
             else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
                 navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
@@ -114,8 +114,8 @@ public class BaseActivity extends AppCompatActivity
                     startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
                 break;
             case R.id.nav_my_map:
-                if (!currentActivityName.equals(MapViewActivity.class.getName()))
-                    startActivity(new Intent(getApplicationContext(), MapViewActivity.class));
+                if (!currentActivityName.equals(MyMapsActivity.class.getName()))
+                    startActivity(new Intent(getApplicationContext(), MyMapsActivity.class));
                 break;
             case R.id.nav_hitchwiki_map:
                 if (!currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
@@ -130,7 +130,7 @@ public class BaseActivity extends AppCompatActivity
                     // If the current activity is MapViewActivity, we want the user to be sent back here if he clicks in "map" button in the next activity - (SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = true) will do that.
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, true);
-                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, currentActivityName.equals(MapViewActivity.class.getName()));
+                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, currentActivityName.equals(MyMapsActivity.class.getName()));
                     startActivity(intent);
                 }
                 break;

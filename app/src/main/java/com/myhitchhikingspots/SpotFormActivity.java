@@ -71,7 +71,6 @@ import hitchwikiMapsSDK.entities.PlaceInfoComplete;
 import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
 
 import com.github.florent37.viewtooltip.ViewTooltip;
-import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -1179,7 +1178,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     }
 
     public void viewMapButtonHandler(View view) {
-        startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+        startActivity(new Intent(getBaseContext(), MyMapsActivity.class));
     }
 
     public void saveButtonHandler(View view) {
@@ -1320,7 +1319,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                         ComponentName callingActivity = getCallingActivity();
 
                                         if (!shouldGoBackToPreviousActivity && (callingActivity == null || callingActivity.getClassName() == null
-                                                || !callingActivity.getClassName().equals(MapViewActivity.class.getName()))) {
+                                                || !callingActivity.getClassName().equals(MyMapsActivity.class.getName()))) {
                                             setResult(RESULT_OBJECT_DELETED);
                                             finish();
 
@@ -1328,7 +1327,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                             Bundle conData = new Bundle();
                                             conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
 
-                                            Intent intent = new Intent(getBaseContext(), MapViewActivity.class);
+                                            Intent intent = new Intent(getBaseContext(), MyMapsActivity.class);
                                             intent.putExtras(conData);
                                             startActivity(intent);
                                         } else {
@@ -1417,7 +1416,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             Bundle conData = new Bundle();
             conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
 
-            Intent i = new Intent(getBaseContext(), MapViewActivity.class);
+            Intent i = new Intent(getBaseContext(), MyMapsActivity.class);
             i.putExtras(conData);
             startActivity(i);
         }
@@ -1806,7 +1805,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        startActivity(new Intent(getBaseContext(), MapViewActivity.class));
+                        startActivity(new Intent(getBaseContext(), MyMapsActivity.class));
                     }
                 });
     }
