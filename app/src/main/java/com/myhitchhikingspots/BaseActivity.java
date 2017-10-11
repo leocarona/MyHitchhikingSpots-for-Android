@@ -81,9 +81,9 @@ public class BaseActivity extends AppCompatActivity
                 navigationView.setCheckedItem(R.id.nav_my_map);
             else if (currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
                 navigationView.setCheckedItem(R.id.nav_hitchwiki_map);
-            else if (currentActivityName.equals(MainActivity.class.getName()))
-                navigationView.setCheckedItem(R.id.nav_my_routes);
-            else if(currentActivityName.equals(OfflineManagerActivity.class.getName()))
+            /*else if (currentActivityName.equals(MainActivity.class.getName()))
+                navigationView.setCheckedItem(R.id.nav_my_routes);*/
+            else if (currentActivityName.equals(OfflineManagerActivity.class.getName()))
                 navigationView.setCheckedItem(R.id.nav_offline_map);
             else
                 navigationView.setCheckedItem(R.id.nav_unselect);
@@ -121,19 +121,20 @@ public class BaseActivity extends AppCompatActivity
                 if (!currentActivityName.equals(HitchwikiMapViewActivity.class.getName()))
                     startActivity(new Intent(getApplicationContext(), HitchwikiMapViewActivity.class));
                 break;
-            case R.id.nav_my_routes:
+            /*case R.id.nav_my_routes:
                 //If the current activity is MainActivity, select the tab "you"
                 if (currentActivityName.equals(MainActivity.class.getName()))
                     ((MainActivity) this).selectTab(MainActivity.SectionsPagerAdapter.TAB_YOU_INDEX);
                 else {
-                    //Start MainActivity presenting "you" tab.
-                    // If the current activity is MapViewActivity, we want the user to be sent back here if he clicks in "map" button in the next activity - (SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = true) will do that.
+                //Start MainActivity presenting "you" tab.
+                // If the current activity is MyMapsActivity, we want the user to be sent back here if he clicks in "map" button in the next activity - (SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY = true) will do that.
+
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, true);
+                    //intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, true);
                     intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, currentActivityName.equals(MyMapsActivity.class.getName()));
                     startActivity(intent);
                 }
-                break;
+                break;*/
             case R.id.nav_offline_map:
                 if (!currentActivityName.equals(OfflineManagerActivity.class.getName()))
                     startActivity(new Intent(getApplicationContext(), OfflineManagerActivity.class));

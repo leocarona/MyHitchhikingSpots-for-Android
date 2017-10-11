@@ -309,9 +309,6 @@ public class MainActivity extends TrackLocationBaseActivity {
             case R.id.action_view_map:
                 //If MyMapsActivity was the one who opened the current MainActivity, then we don't need to start a new instance of MainActivity, just call finish() instead
 
-                /*ComponentName callingActivity = getCallingActivity();
-                if (callingActivity != null && callingActivity.getClassName() != null
-                        && callingActivity.getClassName().equals(MapViewActivity.class.getName())*/
                 if (shouldGoBackToPreviousActivity)
                     finish();
                 else
