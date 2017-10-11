@@ -42,7 +42,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             app:backgroundTint="@color/ic_break_color"
-            app:srcCompat="@drawable/ic_delete_black_24dp"
+            app:srcCompat="@drawable/ic_delete_white_24dp"
             app:useCompatPadding="true" />
     </android.support.design.widget.CoordinatorLayout>
 </RelativeLayout>
