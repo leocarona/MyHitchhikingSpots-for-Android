@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:showIn="@layout/mapview_master_layout">
+    tools:showIn="@layout/hitchwiki_map_master_layout">
 
 
     <com.mapbox.mapboxsdk.maps.MapView
@@ -64,7 +64,7 @@
         mapbox:srcCompat="@drawable/ic_zoom_out_white_24dp"
         tools:ignore="VectorDrawableCompat" />
 
-   <!-- <android.support.design.widget.FloatingActionButton
+    <!--<android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_show_all"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -80,30 +80,8 @@
         app:srcCompat="@drawable/ic_zoom_out_map_white_24dp"
         tools:ignore="VectorDrawableCompat"
         app:useCompatPadding="true"
-        app:fabSize="mini" /> -->
+        app:fabSize="mini" />-->
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_spot_action_1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="10dp"
-        android:layout_alignParentRight="true"
-        app:srcCompat="@drawable/ic_regular_spot_icon"
-        app:useCompatPadding="true"
-        android:layout_marginLeft="-40dp" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_spot_action_2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="10dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        app:srcCompat="@drawable/ic_arrival_icon"
-        app:useCompatPadding="true"
-        android:layout_marginLeft="100dp" />
 
 </android.support.design.widget.CoordinatorLayout>

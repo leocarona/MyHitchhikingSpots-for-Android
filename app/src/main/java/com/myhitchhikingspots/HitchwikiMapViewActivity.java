@@ -69,7 +69,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     // Please always make sure this is been done!
     protected void onCreate(Bundle savedInstanceState) {
 
-        setContentView(R.layout.hitchwikimapview_master_layout);
+        setContentView(R.layout.hitchwiki_map_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
