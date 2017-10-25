@@ -206,7 +206,8 @@ public class Utils {
             Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
             Crashlytics.setString("placesContainerAsString", placesContainerAsString);
 
-            return new ApiManager().getPlacesByContinenFromLocalFile(placesContainerAsString);
+            if (!placesContainerAsString.isEmpty())
+                return new ApiManager().getPlacesByContinenFromLocalFile(placesContainerAsString);
         } catch (Exception exception) {
             Crashlytics.logException(exception);
         }
