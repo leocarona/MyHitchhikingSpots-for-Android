@@ -23,6 +23,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,6 +63,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
+    Boolean shouldDisplayIcons = true;
 
     boolean wasSnackbarShown;
 
@@ -592,6 +595,45 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.hitchwiki_map_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        boolean selectionHandled = false;
+
+        switch (item.getItemId()) {
+            case R.id.action_toggle_icons:
+                shouldDisplayIcons = !shouldDisplayIcons;
+                if (shouldDisplayIcons) {
+                    fabLocateUser.setVisibility(View.VISIBLE);
+                    fabZoomIn.setVisibility(View.VISIBLE);
+                    fabZoomOut.setVisibility(View.VISIBLE);
+                    item.setTitle(getString(R.string.general_hide_icons_label));
+                } else {
+                    fabLocateUser.setVisibility(View.GONE);
+                    fabZoomIn.setVisibility(View.GONE);
+                    fabZoomOut.setVisibility(View.GONE);
+                    item.setTitle(getString(R.string.general_show_icons_label));
+                }
+                break;
+            case R.id.action_zoom_to_fit_all:
+                if (mapboxMap != null) {
+                    zoomOutToFitAllMarkers();
+                }
+                break;
+        }
+
+        if (selectionHandled)
+            return true;
+        else
+            return super.onOptionsItemSelected(item);
     }
 
     protected void zoomOutToFitAllMarkers() {
