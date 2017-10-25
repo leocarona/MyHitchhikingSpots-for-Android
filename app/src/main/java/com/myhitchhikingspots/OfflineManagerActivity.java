@@ -490,8 +490,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
              */
             @Override
             public void mapboxTileCountLimitExceeded(long limit) {
-                endProgress("This region is too big, download was stopped");
-                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded: " + limit));
+                endProgress(getString(R.string.tile_count_limit_exceed_error_message));
+                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded: " + limit + ". And error message should have been shown to the user saying '" + getString(R.string.tile_count_limit_exceed_error_message) + "'"));
             }
         });
 
