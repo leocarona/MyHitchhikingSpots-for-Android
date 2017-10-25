@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -173,7 +174,26 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         super.onCreate(savedInstanceState);
     }
 
+    // Permissions variables
     private static final int PERMISSIONS_LOCATION = 0;
+    private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
+
+    //persmission method.
+    public static boolean isReadStoragePermissionGranted(Activity activity) {
+        // Check if we have read permission
+        int readPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
+
+        // Check if user has granted location permission
+        return (readPermission == PackageManager.PERMISSION_GRANTED);
+    }
+
+    public static void requestReadStoragePermission(Activity activity) {
+        ActivityCompat.requestPermissions(
+                activity,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                PERMISSIONS_EXTERNAL_STORAGE
+        );
+    }
 
     void locateUser() {
         // Check if user has granted location permission
@@ -430,8 +450,13 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
         if (millisecondsAtRefresh > 0) {
-            //Load spots and display them as markers and polylines on the map
-            new DrawAnnotations().execute();
+            //Check if we still have read permission so that we can read the file containing the downloaded HW spots
+            if (!isReadStoragePermissionGranted(this))
+                requestReadStoragePermission(this);
+            else {
+                //Load spots and display them as markers and polylines on the map
+                new DrawAnnotations().execute();
+            }
         } else {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)

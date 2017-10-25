@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -7,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -16,6 +18,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
@@ -77,15 +80,11 @@ public class SettingsActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.settings_master_layout);
 
-        //exportDB();
-        //importDB();
-
         //prefs
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         mfeedbacklabel = (TextView) findViewById(R.id.feedbacklabel);
         mfeedbacklabel.setVisibility(View.GONE);
-
 
         String strLastDownload = "";
 
@@ -144,6 +143,39 @@ public class SettingsActivity extends BaseActivity {
         mShouldShowLeftMenu = true;
         super.onCreate(savedInstanceState);
     }
+
+    // Storage Permissions variables
+    private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
+
+    //persmission method.
+    public static boolean isStoragePermissionsGranted(Activity activity) {
+        // Check if we have read and write permission
+        int writePermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int readPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
+
+        // Check if user has granted location permission
+        return (writePermission == PackageManager.PERMISSION_GRANTED && readPermission == PackageManager.PERMISSION_GRANTED);
+    }
+
+    public static void requestStoragePermissions(Activity activity) {
+        ActivityCompat.requestPermissions(
+                activity,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                PERMISSIONS_EXTERNAL_STORAGE
+        );
+    }
+
+   /*  @Override
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSIONS_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //locateUser();
+            }
+        }
+    }*/
+
 
     int PICK_DB_REQUEST = 1;
 
@@ -241,43 +273,31 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public void pickFileButtonHandler(View view) {
-        /*if (!dbExported) {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle("Database not backed up")//getResources().getString(R.string.spot_form_delete_dialog_message_text)
-                    .setMessage("For safety reasons, you must export the current database first before importing a new one.")
-                  /*  .setPositiveButton(getResources().getString(R.string.settings_exportdb_button_label), new DialogInterface.OnClickListener()
-                    {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            exportDB();
-
-                            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                            intent.setType("*");
-                            startActivityForResult(intent, PICK_DB_REQUEST);
-                        }
-                    })/
-                    .setNegativeButton("OK", null)
-                    .show();
-        } else {*/
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        startActivityForResult(intent, PICK_DB_REQUEST);
-        //}
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
+        else {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("*/*");
+            startActivityForResult(intent, PICK_DB_REQUEST);
+        }
     }
 
 
     public void importButtonHandler(View view) {
-        FilePickerDialog dialog = new FilePickerDialog();
-        //Add listener to be called when task finished
-        dialog.addListener(new AsyncTaskListener<File>() {
-            @Override
-            public void notifyTaskFinished(Boolean success, File file) {
-                //Start import task
-                importPickedFile(file);
-            }
-        });
-        dialog.openDialog(this, SettingsActivity.this);
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
+        else {
+            FilePickerDialog dialog = new FilePickerDialog();
+            //Add listener to be called when task finished
+            dialog.addListener(new AsyncTaskListener<File>() {
+                @Override
+                public void notifyTaskFinished(Boolean success, File file) {
+                    //Start import task
+                    importPickedFile(file);
+                }
+            });
+            dialog.openDialog(this, SettingsActivity.this);
+        }
     }
 
     void importPickedFile(File fileToImport) {
@@ -304,71 +324,83 @@ public class SettingsActivity extends BaseActivity {
     }
 
     public void showContinentsDialog(View view) {
-        if (continentsContainer.length == 0) {
-            showErrorAlert(getString(R.string.settings_select_continents_button_label), "The list of continents are not loaded. Try to navigate out of this screen and come back agian.");
-        } else {
-            new showContinentsDialogAsyncTask().execute();
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
+        else {
+            if (continentsContainer.length == 0) {
+                showErrorAlert(getString(R.string.settings_select_continents_button_label), "The list of continents are not loaded. Try to navigate out of this screen and come back agian.");
+            } else {
+                new showContinentsDialogAsyncTask().execute();
+            }
         }
     }
 
     public void showCountriesDialog(View view) {
-        if (countriesContainer == null || countriesContainer.length == 0) {
-            Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
-            //If the countries list were previously downloaded (we know that by checking if there's a date set from countries download)
-            if (millisecondsLastCountriesRefresh > 0) {
-                //Load the countries list from local storage
-                new getCountriesAsyncTask(false).execute();
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
+        else {
+            if (countriesContainer == null || countriesContainer.length == 0) {
+                Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
+                //If the countries list were previously downloaded (we know that by checking if there's a date set from countries download)
+                if (millisecondsLastCountriesRefresh > 0) {
+                    //Load the countries list from local storage
+                    new getCountriesAsyncTask(false).execute();
+                } else {
+                    //Ask user if they'd like to download the countries list now
+                    new AlertDialog.Builder(this)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setTitle(getString(R.string.settings_countriesList_is_empty_title))
+                            .setMessage(getString(R.string.settings_countriesList_is_empty_message))
+                            .setPositiveButton(getResources().getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    new getCountriesAsyncTask(true).execute();
+                                }
+                            })
+                            .setNegativeButton(getString(R.string.general_cancel_option), null)
+                            .show();
+                }
             } else {
-                //Ask user if they'd like to download the countries list now
-                new AlertDialog.Builder(this)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle(getString(R.string.settings_countriesList_is_empty_title))
-                        .setMessage(getString(R.string.settings_countriesList_is_empty_message))
-                        .setPositiveButton(getResources().getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                new getCountriesAsyncTask(true).execute();
-                            }
-                        })
-                        .setNegativeButton(getString(R.string.general_cancel_option), null)
-                        .show();
+                new showCountriesDialogAsyncTask().execute();
             }
-        } else {
-            new showCountriesDialogAsyncTask().execute();
         }
     }
 
 
     public void exportButtonHandler(View view) {
-        try {
-            DatabaseExporter t = new DatabaseExporter(this);
-            //Add listener to be called when task finished
-            t.addListener(new AsyncTaskListener<String>() {
-                @Override
-                public void notifyTaskFinished(Boolean success, String message) {
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
+        else {
+            try {
+                DatabaseExporter t = new DatabaseExporter(this);
+                //Add listener to be called when task finished
+                t.addListener(new AsyncTaskListener<String>() {
+                    @Override
+                    public void notifyTaskFinished(Boolean success, String message) {
 
-                    if (success) {
-                        DateTime now = DateTime.now();
-                        //Set date of last time an export (backup) was made
-                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
+                        if (success) {
+                            DateTime now = DateTime.now();
+                            //Set date of last time an export (backup) was made
+                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
 
-                        //Show result message returned by DatabaseExporter
-                        mfeedbacklabel.setText(message);
-                        mfeedbacklabel.setVisibility(View.VISIBLE);
+                            //Show result message returned by DatabaseExporter
+                            mfeedbacklabel.setText(message);
+                            mfeedbacklabel.setVisibility(View.VISIBLE);
 
-                        //Show toast
-                        Toast.makeText(context, context.getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
-                    } else
-                        showErrorAlert(context.getString(R.string.general_export_finished_failed_message), message);
-                }
-            });
-            t.execute();
+                            //Show toast
+                            Toast.makeText(context, context.getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
+                        } else
+                            showErrorAlert(context.getString(R.string.general_export_finished_failed_message), message);
+                    }
+                });
+                t.execute();
 
-            ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
+                ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
-        } catch (Exception e) {
-            Crashlytics.logException(e);
-            showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
+            } catch (Exception e) {
+                Crashlytics.logException(e);
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
+            }
         }
     }
 
