@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.location.Location;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.MenuItem;
@@ -182,6 +184,10 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     @Override
     public void onMapReady(final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
+
+        // Customize the user location icon using the getMyLocationViewSettings object.
+        //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
+        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")
 
         //Show GPS location on the map without making the map camera follow it
         if (PermissionsManager.areLocationPermissionsGranted(OfflineManagerActivity.this) && !mapboxMap.isMyLocationEnabled())
