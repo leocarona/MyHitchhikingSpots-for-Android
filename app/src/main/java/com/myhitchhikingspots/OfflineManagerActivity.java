@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -65,6 +66,7 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     // Offline objects
     private OfflineManager offlineManager;
     private OfflineRegion offlineRegion;
+    SharedPreferences prefs;
 
 
     @Override
@@ -75,6 +77,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
 
@@ -184,6 +188,7 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     @Override
     public void onMapReady(final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
+        prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
         // Customize the user location icon using the getMyLocationViewSettings object.
         //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
