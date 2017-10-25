@@ -73,7 +73,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback {
     // Please always make sure this is been done!
     protected void onCreate(Bundle savedInstanceState) {
 
-        setContentView(R.layout.mapview_master_layout);
+        setContentView(R.layout.my_map_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/action_zoom_to_fit_all"
+        android:title="@string/general_zoom_to_fit_all"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+    <item android:id="@+id/action_toggle_icons"
+        android:title="@string/general_hide_icons_label"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+</menu>

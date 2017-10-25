@@ -29,7 +29,7 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <include layout="@layout/hitchwikimapview_content_layout" />
+        <include layout="@layout/hitchwiki_map_content_layout" />
 
     </android.support.design.widget.CoordinatorLayout>
 
@@ -40,7 +40,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
-        app:headerLayout="@layout/main_nav_header"
+        app:headerLayout="@layout/app_menu_header"
         app:menu="@menu/app_menu"
         android:visibility="gone">
 

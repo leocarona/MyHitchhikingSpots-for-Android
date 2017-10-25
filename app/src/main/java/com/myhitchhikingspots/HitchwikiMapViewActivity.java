@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -22,6 +23,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -60,6 +63,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
+    Boolean shouldDisplayIcons = true;
 
     boolean wasSnackbarShown;
 
@@ -69,7 +73,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     // Please always make sure this is been done!
     protected void onCreate(Bundle savedInstanceState) {
 
-        setContentView(R.layout.hitchwikimapview_master_layout);
+        setContentView(R.layout.hitchwiki_map_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
@@ -173,7 +177,26 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         super.onCreate(savedInstanceState);
     }
 
+    // Permissions variables
     private static final int PERMISSIONS_LOCATION = 0;
+    private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
+
+    //persmission method.
+    public static boolean isReadStoragePermissionGranted(Activity activity) {
+        // Check if we have read permission
+        int readPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
+
+        // Check if user has granted location permission
+        return (readPermission == PackageManager.PERMISSION_GRANTED);
+    }
+
+    public static void requestReadStoragePermission(Activity activity) {
+        ActivityCompat.requestPermissions(
+                activity,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                PERMISSIONS_EXTERNAL_STORAGE
+        );
+    }
 
     void locateUser() {
         // Check if user has granted location permission
@@ -430,8 +453,13 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
         if (millisecondsAtRefresh > 0) {
-            //Load spots and display them as markers and polylines on the map
-            new DrawAnnotations().execute();
+            //Check if we still have read permission so that we can read the file containing the downloaded HW spots
+            if (!isReadStoragePermissionGranted(this))
+                requestReadStoragePermission(this);
+            else {
+                //Load spots and display them as markers and polylines on the map
+                new DrawAnnotations().execute();
+            }
         } else {
             new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -567,6 +595,45 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.hitchwiki_map_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        boolean selectionHandled = false;
+
+        switch (item.getItemId()) {
+            case R.id.action_toggle_icons:
+                shouldDisplayIcons = !shouldDisplayIcons;
+                if (shouldDisplayIcons) {
+                    fabLocateUser.setVisibility(View.VISIBLE);
+                    fabZoomIn.setVisibility(View.VISIBLE);
+                    fabZoomOut.setVisibility(View.VISIBLE);
+                    item.setTitle(getString(R.string.general_hide_icons_label));
+                } else {
+                    fabLocateUser.setVisibility(View.GONE);
+                    fabZoomIn.setVisibility(View.GONE);
+                    fabZoomOut.setVisibility(View.GONE);
+                    item.setTitle(getString(R.string.general_show_icons_label));
+                }
+                break;
+            case R.id.action_zoom_to_fit_all:
+                if (mapboxMap != null) {
+                    zoomOutToFitAllMarkers();
+                }
+                break;
+        }
+
+        if (selectionHandled)
+            return true;
+        else
+            return super.onOptionsItemSelected(item);
     }
 
     protected void zoomOutToFitAllMarkers() {
