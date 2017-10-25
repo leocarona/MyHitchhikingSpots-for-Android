@@ -57,7 +57,10 @@ import java.util.List;
 public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback {
     private MapView mapView;
     private MapboxMap mapboxMap;
-    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
+    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut, fabShowAll;
+
+    //private LocationEngine locationEngine;
+    //private LocationEngineListener locationEngineListener;
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
@@ -225,6 +228,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback {
             if (!mapboxMap.isMyLocationEnabled())
                 mapboxMap.setMyLocationEnabled(true);
             //Place the map camera at the next GPS position that we receive
+            mapboxMap.setOnMyLocationChangeListener(null);
             mapboxMap.setOnMyLocationChangeListener(moveCameraToFirstLocationReceived);
         }
     }
@@ -618,15 +622,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback {
 
         dismissSnackbar();
         dismissProgressDialog();
-
-        // Ensure no memory leak occurs if we register the location listener but the call hasn't
-        // been made yet.
-        if (mapboxMap != null) {
-            mapboxMap.setOnMyLocationChangeListener(null);
-            mapboxMap.setOnCameraIdleListener(null);
-            mapboxMap.setOnCameraMoveStartedListener(null);
-        }
-
     }
 
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";

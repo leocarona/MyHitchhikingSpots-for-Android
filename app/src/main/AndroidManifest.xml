@@ -34,7 +34,7 @@ limitations under the License.
         android:theme="@style/Theme.Base.NoActionBar">
 
         <!-- Begin: Necessary for MapBox -->
-        <service android:name="com.mapbox.services.android.telemetry.service.TelemetryService"/>
+        <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" />
         <!-- End: Necessary for MapBox -->
 
         <meta-data
