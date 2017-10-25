@@ -2,13 +2,16 @@ package com.myhitchhikingspots;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.MenuItem;
@@ -63,6 +66,7 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     // Offline objects
     private OfflineManager offlineManager;
     private OfflineRegion offlineRegion;
+    SharedPreferences prefs;
 
 
     @Override
@@ -73,6 +77,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         menu_bottom = (BottomNavigationView) findViewById(R.id.bottom_navigation);
 
@@ -182,6 +188,11 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     @Override
     public void onMapReady(final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
+        prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
+
+        // Customize the user location icon using the getMyLocationViewSettings object.
+        //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
+        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")
 
         //Show GPS location on the map without making the map camera follow it
         if (PermissionsManager.areLocationPermissionsGranted(OfflineManagerActivity.this) && !mapboxMap.isMyLocationEnabled())
@@ -490,8 +501,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
              */
             @Override
             public void mapboxTileCountLimitExceeded(long limit) {
-                endProgress("This region is too big, download was stopped");
-                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded: " + limit));
+                endProgress(getString(R.string.tile_count_limit_exceed_error_message));
+                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded: " + limit + ". And error message should have been shown to the user saying '" + getString(R.string.tile_count_limit_exceed_error_message) + "'"));
             }
         });
 

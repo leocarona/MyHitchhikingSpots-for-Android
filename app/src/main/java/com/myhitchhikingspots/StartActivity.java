@@ -19,9 +19,10 @@ public class StartActivity extends Activity {
         //If the last route spot saved was a destination, show the map. Otherwise, the user must be on the road right now, so:
         // If it was a spot that is still waiting for a ride, show SpotForm so that the user can evalute it.
         // If it was none of the previous cases, then the user is not waiting for a ride and we can present SpotForm so that a next spot can be added to the route.
-        if (lastRouteSpot == null || (lastRouteSpot.getIsDestination() != null && lastRouteSpot.getIsDestination()))
+        if (lastRouteSpot == null || (lastRouteSpot.getIsDestination() != null && lastRouteSpot.getIsDestination())) {
+            finish();
             startActivity(new Intent(getApplicationContext(), MyMapsActivity.class));
-        else {
+        } else {
             //User is probably on the road right now!
             Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
 

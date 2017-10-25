@@ -257,5 +257,6 @@
     <string name="region_name">Região %1$d</string>
     <string name="set_region_name_hint">Informe um nome</string>
     <string name="offline_map_in_progress_toast_message">Operação em andamento, aguarde..</string>
+    <string name="tile_count_limit_exceed_error_message">A região selecionada é muito grande, o download não pode ser completado</string>
 
 </resources>

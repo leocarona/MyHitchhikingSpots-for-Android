@@ -110,6 +110,10 @@ public class FetchAddressIntentService extends IntentService {
                 errorMessage = getString(R.string.no_address_found);
                 Crashlytics.logException(new Exception(errorMessage));
             }
+        }
+
+        if (!errorMessage.isEmpty()) {
+            Crashlytics.setString("errorMessage", errorMessage);
             deliverResultToReceiver(Constants.FAILURE_RESULT, errorMessage);
         } else {
             Address address = addresses.get(0);

@@ -243,4 +243,5 @@
     <string name="region_name">Region %1$d</string>
     <string name="set_region_name_hint">Enter name</string>
     <string name="offline_map_in_progress_toast_message">Still in progress, please wait</string>
+    <string name="tile_count_limit_exceed_error_message">This region is too big, download was stopped</string>
 </resources>
