@@ -30,7 +30,6 @@ import com.crashlytics.android.Crashlytics;
 
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
-import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
@@ -446,6 +445,14 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                     })
                     .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
         }
+
+        /*MarkerViewOptions m=new MarkerViewOptions();
+        m.position(new LatLng(-19.9855600, -43.8466700));
+        MarkerViewOptions m2=new MarkerViewOptions();
+        m2.position(new LatLng( -19.7884002,-43.9402344));
+
+        mapboxMap.addMarker(m);
+        mapboxMap.addMarker(m2);*/
     }
 
 

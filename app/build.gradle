@@ -46,9 +46,9 @@ android {
         manifestPlaceholders = [fabricApiKey: otherPrivateProperties['fabricApiKey']]
         applicationId 'com.myhitchhikingspots'
         minSdkVersion minSdk
-        targetSdkVersion 22
-        versionCode 14
-        versionName "2.1.0"
+        targetSdkVersion 25
+        versionCode 15
+        versionName "2.1.1"
         // Stops the Gradle plugin’s automatic rasterization of vectors
         generatedDensities = []
 
@@ -80,8 +80,8 @@ repositories {
 dependencies {
     //Begin: Dependencies for MapBox
     // add the Mapbox SDK dependency below
-    compile('com.mapbox.mapboxsdk:mapbox-android-sdk:5.1.4@aar') {
-        transitive = true
+    compile ('com.mapbox.mapboxsdk:mapbox-android-sdk:5.0.2@aar'){
+        transitive=true
     }
     //End: Dependencies for MapBox
 

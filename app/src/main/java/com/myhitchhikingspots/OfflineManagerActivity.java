@@ -220,7 +220,6 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         // been made yet.
         if (mapboxMap != null) {
             mapboxMap.setOnMyLocationChangeListener(null);
-            mapboxMap.setOnCameraMoveStartedListener(null);
         }
     }
 
