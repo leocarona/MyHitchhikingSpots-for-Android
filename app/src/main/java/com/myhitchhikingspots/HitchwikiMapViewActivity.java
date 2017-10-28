@@ -461,17 +461,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 new DrawAnnotations().execute();
             }
         } else {
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getString(R.string.menu_hitchwiki_maps))
-                    .setMessage(String.format(getString(R.string.empty_list_dialog_message), getString(R.string.tools_title)))
-                    .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-                        }
-                    })
-                    .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
+            showDialogDownloadHWSpots();
         }
 
         /*MarkerViewOptions m=new MarkerViewOptions();
@@ -481,6 +471,20 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         mapboxMap.addMarker(m);
         mapboxMap.addMarker(m2);*/
+    }
+
+    private void showDialogDownloadHWSpots() {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getString(R.string.menu_hitchwiki_maps))
+                .setMessage(String.format(getString(R.string.empty_list_dialog_message), getString(R.string.tools_title)))
+                .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
+                    }
+                })
+                .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
     }
 
 
@@ -877,6 +881,11 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             }
 
             dismissProgressDialog();
+
+            //If there's no spot to show, display dialog trying to encourage the user to go and download some HW spots
+            //This should be particularly useful when user had downloaded HW spots but the local file was manually deleted or got corrupted for some reason
+            if (trips.size() == 0 || (trips.size() == 1 && trips.get(0).size() == 0))
+                showDialogDownloadHWSpots();
 
             isDrawingAnnotations = false;
 
