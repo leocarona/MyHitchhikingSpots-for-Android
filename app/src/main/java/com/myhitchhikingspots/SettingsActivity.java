@@ -307,7 +307,7 @@ public class SettingsActivity extends BaseActivity {
         t.addListener(new AsyncTaskListener<ArrayList<String>>() {
             @Override
             public void notifyTaskFinished(Boolean success, ArrayList<String> messages) {
-                String title = context.getString(R.string.general_import_finished_successfull_message);
+                String title = context.getString(R.string.general_import_finished_successful_message);
 
                 if (!success)
                     title = context.getString(R.string.general_import_finished_failed_message);

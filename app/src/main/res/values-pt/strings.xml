@@ -184,7 +184,7 @@
     <string name="general_export_finished_successfull_message">Exportado com sucesso!</string>
     <string name="general_export_finished_failed_message">Falha na exportação</string>
     <string name="general_last_sync_date">Última sincronização realizada em %s.</string>
-    <string name="general_import_finished_successfull_message">Importado com sucesso!</string>
+    <string name="general_import_finished_successful_message">Importado com sucesso!</string>
     <string name="general_import_finished_failed_message">Falha na importação</string>
     <string name="general_enable_button_label">ativar</string>
 

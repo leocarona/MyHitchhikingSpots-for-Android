@@ -182,7 +182,7 @@ The Hitchwiki team.
     <string name="general_export_finished_successfull_message">Exported successfully!</string>
     <string name="general_export_finished_failed_message">Export failed</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>
-    <string name="general_import_finished_successfull_message">Imported successfully!</string>
+    <string name="general_import_finished_successful_message">Imported successfully!</string>
     <string name="general_import_finished_failed_message">Import failed</string>
     <string name="general_enable_button_label">enable</string>
 
