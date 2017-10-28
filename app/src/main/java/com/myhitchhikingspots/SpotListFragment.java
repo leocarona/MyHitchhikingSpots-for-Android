@@ -74,6 +74,7 @@ public class SpotListFragment extends Fragment {
         }
     }
 
+    final String sqlDeleteStatement = "DELETE FROM %1$s WHERE %2$s";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -98,26 +99,35 @@ public class SpotListFragment extends Fragment {
                                     public void onClick(DialogInterface dialog, int which) {
                                         String errorMessage = "";
                                         try {
-                                            ArrayList<String> where = new ArrayList<>();
+                                            //Concatenate Id in a list as "Id.columnName = x"
+                                            ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
                                             for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++)
-                                                where.add(" " + SpotDao.Properties.Id.columnName + " = '" + mAdapter.getSelectedSpots().get(i) + "' ");
+                                                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + mAdapter.getSelectedSpots().get(i) + "' ");
 
-                                            String sqlDeleteStatement = "DELETE FROM %1$s WHERE %2$s";
+                                            //Get a DB session
                                             Database db = DaoMaster.newDevSession(getContext(), Constants.INTERNAL_DB_FILE_NAME).getDatabase();
+
+                                            //Delete selected spots from DB
                                             db.execSQL(String.format(sqlDeleteStatement,
                                                     SpotDao.TABLENAME,
-                                                    TextUtils.join(" OR ", where)));
+                                                    TextUtils.join(" OR ", spotsToBeDeleted_idList)));
 
                                             ArrayList<String> spotsToBeDeleted_coordinateList = new ArrayList<>();
-                                            List<Spot> newList = new ArrayList<>();
-                                            for (int i = 0; i < spotList.size(); i++)
-                                                //Add spot if it was not deleted
-                                                if (!mAdapter.getSelectedSpots().contains(spotList.get(i).getId().intValue()))
-                                                    newList.add(spotList.get(i));
-                                                else {
+                                            List<Spot> remainingSpots = new ArrayList<>();
+
+                                            //Go through all the spots in the list
+                                            for (int i = 0; i < spotList.size(); i++) {
+                                                Spot s = spotList.get(i);
+
+                                                //Check if this spot was in the list to be deleted
+                                                if (!mAdapter.getSelectedSpots().contains(s.getId().intValue())) {
+                                                    //Add spot to remaining list if it was not selected to be deleted
+                                                    remainingSpots.add(s);
+                                                } else {
                                                     //Add spot coordinate to the list of coordinates of deleted spots
-                                                    spotsToBeDeleted_coordinateList.add(spotList.get(i).getLatitude() + "," + spotList.get(i).getLongitude());
+                                                    spotsToBeDeleted_coordinateList.add(s.getLatitude() + "," + s.getLongitude());
                                                 }
+                                            }
 
                                             //Create a record to track usage of Delete button when one or more spots is deleted
                                             Answers.getInstance().logCustom(new CustomEvent("Spots deleted")
@@ -128,7 +138,7 @@ public class SpotListFragment extends Fragment {
                                             mAdapter.setSelectedSpotsList(new ArrayList<Integer>());
 
                                             //Replace spotList with the list not containing the removed spots
-                                            spotList = newList;
+                                            spotList = remainingSpots;
 
                                             mAdapter.setSpotList(spotList);
                                             setIsEditMode(false);
