@@ -33,6 +33,8 @@ import com.crashlytics.android.Crashlytics;
 
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
@@ -415,6 +417,9 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                             return true;
                         }
                     }*/
+
+                    //Create a record to track of HW spots viewed by the user
+                    Answers.getInstance().logCustom(new CustomEvent("HW spot viewed"));
 
                     Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
                     //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?

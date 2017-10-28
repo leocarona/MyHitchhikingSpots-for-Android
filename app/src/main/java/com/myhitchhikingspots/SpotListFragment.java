@@ -112,27 +112,19 @@ public class SpotListFragment extends Fragment {
                                                     SpotDao.TABLENAME,
                                                     TextUtils.join(" OR ", spotsToBeDeleted_idList)));
 
-                                            ArrayList<String> spotsToBeDeleted_coordinateList = new ArrayList<>();
                                             List<Spot> remainingSpots = new ArrayList<>();
 
                                             //Go through all the spots in the list
                                             for (int i = 0; i < spotList.size(); i++) {
-                                                Spot s = spotList.get(i);
-
                                                 //Check if this spot was in the list to be deleted
-                                                if (!mAdapter.getSelectedSpots().contains(s.getId().intValue())) {
+                                                if (!mAdapter.getSelectedSpots().contains(spotList.get(i).getId().intValue())) {
                                                     //Add spot to remaining list if it was not selected to be deleted
-                                                    remainingSpots.add(s);
+                                                    remainingSpots.add(spotList.get(i));
                                                 } else {
-                                                    //Add spot coordinate to the list of coordinates of deleted spots
-                                                    spotsToBeDeleted_coordinateList.add(s.getLatitude() + "," + s.getLongitude());
+                                                    //Create recordd to track usage of Delete button for each spot deleted
+                                                    Answers.getInstance().logCustom(new CustomEvent("Spot deleted"));
                                                 }
                                             }
-
-                                            //Create a record to track usage of Delete button when one or more spots is deleted
-                                            Answers.getInstance().logCustom(new CustomEvent("Spots deleted")
-                                                    .putCustomAttribute("Amount", mAdapter.getSelectedSpots().size())
-                                                    .putCustomAttribute("Coordinates", TextUtils.join(";", spotsToBeDeleted_coordinateList)));
 
                                             //Clear selectedSpotsList
                                             mAdapter.setSelectedSpotsList(new ArrayList<Integer>());

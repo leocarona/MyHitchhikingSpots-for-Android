@@ -1065,8 +1065,7 @@ public class SettingsActivity extends BaseActivity {
 
                             //Create a record to track usage of Download HW spots button
                             Answers.getInstance().logCustom(new CustomEvent("HW spots downloaded")
-                                    .putCustomAttribute("By", (dialog_type == DIALOG_TYPE_CONTINENT) ? "Continent" : "Country")
-                                    .putCustomAttribute("Selected codes", selectedCodes));
+                                    .putCustomAttribute("Region", (dialog_type == DIALOG_TYPE_CONTINENT) ? "Continent" : "Country"));
 
                             SettingsActivity context = (SettingsActivity) getActivity();
                             context.downloadHWSpots(selectedCodes, dialog_type);

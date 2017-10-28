@@ -407,6 +407,9 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         // Define offline region parameters, including bounds,
         // min/max zoom, and metadata
 
+        //Create a record to track usage of Download Map Region
+        Answers.getInstance().logCustom(new CustomEvent("Offline Map download click"));
+
         // Start the progressBar
         startProgress();
 
@@ -419,15 +422,6 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         float pixelRatio = this.getResources().getDisplayMetrics().density;
         OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
                 styleUrl, bounds, minZoom, maxZoom, pixelRatio);
-
-
-        //Create a record to track usage of Download Map Region
-        Answers.getInstance().logCustom(new CustomEvent("Offline Map download click")
-                .putCustomAttribute("Name given by user", regionName)
-                .putCustomAttribute("Bounds", bounds.toString())
-                .putCustomAttribute("minZoom", minZoom)
-                .putCustomAttribute("maxZoom", maxZoom));
-
 
         // Build a JSONObject using the user-defined offline region title,
         // convert it into string, and use it to create a metadata variable.
