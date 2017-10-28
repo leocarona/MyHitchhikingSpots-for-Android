@@ -214,7 +214,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback {
         // Check if user has granted location permission
         if (!PermissionsManager.areLocationPermissionsGranted(this)) {
             Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
-                    .setAction("enable", new View.OnClickListener() {
+                    .setAction(R.string.general_enable_button_label, new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             ActivityCompat.requestPermissions(MyMapsActivity.this, new String[]{

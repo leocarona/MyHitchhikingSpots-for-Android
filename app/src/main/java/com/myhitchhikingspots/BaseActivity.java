@@ -13,6 +13,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.ContentViewEvent;
+
 /**
  * Created by leoboaventura on 07/03/2016.
  */
@@ -50,6 +53,11 @@ public class BaseActivity extends AppCompatActivity
                 }
             }
         }
+
+
+        // Create a record that user has visited the current activity
+        Answers.getInstance().logContentView(new ContentViewEvent()
+                .putContentId(getClass().getName()));
     }
 
     @Override

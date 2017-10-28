@@ -69,8 +69,9 @@ import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoComplete;
 import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.github.florent37.viewtooltip.ViewTooltip;
-import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -513,7 +514,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Check if user has granted location permission
         if (!PermissionsManager.areLocationPermissionsGranted(this)) {
             Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
-                    .setAction("enable", new View.OnClickListener() {
+                    .setAction(R.string.general_enable_button_label, new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             ActivityCompat.requestPermissions(SpotFormActivity.this, new String[]{
@@ -1353,6 +1354,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                     public void run() {
                                         ComponentName callingActivity = getCallingActivity();
 
+                                        //Create a record to track usage of Delete button when a spot is deleted
+                                        Answers.getInstance().logCustom(new CustomEvent("Spot deleted"));
+
                                         if (!shouldGoBackToPreviousActivity && (callingActivity == null || callingActivity.getClassName() == null
                                                 || !callingActivity.getClassName().equals(MyMapsActivity.class.getName()))) {
                                             setResult(RESULT_OBJECT_DELETED);
@@ -1393,6 +1397,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                     mFormType = FormType.Evaluate;
 
                 Crashlytics.setString("mFormType", mFormType.toString());
+
+                //Create a record to track usage of Save button when a new spot is saved for the first time
+                Answers.getInstance().logCustom(new CustomEvent("Spot created"));
 
                 refreshDatetimeAlertDialogWasShown = false;
 

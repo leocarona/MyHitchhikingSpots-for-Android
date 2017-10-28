@@ -155,8 +155,9 @@
     <string name="general_export_finished_successfull_message">Exported successfully!</string>
     <string name="general_export_finished_failed_message">Export failed</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>
-    <string name="general_import_finished_successfull_message">Imported successfully!</string>
+    <string name="general_import_finished_successful_message">Imported successfully!</string>
     <string name="general_import_finished_failed_message">Import failed</string>
+    <string name="general_enable_button_label">slå til</string>
 
     <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 

@@ -13,7 +13,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatDelegate;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -23,6 +22,8 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -261,7 +262,7 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     //.setTitle(getString(R.string.refresh_datetime_dialog_title))
                     .setMessage(getString(R.string.waiting_for_gps))
-                    .setPositiveButton("enable", new DialogInterface.OnClickListener() {
+                    .setPositiveButton(R.string.general_enable_button_label, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             ActivityCompat.requestPermissions(OfflineManagerActivity.this, new String[]{
@@ -405,6 +406,9 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     private void downloadRegion(final String regionName) {
         // Define offline region parameters, including bounds,
         // min/max zoom, and metadata
+
+        //Create a record to track usage of Download Map Region
+        Answers.getInstance().logCustom(new CustomEvent("Offline Map download click"));
 
         // Start the progressBar
         startProgress();
