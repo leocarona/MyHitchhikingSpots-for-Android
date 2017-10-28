@@ -70,7 +70,6 @@ import hitchwikiMapsSDK.entities.PlaceInfoComplete;
 import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
 
 import com.github.florent37.viewtooltip.ViewTooltip;
-import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -513,7 +512,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         // Check if user has granted location permission
         if (!PermissionsManager.areLocationPermissionsGranted(this)) {
             Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
-                    .setAction("enable", new View.OnClickListener() {
+                    .setAction(R.string.general_enable_button_label, new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             ActivityCompat.requestPermissions(SpotFormActivity.this, new String[]{
