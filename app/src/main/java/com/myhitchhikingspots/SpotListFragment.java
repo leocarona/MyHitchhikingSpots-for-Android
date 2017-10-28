@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.interfaces.ListListener;
@@ -106,11 +108,21 @@ public class SpotListFragment extends Fragment {
                                                     SpotDao.TABLENAME,
                                                     TextUtils.join(" OR ", where)));
 
+                                            ArrayList<String> spotsToBeDeleted_coordinateList = new ArrayList<>();
                                             List<Spot> newList = new ArrayList<>();
                                             for (int i = 0; i < spotList.size(); i++)
                                                 //Add spot if it was not deleted
                                                 if (!mAdapter.getSelectedSpots().contains(spotList.get(i).getId().intValue()))
                                                     newList.add(spotList.get(i));
+                                                else {
+                                                    //Add spot coordinate to the list of coordinates of deleted spots
+                                                    spotsToBeDeleted_coordinateList.add(spotList.get(i).getLatitude() + "," + spotList.get(i).getLongitude());
+                                                }
+
+                                            //Create a record to track usage of Delete button when one or more spots is deleted
+                                            Answers.getInstance().logCustom(new CustomEvent("Spots deleted")
+                                                    .putCustomAttribute("Amount", mAdapter.getSelectedSpots().size())
+                                                    .putCustomAttribute("Coordinates", TextUtils.join(";", spotsToBeDeleted_coordinateList)));
 
                                             //Clear selectedSpotsList
                                             mAdapter.setSelectedSpotsList(new ArrayList<Integer>());

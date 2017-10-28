@@ -39,6 +39,8 @@ import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.google.gson.Gson;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
@@ -287,6 +289,9 @@ public class SettingsActivity extends BaseActivity {
         if (!isStoragePermissionsGranted(this))
             requestStoragePermissions(this);
         else {
+            //Create a record to track usage of Import Database button
+            Answers.getInstance().logCustom(new CustomEvent("Database imported"));
+
             FilePickerDialog dialog = new FilePickerDialog();
             //Add listener to be called when task finished
             dialog.addListener(new AsyncTaskListener<File>() {
@@ -372,6 +377,9 @@ public class SettingsActivity extends BaseActivity {
             requestStoragePermissions(this);
         else {
             try {
+                //Create a record to track usage of Export Database button
+                Answers.getInstance().logCustom(new CustomEvent("Database exported"));
+
                 DatabaseExporter t = new DatabaseExporter(this);
                 //Add listener to be called when task finished
                 t.addListener(new AsyncTaskListener<String>() {
@@ -1054,6 +1062,11 @@ public class SettingsActivity extends BaseActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Crashlytics.log(Log.INFO, TAG, "READY to download!");
+
+                            //Create a record to track usage of Download HW spots button
+                            Answers.getInstance().logCustom(new CustomEvent("HW spots downloaded")
+                                    .putCustomAttribute("By", (dialog_type == DIALOG_TYPE_CONTINENT) ? "Continent" : "Country")
+                                    .putCustomAttribute("Selected codes", selectedCodes));
 
                             SettingsActivity context = (SettingsActivity) getActivity();
                             context.downloadHWSpots(selectedCodes, dialog_type);
