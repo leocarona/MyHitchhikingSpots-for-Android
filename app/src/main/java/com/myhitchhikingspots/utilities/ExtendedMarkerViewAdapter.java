@@ -19,7 +19,7 @@ public class ExtendedMarkerViewAdapter extends MapboxMap.MarkerViewAdapter<Exten
     private LayoutInflater inflater;
 
     public ExtendedMarkerViewAdapter(Context context) {
-        super(context);
+        super(context, null);
         inflater = LayoutInflater.from(context);
     }
 

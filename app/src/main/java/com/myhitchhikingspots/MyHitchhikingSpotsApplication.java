@@ -3,6 +3,7 @@ package com.myhitchhikingspots;
 import android.app.Application;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -22,7 +23,7 @@ import java.util.List;
 /**
  * Created by leoboaventura on 08/03/2016.
  */
-public class MyHitchhikingSpotsApplication extends Application {
+public class MyHitchhikingSpotsApplication extends MultiDexApplication {
     public DaoSession daoSession;
     public Spot currentSpot;
 

@@ -45,7 +45,11 @@ import com.mapbox.mapboxsdk.geometry.LatLngBounds;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
+import com.mapbox.android.core.permissions.PermissionsListener;
+import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
+import com.mapbox.mapboxsdk.plugins.locationlayer.OnCameraTrackingChangedListener;
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.ExtendedMarkerView;
 import com.myhitchhikingspots.utilities.ExtendedMarkerViewAdapter;
@@ -57,7 +61,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReadyCallback {
+public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     //private LocationEngine locationEngine;
@@ -68,6 +72,9 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     Boolean shouldDisplayIcons = true;
 
     boolean wasSnackbarShown;
+
+    private PermissionsManager permissionsManager;
+    private LocationLayerPlugin locationLayerPlugin;
 
     //WARNING: in order to use BaseActivity the method onCreate must be overridden
     // calling first setContentView to the view you want to use
@@ -102,8 +109,14 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null) {
-                    if (mapboxMap.getMyLocation() != null)
-                        moveCamera(new LatLng(mapboxMap.getMyLocation()));
+                    Location loc = null;
+                    try {
+                        loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
+                    } catch (SecurityException ex) {
+                    }
+
+                    if (loc != null)
+                        moveCamera(new LatLng(loc));
                     else
                         locateUser();
                 }
@@ -149,24 +162,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         loadMarkerIcons();
 
-
-        moveCameraToFirstLocationReceived = new MapboxMap.OnMyLocationChangeListener() {
-            @Override
-            public void onMyLocationChange(Location location) {
-                if (location != null) {
-                    if (!wasFirstLocationReceived) {
-                        updateCurrentPage();
-                        wasFirstLocationReceived = true;
-                    }
-
-                    mapboxMap.setOnMyLocationChangeListener(null);
-
-                    //Place the map camera at the received GPS position
-                    moveCamera(new LatLng(location.getLatitude(), location.getLongitude()), Constants.KEEP_ZOOM_LEVEL);
-                }
-            }
-        };
-
         //Rename old Hitchwiki Maps directory to something more intuitive for the user
         if (prefs.getBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, false)) {
             File oldFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
@@ -201,7 +196,13 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     }
 
     void locateUser() {
-        // Check if user has granted location permission
+        enableLocationPlugin();
+
+        // Enable the location layer on the map
+        if (PermissionsManager.areLocationPermissionsGranted(HitchwikiMapViewActivity.this) && !locationLayerPlugin.isLocationLayerEnabled())
+            locationLayerPlugin.setLocationLayerEnabled(true);
+
+        /*  // Check if user has granted location permission
         if (!PermissionsManager.areLocationPermissionsGranted(this)) {
             Snackbar.make(coordinatorLayout, getResources().getString(R.string.waiting_for_gps), Snackbar.LENGTH_LONG)
                     .setAction(R.string.general_enable_button_label, new View.OnClickListener() {
@@ -213,14 +214,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                         }
                     }).show();
         } else {
-            Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT).show();
-            // Enable the location layer on the map
-            if (!mapboxMap.isMyLocationEnabled())
-                mapboxMap.setMyLocationEnabled(true);
-            //Place the map camera at the next GPS position that we receive
-            mapboxMap.setOnMyLocationChangeListener(null);
-            mapboxMap.setOnMyLocationChangeListener(moveCameraToFirstLocationReceived);
-        }
+            Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT).show();;/
+        }*/
     }
 
     void showSpotSavedSnackbar() {
@@ -334,11 +329,10 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
      */
     boolean wasFirstLocationReceived = false;
 
-    MapboxMap.OnMyLocationChangeListener moveCameraToFirstLocationReceived;
 
     @Override
-    public void onRequestPermissionsResult(
-            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 locateUser();
@@ -346,6 +340,56 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         }
     }
 
+    @Override
+    public void onExplanationNeeded(List<String> permissionsToExplain) {
+        Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onPermissionResult(boolean granted) {
+        if (granted) {
+            enableLocationPlugin();
+        } else {
+            Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationPlugin() {
+        if (locationLayerPlugin == null) {
+            // Check if permissions are enabled and if not request
+            if (PermissionsManager.areLocationPermissionsGranted(this)) {
+
+                // Create an instance of the plugin. Adding in LocationLayerOptions is also an optional parameter
+                locationLayerPlugin = new LocationLayerPlugin(mapView, mapboxMap);
+
+                locationLayerPlugin.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
+                    @Override
+                    public void onCameraTrackingDismissed() {
+                        // Tracking has been dismissed
+                    }
+
+                    @Override
+                    public void onCameraTrackingChanged(int currentMode) {
+                        // CameraMode has been updated
+
+                        if (!wasFirstLocationReceived) {
+                            updateCurrentPage();
+                            wasFirstLocationReceived = true;
+                        }
+                    }
+                });
+
+                // Set the plugin's camera mode
+                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS);
+                getLifecycle().addObserver(locationLayerPlugin);
+            } else {
+                permissionsManager = new PermissionsManager(this);
+                permissionsManager.requestLocationPermissions(this);
+            }
+        }
+    }
 
     public void loadValues() {
 
@@ -381,13 +425,11 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         this.mapboxMap = mapboxMap;
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
-        // Customize the user location icon using the getMyLocationViewSettings object.
+        /*// Customize the user location icon using the getMyLocationViewSettings object.
         //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
-        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")
+        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")*/
 
-        // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(HitchwikiMapViewActivity.this) && !mapboxMap.isMyLocationEnabled())
-            mapboxMap.setMyLocationEnabled(true);
+        enableLocationPlugin();
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
@@ -453,8 +495,14 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     SharedPreferences prefs;
 
     void loadAll() {
-        if (mapboxMap.getMyLocation() != null)
-            moveCamera(new LatLng(mapboxMap.getMyLocation()));
+        Location loc = null;
+        try {
+            loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
+        } catch (SecurityException ex) {
+        }
+
+        if (loc != null)
+            moveCamera(new LatLng(loc));
 
         Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
         if (millisecondsAtRefresh > 0) {
@@ -468,14 +516,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         } else {
             showDialogDownloadHWSpots();
         }
-
-        /*MarkerViewOptions m=new MarkerViewOptions();
-        m.position(new LatLng(-19.9855600, -43.8466700));
-        MarkerViewOptions m2=new MarkerViewOptions();
-        m2.position(new LatLng( -19.7884002,-43.9402344));
-
-        mapboxMap.addMarker(m);
-        mapboxMap.addMarker(m2);*/
     }
 
     private void showDialogDownloadHWSpots() {
@@ -648,7 +688,12 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     protected void zoomOutToFitAllMarkers() {
         try {
             if (mapboxMap != null) {
-                Location mCurrentLocation = mapboxMap.getMyLocation();
+                Location mCurrentLocation = null;
+                try {
+                    mCurrentLocation = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
+                } catch (SecurityException ex) {
+                }
+
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
                 for (Marker marker : mapboxMap.getMarkers()) {
@@ -680,9 +725,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         }
     }
 
-    private LatLng positionAt = null;
-    private boolean isCameraPositionChangingByCodeRequest = false;
-
 
     /**
      * Move the map camera to the given position
@@ -692,8 +734,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
      */
     private void moveCamera(LatLng latLng, long zoom) {
         if (latLng != null) {
-            positionAt = latLng;
-            isCameraPositionChangingByCodeRequest = true;
             mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
         }
     }
