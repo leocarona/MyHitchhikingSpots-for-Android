@@ -109,16 +109,13 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null) {
-                    Location loc = null;
-                    try {
-                        loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
-                    } catch (SecurityException ex) {
-                    }
+                    moveCameraToLastKnownLocation();
 
-                    if (loc != null)
-                        moveCamera(new LatLng(loc));
-                    else
-                        locateUser();
+                    if (waiting_GPS_update == null)
+                        waiting_GPS_update = Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
+                    waiting_GPS_update.show();
+
+                    locateUser();
                 }
             }
         });
@@ -194,6 +191,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 PERMISSIONS_EXTERNAL_STORAGE
         );
     }
+
+    Toast waiting_GPS_update;
 
     void locateUser() {
         enableLocationPlugin();
@@ -745,6 +744,36 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
      */
     private void moveCamera(LatLng latLng) {
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
+    }
+
+    private void moveCameraToLastKnownLocation() {
+        LatLng moveCameraPositionTo = null;
+
+        //If we know the current position of the user, move the map camera to there
+        try {
+            moveCameraPositionTo = (locationLayerPlugin != null) ? new LatLng(locationLayerPlugin.getLastKnownLocation()) : null;
+        } catch (SecurityException ex) {
+        }
+
+        if (moveCameraPositionTo != null) {
+            moveCameraPositionTo = new LatLng(moveCameraPositionTo);
+        } else {
+            //The user might still be close to the last spot saved, move the map camera there
+            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
+            if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
+                    && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
+                moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+            }
+        }
+
+        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+
+        //If current zoom level is default (world level)
+        if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
+            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+
+        if (moveCameraPositionTo != null)
+            moveCamera(moveCameraPositionTo, zoomLevel);
     }
 
     private ProgressDialog loadingDialog;
