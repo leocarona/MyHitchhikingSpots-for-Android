@@ -17,7 +17,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
@@ -31,9 +30,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.gson.JsonObject;
+import android.graphics.PointF;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.Point;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -46,12 +52,10 @@ import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxsdk.plugins.locationlayer.OnCameraTrackingChangedListener;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
-import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.ExtendedMarkerView;
-import com.myhitchhikingspots.utilities.ExtendedMarkerViewAdapter;
 import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
@@ -286,6 +290,13 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
         ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
     }
+    
+    private static final String MARKER_SOURCE = "markers-source";
+    private static final String MARKER_STYLE_LAYER = "markers-style-layer";
+
+    FeatureCollection featureCollection;
+    GeoJsonSource source;
+    SymbolLayer markerStyleLayer;
 
     Spot mCurrentWaitingSpot;
     boolean mIsWaitingForARide;
@@ -505,12 +516,27 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             }
         });
 
-        final MarkerViewManager markerViewManager = mapboxMap.getMarkerViewManager();
-        // if you want to customise a ViewMarker you need to extend ViewMarker and provide an adapter implementation
-        // set adapters for child classes of ViewMarker
-        markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(MyMapsActivity.this));
+        this.mapboxMap.getUiSettings().setCompassEnabled(false);
+        this.mapboxMap.getUiSettings().setLogoEnabled(false);
+        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
+
+        this.mapboxMap.addImage(ic_single_spot.getId(), ic_single_spot.getBitmap());
+        this.mapboxMap.addImage(ic_point_on_the_route_spot.getId(), ic_point_on_the_route_spot.getBitmap());
+        this.mapboxMap.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
+        this.mapboxMap.addImage(ic_arrival_spot.getId(), ic_arrival_spot.getBitmap());
+        this.mapboxMap.addImage(ic_typeunknown_spot.getId(), ic_typeunknown_spot.getBitmap());
+        this.mapboxMap.addImage(ic_got_a_ride_spot0.getId(), ic_got_a_ride_spot0.getBitmap());
+        this.mapboxMap.addImage(ic_got_a_ride_spot1.getId(), ic_got_a_ride_spot1.getBitmap());
+        this.mapboxMap.addImage(ic_got_a_ride_spot2.getId(), ic_got_a_ride_spot2.getBitmap());
+        this.mapboxMap.addImage(ic_got_a_ride_spot3.getId(), ic_got_a_ride_spot3.getBitmap());
+        this.mapboxMap.addImage(ic_got_a_ride_spot4.getId(), ic_got_a_ride_spot4.getBitmap());
 
         updateUI();
+    }
+
+    private LatLng convertToLatLng(Feature feature) {
+        Point symbolPoint = (Point) feature.geometry();
+        return new LatLng(symbolPoint.latitude(), symbolPoint.longitude());
     }
 
     SharedPreferences prefs;
@@ -920,20 +946,30 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             showProgressDialog();
         }
 
+        String errMsg = "";
+
         @Override
         protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
+
             try {
                 loadValues();
+            } catch (final Exception ex) {
+                Crashlytics.logException(ex);
+                errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
+                        "Loading spots failed.\n" + ex.getMessage());
+                return new ArrayList<>();
+            }
 
-                isDrawingAnnotations = true;
+            isDrawingAnnotations = true;
 
-                List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
-                ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
-                ArrayList<ExtendedMarkerViewOptions> singleSpots = new ArrayList<>();
+            List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
+            ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
+            ArrayList<ExtendedMarkerViewOptions> singleSpots = new ArrayList<>();
 
-                //The spots are ordered from the last saved ones to the first saved ones, so we need to
-                // go through the list in the opposite direction in order to sum up the route's totals from their origin to their destinations
-                for (int i = spotList.size() - 1; i >= 0; i--) {
+            //The spots are ordered from the last saved ones to the first saved ones, so we need to
+            // go through the list in the opposite direction in order to sum up the route's totals from their origin to their destinations
+            for (int i = spotList.size() - 1; i >= 0; i--) {
+                try {
                     Spot spot = spotList.get(i);
                     String markerTitle = "";
 
@@ -1083,26 +1119,28 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                         }
                     } else
                         singleSpots.add(markerViewOptions);
+                } catch (final Exception ex) {
+                    Crashlytics.logException(ex);
+                    errMsg = "Failed to load a spot";
                 }
+            }
 
-                if (singleSpots.size() > 0) {
-                    trips.add(singleSpots);
-                    isLastArrayForSingleSpots = true;
-                }
+            if (singleSpots.size() > 0) {
+                trips.add(singleSpots);
+                isLastArrayForSingleSpots = true;
+            }
 
-                return trips;
-            } catch (final Exception ex) {
-                Crashlytics.logException(ex);
+            if (!errMsg.isEmpty()) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
-                                "Loading spots failed.\n" + ex.getMessage()));
+                                "Loading spots failed.\n" + errMsg));
                     }
                 });
             }
 
-            return new ArrayList<>();
+            return trips;
         }
 
         Boolean isLastArrayForSingleSpots = false;
@@ -1113,19 +1151,24 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             if (MyMapsActivity.this.isFinishing())
                 return;
 
-            try {
-                mapboxMap.clear();
+            mapboxMap.clear();
 
-                updateUISaveButtons();
+            updateUISaveButtons();
 
-                for (int lc = 0; lc < trips.size(); lc++) {
+
+            List<Feature> features = new ArrayList<>();
+            for (int lc = 0; lc < trips.size(); lc++) {
+                try {
                     List<ExtendedMarkerViewOptions> spots = trips.get(lc);
+
+                    /* Source: A data source specifies the geographic coordinate where the image markers get placed. */
+                    //Feature for
 
                     //If it's the last array and isLastArrayForSingleSpots is true, add the markers with no polyline connecting them
                     if (isLastArrayForSingleSpots && lc == trips.size() - 1) {
                         for (ExtendedMarkerViewOptions spot : spots) {
                             //Add marker to map
-                            mapboxMap.addMarker(spot);
+                            features.add(GetFeature(spot, lc));
                         }
                     } else {
                         PolylineOptions line = new PolylineOptions()
@@ -1134,8 +1177,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
                         //Add route to the map with markers and polylines connecting them
                         for (ExtendedMarkerViewOptions spot : spots) {
-                            //Add marker to map
-                            mapboxMap.addMarker(spot);
+                            features.add(GetFeature(spot, lc));
 
                             //Add polyline connecting this marker
                             line.add(spot.getPosition());
@@ -1146,8 +1188,32 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                             mapboxMap.addPolyline(line);
                         }
                     }
+
+
+                } catch (Exception ex) {
+                    Crashlytics.logException(ex);
+                    errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
+                            "Adding markers failed - " + ex.getMessage());
                 }
 
+            }
+
+
+            featureCollection = FeatureCollection.fromFeatures(features);
+            source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
+
+            mapboxMap.addSource(source);
+
+            /* Style layer: A style layer ties together the source and image and specifies how they are displayed on the map. */
+            markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER, MARKER_SOURCE)
+                    .withProperties(
+                            PropertyFactory.iconAllowOverlap(true),
+                            PropertyFactory.iconImage("{iconImage}")
+                    );
+            mapboxMap.addLayer(markerStyleLayer);
+
+
+            try {
                 //Automatically zoom out to fit all markers only the first time that spots are loaded.
                 // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
                 if (shouldZoomToFitAllMarkers) {
@@ -1188,16 +1254,34 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
-                showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
-                        "Adding markers failed - " + ex.getMessage()));
+                errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
+                        "Adding markers failed - " + ex.getMessage());
             }
 
             dismissProgressDialog();
 
             isDrawingAnnotations = false;
 
+
+            if (!errMsg.isEmpty()) {
+                showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+            }
         }
 
+    }
+
+    Feature GetFeature(ExtendedMarkerViewOptions oldMarker, int routeIndex) {
+        LatLng pos = oldMarker.getPosition();
+
+        JsonObject properties = new JsonObject();
+        properties.addProperty("iconImage", oldMarker.getIcon().getId());
+        properties.addProperty("routeIndex", routeIndex);
+        properties.addProperty("tag", oldMarker.getTag());
+        properties.addProperty("spotType", oldMarker.getSpotType());
+        properties.addProperty("title", oldMarker.getTitle());
+        properties.addProperty("snippet", oldMarker.getSnippet());
+
+        return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, oldMarker.getTag());
     }
 
     Boolean shouldZoomToFitAllMarkers = true;
