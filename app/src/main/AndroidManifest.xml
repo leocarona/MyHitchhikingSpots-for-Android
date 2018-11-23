@@ -78,6 +78,10 @@ limitations under the License.
             android:label="@string/offline_map"
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar"/>
+        <activity
+            android:name=".HitchwikiMapView_SymbolLayer"
+            android:label="menu_hitchwiki_maps_2"
+            android:theme="@style/Theme.Base.NoActionBar"/>
         <!--
         Service to asynchronously fetch a location address using a Geocoder. Setting the
         android:exported attribute to "false" stops other apps from starting this
