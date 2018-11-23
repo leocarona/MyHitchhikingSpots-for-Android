@@ -13,10 +13,14 @@ public class StartActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
+        startActivity(new Intent(getApplicationContext(), HitchwikiMapView_SymbolLayer.class));
+
+/*
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
         Spot lastRouteSpot = appContext.getLastAddedRouteSpot();
 
-        //If the last route spot saved was a destination, show the map. Otherwise, the user must be on the road right now, so:
+
+       //If the last route spot saved was a destination, show the map. Otherwise, the user must be on the road right now, so:
         // If it was a spot that is still waiting for a ride, show SpotForm so that the user can evalute it.
         // If it was none of the previous cases, then the user is not waiting for a ride and we can present SpotForm so that a next spot can be added to the route.
         if (lastRouteSpot == null || (lastRouteSpot.getIsDestination() != null && lastRouteSpot.getIsDestination())) {
@@ -42,6 +46,6 @@ public class StartActivity extends Activity {
             finish();
             startActivity(intent);
         }
-
+        */
     }
 }

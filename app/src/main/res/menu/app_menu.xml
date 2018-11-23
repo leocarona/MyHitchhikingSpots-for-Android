@@ -19,6 +19,10 @@
             android:icon="@drawable/ic_settings_black_24dp"
             android:title="@string/menu_tools" />
         <item
+            android:id="@+id/nav_hitchwiki_map_2"
+            android:icon="@drawable/ic_settings_black_24dp"
+            android:title="Hitchwiki Map - Symbol Layer" />
+        <item
             android:id="@+id/nav_unselect"
             android:title=""
             android:visible="false"/>

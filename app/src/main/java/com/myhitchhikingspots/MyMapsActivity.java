@@ -290,7 +290,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
         ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
     }
-    
+
     private static final String MARKER_SOURCE = "markers-source";
     private static final String MARKER_STYLE_LAYER = "markers-style-layer";
 
@@ -472,6 +472,23 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         // Enable the location layer on the map
         if (PermissionsManager.areLocationPermissionsGranted(MyMapsActivity.this) && !locationLayerPlugin.isLocationLayerEnabled())
             locationLayerPlugin.setLocationLayerEnabled(true);
+
+        this.mapboxMap.addOnMapClickListener(point -> {
+            PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
+            List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, MARKER_STYLE_LAYER);
+            if (!features.isEmpty()) {
+                Feature selectedFeature = features.get(0);
+                //PointF symbolScreenPoint = mapboxMap.getProjection().toScreenLocation(convertToLatLng(selectedFeature));
+                String title = selectedFeature.getStringProperty("title");
+                Toast.makeText(getBaseContext(), "You selected " + title, Toast.LENGTH_SHORT).show();
+
+                selectedFeature.properties().addProperty("selected", true);
+
+                //Let the map know the property has changed by resetting the source of our layer
+                source.setGeoJson(featureCollection);
+
+            }
+        });
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
@@ -1175,6 +1192,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                                 .width(2)
                                 .color(Color.parseColor(getResources().getString(getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
 
+
                         //Add route to the map with markers and polylines connecting them
                         for (ExtendedMarkerViewOptions spot : spots) {
                             features.add(GetFeature(spot, lc));
@@ -1202,6 +1220,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             featureCollection = FeatureCollection.fromFeatures(features);
             source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
 
+            mapboxMap.removeSource(MARKER_SOURCE);
             mapboxMap.addSource(source);
 
             /* Style layer: A style layer ties together the source and image and specifies how they are displayed on the map. */
