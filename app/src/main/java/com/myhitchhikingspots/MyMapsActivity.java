@@ -1,6 +1,5 @@
 package com.myhitchhikingspots;
 
-import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,6 +39,7 @@ import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
+import com.mapbox.mapboxsdk.annotations.Polyline;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -61,6 +61,7 @@ import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener {
@@ -294,7 +295,10 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     private static final String MARKER_SOURCE = "markers-source";
     private static final String MARKER_STYLE_LAYER = "markers-style-layer";
 
+    //Each hitchhiking spot is a feature
     FeatureCollection featureCollection;
+    //Each route is an item of PolylineOptionsArray
+    PolylineOptions[] polylineOptionsArray;
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
 
@@ -590,7 +594,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     }
 
     void loadAll() {
-        //Load polylines
+        //Load markers and polylines
         new DrawAnnotations().execute();
     }
 
@@ -791,6 +795,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             case R.id.action_toggle_icons:
                 shouldDisplayIcons = !shouldDisplayIcons;
                 if (shouldDisplayIcons) {
+                    addAllPolylinesToMap();
+
                     fabLocateUser.setVisibility(View.VISIBLE);
                     //fabShowAll.setVisibility(View.VISIBLE);
                     fabZoomIn.setVisibility(View.VISIBLE);
@@ -800,6 +806,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                     //Call configureBottomFABButtons to show only the buttons that should be shown
                     configureBottomFABButtons();
                 } else {
+                    removeAllPolylinesFromMap();
+
                     fabLocateUser.setVisibility(View.GONE);
                     //fabShowAll.setVisibility(View.GONE);
                     fabZoomIn.setVisibility(View.GONE);
@@ -820,6 +828,17 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             return true;
         else
             return super.onOptionsItemSelected(item);
+    }
+
+    void addAllPolylinesToMap() {
+        if (polylineOptionsArray != null)
+            mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
+    }
+
+    void removeAllPolylinesFromMap() {
+        for (Polyline polyline : mapboxMap.getPolylines()) {
+            polyline.remove();
+        }
     }
 
     void openSpotsListView(Boolean... shouldShowYouTab) {
@@ -1172,6 +1191,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
             updateUISaveButtons();
 
+            removeAllPolylinesFromMap();
+            polylineOptionsArray = new PolylineOptions[trips.size()];
 
             List<Feature> features = new ArrayList<>();
             for (int lc = 0; lc < trips.size(); lc++) {
@@ -1202,8 +1223,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                         }
 
                         if (line.getPoints().size() > 1) {
-                            //Add polylines to map
-                            mapboxMap.addPolyline(line);
+                            polylineOptionsArray[lc] = line;
                         }
                     }
 
@@ -1216,6 +1236,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
             }
 
+            //Add polylines to map
+            addAllPolylinesToMap();
 
             featureCollection = FeatureCollection.fromFeatures(features);
             source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
