@@ -53,6 +53,7 @@ import com.mapbox.mapboxsdk.plugins.locationlayer.OnCameraTrackingChangedListene
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.myhitchhikingspots.model.DaoSession;
+import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.ExtendedMarkerView;
@@ -60,6 +61,7 @@ import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -297,7 +299,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
     //Each hitchhiking spot is a feature
     FeatureCollection featureCollection;
-    //Each route is an item of PolylineOptionsArray
+    //Each route is an item of featuresArray and polylineOptionsArray
+    Feature[] featuresArray;
     PolylineOptions[] polylineOptionsArray;
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
@@ -442,24 +445,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         }
     }
 
-    public void loadValues() {
-        MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
-        DaoSession daoSession = appContext.getDaoSession();
-        SpotDao spotDao = daoSession.getSpotDao();
-
-        spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
-
-        mCurrentWaitingSpot = appContext.getCurrentSpot();
-
-        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
-            mIsWaitingForARide = false;
-        else
-            mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
-
-
-        mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
-    }
-
     //onMapReady is called after onResume()
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
@@ -541,6 +526,12 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         this.mapboxMap.getUiSettings().setLogoEnabled(false);
         this.mapboxMap.getUiSettings().setAttributionEnabled(false);
 
+        setupIconImages();
+
+        updateUI();
+    }
+
+    private void setupIconImages() {
         this.mapboxMap.addImage(ic_single_spot.getId(), ic_single_spot.getBitmap());
         this.mapboxMap.addImage(ic_point_on_the_route_spot.getId(), ic_point_on_the_route_spot.getBitmap());
         this.mapboxMap.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
@@ -551,8 +542,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         this.mapboxMap.addImage(ic_got_a_ride_spot2.getId(), ic_got_a_ride_spot2.getBitmap());
         this.mapboxMap.addImage(ic_got_a_ride_spot3.getId(), ic_got_a_ride_spot3.getBitmap());
         this.mapboxMap.addImage(ic_got_a_ride_spot4.getId(), ic_got_a_ride_spot4.getBitmap());
-
-        updateUI();
     }
 
     private LatLng convertToLatLng(Feature feature) {
@@ -595,7 +584,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
     void loadAll() {
         //Load markers and polylines
-        new DrawAnnotations().execute();
+        new LoadSpotsAndRoutesTask(this).execute();
     }
 
     protected boolean isDrawingAnnotations = false;
@@ -795,7 +784,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             case R.id.action_toggle_icons:
                 shouldDisplayIcons = !shouldDisplayIcons;
                 if (shouldDisplayIcons) {
-                    addAllPolylinesToMap();
+                    addAllRoutesToMap();
 
                     fabLocateUser.setVisibility(View.VISIBLE);
                     //fabShowAll.setVisibility(View.VISIBLE);
@@ -806,7 +795,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                     //Call configureBottomFABButtons to show only the buttons that should be shown
                     configureBottomFABButtons();
                 } else {
-                    removeAllPolylinesFromMap();
+                    removeAllRoutesFromMap();
 
                     fabLocateUser.setVisibility(View.GONE);
                     //fabShowAll.setVisibility(View.GONE);
@@ -830,12 +819,20 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             return super.onOptionsItemSelected(item);
     }
 
-    void addAllPolylinesToMap() {
+    void addAllRoutesToMap() {
+        //Add markers layer
+        mapboxMap.addLayer(markerStyleLayer);
+
+        //Add polylines connecting markers
         if (polylineOptionsArray != null)
             mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
     }
 
-    void removeAllPolylinesFromMap() {
+    void removeAllRoutesFromMap() {
+        //Remove markers layer
+        mapboxMap.removeLayer(markerStyleLayer);
+
+        //Remove polylines connecting markers
         for (Polyline polyline : mapboxMap.getPolylines()) {
             polyline.remove();
         }
@@ -975,28 +972,39 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         }
     }
 
-    private class DrawAnnotations extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
+    private static class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
+        private List<Spot> spotList;
+        private final WeakReference<MyMapsActivity> activityRef;
+        String errMsg = "";
+        Boolean isLastArrayForSingleSpots = false;
+
+        LoadSpotsAndRoutesTask(MyMapsActivity activity) {
+            this.activityRef = new WeakReference<>(activity);
+        }
 
         @Override
         protected void onPreExecute() {
-            showProgressDialog();
-        }
+            MyMapsActivity activity = activityRef.get();
+            if (activity == null || activity.isFinishing())
+                return;
 
-        String errMsg = "";
+            activity.showProgressDialog();
+            activity.isDrawingAnnotations = true;
+        }
 
         @Override
         protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
+            MyMapsActivity activity = activityRef.get();
+            if (activity == null || activity.isFinishing())
+                return null;
 
             try {
                 loadValues();
             } catch (final Exception ex) {
                 Crashlytics.logException(ex);
-                errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
-                        "Loading spots failed.\n" + ex.getMessage());
+                errMsg = "Loading spots failed.\n" + ex.getMessage();
                 return new ArrayList<>();
             }
-
-            isDrawingAnnotations = true;
 
             List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
             ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
@@ -1025,15 +1033,15 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                                 spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                             //The spot is where the user is waiting for a ride
 
-                            markerTitle = getString(R.string.map_infoview_spot_type_waiting);
-                            icon = ic_waiting_spot;
+                            markerTitle = activity.getString(R.string.map_infoview_spot_type_waiting);
+                            icon = activity.ic_waiting_spot;
                             markerViewOptions.spotType(Constants.SPOT_TYPE_WAITING);
 
                         } else if (spot.getIsDestination() != null && spot.getIsDestination()) {
                             //The spot is a destination
 
-                            markerTitle = getString(R.string.map_infoview_spot_type_destination);
-                            icon = ic_arrival_spot;
+                            markerTitle = activity.getString(R.string.map_infoview_spot_type_destination);
+                            icon = activity.ic_arrival_spot;
                             markerViewOptions.spotType(Constants.SPOT_TYPE_DESTINATION);
 
                             //Center icon
@@ -1047,17 +1055,17 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                                     case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                                     default:
                                         //The spot is a hitchhiking spot that was already evaluated
-                                        icon = getGotARideIconForRoute(trips.size());
+                                        icon = activity.getGotARideIconForRoute(trips.size());
                                         markerViewOptions.anchor((float) 0.5, (float) 0.5);
-                                        markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                                        markerTitle = Utils.getRatingOrDefaultAsString(activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
                                         break;
                                     case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                         //The spot is a hitchhiking spot that was already evaluated
                                         //icon = ic_took_a_break_spot;
-                                        icon = ic_point_on_the_route_spot;
+                                        icon = activity.ic_point_on_the_route_spot;
                                         markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                         markerViewOptions.alpha((float) 0.5);
-                                        markerTitle = getString(R.string.map_infoview_spot_type_break);
+                                        markerTitle = activity.getString(R.string.map_infoview_spot_type_break);
                                         break;
                                    /* default:
                                         //The spot is a hitchhiking spot that was not evaluated yet
@@ -1071,7 +1079,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
                             } else {
                                 //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
-                                icon = ic_point_on_the_route_spot;
+                                icon = activity.ic_point_on_the_route_spot;
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_POINT_ON_THE_ROUTE);
                                 markerViewOptions.anchor((float) 0.5, (float) 0.5);
                                 markerViewOptions.alpha((float) 0.5);
@@ -1081,21 +1089,21 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                                 //The spot is the origin of a route
                                 markerViewOptions.spotType(Constants.SPOT_TYPE_ORIGIN);
                                 if (!markerTitle.isEmpty())
-                                    markerTitle = getString(R.string.map_infoview_spot_type_origin) + " " + markerTitle;
+                                    markerTitle = activity.getString(R.string.map_infoview_spot_type_origin) + " " + markerTitle;
                                 else
-                                    markerTitle = getString(R.string.map_infoview_spot_type_origin);
+                                    markerTitle = activity.getString(R.string.map_infoview_spot_type_origin);
                             }
                         }
                     } else {
                         //This spot doesn't belong to a route (it's a single spot)
 
                         if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
-                            markerTitle = Utils.getRatingOrDefaultAsString(getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                            markerTitle = Utils.getRatingOrDefaultAsString(activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
 
-                            icon = ic_single_spot;
+                            icon = activity.ic_single_spot;
                             markerViewOptions.spotType(Constants.SPOT_TYPE_SINGLE_SPOT);
                         } else {
-                            icon = ic_point_on_the_route_spot;
+                            icon = activity.ic_point_on_the_route_spot;
                             markerViewOptions.spotType(Constants.SPOT_TYPE_POINT_ON_THE_ROUTE);
                             markerViewOptions.anchor((float) 0.5, (float) 0.5);
                             markerViewOptions.alpha((float) 0.5);
@@ -1125,7 +1133,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                             spot.getWaitingTime() != null) {
                         if (!secondLine.isEmpty())
                             secondLine += " ";
-                        secondLine += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), getBaseContext()) + ")";
+                        secondLine += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), activity.getBaseContext()) + ")";
                     }
 
                     //Add note
@@ -1167,11 +1175,10 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             }
 
             if (!errMsg.isEmpty()) {
-                runOnUiThread(new Runnable() {
+                activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
-                                "Loading spots failed.\n" + errMsg));
+                        activity.showErrorAlert(activity.getResources().getString(R.string.general_error_dialog_title), "Loading spots failed.\n" + errMsg);
                     }
                 });
             }
@@ -1179,150 +1186,192 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             return trips;
         }
 
-        Boolean isLastArrayForSingleSpots = false;
-
         @Override
         protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
             super.onPostExecute(trips);
-            if (MyMapsActivity.this.isFinishing())
+            MyMapsActivity activity = activityRef.get();
+            if (activity == null || activity.isFinishing())
                 return;
 
-            mapboxMap.clear();
+            List<Route> routes = new ArrayList<Route>();
 
-            updateUISaveButtons();
-
-            removeAllPolylinesFromMap();
-            polylineOptionsArray = new PolylineOptions[trips.size()];
-
-            List<Feature> features = new ArrayList<>();
             for (int lc = 0; lc < trips.size(); lc++) {
                 try {
                     List<ExtendedMarkerViewOptions> spots = trips.get(lc);
+                    Route route = new Route();
+                    route.features = new Feature[spots.size()];
 
                     /* Source: A data source specifies the geographic coordinate where the image markers get placed. */
                     //Feature for
 
                     //If it's the last array and isLastArrayForSingleSpots is true, add the markers with no polyline connecting them
                     if (isLastArrayForSingleSpots && lc == trips.size() - 1) {
-                        for (ExtendedMarkerViewOptions spot : spots) {
+                        for (int li = 0; li < spots.size(); li++) {
+                            ExtendedMarkerViewOptions spot = spots.get(li);
                             //Add marker to map
-                            features.add(GetFeature(spot, lc));
+                            route.features[li] = GetFeature(spot, lc);
                         }
                     } else {
                         PolylineOptions line = new PolylineOptions()
                                 .width(2)
-                                .color(Color.parseColor(getResources().getString(getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
+                                .color(Color.parseColor(activity.getResources().getString(activity.getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
 
 
                         //Add route to the map with markers and polylines connecting them
-                        for (ExtendedMarkerViewOptions spot : spots) {
-                            features.add(GetFeature(spot, lc));
+                        for (int li = 0; li < spots.size(); li++) {
+                            ExtendedMarkerViewOptions spot = spots.get(li);
+                            route.features[li] = GetFeature(spot, lc);
 
                             //Add polyline connecting this marker
                             line.add(spot.getPosition());
                         }
 
-                        if (line.getPoints().size() > 1) {
-                            polylineOptionsArray[lc] = line;
-                        }
+                        route.polylines = line;
                     }
 
-
+                    routes.add(route);
                 } catch (Exception ex) {
                     Crashlytics.logException(ex);
-                    errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
-                            "Adding markers failed - " + ex.getMessage());
+                    errMsg = "Adding markers failed - " + ex.getMessage();
                 }
 
             }
 
-            //Add polylines to map
-            addAllPolylinesToMap();
+            activity.setupData(routes, errMsg);
 
-            featureCollection = FeatureCollection.fromFeatures(features);
-            source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
+        }
 
-            mapboxMap.removeSource(MARKER_SOURCE);
-            mapboxMap.addSource(source);
+        public void loadValues() {
+            MyMapsActivity activity = activityRef.get();
+            if (activity == null || activity.isFinishing())
+                return;
 
-            /* Style layer: A style layer ties together the source and image and specifies how they are displayed on the map. */
-            markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER, MARKER_SOURCE)
-                    .withProperties(
-                            PropertyFactory.iconAllowOverlap(true),
-                            PropertyFactory.iconImage("{iconImage}")
-                    );
-            mapboxMap.addLayer(markerStyleLayer);
+            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) activity.getApplicationContext());
+            DaoSession daoSession = appContext.getDaoSession();
+            SpotDao spotDao = daoSession.getSpotDao();
 
+            spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
-            try {
-                //Automatically zoom out to fit all markers only the first time that spots are loaded.
-                // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
-                if (shouldZoomToFitAllMarkers) {
-                    //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slower when it has all spots
-                    // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
-                    if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
-                        //Zoom close to current position or to the last saved position
-                        LatLng cameraPositionTo = null;
-                        int cameraZoomTo = -1;
-                        Location loc = null;
-                        try {
-                            loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
-                        } catch (SecurityException ex) {
-                        }
+            activity.mCurrentWaitingSpot = appContext.getCurrentSpot();
 
-                        if (loc != null) {
-                            cameraPositionTo = new LatLng(loc);
-                            cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                        } else {
-                            //Set start position for map camera: set it to the last spot saved
-                            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
-                            if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
-                                    && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
-                                cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
-
-                                //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
-                                if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
-                                    cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                                else
-                                    cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
-                            }
-                        }
-                        moveCamera(cameraPositionTo, cameraZoomTo);
-                    } else
-                        zoomOutToFitAllMarkers();
-                    shouldZoomToFitAllMarkers = false;
-                }
-
-            } catch (Exception ex) {
-                Crashlytics.logException(ex);
-                errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
-                        "Adding markers failed - " + ex.getMessage());
-            }
-
-            dismissProgressDialog();
-
-            isDrawingAnnotations = false;
+            if (activity.mCurrentWaitingSpot == null || activity.mCurrentWaitingSpot.getIsWaitingForARide() == null)
+                activity.mIsWaitingForARide = false;
+            else
+                activity.mIsWaitingForARide = activity.mCurrentWaitingSpot.getIsWaitingForARide();
 
 
-            if (!errMsg.isEmpty()) {
-                showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-            }
+            activity.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+        }
+
+        static Feature GetFeature(ExtendedMarkerViewOptions oldMarker, int routeIndex) {
+            LatLng pos = oldMarker.getPosition();
+
+            JsonObject properties = new JsonObject();
+            properties.addProperty("iconImage", oldMarker.getIcon().getId());
+            properties.addProperty("routeIndex", routeIndex);
+            properties.addProperty("tag", oldMarker.getTag());
+            properties.addProperty("spotType", oldMarker.getSpotType());
+            properties.addProperty("title", oldMarker.getTitle());
+            properties.addProperty("snippet", oldMarker.getSnippet());
+
+            return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, oldMarker.getTag());
         }
 
     }
 
-    Feature GetFeature(ExtendedMarkerViewOptions oldMarker, int routeIndex) {
-        LatLng pos = oldMarker.getPosition();
+    void setupData(List<Route> routes, String errMsg) {
+        PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
+        List<Feature> allFeatures = new ArrayList<>();
 
-        JsonObject properties = new JsonObject();
-        properties.addProperty("iconImage", oldMarker.getIcon().getId());
-        properties.addProperty("routeIndex", routeIndex);
-        properties.addProperty("tag", oldMarker.getTag());
-        properties.addProperty("spotType", oldMarker.getSpotType());
-        properties.addProperty("title", oldMarker.getTitle());
-        properties.addProperty("snippet", oldMarker.getSnippet());
+        for (int i = 0; i < routes.size(); i++) {
+            Route route = routes.get(i);
+            allPolylines[i] = route.polylines;
+            for (Feature feature : route.features)
+                allFeatures.add(feature);
+        }
 
-        return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, oldMarker.getTag());
+        Feature[] array = new Feature[allFeatures.size()];
+        this.polylineOptionsArray = allPolylines;
+        this.featuresArray = allFeatures.toArray(array);
+
+        if (mapboxMap == null) {
+            return;
+        }
+
+        mapboxMap.clear();
+
+        updateUISaveButtons();
+
+
+        featureCollection = FeatureCollection.fromFeatures(featuresArray);
+        source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
+
+        mapboxMap.removeSource(MARKER_SOURCE);
+        mapboxMap.addSource(source);
+
+        /* Style layer: A style layer ties together the source and image and specifies how they are displayed on the map. */
+        markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER, MARKER_SOURCE)
+                .withProperties(
+                        PropertyFactory.iconAllowOverlap(true),
+                        PropertyFactory.iconImage("{iconImage}")
+                );
+
+        //Add spots and polylines to map
+        removeAllRoutesFromMap();
+        addAllRoutesToMap();
+
+        try {
+            //Automatically zoom out to fit all markers only the first time that spots are loaded.
+            // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
+            if (shouldZoomToFitAllMarkers) {
+                //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slower when it has all spots
+                // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
+                if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
+                    //Zoom close to current position or to the last saved position
+                    LatLng cameraPositionTo = null;
+                    int cameraZoomTo = -1;
+                    Location loc = null;
+                    try {
+                        loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
+                    } catch (SecurityException ex) {
+                    }
+
+                    if (loc != null) {
+                        cameraPositionTo = new LatLng(loc);
+                        cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+                    } else {
+                        //Set start position for map camera: set it to the last spot saved
+                        Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
+                        if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
+                                && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
+                            cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+
+                            //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
+                            if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
+                                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+                            else
+                                cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+                        }
+                    }
+                    moveCamera(cameraPositionTo, cameraZoomTo);
+                } else
+                    zoomOutToFitAllMarkers();
+                shouldZoomToFitAllMarkers = false;
+            }
+
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
+                    "Adding markers failed - " + ex.getMessage());
+        }
+
+        dismissProgressDialog();
+
+        isDrawingAnnotations = false;
+
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+        }
     }
 
     Boolean shouldZoomToFitAllMarkers = true;
