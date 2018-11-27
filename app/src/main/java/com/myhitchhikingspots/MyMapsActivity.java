@@ -66,6 +66,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
+
 public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
@@ -75,6 +81,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     //private TextView mWaitingToGetCurrentLocationTextView;
     private CoordinatorLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
+    Boolean shouldDisplayOldRoutes = true;
     boolean wasSnackbarShown;
 
     private PermissionsManager permissionsManager;
@@ -474,8 +481,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                 selectedFeature.properties().addProperty("selected", true);
 
                 //Let the map know the property has changed by resetting the source of our layer
-                source.setGeoJson(featureCollection);
-
+                refreshSource();
             }
         });
 
@@ -784,7 +790,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             case R.id.action_toggle_icons:
                 shouldDisplayIcons = !shouldDisplayIcons;
                 if (shouldDisplayIcons) {
-                    addAllRoutesToMap();
+                    showAllRoutesOnMap();
 
                     fabLocateUser.setVisibility(View.VISIBLE);
                     //fabShowAll.setVisibility(View.VISIBLE);
@@ -795,8 +801,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                     //Call configureBottomFABButtons to show only the buttons that should be shown
                     configureBottomFABButtons();
                 } else {
-                    removeAllRoutesFromMap();
-
                     fabLocateUser.setVisibility(View.GONE);
                     //fabShowAll.setVisibility(View.GONE);
                     fabZoomIn.setVisibility(View.GONE);
@@ -805,6 +809,13 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                     fabSpotAction2.setVisibility(View.GONE);
                     item.setTitle(getString(R.string.general_show_icons_label));
                 }
+                break;
+            case R.id.action_toggle_old_routes:
+                shouldDisplayOldRoutes = !shouldDisplayOldRoutes;
+                if (shouldDisplayOldRoutes)
+                    showAllRoutesOnMap();
+                else
+                    hideOldRoutesFromMap();
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null) {
@@ -819,22 +830,42 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             return super.onOptionsItemSelected(item);
     }
 
-    void addAllRoutesToMap() {
-        //Add markers layer
-        mapboxMap.addLayer(markerStyleLayer);
 
-        //Add polylines connecting markers
-        if (polylineOptionsArray != null)
-            mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
+    int routeIndexToKeepVisible = 0;
+
+    void showAllRoutesOnMap() {
+        //Update all features setting PROPERTY_SHOULDHIDE to false
+        for (Feature f : featureCollection.features())
+            f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+
+        refreshSource();
+
+        mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
     }
 
-    void removeAllRoutesFromMap() {
-        //Remove markers layer
-        mapboxMap.removeLayer(markerStyleLayer);
+    void hideOldRoutesFromMap() {
+        //Update all features that should be hidden
+        for (Feature f : featureCollection.features()) {
+            if (f.getNumberProperty("routeIndex").equals(routeIndexToKeepVisible))
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+            else
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
+        }
 
-        //Remove polylines connecting markers
-        for (Polyline polyline : mapboxMap.getPolylines()) {
-            polyline.remove();
+        refreshSource();
+
+        //Remove all polylines
+        for(Polyline p : mapboxMap.getPolylines())
+            p.remove();
+
+        //Add all polylines that have been hidden
+        if (polylineOptionsArray != null) {
+            List<PolylineOptions> polylinesToShow = new ArrayList<>();
+            for (int i = 0; i < polylineOptionsArray.length; i++) {
+                if (i == routeIndexToKeepVisible)
+                    polylinesToShow.add(polylineOptionsArray[i]);
+            }
+            mapboxMap.addPolylines(polylinesToShow);
         }
     }
 
@@ -1273,6 +1304,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             properties.addProperty("spotType", oldMarker.getSpotType());
             properties.addProperty("title", oldMarker.getTitle());
             properties.addProperty("snippet", oldMarker.getSnippet());
+            properties.addProperty(PROPERTY_SHOULDHIDE,false);
 
             return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, oldMarker.getTag());
         }
@@ -1285,7 +1317,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
         for (int i = 0; i < routes.size(); i++) {
             Route route = routes.get(i);
-            allPolylines[i] = route.polylines;
+            allPolylines[i] = route.polylines == null ? new PolylineOptions() : route.polylines;
             for (Feature feature : route.features)
                 allFeatures.add(feature);
         }
@@ -1306,7 +1338,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         featureCollection = FeatureCollection.fromFeatures(featuresArray);
         source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
 
-        mapboxMap.removeSource(MARKER_SOURCE);
+        if (mapboxMap.getSource(MARKER_SOURCE) != null)
+            mapboxMap.removeSource(source);
         mapboxMap.addSource(source);
 
         /* Style layer: A style layer ties together the source and image and specifies how they are displayed on the map. */
@@ -1314,11 +1347,15 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                 .withProperties(
                         PropertyFactory.iconAllowOverlap(true),
                         PropertyFactory.iconImage("{iconImage}")
-                );
+                )
+                /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
+                .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
+
+        //Add markers layer
+        mapboxMap.addLayer(markerStyleLayer);
 
         //Add spots and polylines to map
-        removeAllRoutesFromMap();
-        addAllRoutesToMap();
+        mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
 
         try {
             //Automatically zoom out to fit all markers only the first time that spots are loaded.
@@ -1376,6 +1413,12 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
     Boolean shouldZoomToFitAllMarkers = true;
 
+    private void refreshSource() {
+        if (source != null && featureCollection != null) {
+            source.setGeoJson(featureCollection);
+        }
+    }
+
     public void saveRegularSpotButtonHandler() {
         saveSpotButtonHandler(false);
     }
@@ -1385,6 +1428,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     }
 
     protected static final String TAG = "map-view-activity";
+    private static final String PROPERTY_SHOULDHIDE = "shouldHide";
 
 
     /**
