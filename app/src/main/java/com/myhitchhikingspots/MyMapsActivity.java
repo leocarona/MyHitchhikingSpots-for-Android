@@ -480,8 +480,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                 String title = selectedFeature.getStringProperty("title");
                 Toast.makeText(getBaseContext(), "You selected " + title, Toast.LENGTH_SHORT).show();
 
-                selectedFeature.properties().addProperty("selected", true);
-
                 //Let the map know the property has changed by resetting the source of our layer
                 refreshSource();
             }
@@ -1446,7 +1444,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
     protected static final String TAG = "map-view-activity";
     private static final String PROPERTY_SHOULDHIDE = "shouldHide";
-
 
     /**
      * Handles the Save Spot button and save current location. Does nothing if
