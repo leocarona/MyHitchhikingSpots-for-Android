@@ -1144,46 +1144,12 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                     if (icon != null)
                         markerViewOptions.icon(icon);
 
-                    //Get location string
-                    String firstLine = spotLocationToString(spot).trim();
-                    String secondLine = "";
-
-                    //Add date time if it is set
-                    if (spot.getStartDateTime() != null)
-                        secondLine += SpotListAdapter.dateTimeToString(spot.getStartDateTime());
-
-                    /*//Add type
-                    if (!spotType.isEmpty()) {
-                        if (!secondLine.isEmpty())
-                            secondLine += " - ";
-                        secondLine += spotType;
-                    }*/
-
-                    //Add waiting time
-                    if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
-                            spot.getWaitingTime() != null) {
-                        if (!secondLine.isEmpty())
-                            secondLine += " ";
-                        secondLine += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), activity.getBaseContext()) + ")";
-                    }
-
-                    //Add note
-                    if (spot.getNote() != null && !spot.getNote().isEmpty()) {
-                        if (!secondLine.isEmpty())
-                            secondLine += "\n";
-                        secondLine += spot.getNote();
-                    }
-
-                    String snippetAllLines = firstLine;
-                    if (!snippetAllLines.isEmpty())
-                        snippetAllLines += "\n";
-                    snippetAllLines += secondLine;
-
                     //Set hitchability as title
                     markerViewOptions.title(markerTitle.toUpperCase());
 
                     // Customize map with markers, polylines, etc.
-                    markerViewOptions.snippet(snippetAllLines);
+                    String snippet = getSnippet(activity, spot, "\n", " ", "\n");
+                    markerViewOptions.snippet(snippet);
 
                     if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
                         spots.add(markerViewOptions);
@@ -1215,6 +1181,37 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             }
 
             return trips;
+        }
+
+        @NonNull
+        /* Get snippet in the following format: "spotLocationToString{firstSeparator}{dateTimeToString}{secondSeparator}({getWaitingTimeAsString}){thirdSeparator}{getNote}" */
+        private String getSnippet(MyMapsActivity activity, Spot spot, String firstSeparator, String secondSeparator, String thirdSeparator) {
+            //Get location string
+            String snippet = spotLocationToString(spot).trim();
+
+            if (!snippet.isEmpty())
+                snippet += firstSeparator;
+
+            //Add date time if it is set
+            if (spot.getStartDateTime() != null)
+                snippet += SpotListAdapter.dateTimeToString(spot.getStartDateTime());
+
+            //Add waiting time
+            if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
+                    spot.getWaitingTime() != null) {
+                if (!snippet.isEmpty())
+                    snippet += secondSeparator;
+                snippet += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), activity.getBaseContext()) + ")";
+            }
+
+            //Add note
+            if (spot.getNote() != null && !spot.getNote().isEmpty()) {
+                if (!snippet.isEmpty())
+                    snippet += thirdSeparator;
+                snippet += spot.getNote();
+            }
+
+            return snippet;
         }
 
         @Override
