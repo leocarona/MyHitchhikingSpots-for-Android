@@ -30,7 +30,9 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.JsonObject;
+
 import android.graphics.PointF;
+
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
@@ -1397,22 +1399,28 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
     private void setupSource() {
         source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
-        mapboxMap.addSource(source);
+
+        if (mapboxMap.getSource(MARKER_SOURCE) == null)
+            mapboxMap.addSource(source);
+        else
+            refreshSource();
     }
 
     /* Setup style layer */
     private void setupStyleLayer() {
-        //A style layer ties together the source and image and specifies how they are displayed on the map
-        markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER, MARKER_SOURCE)
-                .withProperties(
-                        PropertyFactory.iconAllowOverlap(true),
-                        PropertyFactory.iconImage("{iconImage}")
-                )
-                /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
-                .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
+        if (mapboxMap.getLayer(MARKER_STYLE_LAYER) == null) {
+            //A style layer ties together the source and image and specifies how they are displayed on the map
+            markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER, MARKER_SOURCE)
+                    .withProperties(
+                            PropertyFactory.iconAllowOverlap(true),
+                            PropertyFactory.iconImage("{iconImage}")
+                    )
+                    /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
+                    .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
 
-        //Add markers layer
-        mapboxMap.addLayer(markerStyleLayer);
+            //Add markers layer
+            mapboxMap.addLayer(markerStyleLayer);
+        }
     }
 
     private void setupPolylines() {
