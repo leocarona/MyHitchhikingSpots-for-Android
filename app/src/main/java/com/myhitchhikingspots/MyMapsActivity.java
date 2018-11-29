@@ -1298,12 +1298,12 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             LatLng pos = oldMarker.getPosition();
 
             JsonObject properties = new JsonObject();
-            properties.addProperty("iconImage", oldMarker.getIcon().getId());
-            properties.addProperty("routeIndex", routeIndex);
-            properties.addProperty("tag", oldMarker.getTag());
-            properties.addProperty("spotType", oldMarker.getSpotType());
-            properties.addProperty("title", oldMarker.getTitle());
-            properties.addProperty("snippet", oldMarker.getSnippet());
+            properties.addProperty(PROPERTY_ICONIMAGE, oldMarker.getIcon().getId());
+            properties.addProperty(PROPERTY_ROUTEINDEX, routeIndex);
+            properties.addProperty(PROPERTY_TAG, oldMarker.getTag());
+            properties.addProperty(PROPERTY_SPOTTYPE, oldMarker.getSpotType());
+            properties.addProperty(PROPERTY_TITLE, oldMarker.getTitle());
+            properties.addProperty(PROPERTY_SNIPPET, oldMarker.getSnippet());
             properties.addProperty(PROPERTY_SHOULDHIDE, false);
 
             return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, oldMarker.getTag());
@@ -1443,7 +1443,10 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     }
 
     protected static final String TAG = "map-view-activity";
-    private static final String PROPERTY_SHOULDHIDE = "shouldHide";
+    private static final String PROPERTY_ICONIMAGE = "iconImage",
+            PROPERTY_ROUTEINDEX = "routeIndex", PROPERTY_TAG = "tag", PROPERTY_SPOTTYPE = "spotType",
+            PROPERTY_TITLE = "title", PROPERTY_SNIPPET = "snippet",
+            PROPERTY_SHOULDHIDE = "shouldHide", PROPERTY_SELECTED = "selected";
 
     /**
      * Handles the Save Spot button and save current location. Does nothing if
