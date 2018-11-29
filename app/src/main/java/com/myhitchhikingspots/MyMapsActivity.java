@@ -855,7 +855,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         refreshSource();
 
         //Remove all polylines
-        for(Polyline p : mapboxMap.getPolylines())
+        for (Polyline p : mapboxMap.getPolylines())
             p.remove();
 
         //Add all polylines that have been hidden
@@ -1304,7 +1304,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             properties.addProperty("spotType", oldMarker.getSpotType());
             properties.addProperty("title", oldMarker.getTitle());
             properties.addProperty("snippet", oldMarker.getSnippet());
-            properties.addProperty(PROPERTY_SHOULDHIDE,false);
+            properties.addProperty(PROPERTY_SHOULDHIDE, false);
 
             return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, oldMarker.getTag());
         }
@@ -1336,26 +1336,10 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
 
         featureCollection = FeatureCollection.fromFeatures(featuresArray);
-        source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
 
-        if (mapboxMap.getSource(MARKER_SOURCE) != null)
-            mapboxMap.removeSource(source);
-        mapboxMap.addSource(source);
-
-        /* Style layer: A style layer ties together the source and image and specifies how they are displayed on the map. */
-        markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER, MARKER_SOURCE)
-                .withProperties(
-                        PropertyFactory.iconAllowOverlap(true),
-                        PropertyFactory.iconImage("{iconImage}")
-                )
-                /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
-                .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
-
-        //Add markers layer
-        mapboxMap.addLayer(markerStyleLayer);
-
-        //Add spots and polylines to map
-        mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
+        setupSource();
+        setupStyleLayer();
+        setupPolylines();
 
         try {
             //Automatically zoom out to fit all markers only the first time that spots are loaded.
@@ -1409,6 +1393,31 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
         }
+    }
+
+    private void setupSource() {
+        source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
+        mapboxMap.addSource(source);
+    }
+
+    /* Setup style layer */
+    private void setupStyleLayer() {
+        //A style layer ties together the source and image and specifies how they are displayed on the map
+        markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER, MARKER_SOURCE)
+                .withProperties(
+                        PropertyFactory.iconAllowOverlap(true),
+                        PropertyFactory.iconImage("{iconImage}")
+                )
+                /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
+                .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
+
+        //Add markers layer
+        mapboxMap.addLayer(markerStyleLayer);
+    }
+
+    private void setupPolylines() {
+        //Add spots and polylines to map
+        mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
     }
 
     Boolean shouldZoomToFitAllMarkers = true;

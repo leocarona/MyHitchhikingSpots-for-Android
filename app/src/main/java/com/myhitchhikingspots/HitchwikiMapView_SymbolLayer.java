@@ -137,6 +137,8 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
 
     private MapView mapView;
     private MapboxMap mapboxMap;
+
+    //RecyclerView that will be inflated with the cardview to show more data about a selected feature
     private RecyclerView recyclerView;
 
     private GeoJsonSource source;
@@ -216,12 +218,19 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
         }
 
         featureCollection = collection;
+
+        //Setup the data source of the map
         setupSource();
+        //Setup a layer with maki icons, eg. restaurant.
         setupMakiLayer();
+        //Setup layer indicating that there is an ongoing progress.
         setupLoadingLayer();
+        //Setup a layer with Android SDK call-outs (title of the feature is used as key for the iconImage)
         setupCalloutLayer();
+        //Setup the RecylerView which will be necessary for showing the cardview with more information about the selected feature
         setupRecyclerView();
         hideLabelLayers();
+        //Setup Mapbox to use Mapillary vector tiles as map
         setupMapillaryTiles();
     }
 
@@ -301,6 +310,9 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
                 .withFilter(eq((get(PROPERTY_SELECTED)), literal(true))));
     }
 
+    /**
+     * Setup the RecylerView that's gonna be responsible for showing the view with more inforation (a.k.a card)
+     */
     private void setupRecyclerView() {
         RecyclerView.Adapter adapter = new LocationRecyclerViewAdapter(this, featureCollection);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -331,6 +343,9 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
         }
     }
 
+    /**
+     * Setup Mapbox to use Mapillary vector tiles as map
+     */
     private void setupMapillaryTiles() {
         mapboxMap.addSource(MapillaryTiles.createSource());
         mapboxMap.addLayerBelow(MapillaryTiles.createLineLayer(), LOADING_LAYER_ID);
@@ -417,6 +432,7 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
         selectFeature(feature);
         animateCameraToSelection(feature);
         refreshSource();
+        //Fetch pictures from around the feature location
         loadMapillaryData(feature);
 
         if (withScroll) {
@@ -485,6 +501,9 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
         animateCameraToSelection(feature, zoom);
     }
 
+    /*
+    * Fetch pictures from around the given feature
+    */
     private void loadMapillaryData(Feature feature) {
         if (loadMapillaryDataTask != null) {
             loadMapillaryDataTask.cancel(true);
@@ -719,6 +738,8 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
                 return;
             }
             activity.setupData(featureCollection);
+
+            //Generate the ballons that will be shown when a feature is clicked
             new GenerateViewIconTask(activity).execute(featureCollection);
         }
 
@@ -757,6 +778,7 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
 
     /**
      * AsyncTask to generate Bitmap from Views to be used as iconImage in a SymbolLayer.
+     * Note: This task only adds to the mapview the balloons that appear when each marker is clicked. It does not add the markers themselves.
      * <p>
      * Call be optionally be called to update the underlying data source after execution.
      * </p>
@@ -1183,7 +1205,7 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
                 @Override
                 public void onClick(View view, int position) {
                     if (activity != null) {
-                        Toast.makeText(view.getContext(), "user clicked on toggle Favourite icon", Toast.LENGTH_LONG).show();
+                        Toast.makeText(view.getContext(), "user clicked on toggle Favourite by clicking the cardview", Toast.LENGTH_LONG).show();
 
                         //activity.toggleFavourite(position);
                     }
