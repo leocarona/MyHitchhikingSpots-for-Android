@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -17,11 +19,13 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,6 +40,8 @@ import android.graphics.PointF;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
@@ -66,17 +72,24 @@ import com.myhitchhikingspots.utilities.Utils;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
 
-public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener {
+public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener,
+        MapboxMap.OnMapClickListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
+    private static final long CAMERA_ANIMATION_TIME = 1950;
+
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut, fabShowAll;
 
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
@@ -303,8 +316,9 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
     }
 
-    private static final String MARKER_SOURCE = "markers-source";
-    private static final String MARKER_STYLE_LAYER = "markers-style-layer";
+    private static final String MARKER_SOURCE_ID = "markers-source";
+    private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
+    private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
 
     //Each hitchhiking spot is a feature
     FeatureCollection featureCollection;
@@ -471,19 +485,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         if (PermissionsManager.areLocationPermissionsGranted(MyMapsActivity.this) && !locationLayerPlugin.isLocationLayerEnabled())
             locationLayerPlugin.setLocationLayerEnabled(true);
 
-        this.mapboxMap.addOnMapClickListener(point -> {
-            PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
-            List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, MARKER_STYLE_LAYER);
-            if (!features.isEmpty()) {
-                Feature selectedFeature = features.get(0);
-                //PointF symbolScreenPoint = mapboxMap.getProjection().toScreenLocation(convertToLatLng(selectedFeature));
-                String title = selectedFeature.getStringProperty("title");
-                Toast.makeText(getBaseContext(), "You selected " + title, Toast.LENGTH_SHORT).show();
-
-                //Let the map know the property has changed by resetting the source of our layer
-                refreshSource();
-            }
-        });
+        mapboxMap.addOnMapClickListener(this);
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
@@ -535,6 +537,131 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         setupIconImages();
 
         updateUI();
+    }
+
+    @Override
+    public void onMapClick(@NonNull LatLng point) {
+        PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
+        List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, CALLOUT_LAYER_ID);
+        if (!features.isEmpty()) {
+            // we received a click event on the callout layer
+            Feature feature = features.get(0);
+            PointF symbolScreenPoint = mapboxMap.getProjection().toScreenLocation(convertToLatLng(feature));
+            handleClickCallout(feature, screenPoint, symbolScreenPoint);
+        } else {
+            // we didn't find a click event on callout layer, try clicking maki layer
+            handleClickIcon(screenPoint);
+        }
+    }
+
+    /**
+     * This method handles click events for callout symbols.
+     * <p>
+     * It creates a hit rectangle based on the the textView, offsets that rectangle to the location
+     * of the symbol on screen and hit tests that with the screen point.
+     * </p>
+     *
+     * @param feature           the feature that was clicked
+     * @param screenPoint       the point on screen clicked
+     * @param symbolScreenPoint the point of the symbol on screen
+     */
+    private void handleClickCallout(Feature feature, PointF screenPoint, PointF symbolScreenPoint) {
+       /* View view = viewMap.get(feature.getStringProperty(PROPERTY_TITLE));
+        View textContainer = view.findViewById(R.id.text_container);
+
+        // create hitbox for textView
+        Rect hitRectText = new Rect();
+        textContainer.getHitRect(hitRectText);
+
+        // move hitbox to location of symbol
+        hitRectText.offset((int) symbolScreenPoint.x, (int) symbolScreenPoint.y);
+
+        // offset vertically to match anchor behaviour
+        hitRectText.offset(0, -view.getMeasuredHeight());
+
+        // hit test if clicked point is in textview hitbox
+        if (hitRectText.contains((int) screenPoint.x, (int) screenPoint.y)) {
+            // user clicked on text
+            String callout = feature.getStringProperty("call-out");
+            Toast.makeText(this, callout, Toast.LENGTH_LONG).show();
+        } else {*/
+        Toast.makeText(this, "user clicked on toggle Favourite icon", Toast.LENGTH_LONG).show();
+
+            /*// user clicked on icon
+            List<Feature> featureList = featureCollection.features();
+            for (int i = 0; i < featureList.size(); i++) {
+                if (featureList.get(i).getStringProperty(PROPERTY_TITLE).equals(feature.getStringProperty(PROPERTY_TITLE))) {
+                    toggleFavourite(i);
+                }
+            }
+        }*/
+    }
+
+    /**
+     * This method handles click events for maki symbols.
+     * <p>
+     * When a maki symbol is clicked, we moved that feature to the selected state.
+     * </p>
+     *
+     * @param screenPoint the point on screen clicked
+     */
+    private void handleClickIcon(PointF screenPoint) {
+        List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, MARKER_STYLE_LAYER_ID);
+        if (!features.isEmpty()) {
+            String tag = features.get(0).getStringProperty(PROPERTY_TAG);
+            List<Feature> featureList = featureCollection.features();
+            for (int i = 0; i < featureList.size(); i++) {
+                if (featureList.get(i).getStringProperty(PROPERTY_TAG).equals(tag)) {
+                    setSelected(i, true);
+                }
+            }
+        }
+    }
+
+    /**
+     * Set a feature selected state with the ability to scroll the RecycleViewer to the provided index.
+     *
+     * @param index      the index of selected feature
+     * @param withScroll indicates if the recyclerView position should be updated
+     */
+    private void setSelected(int index, boolean withScroll) {
+        /*if (recyclerView.getVisibility() == View.GONE) {
+            recyclerView.setVisibility(View.VISIBLE);
+        }*/
+
+        deselectAll(false);
+
+        Feature feature = featureCollection.features().get(index);
+        selectFeature(feature);
+        refreshSource();
+        /*//Fetch pictures from around the feature location
+        loadMapillaryData(feature);
+
+        if (withScroll) {
+            recyclerView.scrollToPosition(index);
+        }*/
+    }
+
+    /**
+     * Deselects the state of all the features
+     */
+    private void deselectAll(boolean hideRecycler) {
+        for (Feature feature : featureCollection.features()) {
+            feature.properties().addProperty(PROPERTY_SELECTED, false);
+        }
+
+        /*if (hideRecycler) {
+            recyclerView.setVisibility(View.GONE);
+        }*/
+    }
+
+    /**
+     * Selects the state of a feature
+     *
+     * @param feature the feature to be selected.
+     */
+    private void selectFeature(Feature feature) {
+        feature.properties().addProperty(PROPERTY_SELECTED, true);
     }
 
     private void setupIconImages() {
@@ -739,6 +866,9 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     protected void onDestroy() {
         Crashlytics.log(Log.INFO, TAG, "onDestroy was called");
         super.onDestroy();
+        if (mapboxMap != null) {
+            mapboxMap.removeOnMapClickListener(this);
+        }
         mapView.onDestroy();
     }
 
@@ -1267,6 +1397,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
             activity.setupData(routes, errMsg);
 
+            new GenerateBalloonsTask(activity).execute(activity.featureCollection);
         }
 
         public void loadValues() {
@@ -1308,6 +1439,122 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
     }
 
+    /**
+     * AsyncTask to generate Bitmap from Views to be used as iconImage in a SymbolLayer.
+     * Note: This task only adds to the mapview a layer with the balloons that are shown when the markers are clicked. It does not add the markers themselves.
+     * <p>
+     * Call be optionally be called to update the underlying data source after execution.
+     * </p>
+     * <p>
+     * Generating Views on background thread since we are not going to be adding them to the view hierarchy.
+     * </p>
+     */
+    private static class GenerateBalloonsTask extends AsyncTask<FeatureCollection, Void, HashMap<String, Bitmap>> {
+
+        //private final HashMap<String, View> viewMap = new HashMap<>();
+        private final WeakReference<MyMapsActivity> activityRef;
+        private final boolean refreshSource;
+
+        GenerateBalloonsTask(MyMapsActivity activity, boolean refreshSource) {
+            this.activityRef = new WeakReference<>(activity);
+            this.refreshSource = refreshSource;
+        }
+
+        GenerateBalloonsTask(MyMapsActivity activity) {
+            this(activity, false);
+        }
+
+        @SuppressWarnings("WrongThread")
+        @Override
+        protected HashMap<String, Bitmap> doInBackground(FeatureCollection... params) {
+            MyMapsActivity activity = activityRef.get();
+            if (activity != null) {
+                HashMap<String, Bitmap> imagesMap = new HashMap<>();
+                LayoutInflater inflater = LayoutInflater.from(activity);
+                FeatureCollection featureCollection = params[0];
+
+                for (Feature feature : featureCollection.features()) {
+                    View view = inflater.inflate(R.layout.layout_callout, null);
+
+                    String name = feature.getStringProperty(PROPERTY_TITLE);
+                    TextView titleTv = (TextView) view.findViewById(R.id.title);
+                    titleTv.setText(name);
+
+                    String style = feature.getStringProperty(PROPERTY_SNIPPET);
+                    TextView styleTv = (TextView) view.findViewById(R.id.style);
+                    styleTv.setText(style);
+
+                    /*boolean favourite = feature.getBooleanProperty(PROPERTY_FAVOURITE);
+                    ImageView imageView = (ImageView) view.findViewById(R.id.logoView);
+                    imageView.setImageResource(favourite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);*/
+
+                    String tag = feature.getStringProperty(PROPERTY_TAG);
+                    Bitmap bitmap = SymbolGenerator.generate(view);
+                    imagesMap.put(tag, bitmap);
+                    //viewMap.put(name, view);
+                }
+
+                return imagesMap;
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(HashMap<String, Bitmap> bitmapHashMap) {
+            super.onPostExecute(bitmapHashMap);
+            MyMapsActivity activity = activityRef.get();
+            if (activity != null && bitmapHashMap != null) {
+                activity.setImageGenResults(bitmapHashMap);
+                if (refreshSource) {
+                    activity.refreshSource();
+                }
+            }
+        }
+    }
+
+    /**
+     * Utility class to generate Bitmaps for Symbol.
+     * <p>
+     * Bitmaps can be added to the map with {@link com.mapbox.mapboxsdk.maps.MapboxMap#addImage(String, Bitmap)}
+     * </p>
+     */
+    private static class SymbolGenerator {
+
+        /**
+         * Generate a Bitmap from an Android SDK View.
+         *
+         * @param view the View to be drawn to a Bitmap
+         * @return the generated bitmap
+         */
+        static Bitmap generate(@NonNull View view) {
+            int measureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+            view.measure(measureSpec, measureSpec);
+
+            int measuredWidth = view.getMeasuredWidth();
+            int measuredHeight = view.getMeasuredHeight();
+
+            view.layout(0, 0, measuredWidth, measuredHeight);
+            Bitmap bitmap = Bitmap.createBitmap(measuredWidth, measuredHeight, Bitmap.Config.ARGB_8888);
+            bitmap.eraseColor(Color.TRANSPARENT);
+            Canvas canvas = new Canvas(bitmap);
+            view.draw(canvas);
+            return bitmap;
+        }
+    }
+
+    /**
+     * Invoked when the balloons bitmaps have been generated for all features.
+     */
+    public void setImageGenResults(HashMap<String, Bitmap> imageMap) {
+        if (mapboxMap != null) {
+            // calling addImages is faster as separate addImage calls for each bitmap.
+            mapboxMap.addImages(imageMap);
+        }
+        // need to store reference to views to be able to use them as hitboxes for click events.
+        //this.viewMap = viewMap;
+    }
+
     void setupData(List<Route> routes, String errMsg) {
         PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
         List<Feature> allFeatures = new ArrayList<>();
@@ -1315,8 +1562,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         for (int i = 0; i < routes.size(); i++) {
             Route route = routes.get(i);
             allPolylines[i] = route.polylines == null ? new PolylineOptions() : route.polylines;
-            for (Feature feature : route.features)
-                allFeatures.add(feature);
+            allFeatures.addAll(Arrays.asList(route.features));
         }
 
         Feature[] array = new Feature[allFeatures.size()];
@@ -1337,6 +1583,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         setupSource();
         setupStyleLayer();
         setupPolylines();
+        //Setup a layer with Android SDK call-outs (title of the feature is used as key for the iconImage)
+        setupCalloutLayer();
 
         try {
             //Automatically zoom out to fit all markers only the first time that spots are loaded.
@@ -1393,9 +1641,9 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     }
 
     private void setupSource() {
-        source = new GeoJsonSource(MARKER_SOURCE, featureCollection);
+        source = new GeoJsonSource(MARKER_SOURCE_ID, featureCollection);
 
-        if (mapboxMap.getSource(MARKER_SOURCE) == null)
+        if (mapboxMap.getSource(MARKER_SOURCE_ID) == null)
             mapboxMap.addSource(source);
         else
             refreshSource();
@@ -1403,12 +1651,12 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
     /* Setup style layer */
     private void setupStyleLayer() {
-        if (mapboxMap.getLayer(MARKER_STYLE_LAYER) == null) {
+        if (mapboxMap.getLayer(MARKER_STYLE_LAYER_ID) == null) {
             //A style layer ties together the source and image and specifies how they are displayed on the map
-            markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER, MARKER_SOURCE)
+            markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER_ID, MARKER_SOURCE_ID)
                     .withProperties(
                             PropertyFactory.iconAllowOverlap(true),
-                            PropertyFactory.iconImage("{iconImage}")
+                            PropertyFactory.iconImage("{" + PROPERTY_ICONIMAGE + "}")
                     )
                     /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
                     .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
@@ -1421,6 +1669,29 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     private void setupPolylines() {
         //Add spots and polylines to map
         mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
+    }
+
+    /**
+     * Setup a layer with Android SDK call-outs (balloons)
+     * <p>
+     * tag of the feature is used as key for the iconImage
+     * </p>
+     */
+    private void setupCalloutLayer() {
+        mapboxMap.addLayer(new SymbolLayer(CALLOUT_LAYER_ID, MARKER_SOURCE_ID)
+                .withProperties(
+                        /* show image with id based on the value of the tag feature property */
+                        iconImage("{" + PROPERTY_TAG + "}"),
+
+                        /* set anchor of icon to bottom-left */
+                        iconAnchor(Property.ICON_ANCHOR_BOTTOM_LEFT),
+
+                        /* offset icon slightly to match bubble layout */
+                        iconOffset(new Float[]{-120.0f, -10.0f})
+                )
+
+                /* add a filter to show only when selected feature property is true */
+                .withFilter(eq((get(PROPERTY_SELECTED)), literal(true))));
     }
 
     Boolean shouldZoomToFitAllMarkers = true;
