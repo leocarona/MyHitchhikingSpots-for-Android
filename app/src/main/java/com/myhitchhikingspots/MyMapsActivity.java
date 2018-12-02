@@ -29,6 +29,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -491,41 +492,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             @Override
             public boolean onInfoWindowClick(@NonNull Marker marker) {
                 ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
-                Crashlytics.setString("Clicked marker tag", myMarker.getTag());
-                Spot spot = null;
-                for (Spot spot2 :
-                        spotList) {
-                    String id = spot2.getId().toString();
-                    if (id.equals(myMarker.getTag())) {
-                        spot = spot2;
-                        break;
-                    }
-                }
-
-                if (spot != null) {
-                    Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
-
-                    //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-                    if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
-                            mCurrentWaitingSpot.getIsWaitingForARide()) {
-                        if (mCurrentWaitingSpot.getId() == spot.getId())
-                            spot.setAttemptResult(null);
-                        else {
-                            Toast.makeText(getBaseContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
-                            return true;
-                        }
-                    }
-
-                    Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-                    //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-                    intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-                    startActivityForResult(intent, EDIT_SPOT_REQUEST);
-                } else
-                    Crashlytics.log(Log.WARN, TAG,
-                            "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + myMarker.getTag());
-
-
+                onItemClick(myMarker.getTag());
                 return true;
             }
         });
@@ -546,8 +513,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         if (!features.isEmpty()) {
             // we received a click event on the callout layer
             Feature feature = features.get(0);
-            PointF symbolScreenPoint = mapboxMap.getProjection().toScreenLocation(convertToLatLng(feature));
-            handleClickCallout(feature, screenPoint, symbolScreenPoint);
+            handleClickCallout(feature);
         } else {
             // we didn't find a click event on callout layer, try clicking maki layer
             handleClickIcon(screenPoint);
@@ -565,36 +531,46 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
      * @param screenPoint       the point on screen clicked
      * @param symbolScreenPoint the point of the symbol on screen
      */
-    private void handleClickCallout(Feature feature, PointF screenPoint, PointF symbolScreenPoint) {
-       /* View view = viewMap.get(feature.getStringProperty(PROPERTY_TITLE));
-        View textContainer = view.findViewById(R.id.text_container);
+    private void handleClickCallout(Feature feature) {
+        onItemClick(feature.getStringProperty(PROPERTY_TAG));
+    }
 
-        // create hitbox for textView
-        Rect hitRectText = new Rect();
-        textContainer.getHitRect(hitRectText);
+    private void onItemClick(String spotId) {
+        Crashlytics.setString("Clicked marker tag", spotId);
+        Spot spot = null;
+        for (Spot spot2 :
+                spotList) {
+            String id = spot2.getId().toString();
+            if (id.equals(spotId)) {
+                spot = spot2;
+                break;
+            }
+        }
 
-        // move hitbox to location of symbol
-        hitRectText.offset((int) symbolScreenPoint.x, (int) symbolScreenPoint.y);
+        if (spot != null) {
+            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
 
-        // offset vertically to match anchor behaviour
-        hitRectText.offset(0, -view.getMeasuredHeight());
-
-        // hit test if clicked point is in textview hitbox
-        if (hitRectText.contains((int) screenPoint.x, (int) screenPoint.y)) {
-            // user clicked on text
-            String callout = feature.getStringProperty("call-out");
-            Toast.makeText(this, callout, Toast.LENGTH_LONG).show();
-        } else {*/
-        Toast.makeText(this, "user clicked on toggle Favourite icon", Toast.LENGTH_LONG).show();
-
-            /*// user clicked on icon
-            List<Feature> featureList = featureCollection.features();
-            for (int i = 0; i < featureList.size(); i++) {
-                if (featureList.get(i).getStringProperty(PROPERTY_TITLE).equals(feature.getStringProperty(PROPERTY_TITLE))) {
-                    toggleFavourite(i);
+            //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+            if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
+                    mCurrentWaitingSpot.getIsWaitingForARide()) {
+                if (mCurrentWaitingSpot.getId() == spot.getId())
+                    spot.setAttemptResult(null);
+                else {
+                    Toast.makeText(getBaseContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
+                    return;
                 }
             }
-        }*/
+
+            Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+            //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
+            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+            intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+            startActivityForResult(intent, EDIT_SPOT_REQUEST);
+        } else
+            Crashlytics.log(Log.WARN, TAG,
+                    "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
+
+
     }
 
     /**
@@ -820,11 +796,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
 
     List<Spot> spotList = new ArrayList<Spot>();
-
-    public void setValues(final List<Spot> list) {
-        spotList = list;
-    }
-
 
     @Override
     public void onPause() {
@@ -1133,7 +1104,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         }
     }
 
-    private static class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<List<ExtendedMarkerViewOptions>>> {
+    private static class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<Route>> {
         private List<Spot> spotList;
         private final WeakReference<MyMapsActivity> activityRef;
         String errMsg = "";
@@ -1154,7 +1125,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         }
 
         @Override
-        protected List<List<ExtendedMarkerViewOptions>> doInBackground(Void... voids) {
+        protected List<Route> doInBackground(Void... voids) {
             MyMapsActivity activity = activityRef.get();
             if (activity == null || activity.isFinishing())
                 return null;
@@ -1310,7 +1281,52 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                 });
             }
 
-            return trips;
+
+            List<Route> routes = new ArrayList<Route>();
+
+            for (int lc = 0; lc < trips.size(); lc++) {
+                try {
+                    List<ExtendedMarkerViewOptions> spots2 = trips.get(lc);
+                    Route route = new Route();
+                    route.features = new Feature[spots2.size()];
+
+                    /* Source: A data source specifies the geographic coordinate where the image markers get placed. */
+                    //Feature for
+
+                    //If it's the last array and isLastArrayForSingleSpots is true, add the markers with no polyline connecting them
+                    if (isLastArrayForSingleSpots && lc == trips.size() - 1) {
+                        for (int li = 0; li < spots2.size(); li++) {
+                            ExtendedMarkerViewOptions spot = spots2.get(li);
+                            //Add marker to map
+                            route.features[li] = GetFeature(spot, lc);
+                        }
+                    } else {
+                        PolylineOptions line = new PolylineOptions()
+                                .width(2)
+                                .color(Color.parseColor(activity.getResources().getString(activity.getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
+
+
+                        //Add route to the map with markers and polylines connecting them
+                        for (int li = 0; li < spots2.size(); li++) {
+                            ExtendedMarkerViewOptions spot = spots2.get(li);
+                            route.features[li] = GetFeature(spot, lc);
+
+                            //Add polyline connecting this marker
+                            line.add(spot.getPosition());
+                        }
+
+                        route.polylines = line;
+                    }
+
+                    routes.add(route);
+                } catch (Exception ex) {
+                    Crashlytics.logException(ex);
+                    errMsg = "Adding markers failed - " + ex.getMessage();
+                }
+
+            }
+
+            return routes;
         }
 
         @NonNull
@@ -1345,55 +1361,11 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         }
 
         @Override
-        protected void onPostExecute(List<List<ExtendedMarkerViewOptions>> trips) {
-            super.onPostExecute(trips);
+        protected void onPostExecute(List<Route> routes) {
+            super.onPostExecute(routes);
             MyMapsActivity activity = activityRef.get();
             if (activity == null || activity.isFinishing())
                 return;
-
-            List<Route> routes = new ArrayList<Route>();
-
-            for (int lc = 0; lc < trips.size(); lc++) {
-                try {
-                    List<ExtendedMarkerViewOptions> spots = trips.get(lc);
-                    Route route = new Route();
-                    route.features = new Feature[spots.size()];
-
-                    /* Source: A data source specifies the geographic coordinate where the image markers get placed. */
-                    //Feature for
-
-                    //If it's the last array and isLastArrayForSingleSpots is true, add the markers with no polyline connecting them
-                    if (isLastArrayForSingleSpots && lc == trips.size() - 1) {
-                        for (int li = 0; li < spots.size(); li++) {
-                            ExtendedMarkerViewOptions spot = spots.get(li);
-                            //Add marker to map
-                            route.features[li] = GetFeature(spot, lc);
-                        }
-                    } else {
-                        PolylineOptions line = new PolylineOptions()
-                                .width(2)
-                                .color(Color.parseColor(activity.getResources().getString(activity.getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
-
-
-                        //Add route to the map with markers and polylines connecting them
-                        for (int li = 0; li < spots.size(); li++) {
-                            ExtendedMarkerViewOptions spot = spots.get(li);
-                            route.features[li] = GetFeature(spot, lc);
-
-                            //Add polyline connecting this marker
-                            line.add(spot.getPosition());
-                        }
-
-                        route.polylines = line;
-                    }
-
-                    routes.add(route);
-                } catch (Exception ex) {
-                    Crashlytics.logException(ex);
-                    errMsg = "Adding markers failed - " + ex.getMessage();
-                }
-
-            }
 
             activity.setupData(spotList, routes, errMsg);
 
