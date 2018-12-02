@@ -300,7 +300,7 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
                         iconImage("{title}"),
 
                         /* set anchor of icon to bottom-left */
-                        iconAnchor("bottom-left"),
+                        iconAnchor(Property.ICON_ANCHOR_BOTTOM_LEFT),
 
                         /* offset icon slightly to match bubble layout */
                         iconOffset(new Float[]{-20.0f, -10.0f})
