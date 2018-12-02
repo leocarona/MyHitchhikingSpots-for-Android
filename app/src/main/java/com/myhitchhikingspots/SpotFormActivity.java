@@ -633,13 +633,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         /*// Customize the user location icon using the getMyLocationViewSettings object.
         this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")*/
 
-        enableLocationPlugin();
-
-        // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(SpotFormActivity.this) && !locationLayerPlugin.isLocationLayerEnabled())
-            locationLayerPlugin.setLocationLayerEnabled(true);
-
-
         LatLng cameraPositionTo = null;
         int cameraZoomTo = Constants.KEEP_ZOOM_LEVEL;
 
