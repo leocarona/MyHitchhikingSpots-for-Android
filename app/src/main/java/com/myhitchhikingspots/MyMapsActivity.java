@@ -1395,7 +1395,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
             }
 
-            activity.setupData(routes, errMsg);
+            activity.setupData(spotList, routes, errMsg);
 
             new GenerateBalloonsTask(activity).execute(activity.featureCollection);
         }
@@ -1555,7 +1555,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         //this.viewMap = viewMap;
     }
 
-    void setupData(List<Route> routes, String errMsg) {
+    void setupData(List<Spot> spotList, List<Route> routes, String errMsg) {
         PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
         List<Feature> allFeatures = new ArrayList<>();
 
@@ -1565,6 +1565,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             allFeatures.addAll(Arrays.asList(route.features));
         }
 
+        this.spotList = spotList;
         Feature[] array = new Feature[allFeatures.size()];
         this.polylineOptionsArray = allPolylines;
         this.featuresArray = allFeatures.toArray(array);
