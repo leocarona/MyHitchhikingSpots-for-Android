@@ -528,8 +528,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
      * </p>
      *
      * @param feature           the feature that was clicked
-     * @param screenPoint       the point on screen clicked
-     * @param symbolScreenPoint the point of the symbol on screen
      */
     private void handleClickCallout(Feature feature) {
         onItemClick(feature.getStringProperty(PROPERTY_TAG));
