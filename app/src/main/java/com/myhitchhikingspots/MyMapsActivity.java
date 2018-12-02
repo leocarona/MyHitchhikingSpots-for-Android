@@ -527,7 +527,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
      * of the symbol on screen and hit tests that with the screen point.
      * </p>
      *
-     * @param feature           the feature that was clicked
+     * @param feature the feature that was clicked
      */
     private void handleClickCallout(Feature feature) {
         onItemClick(feature.getStringProperty(PROPERTY_TAG));
@@ -1649,20 +1649,22 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
      * </p>
      */
     private void setupCalloutLayer() {
-        mapboxMap.addLayer(new SymbolLayer(CALLOUT_LAYER_ID, MARKER_SOURCE_ID)
-                .withProperties(
-                        /* show image with id based on the value of the tag feature property */
-                        iconImage("{" + PROPERTY_TAG + "}"),
+        if (mapboxMap.getLayer(CALLOUT_LAYER_ID) == null) {
+            mapboxMap.addLayer(new SymbolLayer(CALLOUT_LAYER_ID, MARKER_SOURCE_ID)
+                    .withProperties(
+                            /* show image with id based on the value of the tag feature property */
+                            iconImage("{" + PROPERTY_TAG + "}"),
 
-                        /* set anchor of icon to bottom-left */
-                        iconAnchor(Property.ICON_ANCHOR_BOTTOM_LEFT),
+                            /* set anchor of icon to bottom-left */
+                            iconAnchor(Property.ICON_ANCHOR_BOTTOM_LEFT),
 
-                        /* offset icon slightly to match bubble layout */
-                        iconOffset(new Float[]{-120.0f, -10.0f})
-                )
+                            /* offset icon slightly to match bubble layout */
+                            iconOffset(new Float[]{-120.0f, -10.0f})
+                    )
 
-                /* add a filter to show only when selected feature property is true */
-                .withFilter(eq((get(PROPERTY_SELECTED)), literal(true))));
+                    /* add a filter to show only when selected feature property is true */
+                    .withFilter(eq((get(PROPERTY_SELECTED)), literal(true))));
+        }
     }
 
     Boolean shouldZoomToFitAllMarkers = true;
