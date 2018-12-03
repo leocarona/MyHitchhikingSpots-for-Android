@@ -1615,11 +1615,10 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     }
 
     private void setupSource() {
-        source = new GeoJsonSource(MARKER_SOURCE_ID, featureCollection);
-
-        if (mapboxMap.getSource(MARKER_SOURCE_ID) == null)
+        if (mapboxMap.getSource(MARKER_SOURCE_ID) == null) {
+            source = new GeoJsonSource(MARKER_SOURCE_ID, featureCollection);
             mapboxMap.addSource(source);
-        else
+        } else
             refreshSource();
     }
 
