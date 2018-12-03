@@ -61,9 +61,10 @@
                 android:layout_alignStart="@id/title"
                 android:layout_alignLeft="@id/title"
                 android:layout_marginTop="2dp"
+                android:minWidth="120dp"
                 android:maxWidth="200dp"
                 android:maxLines="5"
-                android:text="@string/arrived_button_text"
+                android:text="Florianópolis, Santa Catarina, Brazil\n3/dez (15min)\nSome note go here."
                 android:textSize="12sp"
                 android:textStyle="italic" />
 

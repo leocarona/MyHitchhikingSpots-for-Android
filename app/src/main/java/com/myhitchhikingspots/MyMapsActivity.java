@@ -103,6 +103,40 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationLayerPlugin;
 
+    private static final String MARKER_SOURCE_ID = "markers-source";
+    private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
+    private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
+
+    //Each hitchhiking spot is a feature
+    FeatureCollection featureCollection;
+    //Each route is an item of featuresArray and polylineOptionsArray
+    Feature[] featuresArray;
+    PolylineOptions[] polylineOptionsArray;
+    GeoJsonSource source;
+    SymbolLayer markerStyleLayer;
+
+    Spot mCurrentWaitingSpot;
+    boolean mIsWaitingForARide;
+    boolean mWillItBeFirstSpotOfARoute;
+
+    public enum pageType {
+        NOT_FETCHING_LOCATION,
+        WILL_BE_FIRST_SPOT_OF_A_ROUTE, //user sees "save spot" but doesn't see "arrival" button
+        WILL_BE_REGULAR_SPOT, //user sees both "save spot" and "arrival" buttons
+        WAITING_FOR_A_RIDE //user sees "got a ride" and "take a break" buttons
+    }
+
+    private pageType currentPage;
+
+    Boolean shouldZoomToFitAllMarkers = true;
+
+    protected static final String TAG = "map-view-activity";
+    private static final String PROPERTY_ICONIMAGE = "iconImage",
+            PROPERTY_ROUTEINDEX = "routeIndex", PROPERTY_TAG = "tag", PROPERTY_SPOTTYPE = "spotType",
+            PROPERTY_TITLE = "title", PROPERTY_SNIPPET = "snippet",
+            PROPERTY_SHOULDHIDE = "shouldHide", PROPERTY_SELECTED = "selected";
+
+
     //WARNING: in order to use BaseActivity the method onCreate must be overridden
     // calling first setContentView to the view you want to use
     // and then calling super.onCreate AFTER setContentView.
@@ -316,31 +350,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
         ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
     }
-
-    private static final String MARKER_SOURCE_ID = "markers-source";
-    private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
-    private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
-
-    //Each hitchhiking spot is a feature
-    FeatureCollection featureCollection;
-    //Each route is an item of featuresArray and polylineOptionsArray
-    Feature[] featuresArray;
-    PolylineOptions[] polylineOptionsArray;
-    GeoJsonSource source;
-    SymbolLayer markerStyleLayer;
-
-    Spot mCurrentWaitingSpot;
-    boolean mIsWaitingForARide;
-    boolean mWillItBeFirstSpotOfARoute;
-
-    public enum pageType {
-        NOT_FETCHING_LOCATION,
-        WILL_BE_FIRST_SPOT_OF_A_ROUTE, //user sees "save spot" but doesn't see "arrival" button
-        WILL_BE_REGULAR_SPOT, //user sees both "save spot" and "arrival" buttons
-        WAITING_FOR_A_RIDE //user sees "got a ride" and "take a break" buttons
-    }
-
-    private pageType currentPage;
 
     protected void configureBottomFABButtons() {
         switch (currentPage) {
@@ -1362,8 +1371,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                 return;
 
             activity.setupData(spotList, routes, errMsg);
-
-            new GenerateBalloonsTask(activity).execute(activity.featureCollection);
         }
 
         public void loadValues() {
@@ -1476,6 +1483,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                     activity.refreshSource();
                 }
             }
+            activity.dismissProgressDialog();
+            activity.isDrawingAnnotations = false;
         }
     }
 
@@ -1598,12 +1607,11 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                     "Adding markers failed - " + ex.getMessage());
         }
 
-        dismissProgressDialog();
-
-        isDrawingAnnotations = false;
-
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+        } else {
+            //Generate bitmaps from the layout_callout view that should appear when a icon is clicked
+            new GenerateBalloonsTask(this).execute(featureCollection);
         }
     }
 
@@ -1662,8 +1670,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         }
     }
 
-    Boolean shouldZoomToFitAllMarkers = true;
-
     private void refreshSource() {
         if (source != null && featureCollection != null) {
             source.setGeoJson(featureCollection);
@@ -1677,12 +1683,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     public void saveDestinationSpotButtonHandler() {
         saveSpotButtonHandler(true);
     }
-
-    protected static final String TAG = "map-view-activity";
-    private static final String PROPERTY_ICONIMAGE = "iconImage",
-            PROPERTY_ROUTEINDEX = "routeIndex", PROPERTY_TAG = "tag", PROPERTY_SPOTTYPE = "spotType",
-            PROPERTY_TITLE = "title", PROPERTY_SNIPPET = "snippet",
-            PROPERTY_SHOULDHIDE = "shouldHide", PROPERTY_SELECTED = "selected";
 
     /**
      * Handles the Save Spot button and save current location. Does nothing if
