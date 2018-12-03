@@ -46,8 +46,6 @@ import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.MarkerViewManager;
-import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -66,7 +64,6 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.ExtendedMarkerView;
-import com.myhitchhikingspots.utilities.ExtendedMarkerViewAdapter;
 import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
@@ -572,14 +569,26 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         deselectAll(false);
 
         Feature feature = featureCollection.features().get(index);
-        selectFeature(feature);
-        refreshSource();
+        if (mapboxMap.getImage(feature.id()) == null) {
+            showProgressDialog("Loading data..");
+
+            //Generate bitmaps from the layout_callout view that should appear when a icon is clicked
+            new GenerateBalloonsTask(this, feature).execute();
+        } else
+            showBalloon(feature);
+
         /*//Fetch pictures from around the feature location
         loadMapillaryData(feature);
 
         if (withScroll) {
             recyclerView.scrollToPosition(index);
         }*/
+    }
+
+    private void showBalloon(Feature feature) {
+        dismissProgressDialog();
+        selectFeature(feature);
+        refreshSource();
     }
 
     /**
@@ -662,9 +671,6 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 })
                 .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
     }
-
-
-    protected boolean isDrawingAnnotations = false;
 
     static String locationSeparator = ", ";
 
@@ -913,13 +919,13 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
     private ProgressDialog loadingDialog;
 
-    private void showProgressDialog() {
+    private void showProgressDialog(String message) {
         if (loadingDialog == null) {
             loadingDialog = new ProgressDialog(HitchwikiMapViewActivity.this);
             loadingDialog.setIndeterminate(true);
             loadingDialog.setCancelable(false);
-            loadingDialog.setMessage(getResources().getString(R.string.map_loading_dialog));
         }
+        loadingDialog.setMessage(message);
         loadingDialog.show();
     }
 
@@ -947,8 +953,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             if (activity == null || activity.isFinishing())
                 return;
 
-            activity.showProgressDialog();
-            activity.isDrawingAnnotations = true;
+            activity.showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
         }
 
         @Override
@@ -1146,50 +1151,43 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
      * Generating Views on background thread since we are not going to be adding them to the view hierarchy.
      * </p>
      */
-    private static class GenerateBalloonsTask extends AsyncTask<FeatureCollection, Void, HashMap<String, Bitmap>> {
+    private static class GenerateBalloonsTask extends AsyncTask<Void, Void, HashMap<String, Bitmap>> {
 
         //private final HashMap<String, View> viewMap = new HashMap<>();
         private final WeakReference<HitchwikiMapViewActivity> activityRef;
-        private final boolean refreshSource;
+        private final Feature feature;
 
-        GenerateBalloonsTask(HitchwikiMapViewActivity activity, boolean refreshSource) {
+        GenerateBalloonsTask(HitchwikiMapViewActivity activity, Feature feature) {
             this.activityRef = new WeakReference<>(activity);
-            this.refreshSource = refreshSource;
-        }
-
-        GenerateBalloonsTask(HitchwikiMapViewActivity activity) {
-            this(activity, false);
+            this.feature = feature;
         }
 
         @SuppressWarnings("WrongThread")
         @Override
-        protected HashMap<String, Bitmap> doInBackground(FeatureCollection... params) {
+        protected HashMap<String, Bitmap> doInBackground(Void... params) {
             HitchwikiMapViewActivity activity = activityRef.get();
             if (activity != null) {
                 HashMap<String, Bitmap> imagesMap = new HashMap<>();
                 LayoutInflater inflater = LayoutInflater.from(activity);
-                FeatureCollection featureCollection = params[0];
 
-                for (Feature feature : featureCollection.features()) {
-                    View view = inflater.inflate(R.layout.layout_callout, null);
+                View view = inflater.inflate(R.layout.layout_callout, null);
 
-                    String name = feature.getStringProperty(PROPERTY_TITLE);
-                    TextView titleTv = (TextView) view.findViewById(R.id.title);
-                    titleTv.setText(name);
+                String name = feature.getStringProperty(PROPERTY_TITLE);
+                TextView titleTv = (TextView) view.findViewById(R.id.title);
+                titleTv.setText(name);
 
-                    String style = feature.getStringProperty(PROPERTY_SNIPPET);
-                    TextView styleTv = (TextView) view.findViewById(R.id.style);
-                    styleTv.setText(style);
+                String style = feature.getStringProperty(PROPERTY_SNIPPET);
+                TextView styleTv = (TextView) view.findViewById(R.id.style);
+                styleTv.setText(style);
 
                     /*boolean favourite = feature.getBooleanProperty(PROPERTY_FAVOURITE);
                     ImageView imageView = (ImageView) view.findViewById(R.id.logoView);
                     imageView.setImageResource(favourite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);*/
 
-                    String tag = feature.getStringProperty(PROPERTY_TAG);
-                    Bitmap bitmap = HitchwikiMapViewActivity.SymbolGenerator.generate(view);
-                    imagesMap.put(tag, bitmap);
-                    //viewMap.put(name, view);
-                }
+                String tag = feature.getStringProperty(PROPERTY_TAG);
+                Bitmap bitmap = HitchwikiMapViewActivity.SymbolGenerator.generate(view);
+                imagesMap.put(tag, bitmap);
+                //viewMap.put(name, view);
 
                 return imagesMap;
             } else {
@@ -1203,12 +1201,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             HitchwikiMapViewActivity activity = activityRef.get();
             if (activity != null && bitmapHashMap != null) {
                 activity.setImageGenResults(bitmapHashMap);
-                if (refreshSource) {
-                    activity.refreshSource();
-                }
+                activity.showBalloon(feature);
             }
-            activity.dismissProgressDialog();
-            activity.isDrawingAnnotations = false;
         }
     }
 
@@ -1332,11 +1326,9 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
             //This should be particularly useful when user had downloaded HW spots but the local file was manually deleted or got corrupted for some reason
             if (routes.size() == 0)
                 showDialogDownloadHWSpots();
-            else {
-                //Generate bitmaps from the layout_callout view that should appear when a icon is clicked
-                new HitchwikiMapViewActivity.GenerateBalloonsTask(this).execute(featureCollection);
-            }
         }
+
+        dismissProgressDialog();
     }
 
     private void setupSource() {

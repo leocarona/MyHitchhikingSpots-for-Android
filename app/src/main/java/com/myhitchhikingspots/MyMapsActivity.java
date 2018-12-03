@@ -19,7 +19,6 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
@@ -29,7 +28,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +39,6 @@ import android.graphics.PointF;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
@@ -611,14 +608,26 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         deselectAll(false);
 
         Feature feature = featureCollection.features().get(index);
-        selectFeature(feature);
-        refreshSource();
+        if (mapboxMap.getImage(feature.id()) == null) {
+            showProgressDialog("Loading data..");
+
+            //Generate bitmaps from the layout_callout view that should appear when a icon is clicked
+            new GenerateBalloonsTask(this, featureCollection.features().get(index)).execute();
+        } else
+            showBalloon(feature);
+
         /*//Fetch pictures from around the feature location
         loadMapillaryData(feature);
 
         if (withScroll) {
             recyclerView.scrollToPosition(index);
         }*/
+    }
+
+    private void showBalloon(Feature feature) {
+        dismissProgressDialog();
+        selectFeature(feature);
+        refreshSource();
     }
 
     /**
@@ -698,8 +707,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         //Load markers and polylines
         new LoadSpotsAndRoutesTask(this).execute();
     }
-
-    protected boolean isDrawingAnnotations = false;
 
     static String locationSeparator = ", ";
 
@@ -1089,13 +1096,13 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
     private ProgressDialog loadingDialog;
 
-    private void showProgressDialog() {
+    private void showProgressDialog(String message) {
         if (loadingDialog == null) {
             loadingDialog = new ProgressDialog(MyMapsActivity.this);
             loadingDialog.setIndeterminate(true);
             loadingDialog.setCancelable(false);
-            loadingDialog.setMessage(getResources().getString(R.string.map_loading_dialog));
         }
+        loadingDialog.setMessage(message);
         loadingDialog.show();
     }
 
@@ -1123,8 +1130,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             if (activity == null || activity.isFinishing())
                 return;
 
-            activity.showProgressDialog();
-            activity.isDrawingAnnotations = true;
+            activity.showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
         }
 
         @Override
@@ -1422,50 +1428,41 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
      * Generating Views on background thread since we are not going to be adding them to the view hierarchy.
      * </p>
      */
-    private static class GenerateBalloonsTask extends AsyncTask<FeatureCollection, Void, HashMap<String, Bitmap>> {
-
-        //private final HashMap<String, View> viewMap = new HashMap<>();
+    private static class GenerateBalloonsTask extends AsyncTask<Void, Void, HashMap<String, Bitmap>> {
         private final WeakReference<MyMapsActivity> activityRef;
-        private final boolean refreshSource;
+        private final Feature feature;
 
-        GenerateBalloonsTask(MyMapsActivity activity, boolean refreshSource) {
+        GenerateBalloonsTask(MyMapsActivity activity, Feature feature) {
             this.activityRef = new WeakReference<>(activity);
-            this.refreshSource = refreshSource;
-        }
-
-        GenerateBalloonsTask(MyMapsActivity activity) {
-            this(activity, false);
+            this.feature = feature;
         }
 
         @SuppressWarnings("WrongThread")
         @Override
-        protected HashMap<String, Bitmap> doInBackground(FeatureCollection... params) {
+        protected HashMap<String, Bitmap> doInBackground(Void... x) {
             MyMapsActivity activity = activityRef.get();
             if (activity != null) {
                 HashMap<String, Bitmap> imagesMap = new HashMap<>();
                 LayoutInflater inflater = LayoutInflater.from(activity);
-                FeatureCollection featureCollection = params[0];
 
-                for (Feature feature : featureCollection.features()) {
-                    View view = inflater.inflate(R.layout.layout_callout, null);
+                View view = inflater.inflate(R.layout.layout_callout, null);
 
-                    String name = feature.getStringProperty(PROPERTY_TITLE);
-                    TextView titleTv = (TextView) view.findViewById(R.id.title);
-                    titleTv.setText(name);
+                String name = feature.getStringProperty(PROPERTY_TITLE);
+                TextView titleTv = (TextView) view.findViewById(R.id.title);
+                titleTv.setText(name);
 
-                    String style = feature.getStringProperty(PROPERTY_SNIPPET);
-                    TextView styleTv = (TextView) view.findViewById(R.id.style);
-                    styleTv.setText(style);
+                String style = feature.getStringProperty(PROPERTY_SNIPPET);
+                TextView styleTv = (TextView) view.findViewById(R.id.style);
+                styleTv.setText(style);
 
-                    /*boolean favourite = feature.getBooleanProperty(PROPERTY_FAVOURITE);
-                    ImageView imageView = (ImageView) view.findViewById(R.id.logoView);
-                    imageView.setImageResource(favourite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);*/
+                /*boolean favourite = feature.getBooleanProperty(PROPERTY_FAVOURITE);
+                ImageView imageView = (ImageView) view.findViewById(R.id.logoView);
+                imageView.setImageResource(favourite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);*/
 
-                    String tag = feature.getStringProperty(PROPERTY_TAG);
-                    Bitmap bitmap = SymbolGenerator.generate(view);
-                    imagesMap.put(tag, bitmap);
-                    //viewMap.put(name, view);
-                }
+                String tag = feature.getStringProperty(PROPERTY_TAG);
+                Bitmap bitmap = SymbolGenerator.generate(view);
+                imagesMap.put(tag, bitmap);
+                //viewMap.put(name, view);
 
                 return imagesMap;
             } else {
@@ -1479,12 +1476,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             MyMapsActivity activity = activityRef.get();
             if (activity != null && bitmapHashMap != null) {
                 activity.setImageGenResults(bitmapHashMap);
-                if (refreshSource) {
-                    activity.refreshSource();
-                }
+                activity.showBalloon(feature);
             }
-            activity.dismissProgressDialog();
-            activity.isDrawingAnnotations = false;
         }
     }
 
@@ -1553,7 +1546,6 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
         updateUISaveButtons();
 
-
         featureCollection = FeatureCollection.fromFeatures(featuresArray);
 
         setupSource();
@@ -1609,10 +1601,9 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
 
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-        } else {
-            //Generate bitmaps from the layout_callout view that should appear when a icon is clicked
-            new GenerateBalloonsTask(this).execute(featureCollection);
         }
+
+        dismissProgressDialog();
     }
 
     private void setupSource() {
