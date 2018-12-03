@@ -589,6 +589,9 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                     setSelected(i, true);
                 }
             }
+        } else {
+            deselectAll(false);
+            refreshSource();
         }
     }
 
