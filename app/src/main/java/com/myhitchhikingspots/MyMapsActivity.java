@@ -473,20 +473,15 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
         Crashlytics.log(Log.INFO, TAG, "onMapReady was called");
-        // Customize map with markers, polylines, etc.
-        this.mapboxMap = mapboxMap;
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
-        // Customize the user location icon using the getMyLocationViewSettings object.
-        //this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")
+        this.mapboxMap = mapboxMap;
 
-        enableLocationPlugin();
+        this.mapboxMap.getUiSettings().setCompassEnabled(false);
+        this.mapboxMap.getUiSettings().setLogoEnabled(false);
+        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
 
-        // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(MyMapsActivity.this) && !locationLayerPlugin.isLocationLayerEnabled())
-            locationLayerPlugin.setLocationLayerEnabled(true);
-
-        mapboxMap.addOnMapClickListener(this);
+        this.mapboxMap.addOnMapClickListener(this);
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
@@ -497,11 +492,9 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             }
         });
 
-        this.mapboxMap.getUiSettings().setCompassEnabled(false);
-        this.mapboxMap.getUiSettings().setLogoEnabled(false);
-        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
-
         setupIconImages();
+
+        locateUser();
 
         updateUI();
     }

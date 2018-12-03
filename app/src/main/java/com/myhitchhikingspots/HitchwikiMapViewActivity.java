@@ -420,32 +420,43 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
         Crashlytics.log(Log.INFO, TAG, "mapReady called");
-        // Customize map with markers, polylines, etc.
-        this.mapboxMap = mapboxMap;
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
-        /*// Customize the user location icon using the getMyLocationViewSettings object.
-        //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
-        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")*/
+        this.mapboxMap = mapboxMap;
 
-        enableLocationPlugin();
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
             public boolean onInfoWindowClick(@NonNull Marker marker) {
                 ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
-                Crashlytics.setString("Clicked marker tag", myMarker.getTag());
-                Spot spot = null;
-                for (Spot spot2 :
-                        spotList) {
-                    String id = spot2.getId().toString();
-                    if (id.equals(myMarker.getTag())) {
-                        spot = spot2;
-                        break;
-                    }
-                }
+                onItemClick(myMarker.getTag());
+                return true;
+            }
+        });
 
-                if (spot != null) {
+        final MarkerViewManager markerViewManager = mapboxMap.getMarkerViewManager();
+        // if you want to customise a ViewMarker you need to extend ViewMarker and provide an adapter implementation
+        // set adapters for child classes of ViewMarker
+        markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(HitchwikiMapViewActivity.this));
+
+        locateUser();
+
+        updateUI();
+    }
+
+    private void onItemClick(String spotId) {
+        Crashlytics.setString("Clicked marker tag", spotId);
+        Spot spot = null;
+        for (Spot spot2 :
+                spotList) {
+            String id = spot2.getId().toString();
+            if (id.equals(spotId)) {
+                spot = spot2;
+                break;
+            }
+        }
+
+        if (spot != null) {
                     /*Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
 
                     //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
@@ -459,30 +470,19 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                         }
                     }*/
 
-                    //Create a record to track of HW spots viewed by the user
-                    Answers.getInstance().logCustom(new CustomEvent("HW spot viewed"));
+            //Create a record to track of HW spots viewed by the user
+            Answers.getInstance().logCustom(new CustomEvent("HW spot viewed"));
 
-                    Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-                    //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-                    intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-                    intent.putExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, true);
+            Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+            //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
+            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+            intent.putExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, true);
 
-                    startActivityForResult(intent, EDIT_SPOT_REQUEST);
-                } else
-                    Crashlytics.log(Log.WARN, TAG,
-                            "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + myMarker.getTag());
+            startActivityForResult(intent, EDIT_SPOT_REQUEST);
+        } else
+            Crashlytics.log(Log.WARN, TAG,
+                    "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
 
-
-                return true;
-            }
-        });
-
-        final MarkerViewManager markerViewManager = mapboxMap.getMarkerViewManager();
-        // if you want to customise a ViewMarker you need to extend ViewMarker and provide an adapter implementation
-        // set adapters for child classes of ViewMarker
-        markerViewManager.addMarkerViewAdapter(new ExtendedMarkerViewAdapter(HitchwikiMapViewActivity.this));
-
-        updateUI();
     }
 
     void updateUI() {
