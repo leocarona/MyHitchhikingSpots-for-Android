@@ -424,6 +424,9 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
         this.mapboxMap = mapboxMap;
 
+        this.mapboxMap.getUiSettings().setCompassEnabled(false);
+        this.mapboxMap.getUiSettings().setLogoEnabled(false);
+        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
 
         this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
             @Override
