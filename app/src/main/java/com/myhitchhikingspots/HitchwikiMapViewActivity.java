@@ -698,8 +698,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                for (Marker marker : mapboxMap.getMarkers()) {
-                    lst.add(marker.getPosition());
+                for (Spot spot : spotList) {
+                    lst.add(new LatLng(spot.getLatitude(), spot.getLongitude()));
                 }
 
                 if (mCurrentLocation != null)
