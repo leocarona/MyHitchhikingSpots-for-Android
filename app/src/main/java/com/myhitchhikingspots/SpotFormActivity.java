@@ -798,12 +798,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
     protected void onStart() {
         super.onStart();
         mapView.onStart();
+        if (locationLayerPlugin != null)
+            locationLayerPlugin.onStart();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         mapView.onStop();
+        if (locationLayerPlugin != null)
+            locationLayerPlugin.onStop();
     }
 
 

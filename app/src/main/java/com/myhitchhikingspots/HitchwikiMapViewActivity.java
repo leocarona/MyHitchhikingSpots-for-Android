@@ -696,12 +696,16 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     protected void onStart() {
         super.onStart();
         mapView.onStart();
+        if (locationLayerPlugin != null)
+            locationLayerPlugin.onStart();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         mapView.onStop();
+        if (locationLayerPlugin != null)
+            locationLayerPlugin.onStop();
     }
 
     @Override

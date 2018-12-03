@@ -761,6 +761,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         Crashlytics.log(Log.INFO, TAG, "onStart called");
         super.onStart();
         mapView.onStart();
+        if (locationLayerPlugin != null)
+            locationLayerPlugin.onStart();
     }
 
     @Override
@@ -768,6 +770,8 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         Crashlytics.log(Log.INFO, TAG, "onStop called");
         super.onStop();
         mapView.onStop();
+        if (locationLayerPlugin != null)
+            locationLayerPlugin.onStop();
     }
 
     @Override
