@@ -625,9 +625,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     @Override
     public void onMapReady(final MapboxMap mapboxMap) {
-        // Customize map with markers, polylines, etc.
-        this.mapboxMap = mapboxMap;
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).commit();
+
+        this.mapboxMap = mapboxMap;
         updateMapVisibility();
 
         this.mapboxMap.getUiSettings().setCompassEnabled(false);
@@ -973,7 +973,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 });
 
                 // Set the plugin's camera mode
-                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS);
+                locationLayerPlugin.setCameraMode(CameraMode.TRACKING);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);

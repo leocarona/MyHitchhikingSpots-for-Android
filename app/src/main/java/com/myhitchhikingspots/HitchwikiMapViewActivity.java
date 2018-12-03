@@ -381,7 +381,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 });
 
                 // Set the plugin's camera mode
-                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS);
+                locationLayerPlugin.setCameraMode(CameraMode.TRACKING);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);

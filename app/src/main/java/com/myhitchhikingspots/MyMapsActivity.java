@@ -460,7 +460,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                 });
 
                 // Set the plugin's camera mode
-                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS);
+                locationLayerPlugin.setCameraMode(CameraMode.TRACKING);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);
