@@ -293,18 +293,18 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
     }
 
     private void loadMarkerIcons() {
-        ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, -1);
+        ic_single_spot = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, -1);
 
         ic_took_a_break_spot = IconUtils.drawableToIcon(this, R.drawable.ic_break_spot_icon, -1);
         ic_waiting_spot = IconUtils.drawableToIcon(this, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
         ic_arrival_spot = IconUtils.drawableToIcon(this, R.drawable.ic_arrival_icon, -1);
 
-        ic_typeunknown_spot = IconUtils.drawableToIcon(this, R.drawable.ic_edit_location_black_24dp, getIdentifierColorStateList(-1));
-        ic_got_a_ride_spot0 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(0));
-        ic_got_a_ride_spot1 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(1));
-        ic_got_a_ride_spot2 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(2));
-        ic_got_a_ride_spot3 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(3));
-        ic_got_a_ride_spot4 = IconUtils.drawableToIcon(this, R.drawable.ic_marker_got_a_ride_24dp, getIdentifierColorStateList(4));
+        ic_hitchability_unknown = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(-1));
+        ic_hitchability_very_good = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(1));
+        ic_hitchability_good = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(2));
+        ic_hitchability_average = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
+        ic_hitchability_bad = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
+        ic_hitchability_senseless = IconUtils.drawableToIcon(this, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(5));
     }
 
     private static final String MARKER_SOURCE_ID = "markers-source";
@@ -618,12 +618,12 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         //this.mapboxMap.addImage(ic_point_on_the_route_spot.getId(), ic_point_on_the_route_spot.getBitmap());
         this.mapboxMap.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
         this.mapboxMap.addImage(ic_arrival_spot.getId(), ic_arrival_spot.getBitmap());
-        this.mapboxMap.addImage(ic_typeunknown_spot.getId(), ic_typeunknown_spot.getBitmap());
-        this.mapboxMap.addImage(ic_got_a_ride_spot0.getId(), ic_got_a_ride_spot0.getBitmap());
-        this.mapboxMap.addImage(ic_got_a_ride_spot1.getId(), ic_got_a_ride_spot1.getBitmap());
-        this.mapboxMap.addImage(ic_got_a_ride_spot2.getId(), ic_got_a_ride_spot2.getBitmap());
-        this.mapboxMap.addImage(ic_got_a_ride_spot3.getId(), ic_got_a_ride_spot3.getBitmap());
-        this.mapboxMap.addImage(ic_got_a_ride_spot4.getId(), ic_got_a_ride_spot4.getBitmap());
+        this.mapboxMap.addImage(ic_hitchability_unknown.getId(), ic_hitchability_unknown.getBitmap());
+        this.mapboxMap.addImage(ic_hitchability_very_good.getId(), ic_hitchability_very_good.getBitmap());
+        this.mapboxMap.addImage(ic_hitchability_good.getId(), ic_hitchability_good.getBitmap());
+        this.mapboxMap.addImage(ic_hitchability_average.getId(), ic_hitchability_average.getBitmap());
+        this.mapboxMap.addImage(ic_hitchability_bad.getId(), ic_hitchability_bad.getBitmap());
+        this.mapboxMap.addImage(ic_hitchability_senseless.getId(), ic_hitchability_senseless.getBitmap());
     }
 
     void updateUI() {
@@ -731,8 +731,8 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         }*/
     }
 
-    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
-    Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
+    Icon ic_single_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
+    Icon ic_hitchability_unknown, ic_hitchability_very_good, ic_hitchability_good, ic_hitchability_average, ic_hitchability_bad, ic_hitchability_senseless;
 
     List<Spot> spotList = new ArrayList<Spot>();
 
@@ -985,8 +985,28 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
                 if (spot.getId() != null)
                     markerViewOptions.tag(spot.getId().toString());
 
+                Icon ic = activity.ic_hitchability_unknown;
+                if (spot.getHitchability() != null) {
+                    switch (spot.getHitchability()) {
+                        case 1:
+                            ic = activity.ic_hitchability_senseless;
+                            break;
+                        case 2:
+                            ic = activity.ic_hitchability_bad;
+                            break;
+                        case 3:
+                            ic = activity.ic_hitchability_average;
+                            break;
+                        case 4:
+                            ic = activity.ic_hitchability_good;
+                            break;
+                        case 5:
+                            ic = activity.ic_hitchability_very_good;
+                            break;
+                    }
+                }
 
-                markerViewOptions.icon(activity.ic_single_spot);
+                markerViewOptions.icon(ic);
                 markerViewOptions.spotType(Constants.SPOT_TYPE_HITCHHIKING_SPOT);
 
                 //Get a hitchability string to set as title
@@ -1387,99 +1407,32 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
         }
     }
 
-    private Icon getGotARideIconForRoute(int routeIndex) {
-        Icon i = ic_typeunknown_spot;
+    private int getHitchabilityColor(int hitchability) {
+        int hitchabilityColor = R.color.hitchability_unknown;
 
-        if (routeIndex > -1) {
-            int value = routeIndex;
-            if (value < 5)
-                value += 5;
-
-            switch (value % 5) {
-                case 0:
-                    i = ic_got_a_ride_spot0;
-                    break;
-                case 1:
-                    i = ic_got_a_ride_spot1;
-                    break;
-                case 2:
-                    i = ic_got_a_ride_spot2;
-                    break;
-                case 3:
-                    i = ic_got_a_ride_spot3;
-                    break;
-                case 4:
-                    i = ic_got_a_ride_spot4;
-                    break;
-            }
+        switch (hitchability) {
+            case 1:
+                hitchabilityColor = R.color.hitchability_senseless;
+                break;
+            case 2:
+                hitchabilityColor = R.color.hitchability_bad;
+                break;
+            case 3:
+                hitchabilityColor = R.color.hitchability_average;
+                break;
+            case 4:
+                hitchabilityColor = R.color.hitchability_good;
+                break;
+            case 5:
+                hitchabilityColor = R.color.hitchability_very_good;
+                break;
         }
 
-        return i;
+        return hitchabilityColor;
     }
 
-    private int getIdentifierColor(int routeIndex) {
-        int polylineColor = Color.GRAY;
-
-        if (routeIndex > -1) {
-            int value = routeIndex;
-            if (value < 5)
-                value += 5;
-
-            switch (value % 5) {
-                case 0:
-                    polylineColor = Color.BLUE;
-                    break;
-                case 1:
-                    polylineColor = Color.GREEN;
-                    break;
-                case 2:
-                    polylineColor = Color.YELLOW;
-                    break;
-                case 3:
-                    polylineColor = Color.MAGENTA;
-                    break;
-                case 4:
-                    polylineColor = Color.BLACK;
-                    break;
-            }
-        }
-
-        return polylineColor;
+    private ColorStateList getIdentifierColorStateList(int hitchability) {
+        return ContextCompat.getColorStateList(getBaseContext(), getHitchabilityColor(hitchability));
     }
-
-    private ColorStateList getIdentifierColorStateList(int routeIndex) {
-        return ContextCompat.getColorStateList(getBaseContext(), getPolylineColorAsId(routeIndex));
-    }
-
-    private int getPolylineColorAsId(int routeIndex) {
-        int polylineColor = R.color.route_color_unknown;
-
-        if (routeIndex > -1) {
-            int value = routeIndex;
-            if (value < 5)
-                value += 5;
-
-            switch (value % 5) {
-                case 0:
-                    polylineColor = R.color.route_color_0;
-                    break;
-                case 1:
-                    polylineColor = R.color.route_color_1;
-                    break;
-                case 2:
-                    polylineColor = R.color.route_color_2;
-                    break;
-                case 3:
-                    polylineColor = R.color.route_color_3;
-                    break;
-                case 4:
-                    polylineColor = R.color.route_color_4;
-                    break;
-            }
-        }
-
-        return polylineColor;
-    }
-
 
 }
