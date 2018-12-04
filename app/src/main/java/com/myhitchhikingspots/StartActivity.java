@@ -13,7 +13,7 @@ public class StartActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
-        startActivity(new Intent(getApplicationContext(), HitchwikiMapView_SymbolLayer.class));
+        startActivity(new Intent(getApplicationContext(), MainActivity.class));
 
 /*
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
