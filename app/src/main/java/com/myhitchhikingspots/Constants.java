@@ -84,4 +84,9 @@ public final class Constants {
     public static final String SHOULD_SYNC_SA = "SHOULD_SYNC_SA";
     public static final String SHOULD_SYNC_AN = "SHOULD_SYNC_AN";
     public static final String SHOULD_SYNC_OC = "SHOULD_SYNC_OC";
+
+    public static final int SAVE_SPOT_REQUEST = 2, EDIT_SPOT_REQUEST = 3;
+    public static final int RESULT_OBJECT_ADDED = 2;
+    public static final int RESULT_OBJECT_EDITED = 3;
+    public static final int RESULT_OBJECT_DELETED = 4;
 }
