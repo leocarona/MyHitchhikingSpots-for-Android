@@ -12,8 +12,8 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 public class BasicFragment extends android.support.v4.app.Fragment {
 
-    private MainActivity activity;
-    private MapView mapView;
+    MapView mapView;
+    MainActivity activity;
 
     @Override
     public void onAttach(Context context) {

@@ -112,30 +112,22 @@ public class MainActivity extends AppCompatActivity {
             case R.id.nav_offline_map:
                 fragmentClass = OfflineMapManagerFragment.class;
                 break;
+            case R.id.nav_tools:
+                fragmentClass = SettingsFragment.class;
+                break;
             default:
                 fragmentClass = BasicFragment.class;
         }
 
-        if (fragmentClass != BasicFragment.class) {
-            try {
-                fragment = (Fragment) fragmentClass.newInstance();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // Insert the fragment by replacing any existing fragment
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
-        } else {
-            switch (menuItem.getItemId()) {
-                case R.id.nav_tools:
-                    startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-                    break;
-                case R.id.nav_hitchwiki_map_2:
-                    startActivity(new Intent(getApplicationContext(), HitchwikiMapView_SymbolLayer.class));
-                    break;
-            }
+        try {
+            fragment = (Fragment) fragmentClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+        // Insert the fragment by replacing any existing fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
 
         // Highlight the selected item has been done by NavigationView
         menuItem.setChecked(true);
