@@ -99,6 +99,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationLayerPlugin;
 
+    public static String ARG_SPOTLIST_KEY = "spot_list_arg";
+    public static String ARG_CURRENTSPOT_KEY = "current_spot_arg";
+
     private static final String MARKER_SOURCE_ID = "markers-source";
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
@@ -290,6 +293,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         super.onCreate(savedInstanceState);
         //Important: setHasOptionsMenu must be called so that onOptionsItemSelected works
         setHasOptionsMenu(true);
+
+        if (getArguments() != null) {
+            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(ARG_SPOTLIST_KEY);
+            spotList = Arrays.asList(bundleSpotList);
+            mCurrentWaitingSpot = (Spot) getArguments().getSerializable(ARG_CURRENTSPOT_KEY);
+        }
     }
 
     void locateUser() {
@@ -705,18 +714,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     void loadAll() {
-        showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
-
-        //Load markers and polylines
-        new LoadSpotsAndRoutesTask(this).execute();
+        if (mapboxMap != null) {
+            showProgressDialog("Drawing routes..");
+            Spot[] spotArray = new Spot[spotList.size()];
+            new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
+        }
     }
 
-    public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
-        if (!errMsg.isEmpty()) {
-            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-            return;
-        }
-
+    public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot) {
         this.spotList = spotList;
 
         if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
@@ -725,14 +730,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             this.mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
 
         this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
-
-        dismissProgressDialog();
-
-        if (mapboxMap != null) {
-            showProgressDialog("Drawing routes..");
-            Spot[] spotArray = new Spot[spotList.size()];
-            new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
-        }
     }
 
     private void setupAnnotations(List<Route> routes, String errMsg) {

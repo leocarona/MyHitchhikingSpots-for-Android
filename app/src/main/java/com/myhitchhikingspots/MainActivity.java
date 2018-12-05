@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -9,14 +10,24 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+
+import com.myhitchhikingspots.model.Spot;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
+
+    List<Spot> spotList = new ArrayList();
+    Spot mCurrentWaitingSpot;
+    Boolean mIsWaitingForARide, mWillItBeFirstSpotOfARoute;
 
     // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
     // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
@@ -43,8 +54,7 @@ public class MainActivity extends AppCompatActivity {
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
-        //Select My Maps menu option to load on app startup
-        selectDrawerItem(nvDrawer.getMenu().getItem(0));
+        loadAll();
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -102,11 +112,16 @@ public class MainActivity extends AppCompatActivity {
     public void selectDrawerItem(MenuItem menuItem) {
 
         // Create a new fragment and specify the fragment to show based on nav item clicked
-        Fragment fragment = null;
         Class fragmentClass;
+        Bundle bundle = new Bundle();
+
         switch (menuItem.getItemId()) {
             case R.id.nav_my_map:
                 fragmentClass = MyMapsFragment.class;
+                Spot[] spotArray = new Spot[spotList.size()];
+                bundle.putSerializable(MyMapsFragment.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
+                bundle.putSerializable(MyMapsFragment.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
+                //spotList, mCurrentWaitingSpot
                 break;
             case R.id.nav_hitchwiki_map:
                 fragmentClass = HitchwikiMapViewFragment.class;
@@ -121,15 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 fragmentClass = BasicFragment.class;
         }
 
-        try {
-            fragment = (Fragment) fragmentClass.newInstance();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Insert the fragment by replacing any existing fragment
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+        replaceFragmentContainerWith(fragmentClass, bundle);
 
         // Highlight the selected item has been done by NavigationView
         menuItem.setChecked(true);
@@ -139,12 +146,84 @@ public class MainActivity extends AppCompatActivity {
         mDrawer.closeDrawers();
     }
 
+    private void replaceFragmentContainerWith(Class fragmentClass, Bundle bundle) {
+        Fragment fragment = null;
+        try {
+            fragment = (Fragment) fragmentClass.newInstance();
+            fragment.setArguments(bundle);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Insert the fragment by replacing any existing fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+    }
+
     @Override
     public void onBackPressed() {
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             mDrawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
+        }
+    }
+
+
+    void loadAll() {
+        showProgressDialog(getResources().getString(R.string.map_loading_dialog));
+
+        //Load markers and polylines
+        new LoadSpotsAndRoutesTask(this).execute();
+    }
+
+    public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+            return;
+        }
+
+        this.spotList = spotList;
+
+        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
+            this.mIsWaitingForARide = false;
+        else
+            this.mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
+
+        this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+
+        //Select My Maps menu option to load on app startup
+        selectDrawerItem(nvDrawer.getMenu().getItem(0));
+
+        dismissProgressDialog();
+    }
+
+    protected void showErrorAlert(String title, String msg) {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
+                .show();
+    }
+
+    private ProgressDialog loadingDialog;
+
+    private void showProgressDialog(String message) {
+        if (loadingDialog == null) {
+            loadingDialog = new ProgressDialog(this);
+            loadingDialog.setIndeterminate(true);
+            loadingDialog.setCancelable(false);
+        }
+        loadingDialog.setMessage(message);
+        loadingDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        try {
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
+        } catch (Exception e) {
         }
     }
 }

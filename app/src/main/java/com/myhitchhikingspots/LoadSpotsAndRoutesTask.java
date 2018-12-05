@@ -15,22 +15,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<Spot>> {
-    private final WeakReference<MyMapsFragment> activityRef;
+    private final WeakReference<MainActivity> activityRef;
     private Spot mCurrentWaitingSpot;
     private String errMsg = "";
 
-    LoadSpotsAndRoutesTask(MyMapsFragment activity) {
+    LoadSpotsAndRoutesTask(MainActivity activity) {
         this.activityRef = new WeakReference<>(activity);
     }
 
     @Override
     protected List<Spot> doInBackground(Void... voids) {
-        MyMapsFragment activity = activityRef.get();
+        MainActivity activity = activityRef.get();
         if (activity == null)
             return null;
 
         try {
-            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) activity.getActivity().getApplicationContext());
+            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) activity.getApplicationContext());
             DaoSession daoSession = appContext.getDaoSession();
             SpotDao spotDao = daoSession.getSpotDao();
 
@@ -49,7 +49,7 @@ public class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<Spot>> {
     @Override
     protected void onPostExecute(List<Spot> spotList) {
         super.onPostExecute(spotList);
-        MyMapsFragment activity = activityRef.get();
+        MainActivity activity = activityRef.get();
         if (activity == null)
             return;
 
