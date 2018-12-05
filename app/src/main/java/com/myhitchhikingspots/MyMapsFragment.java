@@ -975,8 +975,13 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                for (Spot spot : spotList) {
-                    lst.add(new LatLng(spot.getLatitude(), spot.getLongitude()));
+
+                //Include only features that are actually seen on the map (hidden features are excluded)
+                for (Feature feature : featureCollection.features()) {
+                    if (!feature.getBooleanProperty(PROPERTY_SHOULDHIDE)) {
+                        Point p = ((Point) feature.geometry());
+                        lst.add(new LatLng(p.latitude(), p.longitude()));
+                    }
                 }
 
                 if (mCurrentLocation != null)

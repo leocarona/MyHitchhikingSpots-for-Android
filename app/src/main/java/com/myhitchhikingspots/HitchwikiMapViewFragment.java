@@ -812,8 +812,11 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                for (Spot spot : spotList) {
-                    lst.add(new LatLng(spot.getLatitude(), spot.getLongitude()));
+
+                //Include only features that are actually seen on the map
+                for (Feature feature : featureCollection.features()) {
+                    Point p = ((Point) feature.geometry());
+                    lst.add(new LatLng(p.latitude(), p.longitude()));
                 }
 
                 if (mCurrentLocation != null)
