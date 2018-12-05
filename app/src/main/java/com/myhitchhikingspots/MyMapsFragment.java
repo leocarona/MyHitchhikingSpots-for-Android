@@ -26,14 +26,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -1070,11 +1068,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    private static class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<Route>> {
-        private List<Spot> spotList;
+    private static class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<Spot>> {
         private final WeakReference<MyMapsFragment> activityRef;
+        Spot mCurrentWaitingSpot;
         String errMsg = "";
-        Boolean isLastArrayForSingleSpots = false;
 
         LoadSpotsAndRoutesTask(MyMapsFragment activity) {
             this.activityRef = new WeakReference<>(activity);
@@ -1089,19 +1086,67 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             activity.showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
         }
 
+
         @Override
-        protected List<Route> doInBackground(Void... voids) {
+        protected List<Spot> doInBackground(Void... voids) {
             MyMapsFragment activity = activityRef.get();
             if (activity == null)
                 return null;
 
             try {
-                loadValues();
+                MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) activity.activity.getApplicationContext());
+                DaoSession daoSession = appContext.getDaoSession();
+                SpotDao spotDao = daoSession.getSpotDao();
+
+                mCurrentWaitingSpot = appContext.getCurrentSpot();
+
+                return spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
+
             } catch (final Exception ex) {
                 Crashlytics.logException(ex);
                 errMsg = "Loading spots failed.\n" + ex.getMessage();
                 return new ArrayList<>();
             }
+        }
+
+
+        @Override
+        protected void onPostExecute(List<Spot> spotList) {
+            super.onPostExecute(spotList);
+            MyMapsFragment activity = activityRef.get();
+            if (activity == null)
+                return;
+
+            activity.setupData(spotList, mCurrentWaitingSpot, errMsg);
+        }
+    }
+
+    /*
+    Draws spots and routes on the map
+     */
+    private static class DrawAnnotationsTask extends AsyncTask<Spot, Void, List<Route>> {
+        private final WeakReference<MyMapsFragment> activityRef;
+        String errMsg = "";
+        Boolean isLastArrayForSingleSpots = false;
+
+        DrawAnnotationsTask(MyMapsFragment activity) {
+            this.activityRef = new WeakReference<>(activity);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            MyMapsFragment activity = activityRef.get();
+            if (activity == null)
+                return;
+
+            activity.showProgressDialog("Drawing routes..");
+        }
+
+        @Override
+        protected List<Route> doInBackground(Spot... spotList) {
+            MyMapsFragment activity = activityRef.get();
+            if (activity == null)
+                return null;
 
             List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
             ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
@@ -1109,9 +1154,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             //The spots are ordered from the last saved ones to the first saved ones, so we need to
             // go through the list in the opposite direction in order to sum up the route's totals from their origin to their destinations
-            for (int i = spotList.size() - 1; i >= 0; i--) {
+            for (int i = spotList.length - 1; i >= 0; i--) {
                 try {
-                    Spot spot = spotList.get(i);
+                    Spot spot = spotList[i];
                     String markerTitle = "";
 
                     ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
@@ -1332,29 +1377,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             if (activity == null)
                 return;
 
-            activity.setupData(spotList, routes, errMsg);
-        }
-
-        public void loadValues() {
-            MyMapsFragment activity = activityRef.get();
-            if (activity == null)
-                return;
-
-            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) activity.activity.getApplicationContext());
-            DaoSession daoSession = appContext.getDaoSession();
-            SpotDao spotDao = daoSession.getSpotDao();
-
-            spotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
-
-            activity.mCurrentWaitingSpot = appContext.getCurrentSpot();
-
-            if (activity.mCurrentWaitingSpot == null || activity.mCurrentWaitingSpot.getIsWaitingForARide() == null)
-                activity.mIsWaitingForARide = false;
-            else
-                activity.mIsWaitingForARide = activity.mCurrentWaitingSpot.getIsWaitingForARide();
-
-
-            activity.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+            activity.setupAnnotations(routes, errMsg);
         }
 
         static Feature GetFeature(ExtendedMarkerViewOptions oldMarker, int routeIndex) {
@@ -1479,7 +1502,30 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         //this.viewMap = viewMap;
     }
 
-    void setupData(List<Spot> spotList, List<Route> routes, String errMsg) {
+    void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+            return;
+        }
+
+        this.spotList = spotList;
+
+        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
+            this.mIsWaitingForARide = false;
+        else
+            this.mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
+
+        this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+
+        dismissProgressDialog();
+
+        if (mapboxMap != null) {
+            Spot[] spotArray = new Spot[spotList.size()];
+            new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
+        }
+    }
+
+    void setupAnnotations(List<Route> routes, String errMsg) {
         PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
         List<Feature> allFeatures = new ArrayList<>();
 
@@ -1489,7 +1535,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             allFeatures.addAll(Arrays.asList(route.features));
         }
 
-        this.spotList = spotList;
         Feature[] array = new Feature[allFeatures.size()];
         this.polylineOptionsArray = allPolylines;
         this.featuresArray = allFeatures.toArray(array);

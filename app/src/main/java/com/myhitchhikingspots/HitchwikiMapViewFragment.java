@@ -623,7 +623,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 requestReadStoragePermission(activity);
             else {
                 //Load spots and display them as markers and polylines on the map
-                new LoadSpotsListTask(this).execute();
+                new LoadHitchwikiSpotsListTask(this).execute();
             }
         } else {
             showDialogDownloadHWSpots();
@@ -916,13 +916,11 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     }
 
-    private static class LoadSpotsListTask extends AsyncTask<Void, Void, List<Route>> {
-        private List<Spot> spotList;
+    private static class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>> {
         private final WeakReference<HitchwikiMapViewFragment> activityRef;
         String errMsg = "";
-        Boolean isLastArrayForSingleSpots = false;
 
-        LoadSpotsListTask(HitchwikiMapViewFragment activity) {
+        LoadHitchwikiSpotsListTask(HitchwikiMapViewFragment activity) {
             this.activityRef = new WeakReference<>(activity);
         }
 
@@ -936,27 +934,80 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
 
         @Override
-        protected List<Route> doInBackground(Void... voids) {
+        protected List<Spot> doInBackground(Void... voids) {
             HitchwikiMapViewFragment activity = activityRef.get();
             if (activity == null)
                 return null;
 
             try {
-                loadValues(activity);
+                PlaceInfoBasic[] placesContainerFromFile = Utils.loadHitchwikiSpotsFromLocalFile();
+
+                List<Spot> spotList = new ArrayList<>();
+
+                if (placesContainerFromFile != null) {
+                    for (int i = 0; i < placesContainerFromFile.length; i++) {
+                        try {
+                            Spot s = Utils.convertToSpot(placesContainerFromFile[i]);
+                            if (s.getId() == null || s.getId() == 0)
+                                s.setId((long) i);
+                            spotList.add(s);
+                        } catch (Exception ex) {
+                            Crashlytics.logException(ex);
+                        }
+                    }
+                }
+
+                return spotList;
             } catch (final Exception ex) {
                 Crashlytics.logException(ex);
                 errMsg = "Loading spots failed.\n" + ex.getMessage();
                 return new ArrayList<>();
             }
+        }
+
+        @Override
+        protected void onPostExecute(List<Spot> spotList) {
+            super.onPostExecute(spotList);
+            HitchwikiMapViewFragment activity = activityRef.get();
+            if (activity == null)
+                return;
+
+            activity.setupData(spotList, errMsg);
+        }
+    }
+
+    private static class DrawAnnotationsTask extends AsyncTask<Spot, Void, List<Route>> {
+        private final WeakReference<HitchwikiMapViewFragment> activityRef;
+        String errMsg = "";
+
+        DrawAnnotationsTask(HitchwikiMapViewFragment activity) {
+            this.activityRef = new WeakReference<>(activity);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            HitchwikiMapViewFragment activity = activityRef.get();
+            if (activity == null)
+                return;
+
+            activity.showProgressDialog("Drawing hitchwiki spots..");
+        }
+
+        @Override
+        protected List<Route> doInBackground(Spot... spotList) {
+            HitchwikiMapViewFragment activity = activityRef.get();
+            if (activity == null)
+                return null;
 
             List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
             ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
             ArrayList<ExtendedMarkerViewOptions> singleSpots = new ArrayList<>();
+            Boolean isLastArrayForSingleSpots = false;
 
             //The spots are ordered from the last saved ones to the first saved ones, so we need to
             // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
-            for (int i = spotList.size() - 1; i >= 0; i--) {
-                Spot spot = spotList.get(i);
+            for (int i = spotList.length - 1; i >= 0; i--) {
+                Spot spot = spotList[i];
 
                 ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
                         .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
@@ -1091,32 +1142,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             if (activity == null)
                 return;
 
-            activity.setupData(spotList, routes, errMsg);
-        }
-
-        public void loadValues(HitchwikiMapViewFragment activity) {
-
-            PlaceInfoBasic[] placesContainerFromFile = Utils.loadHitchwikiSpotsFromLocalFile();
-
-            if (spotList == null)
-                spotList = new ArrayList<>();
-            else
-                spotList.clear();
-
-            if (placesContainerFromFile != null) {
-                for (int i = 0; i < placesContainerFromFile.length; i++) {
-                    try {
-                        Spot s = Utils.convertToSpot(placesContainerFromFile[i]);
-                        if (s.getId() == null || s.getId() == 0)
-                            s.setId((long) i);
-                        spotList.add(s);
-                    } catch (Exception ex) {
-                        Crashlytics.logException(ex);
-                    }
-                }
-            }
-
-            activity.updateCurrentPage();
+            activity.setupAnnotations(routes, errMsg);
         }
 
         static Feature GetFeature(ExtendedMarkerViewOptions oldMarker, int routeIndex) {
@@ -1244,7 +1270,25 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         //this.viewMap = viewMap;
     }
 
-    void setupData(List<Spot> spotList, List<Route> routes, String errMsg) {
+    void setupData(List<Spot> spotList, String errMsg) {
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+            return;
+        }
+
+        updateCurrentPage();
+        this.spotList = spotList;
+
+        dismissProgressDialog();
+
+        if (mapboxMap != null) {
+            Spot[] spotArray = new Spot[spotList.size()];
+            new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
+        }
+    }
+
+
+    void setupAnnotations(List<Route> routes, String errMsg) {
         List<Feature> allFeatures = new ArrayList<>();
 
         for (int i = 0; i < routes.size(); i++) {
@@ -1252,7 +1296,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             allFeatures.addAll(Arrays.asList(route.features));
         }
 
-        this.spotList = spotList;
         Feature[] array = new Feature[allFeatures.size()];
         this.featuresArray = allFeatures.toArray(array);
 
