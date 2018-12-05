@@ -110,11 +110,34 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 });
     }
 
+    public void selectDrawerItem(int resourceId) {
+        Integer menuItemIndex = -1;
+        switch (resourceId) {
+            case R.id.nav_my_dashboard:
+                menuItemIndex = 0;
+                break;
+            case R.id.nav_my_map:
+                menuItemIndex = 1;
+                break;
+            case R.id.nav_hitchwiki_map:
+                menuItemIndex = 2;
+                break;
+            case R.id.nav_offline_map:
+                menuItemIndex = 3;
+                break;
+            case R.id.nav_tools:
+                menuItemIndex = 4;
+                break;
+        }
+        selectDrawerItem(nvDrawer.getMenu().getItem(menuItemIndex));
+    }
+
     public void selectDrawerItem(MenuItem menuItem) {
 
         // Create a new fragment and specify the fragment to show based on nav item clicked
         Class fragmentClass;
         Bundle bundle = new Bundle();
+        CharSequence title = menuItem.getTitle();
 
         switch (menuItem.getItemId()) {
             case R.id.nav_my_dashboard:
@@ -122,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 Spot[] spotArray2 = new Spot[spotList.size()];
                 bundle.putSerializable(MyMapsFragment.ARG_SPOTLIST_KEY, spotList.toArray(spotArray2));
                 bundle.putSerializable(MyMapsFragment.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
+                title = getString(R.string.app_name);
                 break;
             case R.id.nav_my_map:
                 fragmentClass = MyMapsFragment.class;
@@ -148,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         // Highlight the selected item has been done by NavigationView
         menuItem.setChecked(true);
         // Set action bar title
-        setTitle(menuItem.getTitle());
+        setTitle(title);
         // Close the navigation drawer
         mDrawer.closeDrawers();
     }
@@ -201,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
 
         //Select fragment to load on app startup
-        selectDrawerItem(nvDrawer.getMenu().getItem(0));
+        selectDrawerItem(R.id.nav_my_dashboard);
 
         dismissProgressDialog();
     }

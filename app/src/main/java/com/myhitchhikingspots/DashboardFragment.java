@@ -26,7 +26,7 @@ public class DashboardFragment extends android.support.v4.app.Fragment {
     MainActivity activity;
     List<Spot> spotList = new ArrayList();
 
-    TextView txtNumSpotsSaved,txtNumHWSpotsDownloaded, txtShortestWaitingTime, txtLongestWaitingTime;
+    TextView txtNumSpotsSaved, txtNumHWSpotsDownloaded, txtShortestWaitingTime, txtLongestWaitingTime;
     SharedPreferences prefs;
 
     @Override
@@ -59,23 +59,35 @@ public class DashboardFragment extends android.support.v4.app.Fragment {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         txtNumSpotsSaved = view.findViewById(R.id.txt_number_spots_saved);
-        txtNumHWSpotsDownloaded=view.findViewById(R.id.txt_number_hw_spots_downloaded);
+        txtNumHWSpotsDownloaded = view.findViewById(R.id.txt_number_hw_spots_downloaded);
         txtShortestWaitingTime = view.findViewById(R.id.txt_shortest_waiting_time);
         txtLongestWaitingTime = view.findViewById(R.id.txt_longest_waiting_time);
+
+        //If 'Go to my map' button is clicked, select My Map menu option
+        view.findViewById(R.id.go_to_my_map).setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
 
         updateUI();
 
     }
 
     void updateUI() {
+        Integer longestWaitingTime = 0, shortestWaitingTime = 0;
 
-        Integer longestWaitingTime = spotList.get(0).getWaitingTime(), shortestWaitingTime = spotList.get(0).getWaitingTime();
+        if (spotList.size() > 0) {
+            longestWaitingTime = spotList.get(0).getWaitingTime();
+            shortestWaitingTime = spotList.get(0).getWaitingTime();
+        }
+
         for (Spot spot : spotList) {
             Integer waitingTime = spot.getWaitingTime();
             if (waitingTime > longestWaitingTime)
                 longestWaitingTime = waitingTime;
-            if (waitingTime < shortestWaitingTime)
-                shortestWaitingTime = waitingTime;
+
+            //Only consider spots where the user has gotten rides
+            if (spot.getIsHitchhikingSpot() && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                if (waitingTime < shortestWaitingTime)
+                    shortestWaitingTime = waitingTime;
+            }
         }
 
         Integer numHWSpotsDownloaded = prefs.getInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, 0);
