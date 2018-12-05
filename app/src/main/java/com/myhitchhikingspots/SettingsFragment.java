@@ -68,7 +68,7 @@ import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.DownloadHWSpotsDialogListener {
     TextView mfeedbacklabel;
-    CoordinatorLayout coordinatorLayout;
+    View coordinatorLayout;
 
     SharedPreferences prefs;
 
