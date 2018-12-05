@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.os.AsyncTask;
+
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.Utils;
@@ -12,19 +13,19 @@ import java.util.List;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 public class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>> {
-    private final WeakReference<HitchwikiMapViewFragment> activityRef;
+    private final onPostExecute callback;
     private String errMsg = "";
 
-    LoadHitchwikiSpotsListTask(HitchwikiMapViewFragment activity) {
-        this.activityRef = new WeakReference<>(activity);
+    public interface onPostExecute {
+        void setupData(List<Spot> spotList, String errMsg);
+    }
+
+    LoadHitchwikiSpotsListTask(onPostExecute callback) {
+        this.callback = callback;
     }
 
     @Override
     protected List<Spot> doInBackground(Void... voids) {
-        HitchwikiMapViewFragment activity = activityRef.get();
-        if (activity == null)
-            return null;
-
         try {
             PlaceInfoBasic[] placesContainerFromFile = Utils.loadHitchwikiSpotsFromLocalFile();
 
@@ -54,10 +55,6 @@ public class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>
     @Override
     protected void onPostExecute(List<Spot> spotList) {
         super.onPostExecute(spotList);
-        HitchwikiMapViewFragment activity = activityRef.get();
-        if (activity == null)
-            return;
-
-        activity.setupData(spotList, errMsg);
+        callback.setupData(spotList, errMsg);
     }
 }

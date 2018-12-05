@@ -87,7 +87,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener {
+        MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute {
     private MapView mapView;
     private MapboxMap mapboxMap;
     //private LocationEngine locationEngine;
@@ -631,7 +631,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     }
 
-
+    @Override
     public void setupData(List<Spot> spotList, String errMsg) {
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);

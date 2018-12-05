@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.os.AsyncTask;
+
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.MyHitchhikingSpotsApplication;
 import com.myhitchhikingspots.MyMapsFragment;
@@ -14,23 +15,23 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<Spot>> {
-    private final WeakReference<MainActivity> activityRef;
+public class LoadSpotsAndRoutesTask extends AsyncTask<MyHitchhikingSpotsApplication, Void, List<Spot>> {
+    private final onPostExecute callback;
     private Spot mCurrentWaitingSpot;
     private String errMsg = "";
 
-    LoadSpotsAndRoutesTask(MainActivity activity) {
-        this.activityRef = new WeakReference<>(activity);
+    public interface onPostExecute {
+        void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg);
+    }
+
+    LoadSpotsAndRoutesTask(onPostExecute callback) {
+        this.callback = callback;
     }
 
     @Override
-    protected List<Spot> doInBackground(Void... voids) {
-        MainActivity activity = activityRef.get();
-        if (activity == null)
-            return null;
-
+    protected List<Spot> doInBackground(MyHitchhikingSpotsApplication... appContexts) {
         try {
-            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) activity.getApplicationContext());
+            MyHitchhikingSpotsApplication appContext = appContexts[0];
             DaoSession daoSession = appContext.getDaoSession();
             SpotDao spotDao = daoSession.getSpotDao();
 
@@ -48,11 +49,6 @@ public class LoadSpotsAndRoutesTask extends AsyncTask<Void, Void, List<Spot>> {
 
     @Override
     protected void onPostExecute(List<Spot> spotList) {
-        super.onPostExecute(spotList);
-        MainActivity activity = activityRef.get();
-        if (activity == null)
-            return;
-
-        activity.setupData(spotList, mCurrentWaitingSpot, errMsg);
+        callback.setupData(spotList, mCurrentWaitingSpot, errMsg);
     }
 }

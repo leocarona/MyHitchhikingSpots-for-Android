@@ -20,7 +20,7 @@ import com.myhitchhikingspots.model.Spot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoutesTask.onPostExecute {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
@@ -174,9 +174,10 @@ public class MainActivity extends AppCompatActivity {
         showProgressDialog(getResources().getString(R.string.map_loading_dialog));
 
         //Load markers and polylines
-        new LoadSpotsAndRoutesTask(this).execute();
+        new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
     }
 
+    @Override
     public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
