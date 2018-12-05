@@ -103,6 +103,31 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private static final String MARKER_SOURCE_ID = "markers-source";
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
+    private static final int PERMISSIONS_LOCATION = 0;
+
+    Toast waiting_GPS_update;
+
+    Snackbar snackbar;
+
+    /**
+     * Represents a geographical location.
+     */
+    boolean wasFirstLocationReceived = false;
+
+    SharedPreferences prefs;
+
+    static String locationSeparator = ", ";
+
+    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_point_on_the_route_spot, ic_arrival_spot = null;
+    Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
+
+    List<Spot> spotList = new ArrayList();
+
+    protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
+
+    int routeIndexToKeepVisible = 0;
+
+    private ProgressDialog loadingDialog;
 
     //Each hitchhiking spot is a feature
     FeatureCollection featureCollection;
@@ -263,11 +288,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //Important: setHasOptionsMenu must be called so that onOptionsItemSelected works
         setHasOptionsMenu(true);
     }
-
-    private static final int PERMISSIONS_LOCATION = 0;
-    Toast waiting_GPS_update;
 
     void locateUser() {
         enableLocationPlugin();
@@ -286,8 +309,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
                 null, null);
     }
-
-    Snackbar snackbar;
 
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
         String t = "";
@@ -398,11 +419,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         configureBottomFABButtons();
     }
-
-    /**
-     * Represents a geographical location.
-     */
-    boolean wasFirstLocationReceived = false;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -657,8 +673,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return new LatLng(symbolPoint.latitude(), symbolPoint.longitude());
     }
 
-    SharedPreferences prefs;
-
     void updateUI() {
         Crashlytics.log(Log.INFO, TAG, "updateUI was called");
 
@@ -695,8 +709,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         new LoadSpotsAndRoutesTask(this).execute();
     }
 
-    static String locationSeparator = ", ";
-
     private static String spotLocationToString(Spot spot) {
 
         ArrayList<String> loc = new ArrayList();
@@ -722,25 +734,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             spotLoc = "(" + mCurrentSpot.getLatitude() + ", " + mCurrentSpot.getLongitude() + ")";
         return spotLoc;
     }
-
-   /* private static String dateTimeToString(Date dt) {
-        if (dt != null) {
-            SimpleDateFormat res;
-            String dateFormat = "dd/MMM', 'HH:mm";
-
-            if (Locale.getDefault() == Locale.US)
-                dateFormat = "MMM/dd', 'HH:mm";
-
-            try {
-                res = new SimpleDateFormat(dateFormat);
-                return res.format(dt);
-            } catch (Exception ex) {
-                Crashlytics.setString("date", dt.toString());
-                Crashlytics.logException(ex);
-            }
-        }
-        return "";
-    }*/
 
     @Override
     @SuppressWarnings({"MissingPermission"})
@@ -793,11 +786,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }*/
     }
 
-    Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_point_on_the_route_spot, ic_arrival_spot = null;
-    Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
-
-    List<Spot> spotList = new ArrayList<Spot>();
-
     @Override
     public void onPause() {
         Crashlytics.log(Log.INFO, TAG, "onPause was called");
@@ -807,8 +795,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         dismissSnackbar();
         dismissProgressDialog();
     }
-
-    protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
 
     @Override
@@ -929,9 +915,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         else
             return super.onOptionsItemSelected(item);
     }
-
-
-    int routeIndexToKeepVisible = 0;
 
     void showAllRoutesOnMap() {
         //Update all features setting PROPERTY_SHOULDHIDE to false
@@ -1061,10 +1044,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (moveCameraPositionTo != null)
             moveCamera(moveCameraPositionTo, zoomLevel);
     }
-
-    Boolean shouldShowOnlyGotARideMarkers = true;
-
-    private ProgressDialog loadingDialog;
 
     private void showProgressDialog(String message) {
         if (loadingDialog == null) {
@@ -1748,36 +1727,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
 
         return i;
-    }
-
-    private int getIdentifierColor(int routeIndex) {
-        int polylineColor = Color.GRAY;
-
-        if (routeIndex > -1) {
-            int value = routeIndex;
-            if (value < 5)
-                value += 5;
-
-            switch (value % 5) {
-                case 0:
-                    polylineColor = Color.BLUE;
-                    break;
-                case 1:
-                    polylineColor = Color.GREEN;
-                    break;
-                case 2:
-                    polylineColor = Color.YELLOW;
-                    break;
-                case 3:
-                    polylineColor = Color.MAGENTA;
-                    break;
-                case 4:
-                    polylineColor = Color.BLACK;
-                    break;
-            }
-        }
-
-        return polylineColor;
     }
 
     private ColorStateList getIdentifierColorStateList(int routeIndex) {
