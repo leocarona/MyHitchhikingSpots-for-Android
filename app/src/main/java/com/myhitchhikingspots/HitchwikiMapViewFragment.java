@@ -163,6 +163,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
@@ -1083,7 +1084,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         protected void onPostExecute(List<Route> routes) {
             super.onPostExecute(routes);
             HitchwikiMapViewFragment activity = activityRef.get();
-            if (activity == null )
+            if (activity == null)
                 return;
 
             activity.setupData(spotList, routes, errMsg);
