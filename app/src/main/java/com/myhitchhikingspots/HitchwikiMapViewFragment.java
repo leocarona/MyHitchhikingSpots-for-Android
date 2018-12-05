@@ -681,6 +681,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         super.onResume();
         Crashlytics.log(Log.INFO, TAG, "onResume called");
         mapView.onResume();
+
+        //If mapbox was already loaded, we should call updateUI() here to update the data in case new data has been downloaded from HW.
+        if (mapboxMap != null)
+            updateUI();
     }
 
     @Override
