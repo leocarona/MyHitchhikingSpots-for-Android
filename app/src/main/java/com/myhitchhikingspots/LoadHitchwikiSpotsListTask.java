@@ -26,6 +26,9 @@ public class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>
 
     @Override
     protected List<Spot> doInBackground(Void... voids) {
+        if (this.isCancelled())
+            return null;
+
         try {
             PlaceInfoBasic[] placesContainerFromFile = Utils.loadHitchwikiSpotsFromLocalFile();
 
@@ -55,6 +58,9 @@ public class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>
     @Override
     protected void onPostExecute(List<Spot> spotList) {
         super.onPostExecute(spotList);
+        if (this.isCancelled())
+            return;
+
         callback.setupData(spotList, errMsg);
     }
 }

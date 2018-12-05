@@ -1,8 +1,8 @@
 package com.myhitchhikingspots;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -13,9 +13,10 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.ArrayList;
@@ -33,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
     // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
     private ActionBarDrawerToggle drawerToggle;
+
+    private AsyncTask loadTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +57,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         nvDrawer = findViewById(R.id.nvView);
         // Setup drawer view
         setupDrawerContent(nvDrawer);
-
-        loadAll();
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -200,12 +201,35 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        loadAll();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        /*
+         * The device may have been rotated and the activity is going to be destroyed
+         * you always should be prepared to cancel your AsnycTasks before the Activity
+         * which created them is going to be destroyed.
+         * And dont rely on mayInteruptIfRunning
+         */
+        if (this.loadTask != null) {
+            this.loadTask.cancel(false);
+            dismissProgressDialog();
+        }
+    }
+
 
     void loadAll() {
         showProgressDialog(getResources().getString(R.string.map_loading_dialog));
 
         //Load markers and polylines
-        new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
+        loadTask = new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
     }
 
     @Override

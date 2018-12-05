@@ -123,6 +123,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
 
+    AsyncTask loadTask;
+
     /**
      * Represents a geographical location.
      */
@@ -624,7 +626,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             else {
                 showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
                 //Load spots and display them as markers and polylines on the map
-                new LoadHitchwikiSpotsListTask(this).execute();
+                loadTask = new LoadHitchwikiSpotsListTask(this).execute();
             }
         } else {
             showDialogDownloadHWSpots();
@@ -782,6 +784,17 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         mapView.onStop();
         if (locationLayerPlugin != null)
             locationLayerPlugin.onStop();
+
+        /*
+         * The device may have been rotated and the activity is going to be destroyed
+         * you always should be prepared to cancel your AsnycTasks before the Activity
+         * which created them is going to be destroyed.
+         * And dont rely on mayInteruptIfRunning
+         */
+        if (this.loadTask != null) {
+            this.loadTask.cancel(false);
+            dismissProgressDialog();
+        }
     }
 
     @Override

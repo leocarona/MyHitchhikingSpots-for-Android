@@ -30,6 +30,9 @@ public class LoadSpotsAndRoutesTask extends AsyncTask<MyHitchhikingSpotsApplicat
 
     @Override
     protected List<Spot> doInBackground(MyHitchhikingSpotsApplication... appContexts) {
+        if (this.isCancelled())
+            return null;
+
         try {
             MyHitchhikingSpotsApplication appContext = appContexts[0];
             DaoSession daoSession = appContext.getDaoSession();
@@ -49,6 +52,10 @@ public class LoadSpotsAndRoutesTask extends AsyncTask<MyHitchhikingSpotsApplicat
 
     @Override
     protected void onPostExecute(List<Spot> spotList) {
+        super.onPostExecute(spotList);
+        if (this.isCancelled())
+            return;
+
         callback.setupData(spotList, mCurrentWaitingSpot, errMsg);
     }
 }

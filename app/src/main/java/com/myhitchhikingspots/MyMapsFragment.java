@@ -111,6 +111,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     Snackbar snackbar;
 
+    AsyncTask loadTask;
+
     /**
      * Represents a geographical location.
      */
@@ -717,19 +719,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (mapboxMap != null) {
             showProgressDialog("Drawing routes..");
             Spot[] spotArray = new Spot[spotList.size()];
-            new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
+            this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
         }
-    }
-
-    public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot) {
-        this.spotList = spotList;
-
-        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
-            this.mIsWaitingForARide = false;
-        else
-            this.mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
-
-        this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
     }
 
     private void setupAnnotations(List<Route> routes, String errMsg) {
@@ -857,6 +848,17 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         mapView.onStop();
         if (locationLayerPlugin != null)
             locationLayerPlugin.onStop();
+
+        /*
+         * The device may have been rotated and the activity is going to be destroyed
+         * you always should be prepared to cancel your AsnycTasks before the Activity
+         * which created them is going to be destroyed.
+         * And dont rely on mayInteruptIfRunning
+         */
+        if (this.loadTask != null) {
+            this.loadTask.cancel(false);
+            dismissProgressDialog();
+        }
     }
 
     @Override
@@ -1192,6 +1194,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         @Override
         protected List<Route> doInBackground(Spot... spotList) {
+            if (isCancelled())
+                return null;
+
             MyMapsFragment activity = activityRef.get();
             if (activity == null)
                 return null;
@@ -1421,6 +1426,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         @Override
         protected void onPostExecute(List<Route> routes) {
             super.onPostExecute(routes);
+            if (isCancelled())
+                return;
+
             MyMapsFragment activity = activityRef.get();
             if (activity == null)
                 return;
