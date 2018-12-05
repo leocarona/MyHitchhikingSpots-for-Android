@@ -109,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.nav_hitchwiki_map:
                 fragmentClass = HitchwikiMapViewFragment.class;
                 break;
+            case R.id.nav_offline_map:
+                fragmentClass = OfflineMapManagerFragment.class;
+                break;
             default:
                 fragmentClass = BasicFragment.class;
         }
@@ -127,9 +130,6 @@ public class MainActivity extends AppCompatActivity {
             switch (menuItem.getItemId()) {
                 case R.id.nav_tools:
                     startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-                    break;
-                case R.id.nav_offline_map:
-                    startActivity(new Intent(getApplicationContext(), OfflineManagerActivity.class));
                     break;
                 case R.id.nav_hitchwiki_map_2:
                     startActivity(new Intent(getApplicationContext(), HitchwikiMapView_SymbolLayer.class));
