@@ -20,7 +20,7 @@
         android:orderInCategory="100"
         app:showAsAction="never" />
     <item android:id="@+id/action_toggle_old_routes"
-        android:title="Toggle old routes"
+        android:title="@string/general_hide_routes_label"
         android:orderInCategory="100"
         app:showAsAction="never" />
 </menu>

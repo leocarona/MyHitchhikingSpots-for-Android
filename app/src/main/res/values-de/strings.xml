@@ -156,6 +156,7 @@
     <string name="general_edit_list">Edit list</string>
     <string name="general_hide_icons_label">Hide buttons</string>
     <string name="general_show_icons_label">Show buttons</string>
+    <string name="general_hide_routes_label">Toggle past routes</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>
     <string name="general_no_option">Nein</string>
