@@ -622,12 +622,115 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             if (!isReadStoragePermissionGranted(activity))
                 requestReadStoragePermission(activity);
             else {
+                showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
                 //Load spots and display them as markers and polylines on the map
                 new LoadHitchwikiSpotsListTask(this).execute();
             }
         } else {
             showDialogDownloadHWSpots();
         }
+    }
+
+
+    public void setupData(List<Spot> spotList, String errMsg) {
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+            return;
+        }
+
+        updateCurrentPage();
+        this.spotList = spotList;
+
+        dismissProgressDialog();
+
+        if (mapboxMap != null) {
+            showProgressDialog("Drawing hitchwiki spots..");
+            Spot[] spotArray = new Spot[spotList.size()];
+            new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
+        }
+    }
+
+
+    private void setupAnnotations(List<Route> routes, String errMsg) {
+        List<Feature> allFeatures = new ArrayList<>();
+
+        for (int i = 0; i < routes.size(); i++) {
+            Route route = routes.get(i);
+            allFeatures.addAll(Arrays.asList(route.features));
+        }
+
+        Feature[] array = new Feature[allFeatures.size()];
+        this.featuresArray = allFeatures.toArray(array);
+
+        if (mapboxMap == null) {
+            return;
+        }
+
+        mapboxMap.clear();
+
+        featureCollection = FeatureCollection.fromFeatures(featuresArray);
+
+        setupSource();
+        setupStyleLayer();
+        //Setup a layer with Android SDK call-outs (title of the feature is used as key for the iconImage)
+        setupCalloutLayer();
+
+        try {
+            //Automatically zoom out to fit all markers only the first time that spots are loaded.
+            // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
+            if (shouldZoomToFitAllMarkers) {
+                //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slower when it has all spots
+                // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
+                if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
+                    //Zoom close to current position or to the last saved position
+                    LatLng cameraPositionTo = null;
+                    int cameraZoomTo = -1;
+                    Location loc = null;
+                    try {
+                        loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
+                    } catch (SecurityException ex) {
+                    }
+
+                    if (loc != null) {
+                        cameraPositionTo = new LatLng(loc);
+                        cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+                    } else {
+                        //Set start position for map camera: set it to the last spot saved
+                        Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getLastAddedRouteSpot();
+                        if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
+                                && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
+                            cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+
+                            //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
+                            if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
+                                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+                            else
+                                cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+                        }
+                    }
+                    moveCamera(cameraPositionTo, cameraZoomTo);
+                } else
+                    zoomOutToFitAllMarkers();
+                shouldZoomToFitAllMarkers = false;
+            }
+
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
+                    "Adding markers failed - " + ex.getMessage());
+        }
+
+
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+        } else {
+            //If there's no spot to show, display dialog trying to encourage the user to go and download some HW spots
+            //This should be particularly useful when user had downloaded HW spots but the local file was manually deleted or got corrupted for some reason
+            if (routes.size() == 0)
+                showDialogDownloadHWSpots();
+        }
+
+        dismissProgressDialog();
     }
 
     private void showDialogDownloadHWSpots() {
@@ -916,81 +1019,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     }
 
-    private static class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>> {
-        private final WeakReference<HitchwikiMapViewFragment> activityRef;
-        String errMsg = "";
-
-        LoadHitchwikiSpotsListTask(HitchwikiMapViewFragment activity) {
-            this.activityRef = new WeakReference<>(activity);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            HitchwikiMapViewFragment activity = activityRef.get();
-            if (activity == null)
-                return;
-
-            activity.showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
-        }
-
-        @Override
-        protected List<Spot> doInBackground(Void... voids) {
-            HitchwikiMapViewFragment activity = activityRef.get();
-            if (activity == null)
-                return null;
-
-            try {
-                PlaceInfoBasic[] placesContainerFromFile = Utils.loadHitchwikiSpotsFromLocalFile();
-
-                List<Spot> spotList = new ArrayList<>();
-
-                if (placesContainerFromFile != null) {
-                    for (int i = 0; i < placesContainerFromFile.length; i++) {
-                        try {
-                            Spot s = Utils.convertToSpot(placesContainerFromFile[i]);
-                            if (s.getId() == null || s.getId() == 0)
-                                s.setId((long) i);
-                            spotList.add(s);
-                        } catch (Exception ex) {
-                            Crashlytics.logException(ex);
-                        }
-                    }
-                }
-
-                return spotList;
-            } catch (final Exception ex) {
-                Crashlytics.logException(ex);
-                errMsg = "Loading spots failed.\n" + ex.getMessage();
-                return new ArrayList<>();
-            }
-        }
-
-        @Override
-        protected void onPostExecute(List<Spot> spotList) {
-            super.onPostExecute(spotList);
-            HitchwikiMapViewFragment activity = activityRef.get();
-            if (activity == null)
-                return;
-
-            activity.setupData(spotList, errMsg);
-        }
-    }
-
+    /*
+       Draws spots downloaded from Hitchwiki on the map
+    */
     private static class DrawAnnotationsTask extends AsyncTask<Spot, Void, List<Route>> {
         private final WeakReference<HitchwikiMapViewFragment> activityRef;
         String errMsg = "";
 
         DrawAnnotationsTask(HitchwikiMapViewFragment activity) {
             this.activityRef = new WeakReference<>(activity);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            HitchwikiMapViewFragment activity = activityRef.get();
-            if (activity == null)
-                return;
-
-            activity.showProgressDialog("Drawing hitchwiki spots..");
         }
 
         @Override
@@ -1268,106 +1305,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
         // need to store reference to views to be able to use them as hitboxes for click events.
         //this.viewMap = viewMap;
-    }
-
-    void setupData(List<Spot> spotList, String errMsg) {
-        if (!errMsg.isEmpty()) {
-            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-            return;
-        }
-
-        updateCurrentPage();
-        this.spotList = spotList;
-
-        dismissProgressDialog();
-
-        if (mapboxMap != null) {
-            Spot[] spotArray = new Spot[spotList.size()];
-            new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
-        }
-    }
-
-
-    void setupAnnotations(List<Route> routes, String errMsg) {
-        List<Feature> allFeatures = new ArrayList<>();
-
-        for (int i = 0; i < routes.size(); i++) {
-            Route route = routes.get(i);
-            allFeatures.addAll(Arrays.asList(route.features));
-        }
-
-        Feature[] array = new Feature[allFeatures.size()];
-        this.featuresArray = allFeatures.toArray(array);
-
-        if (mapboxMap == null) {
-            return;
-        }
-
-        mapboxMap.clear();
-
-        featureCollection = FeatureCollection.fromFeatures(featuresArray);
-
-        setupSource();
-        setupStyleLayer();
-        //Setup a layer with Android SDK call-outs (title of the feature is used as key for the iconImage)
-        setupCalloutLayer();
-
-        try {
-            //Automatically zoom out to fit all markers only the first time that spots are loaded.
-            // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
-            if (shouldZoomToFitAllMarkers) {
-                //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slower when it has all spots
-                // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
-                if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
-                    //Zoom close to current position or to the last saved position
-                    LatLng cameraPositionTo = null;
-                    int cameraZoomTo = -1;
-                    Location loc = null;
-                    try {
-                        loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
-                    } catch (SecurityException ex) {
-                    }
-
-                    if (loc != null) {
-                        cameraPositionTo = new LatLng(loc);
-                        cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                    } else {
-                        //Set start position for map camera: set it to the last spot saved
-                        Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getLastAddedRouteSpot();
-                        if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
-                                && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
-                            cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
-
-                            //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
-                            if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
-                                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                            else
-                                cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
-                        }
-                    }
-                    moveCamera(cameraPositionTo, cameraZoomTo);
-                } else
-                    zoomOutToFitAllMarkers();
-                shouldZoomToFitAllMarkers = false;
-            }
-
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
-            errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
-                    "Adding markers failed - " + ex.getMessage());
-        }
-
-
-        if (!errMsg.isEmpty()) {
-            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-        } else {
-            //If there's no spot to show, display dialog trying to encourage the user to go and download some HW spots
-            //This should be particularly useful when user had downloaded HW spots but the local file was manually deleted or got corrupted for some reason
-            if (routes.size() == 0)
-                showDialogDownloadHWSpots();
-        }
-
-        dismissProgressDialog();
     }
 
     protected void showErrorAlert(String title, String msg) {
