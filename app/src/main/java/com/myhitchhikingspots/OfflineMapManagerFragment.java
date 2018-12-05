@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -361,7 +362,11 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
         //If we know the current position of the user, move the map camera to there
         try {
-            moveCameraPositionTo = (locationLayerPlugin != null) ? new LatLng(locationLayerPlugin.getLastKnownLocation()) : null;
+            if (locationLayerPlugin != null) {
+                Location lastLoc = locationLayerPlugin.getLastKnownLocation();
+                if (lastLoc != null)
+                    moveCameraPositionTo = new LatLng(lastLoc);
+            }
         } catch (SecurityException ex) {
         }
 

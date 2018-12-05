@@ -412,7 +412,11 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
 
         //If we know the current position of the user, move the map camera to there
         try {
-            moveCameraPositionTo = (locationLayerPlugin != null) ? new LatLng(locationLayerPlugin.getLastKnownLocation()) : null;
+            if (locationLayerPlugin != null) {
+                Location lastLoc = locationLayerPlugin.getLastKnownLocation();
+                if (lastLoc != null)
+                    moveCameraPositionTo = new LatLng(lastLoc);
+            }
         } catch (SecurityException ex) {
         }
 
