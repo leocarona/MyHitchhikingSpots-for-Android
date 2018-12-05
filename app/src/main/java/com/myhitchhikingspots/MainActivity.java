@@ -98,19 +98,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void selectDrawerItem(MenuItem menuItem) {
-        if (menuItem.getItemId() == R.id.nav_my_map) {
 
-            // Create a new fragment and specify the fragment to show based on nav item clicked
-            Fragment fragment = null;
-            Class fragmentClass;
-            switch (menuItem.getItemId()) {
-                case R.id.nav_my_map:
-                    fragmentClass = MyMapsFragment.class;
-                    break;
-                default:
-                    fragmentClass = BasicFragment.class;
-            }
+        // Create a new fragment and specify the fragment to show based on nav item clicked
+        Fragment fragment = null;
+        Class fragmentClass;
+        switch (menuItem.getItemId()) {
+            case R.id.nav_my_map:
+                fragmentClass = MyMapsFragment.class;
+                break;
+            case R.id.nav_hitchwiki_map:
+                fragmentClass = HitchwikiMapViewFragment.class;
+                break;
+            default:
+                fragmentClass = BasicFragment.class;
+        }
 
+        if (fragmentClass != BasicFragment.class) {
             try {
                 fragment = (Fragment) fragmentClass.newInstance();
             } catch (Exception e) {
@@ -124,9 +127,6 @@ public class MainActivity extends AppCompatActivity {
             switch (menuItem.getItemId()) {
                 case R.id.nav_tools:
                     startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-                    break;
-                case R.id.nav_hitchwiki_map:
-                    startActivity(new Intent(getApplicationContext(), HitchwikiMapViewActivity.class));
                     break;
                 case R.id.nav_offline_map:
                     startActivity(new Intent(getApplicationContext(), OfflineManagerActivity.class));
