@@ -62,6 +62,7 @@ public final class Constants {
     public static final String PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD = "hitchwikiSpotsTimestamp";
     public static final String PREFS_TIMESTAMP_OF_BACKUP = "backupTimestamp";
     public static final String PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD = "countriesDownloadedTimestamp";
+    public static final String PREFS_NUM_OF_HW_SPOTS_DOWNLOADED = "numOfHWSpotsDownloaded";
     public static final String PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN = "lastOfflineModeWarnTimestamp";
     public static final String PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW = "shouldLoadCurrentView";
     public static final String PREFS_MAPBOX_WAS_EVER_LOADED = "mapBoxWasEverLoaded";

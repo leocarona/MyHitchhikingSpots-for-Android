@@ -816,6 +816,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
                 //also write into prefs that markers sync has occurred
                 Long currentMillis = System.currentTimeMillis();
                 prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).apply();
+                prefs.edit().putInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, countriesContainer.length).apply();
 
                 Toast.makeText(activity, "Download successful!", Toast.LENGTH_SHORT).show();
                 Long millisecondsAtDownload = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);

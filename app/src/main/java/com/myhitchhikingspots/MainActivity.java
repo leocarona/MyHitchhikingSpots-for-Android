@@ -14,6 +14,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.myhitchhikingspots.model.Spot;
 
@@ -116,6 +117,12 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         Bundle bundle = new Bundle();
 
         switch (menuItem.getItemId()) {
+            case R.id.nav_my_dashboard:
+                fragmentClass = DashboardFragment.class;
+                Spot[] spotArray2 = new Spot[spotList.size()];
+                bundle.putSerializable(MyMapsFragment.ARG_SPOTLIST_KEY, spotList.toArray(spotArray2));
+                bundle.putSerializable(MyMapsFragment.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
+                break;
             case R.id.nav_my_map:
                 fragmentClass = MyMapsFragment.class;
                 Spot[] spotArray = new Spot[spotList.size()];
@@ -193,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
 
-        //Select My Maps menu option to load on app startup
+        //Select fragment to load on app startup
         selectDrawerItem(nvDrawer.getMenu().getItem(0));
 
         dismissProgressDialog();

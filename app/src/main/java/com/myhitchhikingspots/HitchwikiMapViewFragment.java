@@ -641,6 +641,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         updateCurrentPage();
         this.spotList = spotList;
 
+        //Update number of HW spots
+        prefs.edit().putInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, spotList.size()).apply();
+
         dismissProgressDialog();
 
         if (mapboxMap != null) {
