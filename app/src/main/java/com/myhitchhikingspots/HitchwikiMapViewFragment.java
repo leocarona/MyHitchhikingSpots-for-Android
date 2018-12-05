@@ -35,6 +35,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -93,7 +94,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     //private LocationEngineListener locationEngineListener;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
     //private TextView mWaitingToGetCurrentLocationTextView;
-    private CoordinatorLayout coordinatorLayout;
+    FrameLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
 
     boolean wasSnackbarShown;
@@ -168,7 +169,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
-        coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
+        coordinatorLayout = activity.findViewById(R.id.fragment_container);
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 

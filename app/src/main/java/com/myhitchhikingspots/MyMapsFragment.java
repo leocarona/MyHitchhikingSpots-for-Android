@@ -33,6 +33,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -92,7 +93,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     //private TextView mWaitingToGetCurrentLocationTextView;
-    private CoordinatorLayout coordinatorLayout;
+    FrameLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
     Boolean shouldDisplayOldRoutes = true;
     boolean wasSnackbarShown;
@@ -179,7 +180,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
-        coordinatorLayout = (CoordinatorLayout) view.findViewById(R.id.coordinatorLayout);
+        coordinatorLayout = activity.findViewById(R.id.fragment_container);
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
