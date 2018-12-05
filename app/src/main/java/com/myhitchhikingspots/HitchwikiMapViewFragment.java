@@ -94,7 +94,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     //private LocationEngineListener locationEngineListener;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
     //private TextView mWaitingToGetCurrentLocationTextView;
-    FrameLayout coordinatorLayout;
+    CoordinatorLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
 
     boolean wasSnackbarShown;
@@ -169,7 +169,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
-        coordinatorLayout = activity.findViewById(R.id.fragment_container);
+        coordinatorLayout = view.findViewById(R.id.coordinatiorLayout);
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 

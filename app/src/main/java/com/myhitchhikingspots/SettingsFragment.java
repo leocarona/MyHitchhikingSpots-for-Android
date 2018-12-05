@@ -68,7 +68,7 @@ import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.DownloadHWSpotsDialogListener {
     TextView mfeedbacklabel;
-    FrameLayout coordinatorLayout;
+    CoordinatorLayout coordinatorLayout;
 
     SharedPreferences prefs;
 
@@ -141,7 +141,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
         hitchwikiStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
-        coordinatorLayout = activity.findViewById(R.id.fragment_container);
+        coordinatorLayout = view.findViewById(R.id.coordinatiorLayout);
 
         setupContinentsContainer();
 

@@ -93,7 +93,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     //private TextView mWaitingToGetCurrentLocationTextView;
-    FrameLayout coordinatorLayout;
+    CoordinatorLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
     Boolean shouldDisplayOldRoutes = true;
     boolean wasSnackbarShown;
@@ -180,7 +180,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
-        coordinatorLayout = activity.findViewById(R.id.fragment_container);
+        coordinatorLayout = view.findViewById(R.id.coordinatiorLayout);
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
