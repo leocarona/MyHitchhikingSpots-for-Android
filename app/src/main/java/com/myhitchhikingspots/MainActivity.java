@@ -185,17 +185,14 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         // Create a new fragment and specify the fragment to show based on nav item clicked
         Class fragmentClass;
         CharSequence title = menuItem.getTitle();
-        Boolean isFragmentDependingOnSpotList = false;
 
         switch (menuItem.getItemId()) {
             case R.id.nav_my_dashboard:
                 fragmentClass = DashboardFragment.class;
                 title = getString(R.string.app_name);
-                isFragmentDependingOnSpotList = true;
                 break;
             case R.id.nav_my_map:
                 fragmentClass = MyMapsFragment.class;
-                isFragmentDependingOnSpotList = true;
                 break;
             case R.id.nav_hitchwiki_map:
                 fragmentClass = HitchwikiMapViewFragment.class;
@@ -210,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 fragmentClass = BasicFragment.class;
         }
 
-        replaceFragmentContainerWith(fragmentClass, isFragmentDependingOnSpotList);
+        replaceFragmentContainerWith(fragmentClass);
 
         // Highlight the selected item has been done by NavigationView
         menuItem.setChecked(true);
@@ -220,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         mDrawer.closeDrawers();
     }
 
-    private void replaceFragmentContainerWith(Class fragmentClass, Boolean isFragmentDependingOnSpotList) {
+    private void replaceFragmentContainerWith(Class fragmentClass) {
         Fragment fragment = null;
 
         try {
@@ -229,17 +226,19 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             e.printStackTrace();
         }
 
-        replaceFragmentContainerWith(fragment, isFragmentDependingOnSpotList);
+        replaceFragmentContainerWith(fragment);
     }
 
-    private void replaceFragmentContainerWith(Fragment fragment, Boolean isFragmentDependingOnSpotList) {
+    private void replaceFragmentContainerWith(Fragment fragment) {
         Bundle bundle = new Bundle();
 
-        if (isFragmentDependingOnSpotList) {
+        //Classes that implement OnSpotsListChanged expect spotList and mCurrentWaitingSpot when it's created and when these variables are updated.
+        if (fragment instanceof OnSpotsListChanged) {
             Spot[] spotArray = new Spot[spotList.size()];
             bundle.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
             bundle.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
 
+            //Keep the fragment so that we can fire the event listeners when spotList is updated.
             activeFragmentListening = (OnSpotsListChanged) fragment;
         } else
             activeFragmentListening = null;
@@ -321,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     /**
      * Loads the spot list from database and then opens a fragment once the list is loaded.
      *
-     * @param fragmentResourceId    The resource id of the fragment to be loaded once loading finishes.
+     * @param fragmentResourceId The resource id of the fragment to be loaded once loading finishes.
      */
     void loadSpotList(int fragmentResourceId) {
         showProgressDialog(getResources().getString(R.string.map_loading_dialog));
