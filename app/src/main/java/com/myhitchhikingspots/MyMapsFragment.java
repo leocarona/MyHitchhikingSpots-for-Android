@@ -281,6 +281,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         mapView.getMapAsync(this);
 
         loadMarkerIcons();
+
+        if (getArguments() != null) {
+            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
+            updateSpotList(Arrays.asList(bundleSpotList), (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY));
+        }
     }
 
     @Override
@@ -288,11 +293,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         super.onCreate(savedInstanceState);
         //Important: setHasOptionsMenu must be called so that onOptionsItemSelected works
         setHasOptionsMenu(true);
-
-        if (getArguments() != null) {
-            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-            updateSpotList(Arrays.asList(bundleSpotList), (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY));
-        }
     }
 
     void locateUser() {
@@ -867,12 +867,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Crashlytics.log(Log.INFO, TAG, "onResume called");
         super.onResume();
         mapView.onResume();
-
-
-        //If mapbox was already loaded, we should call updateUI() here in order to update its data
-        //When first loading a fragment, onResume is called but mapbox hasn't loaded yet.
-        if (mapboxMap != null)
-            updateUI();
     }
 
     @Override
