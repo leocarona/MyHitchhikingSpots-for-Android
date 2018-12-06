@@ -59,10 +59,8 @@ import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
-import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.ExtendedMarkerView;
 import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
 import com.myhitchhikingspots.utilities.IconUtils;
@@ -85,12 +83,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         MapboxMap.OnMapClickListener, MainActivity.OnSpotsListChanged {
     private MapView mapView;
     private MapboxMap mapboxMap;
-    private static final long CAMERA_ANIMATION_TIME = 1950;
 
-    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut, fabShowAll;
+    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
 
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
-    //private TextView mWaitingToGetCurrentLocationTextView;
     CoordinatorLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
     Boolean shouldDisplayOldRoutes = true;
