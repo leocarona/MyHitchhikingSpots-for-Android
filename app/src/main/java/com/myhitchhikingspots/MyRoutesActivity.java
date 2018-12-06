@@ -149,7 +149,11 @@ public class MyRoutesActivity extends BaseActivity {
                         if (shouldGoBackToPreviousActivity)
                             finish();
                         else
-                            startActivity(new Intent(getBaseContext(), MyMapsActivity.class));
+                        {
+                            Intent intent = new Intent(getBaseContext(), MainActivity.class);
+                            intent.putExtra(MainActivity.ARG_REQUEST_TO_OPEN_FRAGMENT,R.id.nav_my_map);
+                            startActivity(intent);
+                        }
                     }
                 });
     }

@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public static String ARG_SPOTLIST_KEY = "spot_list_arg";
     public static String ARG_CURRENTSPOT_KEY = "current_spot_arg";
     public static String ARG_FRAGMENT_KEY = "my-fragment-arg";
+    public static String ARG_REQUEST_TO_OPEN_FRAGMENT = "request-to-open-resource-id";
     public static String ARG_FRAGMENT_TITLE_KEY = "my-fragment-title-arg";
 
     // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
@@ -76,10 +78,18 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
+
         //If it is first time the activity is loaded, then load the list of spots with loadSpotList(),
         //If the activity is being restored, the activity's state will be restored by onRestoreInstanceState.
-        if (savedInstanceState == null)
-            loadSpotList(R.id.nav_tools);
+        if (savedInstanceState == null) {
+            int resourceToOpen = R.id.nav_my_map;
+
+            //A resourceId was received through ARG_REQUEST_TO_OPEN_FRAGMENT
+            if (getIntent().getExtras() != null && getIntent().getExtras().containsKey(ARG_REQUEST_TO_OPEN_FRAGMENT))
+                resourceToOpen = getIntent().getExtras().getInt(ARG_REQUEST_TO_OPEN_FRAGMENT);
+
+            loadSpotList(resourceToOpen);
+        }
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {

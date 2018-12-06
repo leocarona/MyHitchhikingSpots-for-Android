@@ -746,7 +746,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        startActivity(new Intent(activity, SettingsActivity.class));
+                        activity.selectDrawerItem(R.id.nav_tools);
                     }
                 })
                 .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
