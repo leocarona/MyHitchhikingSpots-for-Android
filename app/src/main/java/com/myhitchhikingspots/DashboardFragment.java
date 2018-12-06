@@ -12,10 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -79,14 +75,16 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
         }
 
         for (Spot spot : spotList) {
-            Integer waitingTime = spot.getWaitingTime();
-            if (waitingTime > longestWaitingTime)
-                longestWaitingTime = waitingTime;
+            if (!spot.getIsDestination()) {
+                Integer waitingTime = spot.getWaitingTime();
+                if (waitingTime > longestWaitingTime)
+                    longestWaitingTime = waitingTime;
 
-            //Only consider spots where the user has gotten rides
-            if (spot.getIsHitchhikingSpot() && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
-                if (waitingTime < shortestWaitingTime)
-                    shortestWaitingTime = waitingTime;
+                //Only consider spots where the user has gotten rides
+                if (spot.getIsHitchhikingSpot() && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                    if (waitingTime < shortestWaitingTime)
+                        shortestWaitingTime = waitingTime;
+                }
             }
         }
 
