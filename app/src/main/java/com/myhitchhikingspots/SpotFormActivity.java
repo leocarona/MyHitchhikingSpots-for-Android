@@ -1351,6 +1351,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                         if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
                             result = Constants.RESULT_OBJECT_EDITED;
 
+                        prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
                         finishSaving(result);
                     }
                 });
@@ -1386,6 +1387,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                         if (!shouldGoBackToPreviousActivity && (callingActivity == null || callingActivity.getClassName() == null
                                                 || !callingActivity.getClassName().equals(MyMapsActivity.class.getName()))) {
                                             setResult(Constants.RESULT_OBJECT_DELETED);
+                                            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
                                             finish();
 
                                             //Bundle conData = getBundle(RESULT_OBJECT_DELETED);
@@ -1397,6 +1399,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                             startActivity(intent);
                                         } else {
                                             setResult(Constants.RESULT_OBJECT_DELETED);
+                                            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
                                             finish();
                                         }
                                     }

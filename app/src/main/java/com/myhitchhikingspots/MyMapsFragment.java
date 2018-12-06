@@ -82,7 +82,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class MyMapsFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener {
+        MapboxMap.OnMapClickListener, MainActivity.onSpotsListChanged {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private static final long CAMERA_ANIMATION_TIME = 1950;
@@ -680,6 +680,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return new LatLng(symbolPoint.latitude(), symbolPoint.longitude());
     }
 
+    @Override
+    public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
+        this.spotList = spotList;
+        this.mCurrentWaitingSpot = mCurrentWaitingSpot;
+
+        if (mapboxMap != null)
+            updateUI();
+    }
+
     void updateUI() {
         Crashlytics.log(Log.INFO, TAG, "updateUI was called");
 
@@ -865,6 +874,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
 
         //If mapbox was already loaded, we should call updateUI() here in order to update its data
+        //When first loading a fragment, onResume is called but mapbox hasn't loaded yet.
         if (mapboxMap != null)
             updateUI();
     }

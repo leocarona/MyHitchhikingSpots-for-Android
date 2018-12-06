@@ -52,6 +52,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
+import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -347,8 +348,10 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
                 showErrorAlert(title, TextUtils.join("\n", messages));
 
                 //Show toast
-                if (success)
-                    Toast.makeText(activity, title, Toast.LENGTH_SHORT).show();
+                if (success){
+                    prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
+
+                    Toast.makeText(activity, title, Toast.LENGTH_SHORT).show();}
             }
         });
 

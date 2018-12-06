@@ -1,6 +1,8 @@
 package com.myhitchhikingspots;
 
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,13 +15,12 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 
-import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoutesTask.onPostExecute {
@@ -42,10 +43,22 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     private AsyncTask loadTask;
 
+    SharedPreferences prefs;
+
+    onSpotsListChanged activeFragmentListening;
+
+    int fragmentToLoad = -1;
+
+    public interface onSpotsListChanged {
+        void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
+
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = findViewById(R.id.toolbar);
@@ -62,6 +75,11 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         nvDrawer = findViewById(R.id.nvView);
         // Setup drawer view
         setupDrawerContent(nvDrawer);
+
+        //If it is first time the activity is loaded, then load the list of spots with loadSpotList(),
+        //If the activity is being restored, the activity's state will be restored by onRestoreInstanceState.
+        if (savedInstanceState == null)
+            loadSpotList(R.id.nav_tools);
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -110,7 +128,21 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        selectDrawerItem(menuItem);
+
+                        Boolean shouldLoadSpotListFirst = false;
+                        int resourceId = menuItem.getItemId();
+
+                        //If spotList has been updated, we should load the list here prior to opening the new fragment
+                        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) &&
+                                (resourceId == R.id.nav_my_dashboard || resourceId == R.id.nav_my_map))
+                            shouldLoadSpotListFirst = true;
+
+                        if (shouldLoadSpotListFirst) {
+                            loadSpotList(resourceId);
+                            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
+                        } else
+                            selectDrawerItem(menuItem);
+
                         return true;
                     }
                 });
@@ -218,11 +250,46 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         }
     }
 
+    /*onSaveInstanceState is called before an activity may be killed so that when it comes back some time in the future it can restore its state. */
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
-        loadAll();
+        Spot[] spotArray = new Spot[spotList.size()];
+        outState.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
+        outState.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
+        outState.putString(MainActivity.ARG_FRAGMENT_TITLE_KEY, getTitle().toString());
+
+        //Save the fragment's instance
+        if (activeFragmentListening != null)
+            getSupportFragmentManager().putFragment(outState, ARG_FRAGMENT_KEY, (Fragment) activeFragmentListening);
+    }
+
+    /*This method is called after onStart() when the activity is being re-initialized from a previously saved state (saved within onSaveInstanceState).
+     * onRestoreInstanceState is always called BEFORE onResume. */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        //Restoring state can also be done within onCreate(Bundle).
+        // Though, doing it here makes the code cleaner and we also don't need to check if savedInstanceState is null.
+
+        if (savedInstanceState.containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
+            Spot[] bundleSpotList = (Spot[]) savedInstanceState.getSerializable(MainActivity.ARG_SPOTLIST_KEY);
+            spotList = Arrays.asList(bundleSpotList);
+        }
+
+        if (savedInstanceState.containsKey(MainActivity.ARG_CURRENTSPOT_KEY)) {
+            mCurrentWaitingSpot = (Spot) savedInstanceState.getSerializable(MainActivity.ARG_CURRENTSPOT_KEY);
+        }
+
+        if (savedInstanceState.containsKey(ARG_FRAGMENT_TITLE_KEY)) {
+            setTitle(savedInstanceState.getString(MainActivity.ARG_FRAGMENT_TITLE_KEY));
+        }
+
+        //Restore the fragment's instance
+        if (savedInstanceState.containsKey(ARG_FRAGMENT_KEY)) {
+            activeFragmentListening = (onSpotsListChanged) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
+        }
+
     }
 
     @Override
@@ -241,13 +308,20 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         }
     }
 
-
-    void loadAll() {
+    /**
+     * Loads the spot list from database and then opens a fragment once the list is loaded.
+     *
+     * @param fragmentResourceId    The resource id of the fragment to be loaded once loading finishes.
+     */
+    void loadSpotList(int fragmentResourceId) {
         showProgressDialog(getResources().getString(R.string.map_loading_dialog));
+
+        this.fragmentToLoad = fragmentResourceId;
 
         //Load markers and polylines
         loadTask = new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
     }
+
 
     @Override
     public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
@@ -265,10 +339,21 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
 
-        //Select fragment to load on app startup
-        selectDrawerItem(R.id.nav_my_dashboard);
+        //Select fragment
+        if (fragmentToLoad > -1) {
+            selectDrawerItem(fragmentToLoad);
+            fragmentToLoad = -1;
+        }
 
         dismissProgressDialog();
+
+        updateUI();
+    }
+
+    void updateUI() {
+        //Update the active fragment's data
+        if (activeFragmentListening != null && ((Fragment) activeFragmentListening).isVisible())
+            activeFragmentListening.updateSpotList(spotList, mCurrentWaitingSpot);
     }
 
     protected void showErrorAlert(String title, String msg) {

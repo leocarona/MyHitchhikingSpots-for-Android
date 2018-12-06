@@ -71,6 +71,8 @@ public final class Constants {
     public static final String PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD = "PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD";
     public static final String PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD = "PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD";
 
+    public static final String PREFS_MYSPOTLIST_WAS_CHANGED = "PREFS_MYSPOTLIST_WAS_CHANGED";
+
     public static final int CROUTON_DURATION_2500 = 2500;
     public static final int CROUTON_DURATION_5000 = 5000;
     public static final int CROUTON_DURATION_1500 = 1500;

@@ -6,11 +6,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatDelegate;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -21,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DashboardFragment extends android.support.v4.app.Fragment {
+public class DashboardFragment extends android.support.v4.app.Fragment implements MainActivity.onSpotsListChanged {
 
     MainActivity activity;
     List<Spot> spotList = new ArrayList();
@@ -43,8 +45,8 @@ public class DashboardFragment extends android.support.v4.app.Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+
+        prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         txtNumSpotsSaved = view.findViewById(R.id.txt_number_spots_saved);
         txtNumHWSpotsDownloaded = view.findViewById(R.id.txt_number_hw_spots_downloaded);
@@ -54,8 +56,18 @@ public class DashboardFragment extends android.support.v4.app.Fragment {
         //If 'Go to my map' button is clicked, select My Map menu option
         view.findViewById(R.id.go_to_my_map).setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
 
-        updateUI();
+        if (getArguments() != null) {
+            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
+            updateSpotList(Arrays.asList(bundleSpotList), null);
+        }
+    }
 
+
+    @Override
+    public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
+        this.spotList = spotList;
+
+        updateUI();
     }
 
     void updateUI() {
