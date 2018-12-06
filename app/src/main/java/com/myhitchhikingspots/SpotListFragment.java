@@ -192,7 +192,7 @@ public class SpotListFragment extends Fragment {
 
                     Intent intent = new Intent(getContext(), SpotFormActivity.class);
                     intent.putExtras(args);
-                    startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
+                    startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
 
                     if (onOneOrMoreSpotsDeleted != null)
                         onOneOrMoreSpotsDeleted.onSpotClicked(spot);

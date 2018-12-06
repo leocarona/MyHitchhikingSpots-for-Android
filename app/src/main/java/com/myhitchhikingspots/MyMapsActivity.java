@@ -562,7 +562,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
             //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
             intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
             intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-            startActivityForResult(intent, EDIT_SPOT_REQUEST);
+            startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
@@ -791,10 +791,10 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         super.onActivityResult(requestCode, resultCode, data);
 
 
-        if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
+        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED)
             showSpotSavedSnackbar();
 
-        if (resultCode == RESULT_OBJECT_DELETED)
+        if (resultCode == Constants.RESULT_OBJECT_DELETED)
             showSpotDeletedSnackbar();
 
       /*

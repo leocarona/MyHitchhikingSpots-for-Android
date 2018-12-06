@@ -1347,9 +1347,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        int result = RESULT_OBJECT_ADDED;
+                        int result = Constants.RESULT_OBJECT_ADDED;
                         if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                            result = RESULT_OBJECT_EDITED;
+                            result = Constants.RESULT_OBJECT_EDITED;
 
                         finishSaving(result);
                     }
@@ -1385,7 +1385,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
                                         if (!shouldGoBackToPreviousActivity && (callingActivity == null || callingActivity.getClassName() == null
                                                 || !callingActivity.getClassName().equals(MyMapsActivity.class.getName()))) {
-                                            setResult(RESULT_OBJECT_DELETED);
+                                            setResult(Constants.RESULT_OBJECT_DELETED);
                                             finish();
 
                                             //Bundle conData = getBundle(RESULT_OBJECT_DELETED);
@@ -1396,7 +1396,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                             intent.putExtras(conData);
                                             startActivity(intent);
                                         } else {
-                                            setResult(RESULT_OBJECT_DELETED);
+                                            setResult(Constants.RESULT_OBJECT_DELETED);
                                             finish();
                                         }
                                     }
@@ -1562,31 +1562,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 dialog.dismiss();
         } catch (Exception e) {
         }
-    }
-
-    Bundle getBundle(int result) {
-        //NOTE: If finish() is called and a new activity is not called, the user will be sent back to the previous
-        //activity that was open. The previous activity will still have the same bundle as before, so if we don't
-        //set all the bundle variables here, the values they had before will be kept.
-        Bundle conData = new Bundle();
-
-        conData.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, null);
-        conData.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
-        conData.putBoolean(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
-
-        switch (result) {
-            case RESULT_OBJECT_ADDED:
-            case RESULT_OBJECT_EDITED:
-                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
-                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false);
-                break;
-            case RESULT_OBJECT_DELETED:
-                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false);
-                conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
-                break;
-        }
-
-        return conData;
     }
 
     public void editDateButtonHandler(View view) {

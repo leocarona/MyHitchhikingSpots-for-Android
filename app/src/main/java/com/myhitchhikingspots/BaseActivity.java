@@ -24,10 +24,6 @@ public class BaseActivity extends AppCompatActivity
 
     protected boolean mShouldShowLeftMenu = false;
 
-    public static final int SAVE_SPOT_REQUEST = Constants.SAVE_SPOT_REQUEST, EDIT_SPOT_REQUEST = Constants.EDIT_SPOT_REQUEST;
-    public static final int RESULT_OBJECT_ADDED = Constants.RESULT_OBJECT_ADDED;
-    public static final int RESULT_OBJECT_EDITED = Constants.RESULT_OBJECT_EDITED;
-    public static final int RESULT_OBJECT_DELETED = Constants.RESULT_OBJECT_DELETED;
     DrawerLayout drawer;
 
     @Override

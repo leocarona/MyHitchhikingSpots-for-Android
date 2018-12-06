@@ -202,9 +202,9 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      */
     public void saveSpotButtonHandler(boolean isDestination) {
         Spot spot = null;
-        int requestCode = BaseActivity.EDIT_SPOT_REQUEST;
+        int requestCode = Constants.EDIT_SPOT_REQUEST;
         if (!mIsWaitingForARide) {
-            requestCode = BaseActivity.SAVE_SPOT_REQUEST;
+            requestCode = Constants.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsHitchhikingSpot(!isDestination);
             spot.setIsDestination(isDestination);
