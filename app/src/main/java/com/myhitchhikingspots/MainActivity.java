@@ -352,11 +352,10 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         if (fragmentToLoad > -1) {
             selectDrawerItem(fragmentToLoad);
             fragmentToLoad = -1;
-        }
+        } else
+            updateUI();
 
         dismissProgressDialog();
-
-        updateUI();
     }
 
     void updateUI() {
@@ -372,6 +371,15 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 .setMessage(msg)
                 .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
                 .show();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        //If any spot has been created, edited or deleted, let's reload the spotList from the database.
+        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED)
+            loadSpotList(-1);
     }
 
     private ProgressDialog loadingDialog;
