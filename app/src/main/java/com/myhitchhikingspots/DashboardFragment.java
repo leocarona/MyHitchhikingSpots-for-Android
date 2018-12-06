@@ -66,18 +66,22 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
         Integer longestWaitingTime = 0, shortestWaitingTime = 0;
 
         if (spotList.size() > 0) {
-            longestWaitingTime = spotList.get(0).getWaitingTime();
-            shortestWaitingTime = spotList.get(0).getWaitingTime();
+            Spot spot = spotList.get(0);
+            longestWaitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
+            shortestWaitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
         }
 
         for (Spot spot : spotList) {
-            if (!spot.getIsDestination()) {
-                Integer waitingTime = spot.getWaitingTime();
+            Boolean isDestination = spot.getIsDestination() == null ? false : spot.getIsDestination();
+            Boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() == null ? false : spot.getIsHitchhikingSpot();
+
+            if (isHitchhikingSpot && !isDestination) {
+                Integer waitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
                 if (waitingTime > longestWaitingTime)
                     longestWaitingTime = waitingTime;
 
                 //Only consider spots where the user has gotten rides
-                if (spot.getIsHitchhikingSpot() && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
                     if (waitingTime < shortestWaitingTime)
                         shortestWaitingTime = waitingTime;
                 }
