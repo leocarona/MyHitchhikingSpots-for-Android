@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DashboardFragment extends android.support.v4.app.Fragment implements MainActivity.onSpotsListChanged {
+public class DashboardFragment extends android.support.v4.app.Fragment implements MainActivity.OnSpotsListChanged {
 
     MainActivity activity;
     List<Spot> spotList = new ArrayList();

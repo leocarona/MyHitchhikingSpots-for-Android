@@ -45,11 +45,11 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     SharedPreferences prefs;
 
-    onSpotsListChanged activeFragmentListening;
+    OnSpotsListChanged activeFragmentListening;
 
     int fragmentToLoad = -1;
 
-    public interface onSpotsListChanged {
+    public interface OnSpotsListChanged {
         void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot);
     }
 
@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             bundle.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
             bundle.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
 
-            activeFragmentListening = (onSpotsListChanged) fragment;
+            activeFragmentListening = (OnSpotsListChanged) fragment;
         } else
             activeFragmentListening = null;
 
@@ -287,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         //Restore the fragment's instance
         if (savedInstanceState.containsKey(ARG_FRAGMENT_KEY)) {
-            activeFragmentListening = (onSpotsListChanged) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
+            activeFragmentListening = (OnSpotsListChanged) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
         }
 
     }

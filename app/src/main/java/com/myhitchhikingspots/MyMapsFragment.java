@@ -82,7 +82,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class MyMapsFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener, MainActivity.onSpotsListChanged {
+        MapboxMap.OnMapClickListener, MainActivity.OnSpotsListChanged {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private static final long CAMERA_ANIMATION_TIME = 1950;
