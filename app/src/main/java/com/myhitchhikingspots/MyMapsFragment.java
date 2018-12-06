@@ -99,9 +99,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationLayerPlugin;
 
-    public static String ARG_SPOTLIST_KEY = "spot_list_arg";
-    public static String ARG_CURRENTSPOT_KEY = "current_spot_arg";
-
     private static final String MARKER_SOURCE_ID = "markers-source";
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
@@ -297,9 +294,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         setHasOptionsMenu(true);
 
         if (getArguments() != null) {
-            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(ARG_SPOTLIST_KEY);
-            spotList = Arrays.asList(bundleSpotList);
-            mCurrentWaitingSpot = (Spot) getArguments().getSerializable(ARG_CURRENTSPOT_KEY);
+            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
+            updateSpotList(Arrays.asList(bundleSpotList), (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY));
         }
     }
 

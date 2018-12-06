@@ -31,6 +31,11 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     Spot mCurrentWaitingSpot;
     Boolean mIsWaitingForARide, mWillItBeFirstSpotOfARoute;
 
+    public static String ARG_SPOTLIST_KEY = "spot_list_arg";
+    public static String ARG_CURRENTSPOT_KEY = "current_spot_arg";
+    public static String ARG_FRAGMENT_KEY = "my-fragment-arg";
+    public static String ARG_FRAGMENT_TITLE_KEY = "my-fragment-title-arg";
+
     // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
     // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
     private ActionBarDrawerToggle drawerToggle;
@@ -137,23 +142,18 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         // Create a new fragment and specify the fragment to show based on nav item clicked
         Class fragmentClass;
-        Bundle bundle = new Bundle();
         CharSequence title = menuItem.getTitle();
+        Boolean isFragmentDependingOnSpotList = false;
 
         switch (menuItem.getItemId()) {
             case R.id.nav_my_dashboard:
                 fragmentClass = DashboardFragment.class;
-                Spot[] spotArray2 = new Spot[spotList.size()];
-                bundle.putSerializable(MyMapsFragment.ARG_SPOTLIST_KEY, spotList.toArray(spotArray2));
-                bundle.putSerializable(MyMapsFragment.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
                 title = getString(R.string.app_name);
+                isFragmentDependingOnSpotList = true;
                 break;
             case R.id.nav_my_map:
                 fragmentClass = MyMapsFragment.class;
-                Spot[] spotArray = new Spot[spotList.size()];
-                bundle.putSerializable(MyMapsFragment.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
-                bundle.putSerializable(MyMapsFragment.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
-                //spotList, mCurrentWaitingSpot
+                isFragmentDependingOnSpotList = true;
                 break;
             case R.id.nav_hitchwiki_map:
                 fragmentClass = HitchwikiMapViewFragment.class;
@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 fragmentClass = BasicFragment.class;
         }
 
-        replaceFragmentContainerWith(fragmentClass, bundle);
+        replaceFragmentContainerWith(fragmentClass, isFragmentDependingOnSpotList);
 
         // Highlight the selected item has been done by NavigationView
         menuItem.setChecked(true);
@@ -178,14 +178,31 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         mDrawer.closeDrawers();
     }
 
-    private void replaceFragmentContainerWith(Class fragmentClass, Bundle bundle) {
+    private void replaceFragmentContainerWith(Class fragmentClass, Boolean isFragmentDependingOnSpotList) {
         Fragment fragment = null;
+
         try {
             fragment = (Fragment) fragmentClass.newInstance();
-            fragment.setArguments(bundle);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        replaceFragmentContainerWith(fragment, isFragmentDependingOnSpotList);
+    }
+
+    private void replaceFragmentContainerWith(Fragment fragment, Boolean isFragmentDependingOnSpotList) {
+        Bundle bundle = new Bundle();
+
+        if (isFragmentDependingOnSpotList) {
+            Spot[] spotArray = new Spot[spotList.size()];
+            bundle.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
+            bundle.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
+
+            activeFragmentListening = (onSpotsListChanged) fragment;
+        } else
+            activeFragmentListening = null;
+
+        fragment.setArguments(bundle);
 
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();

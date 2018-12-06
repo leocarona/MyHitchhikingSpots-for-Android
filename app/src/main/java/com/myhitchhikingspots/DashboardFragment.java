@@ -41,18 +41,6 @@ public class DashboardFragment extends android.support.v4.app.Fragment {
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MyMapsFragment.ARG_SPOTLIST_KEY);
-            spotList = Arrays.asList(bundleSpotList);
-        }
-
-        prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
-    }
-
-    @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
