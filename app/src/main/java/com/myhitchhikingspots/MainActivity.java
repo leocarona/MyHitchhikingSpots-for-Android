@@ -374,6 +374,17 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        //If user is navigating back after spotList has been changed, let's reload it.
+        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false)) {
+            loadSpotList(-1);
+            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
+        }
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 

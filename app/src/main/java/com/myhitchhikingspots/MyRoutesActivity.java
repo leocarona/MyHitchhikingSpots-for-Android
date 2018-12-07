@@ -1,6 +1,8 @@
 package com.myhitchhikingspots;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
@@ -63,6 +65,7 @@ public class MyRoutesActivity extends BaseActivity {
      * Set shouldGoBackToPreviousActivity to true if instead of opening a new map, the action bar option should just finish current activity
      */
     Boolean shouldGoBackToPreviousActivity = false;
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +73,7 @@ public class MyRoutesActivity extends BaseActivity {
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
@@ -100,6 +104,7 @@ public class MyRoutesActivity extends BaseActivity {
             @Override
             public void onListOfSelectedSpotsChanged() {
                 showSpotDeletedSnackbar();
+                prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
             }
 
             @Override
