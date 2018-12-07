@@ -122,14 +122,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
-    int routeIndexToKeepVisible = 0;
-
     private ProgressDialog loadingDialog;
 
     //Each hitchhiking spot is a feature
     FeatureCollection featureCollection;
-    //Each route is an item of featuresArray and polylineOptionsArray
     Feature[] featuresArray;
+    //Each route is an item of polylineOptionsArray
     PolylineOptions[] polylineOptionsArray;
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
@@ -724,7 +722,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    private void setupAnnotations(List<Route> routes, String errMsg) {
+    Boolean isLastArrayForSingleSpots = false;
+
+    private void setupAnnotations(List<Route> routes, Boolean isLastArrayForSingleSpots, String errMsg) {
         PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
         List<Feature> allFeatures = new ArrayList<>();
 
@@ -737,6 +737,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Feature[] array = new Feature[allFeatures.size()];
         this.polylineOptionsArray = allPolylines;
         this.featuresArray = allFeatures.toArray(array);
+        this.isLastArrayForSingleSpots = isLastArrayForSingleSpots;
 
         if (mapboxMap == null) {
             return;
@@ -1029,30 +1030,43 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
     }
 
+    /*
+     * Hides old routes, showing on the map only polylines and spots that belong to the most recent route.
+     * Spots that don't belong to any route shall be hidden as well.
+     * */
     void hideOldRoutesFromMap() {
-        //Update all features that should be hidden
-        for (Feature f : featureCollection.features()) {
-            if (f.getNumberProperty("routeIndex").equals(routeIndexToKeepVisible))
-                f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
-            else
-                f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
-        }
-
-        refreshSource();
-
         //Remove all polylines
         for (Polyline p : mapboxMap.getPolylines())
             p.remove();
 
-        //Add all polylines that have been hidden
-        if (polylineOptionsArray != null) {
-            List<PolylineOptions> polylinesToShow = new ArrayList<>();
-            for (int i = 0; i < polylineOptionsArray.length; i++) {
-                if (i == routeIndexToKeepVisible)
-                    polylinesToShow.add(polylineOptionsArray[i]);
+        int numOfRoutes = polylineOptionsArray == null ? 0 : polylineOptionsArray.length;
+        int lastRouteIndex = numOfRoutes-1;
+
+        if (isLastArrayForSingleSpots)
+            lastRouteIndex --;
+
+
+        if (numOfRoutes == 0) {
+            for (Feature f : featureCollection.features()) {
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
             }
-            mapboxMap.addPolylines(polylinesToShow);
+        } else {
+            //Add polylines of the most recent route only
+            mapboxMap.addPolyline(polylineOptionsArray[lastRouteIndex]);
+
+            //Remove all spots except the ones belonging to the most recent route.
+            // Updates all features defining if they should be hidden or not.
+            for (Feature f : featureCollection.features()) {
+                int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
+
+                if (spotRouteIndex < lastRouteIndex)
+                    f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
+                else
+                    f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+            }
         }
+
+        refreshSource();
     }
 
     void openSpotsListView(Boolean... shouldShowYouTab) {
@@ -1429,7 +1443,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             if (activity == null)
                 return;
 
-            activity.setupAnnotations(routes, errMsg);
+            activity.setupAnnotations(routes, isLastArrayForSingleSpots, errMsg);
         }
 
         static Feature GetFeature(ExtendedMarkerViewOptions oldMarker, int routeIndex) {
