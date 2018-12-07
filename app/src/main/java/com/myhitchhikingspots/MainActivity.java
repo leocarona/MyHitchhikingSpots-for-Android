@@ -247,7 +247,13 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+        fragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                // Add this transaction to the back stack,
+                // so that when user clicks on the Back button
+                // they'll be sent back to the fragment they're coming from.
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
