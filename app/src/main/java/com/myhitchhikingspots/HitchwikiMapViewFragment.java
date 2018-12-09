@@ -141,13 +141,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
 
-
-    Spot mCurrentWaitingSpot;
-    boolean mIsWaitingForARide;
-    boolean mWillItBeFirstSpotOfARoute;
-
-    private pageType currentPage;
-
     Snackbar snackbar;
 
     MainActivity activity;
@@ -233,6 +226,17 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             File newFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
             oldFolder.renameTo(newFolder);
             prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
+        }
+
+        Bundle bundle = null;
+        if (savedInstanceState != null)
+            bundle = savedInstanceState;
+        else if (getArguments() != null)
+            savedInstanceState = getArguments();
+
+        if (savedInstanceState.containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
+            Spot[] bundleSpotList = (Spot[]) savedInstanceState.getSerializable(MainActivity.ARG_SPOTLIST_KEY);
+            setupData(Arrays.asList(bundleSpotList), "");
         }
     }
 
@@ -320,47 +324,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         ic_hitchability_senseless = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(5));
     }
 
-    public void setValues(List<Spot> spotList, Spot currentWaitingSpot) {
-        mCurrentWaitingSpot = currentWaitingSpot;
-
-        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
-            mIsWaitingForARide = false;
-        else
-            mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
-
-
-        mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
-    }
-
-    public enum pageType {
-        NOT_FETCHING_LOCATION,
-        WILL_BE_FIRST_SPOT_OF_A_ROUTE, //user sees "save spot" but doesn't see "arrival" button
-        WILL_BE_REGULAR_SPOT, //user sees both "save spot" and "arrival" buttons
-        WAITING_FOR_A_RIDE //user sees "got a ride" and "take a break" buttons
-    }
-
-    protected void updateCurrentPage() {
-        //If it's not waiting for a ride
-        if (!mIsWaitingForARide) {
-            /*if (!locationEngine.areLocationPermissionsGranted() || locationEngine.getLastLocation() == null
-                    || !mRequestingLocationUpdates) {
-                currentPage = pageType.NOT_FETCHING_LOCATION;
-            } else {*/
-            if (mWillItBeFirstSpotOfARoute)
-                currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
-            else {
-                currentPage = pageType.WILL_BE_REGULAR_SPOT;
-            }
-            //}
-
-        } else {
-            currentPage = pageType.WAITING_FOR_A_RIDE;
-        }
-
-        Crashlytics.setString("currentPage", currentPage.toString());
-    }
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -403,7 +366,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                         // CameraMode has been updated
 
                         if (!wasFirstLocationReceived) {
-                            updateCurrentPage();
                             wasFirstLocationReceived = true;
                         }
                     }
@@ -445,9 +407,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         setupIconImages();
 
+        moveCameraToLastKnownLocation();
+
         locateUser();
 
-        updateUI();
+        if (spotList == null || spotList.size() == 0)
+            loadHWSpotsIfTheyveBeenDownloaded();
+        else
+            drawAnnotations();
     }
 
     @Override
@@ -600,23 +567,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         this.mapboxMap.addImage(ic_hitchability_senseless.getId(), ic_hitchability_senseless.getBitmap());
     }
 
-    void updateUI() {
-        Crashlytics.log(Log.INFO, TAG, "updateUI was called");
-
-        loadAll();
-    }
-
     SharedPreferences prefs;
 
-    void loadAll() {
-        Location loc = null;
-        try {
-            loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
-        } catch (SecurityException ex) {
-        }
-
-        if (loc != null)
-            moveCamera(new LatLng(loc));
+    void loadHWSpotsIfTheyveBeenDownloaded() {
+        Crashlytics.log(Log.INFO, TAG, "loadHWSpotsIfTheyveBeenDownloaded was called");
 
         Long millisecondsAtRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, 0);
         if (millisecondsAtRefresh > 0) {
@@ -626,7 +580,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             else {
                 showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
                 //Load spots and display them as markers and polylines on the map
-                loadTask = new LoadHitchwikiSpotsListTask(this).execute();
+                this.loadTask = new LoadHitchwikiSpotsListTask(this).execute();
             }
         } else {
             showDialogDownloadHWSpots();
@@ -640,7 +594,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             return;
         }
 
-        updateCurrentPage();
         this.spotList = spotList;
 
         //Update number of HW spots
@@ -648,10 +601,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         dismissProgressDialog();
 
+        if (mapboxMap != null)
+            drawAnnotations();
+    }
+
+    void drawAnnotations() {
         if (mapboxMap != null) {
             showProgressDialog("Drawing hitchwiki spots..");
             Spot[] spotArray = new Spot[spotList.size()];
-            new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
+            this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
         }
     }
 
@@ -802,10 +760,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         super.onResume();
         Crashlytics.log(Log.INFO, TAG, "onResume called");
         mapView.onResume();
-
-        //If mapbox was already loaded, we should call updateUI() here to update the data in case new data has been downloaded from HW.
-        if (mapboxMap != null)
-            updateUI();
     }
 
     @Override
@@ -844,6 +798,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         mapView.onSaveInstanceState(savedInstanceState);
 
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
+        Spot[] spotArray = new Spot[spotList.size()];
+        savedInstanceState.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
     }
 
 
