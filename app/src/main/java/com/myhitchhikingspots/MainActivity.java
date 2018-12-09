@@ -247,13 +247,17 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                // Add this transaction to the back stack,
-                // so that when user clicks on the Back button
-                // they'll be sent back to the fragment they're coming from.
-                .addToBackStack(null)
-                .commit();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, fragment);
+
+        //Adding a transaction to the back stack, guarantees that when user clicks on the Back button
+        // they're sent back to the fragment they're come from.
+        //If it's the first fragment being loaded, we want the app to close when user clicks on the Back button,
+        // therefore we don't want to add the fragment to the back stack.
+        if (fragmentManager.getFragments().size() > 0)
+            fragmentTransaction.addToBackStack(null);
+
+        fragmentTransaction.commit();
     }
 
     @Override
