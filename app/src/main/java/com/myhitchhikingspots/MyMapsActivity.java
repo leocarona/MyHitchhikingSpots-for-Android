@@ -686,7 +686,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                             prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
                             prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
 
-                            openSpotsListView(true);
+                            openSpotsListView();
                         }
                     })
                     .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
@@ -893,7 +893,7 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
                             .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    openSpotsListView(true);
+                                    openSpotsListView();
                                 }
                             })
                             .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
@@ -984,14 +984,10 @@ public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, 
         }
     }
 
-    void openSpotsListView(Boolean... shouldShowYouTab) {
+    void openSpotsListView() {
         Intent intent = new Intent(getApplicationContext(), MyRoutesActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-        /*//When set to true, shouldShowYouTab will open MyRoutesActivity presenting the tab "You" instead of the tab "List"
-        if (shouldShowYouTab.length > 0)
-            intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab[0]);*/
         startActivity(intent);
-        //startActivity(new Intent(getApplicationContext(), MyRoutesActivity.class));
     }
 
     protected void zoomOutToFitAllMarkers() {

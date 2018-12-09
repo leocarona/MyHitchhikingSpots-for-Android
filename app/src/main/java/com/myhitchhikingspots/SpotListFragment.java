@@ -55,11 +55,6 @@ public class SpotListFragment extends Fragment {
      */
     protected Address mAddressOutput;
 
-    /**
-     * Receiver registered with this activity to get the response from FetchAddressIntentService.
-     */
-    private SpotFormActivity.AddressResultReceiver mResultReceiver;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -185,13 +180,9 @@ public class SpotListFragment extends Fragment {
                         }
                     }
 
-                    Bundle args = new Bundle();
-                    //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-                    args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-                    args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-
                     Intent intent = new Intent(getContext(), SpotFormActivity.class);
-                    intent.putExtras(args);
+                    intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
                     startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
 
                     if (onOneOrMoreSpotsDeleted != null)

@@ -245,11 +245,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     gotARideButtonHandler();
                 else
                     saveRegularSpotButtonHandler();
-
-
-                //   Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //         .setAction("Action", null).show();
-                //startActivity(new Intent(activity, MyLocationFragment.class));
             }
         });
 
@@ -264,10 +259,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     tookABreakButtonHandler();
                 else
                     saveDestinationSpotButtonHandler();
-
-                // Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                //       .setAction("Action", null).show();
-                //startActivity(new Intent(activity, MyLocationFragment.class));
             }
         });
 
@@ -697,7 +688,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                             prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
                             prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
 
-                            openSpotsListView(true);
+                            startMyRoutesActivity();
                         }
                     })
                     .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
@@ -874,20 +865,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-
         if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED)
             showSpotSavedSnackbar();
 
         if (resultCode == Constants.RESULT_OBJECT_DELETED)
             showSpotDeletedSnackbar();
-
-      /*
-        // Check which request we're responding to
-        if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
-            // Make sure the request was successful
-            if (resultCode > RESULT_FIRST_USER)
-                updateUI();
-        }*/
     }
 
     @Override
@@ -953,7 +935,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         switch (item.getItemId()) {
             case R.id.action_view_list:
-                openSpotsListView();
+                startMyRoutesActivity();
                 selectionHandled = true;
                 break;
             case R.id.action_new_spot:
@@ -968,7 +950,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                             .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    openSpotsListView(true);
+                                    startMyRoutesActivity();
                                 }
                             })
                             .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
@@ -1040,10 +1022,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             p.remove();
 
         int numOfRoutes = polylineOptionsArray == null ? 0 : polylineOptionsArray.length;
-        int lastRouteIndex = numOfRoutes-1;
+        int lastRouteIndex = numOfRoutes - 1;
 
         if (isLastArrayForSingleSpots)
-            lastRouteIndex --;
+            lastRouteIndex--;
 
 
         if (numOfRoutes == 0) {
@@ -1069,14 +1051,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         refreshSource();
     }
 
-    void openSpotsListView(Boolean... shouldShowYouTab) {
+    void startMyRoutesActivity() {
         Intent intent = new Intent(activity, MyRoutesActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-        /*//When set to true, shouldShowYouTab will open MyRoutesActivity presenting the tab "You" instead of the tab "List"
-        if (shouldShowYouTab.length > 0)
-            intent.putExtra(Constants.SHOULD_SHOW_YOU_TAB_KEY, shouldShowYouTab[0]);*/
-        startActivity(intent);
-        //startActivity(new Intent(activity, MyRoutesActivity.class));
+        startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
     }
 
     protected void zoomOutToFitAllMarkers() {
@@ -1668,13 +1646,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     spot.setLongitude(selectedLocation.getLongitude());
                     cameraZoom = mapboxMap.getCameraPosition().zoom;
                 }
-                /* Location mCurrentLocation = mapboxMap.getMyLocation();
-                if (mCurrentLocation != null) {
-                    spot.setLatitude(mCurrentLocation.getLatitude());
-                    spot.setLongitude(mCurrentLocation.getLongitude());
-                    spot.setAccuracy(mCurrentLocation.getAccuracy());
-                    spot.setHasAccuracy(mCurrentLocation.hasAccuracy());
-                }*/
             }
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a new spot is being created.");
         } else {
