@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     OnSpotsListChanged activeFragmentListening;
 
     int fragmentToLoad = -1;
+    //Default fragment that will open on the app startup
+    int defaultFragmentResourceId = R.id.nav_my_map;
 
     public interface OnSpotsListChanged {
         void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot);
@@ -82,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         //If it is first time the activity is loaded, then load the list of spots with loadSpotList(),
         //If the activity is being restored, the activity's state will be restored by onRestoreInstanceState.
         if (savedInstanceState == null) {
-            int resourceToOpen = R.id.nav_my_map;
+            int resourceToOpen = defaultFragmentResourceId;
 
             //A resourceId was received through ARG_REQUEST_TO_OPEN_FRAGMENT
             if (getIntent().getExtras() != null && getIntent().getExtras().containsKey(ARG_REQUEST_TO_OPEN_FRAGMENT))
