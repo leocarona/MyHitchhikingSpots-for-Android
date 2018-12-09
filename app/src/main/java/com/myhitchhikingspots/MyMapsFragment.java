@@ -271,7 +271,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         loadMarkerIcons();
 
-        if (getArguments() != null) {
+        if (getArguments() != null && getArguments().containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
             Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
             updateSpotList(Arrays.asList(bundleSpotList), (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY));
         }
@@ -497,7 +497,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         locateUser();
 
-        updateUI();
+        drawAnnotationsIfInternetIsAvailable();
     }
 
     @Override
@@ -671,11 +671,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         this.mCurrentWaitingSpot = mCurrentWaitingSpot;
 
         if (mapboxMap != null)
-            updateUI();
+            drawAnnotationsIfInternetIsAvailable();
     }
 
-    void updateUI() {
-        Crashlytics.log(Log.INFO, TAG, "updateUI was called");
+    void drawAnnotationsIfInternetIsAvailable() {
+        Crashlytics.log(Log.INFO, TAG, "drawAnnotationsIfInternetIsAvailable was called");
 
         if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs)) {
             new AlertDialog.Builder(activity)
@@ -697,15 +697,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                             prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
                             prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
 
-                            loadAll();
+                            drawAnnotations();
                         }
                     }).show();
         } else {
-            loadAll();
+            drawAnnotations();
         }
     }
 
-    void loadAll() {
+    void drawAnnotations() {
         if (mapboxMap != null) {
             showProgressDialog("Drawing routes..");
             Spot[] spotArray = new Spot[spotList.size()];
@@ -1631,7 +1631,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void saveSpotButtonHandler(boolean isDestination) {
         double cameraZoom = -1;
         Spot spot = null;
+        int requestId = -1;
         if (!mIsWaitingForARide) {
+            requestId = Constants.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsHitchhikingSpot(!isDestination);
             spot.setIsDestination(isDestination);
@@ -1649,6 +1651,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             }
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a new spot is being created.");
         } else {
+            requestId = Constants.EDIT_SPOT_REQUEST;
             spot = mCurrentWaitingSpot;
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
@@ -1656,7 +1659,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Intent intent = new Intent(activity.getBaseContext(), SpotFormActivity.class);
         intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
         intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
-        startActivity(intent);
+        startActivityForResult(intent, requestId);
     }
 
     public void gotARideButtonHandler() {
@@ -1679,7 +1682,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (mIsWaitingForARide) {
             Intent intent = new Intent(activity.getBaseContext(), SpotFormActivity.class);
             intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
-            startActivity(intent);
+            startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
         }
     }
 

@@ -30,6 +30,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.Toolbar;
@@ -106,7 +107,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.ResultReceiver;
 
-public class SpotFormActivity extends BaseActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback,
+public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback,
         View.OnClickListener, CompoundButton.OnCheckedChangeListener, PermissionsListener {
 
 
@@ -206,7 +207,7 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.spot_form_master_layout);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
@@ -219,6 +220,10 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
 
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+
+        // Set a Toolbar to replace the ActionBar.
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
@@ -477,10 +482,6 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                 taskThatRetrievesCompleteDetails = new retrievePlaceDetailsAsyncTask().execute(mCurrentSpot.getId().toString());
             }
         }
-
-        mShouldShowLeftMenu = true;
-        super.onCreate(savedInstanceState);
-
     }
 
 
@@ -494,6 +495,15 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
             //For some strange reason the note field is getting focus when map is not loaded and that causes the panel to expand, hiding the message.
             //hideKeyboard();
         }
+    }
+
+    protected void showErrorAlert(String title, String msg) {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
+                .show();
     }
 
     Toast waiting_GPS_update;
@@ -1386,24 +1396,16 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
                                         //Create a record to track usage of Delete button when a spot is deleted
                                         Answers.getInstance().logCustom(new CustomEvent("Spot deleted"));
 
+                                        setResult(Constants.RESULT_OBJECT_DELETED);
+                                        prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
+                                        finish();
+
                                         if (!shouldGoBackToPreviousActivity && (callingActivity == null
                                                 || !callingActivity.getClassName().equals(MainActivity.class.getName()))) {
-                                            setResult(Constants.RESULT_OBJECT_DELETED);
-                                            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-                                            finish();
-
-                                            //Bundle conData = getBundle(RESULT_OBJECT_DELETED);
-                                            Bundle conData = new Bundle();
-                                            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
-
                                             Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                                            intent.putExtras(conData);
+                                            intent.putExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, true);
                                             intent.putExtra(MainActivity.ARG_REQUEST_TO_OPEN_FRAGMENT, R.id.nav_my_map);
                                             startActivity(intent);
-                                        } else {
-                                            setResult(Constants.RESULT_OBJECT_DELETED);
-                                            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-                                            finish();
                                         }
                                     }
                                 });
@@ -1484,12 +1486,9 @@ public class SpotFormActivity extends BaseActivity implements RatingBar.OnRating
         finish();
 
         if (!shouldGoBackToPreviousActivity) {
-            Bundle conData = new Bundle();
-            conData.putBoolean(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
-
             Intent i = new Intent(getBaseContext(), MainActivity.class);
             i.putExtra(MainActivity.ARG_REQUEST_TO_OPEN_FRAGMENT, R.id.nav_my_map);
-            i.putExtras(conData);
+            i.putExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
             startActivity(i);
         }
     }

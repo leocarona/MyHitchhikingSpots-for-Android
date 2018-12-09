@@ -10,12 +10,14 @@ import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.MenuItem;
 
 import com.myhitchhikingspots.model.Spot;
@@ -24,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoutesTask.onPostExecute {
+public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoutesTask.onPostExecute, NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
@@ -37,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public static String ARG_CURRENTSPOT_KEY = "current_spot_arg";
     public static String ARG_FRAGMENT_KEY = "my-fragment-arg";
     public static String ARG_REQUEST_TO_OPEN_FRAGMENT = "request-to-open-resource-id";
-    public static String ARG_FRAGMENT_TITLE_KEY = "my-fragment-title-arg";
+    public static String ARG_CHECKED_MENU_ITEM_ID_KEY = "my-fragment-title-arg";
 
     // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
     // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
@@ -49,7 +51,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     OnSpotsListChanged activeFragmentListening;
 
-    int fragmentToLoad = -1;
+    int fragmentResourceId = -1;
+
     //Default fragment that will open on the app startup
     int defaultFragmentResourceId = R.id.nav_my_map;
 
@@ -78,8 +81,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         // Find our drawer view
         nvDrawer = findViewById(R.id.nvView);
         // Setup drawer view
-        setupDrawerContent(nvDrawer);
-
+        nvDrawer.setNavigationItemSelectedListener(this);
 
         //If it is first time the activity is loaded, then load the list of spots with loadSpotList(),
         //If the activity is being restored, the activity's state will be restored by onRestoreInstanceState.
@@ -135,32 +137,27 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         drawerToggle.onConfigurationChanged(newConfig);
     }
 
-    private void setupDrawerContent(NavigationView navigationView) {
-        navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem menuItem) {
+        Boolean shouldLoadSpotListFirst = false;
+        int resourceId = menuItem.getItemId();
 
-                        Boolean shouldLoadSpotListFirst = false;
-                        int resourceId = menuItem.getItemId();
+        //If spotList has been updated, we should load the list here prior to opening the new fragment
+        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) &&
+                (resourceId == R.id.nav_my_dashboard || resourceId == R.id.nav_my_map))
+            shouldLoadSpotListFirst = true;
 
-                        //If spotList has been updated, we should load the list here prior to opening the new fragment
-                        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) &&
-                                (resourceId == R.id.nav_my_dashboard || resourceId == R.id.nav_my_map))
-                            shouldLoadSpotListFirst = true;
+        if (shouldLoadSpotListFirst) {
+            loadSpotList(resourceId);
+            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
+        } else
+            selectDrawerItem(menuItem);
 
-                        if (shouldLoadSpotListFirst) {
-                            loadSpotList(resourceId);
-                            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
-                        } else
-                            selectDrawerItem(menuItem);
-
-                        return true;
-                    }
-                });
+        return true;
     }
 
-    public void selectDrawerItem(int resourceId) {
+    int getMenuItemIndex(int resourceId) {
         Integer menuItemIndex = -1;
         switch (resourceId) {
             case R.id.nav_my_dashboard:
@@ -179,11 +176,32 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 menuItemIndex = 4;
                 break;
         }
+        return menuItemIndex;
+    }
+
+    int getMenuItemIdFromClassName(String className) {
+        int menuItemResourceId = -1;
+
+        if (className.equals(DashboardFragment.class.getName()))
+            menuItemResourceId = R.id.nav_my_dashboard;
+        else if (className.equals(MyMapsFragment.class.getName()))
+            menuItemResourceId = R.id.nav_my_map;
+        else if (className.equals(HitchwikiMapViewFragment.class.getName()))
+            menuItemResourceId = R.id.nav_hitchwiki_map;
+        else if (className.equals(OfflineMapManagerFragment.class.getName()))
+            menuItemResourceId = R.id.nav_offline_map;
+        else if (className.equals(SettingsFragment.class.getName()))
+            menuItemResourceId = R.id.nav_tools;
+
+        return menuItemResourceId;
+    }
+
+    public void selectDrawerItem(int resourceId) {
+        int menuItemIndex = getMenuItemIndex(resourceId);
         selectDrawerItem(nvDrawer.getMenu().getItem(menuItemIndex));
     }
 
     public void selectDrawerItem(MenuItem menuItem) {
-
         // Create a new fragment and specify the fragment to show based on nav item clicked
         Class fragmentClass;
         CharSequence title = menuItem.getTitle();
@@ -211,12 +229,18 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         replaceFragmentContainerWith(fragmentClass);
 
-        // Highlight the selected item has been done by NavigationView
-        menuItem.setChecked(true);
-        // Set action bar title
-        setTitle(title);
+        setupSelectedFragment(menuItem, title.toString());
+
         // Close the navigation drawer
         mDrawer.closeDrawers();
+    }
+
+    private void setupSelectedFragment(MenuItem menuItem, String title) {
+        // Highlight the selected item has been done by NavigationView
+        menuItem.setChecked(true);
+
+        // Set action bar title
+        setTitle(title);
     }
 
     private void replaceFragmentContainerWith(Class fragmentClass) {
@@ -257,16 +281,32 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         //If it's the first fragment being loaded, we want the app to close when user clicks on the Back button,
         // therefore we don't want to add the fragment to the back stack.
         if (fragmentManager.getFragments().size() > 0)
-            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.addToBackStack(fragment.getClass().getName());
 
         fragmentTransaction.commit();
     }
 
     @Override
     public void onBackPressed() {
+        activeFragmentListening = null;
+
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             mDrawer.closeDrawer(GravityCompat.START);
         } else {
+
+            int lastOpenedFragmentIndex = getSupportFragmentManager().getBackStackEntryCount() - 2;
+            String lastOpenedFragment = null;
+            if (lastOpenedFragmentIndex >= 0)
+                lastOpenedFragment = getSupportFragmentManager().getBackStackEntryAt(lastOpenedFragmentIndex).getName();
+
+            int menuItemResourceId = defaultFragmentResourceId;
+            if (lastOpenedFragment != null)
+                menuItemResourceId = getMenuItemIdFromClassName(lastOpenedFragment);
+
+            int menuItemIndex = getMenuItemIndex(menuItemResourceId);
+            restoreLastCheckedMenuItem(menuItemIndex);
+
+
             super.onBackPressed();
         }
     }
@@ -276,10 +316,16 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
+        int checkedMenuItemIndex = getCheckedItem(nvDrawer);
+
         Spot[] spotArray = new Spot[spotList.size()];
         outState.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
         outState.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
-        outState.putString(MainActivity.ARG_FRAGMENT_TITLE_KEY, getTitle().toString());
+
+        if (checkedMenuItemIndex != -1) {
+            MenuItem checkedMenuItem = nvDrawer.getMenu().getItem(checkedMenuItemIndex);
+            outState.putInt(MainActivity.ARG_CHECKED_MENU_ITEM_ID_KEY, checkedMenuItem.getItemId());
+        }
 
         //Save the fragment's instance
         if (activeFragmentListening != null)
@@ -302,15 +348,39 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             mCurrentWaitingSpot = (Spot) savedInstanceState.getSerializable(MainActivity.ARG_CURRENTSPOT_KEY);
         }
 
-        if (savedInstanceState.containsKey(ARG_FRAGMENT_TITLE_KEY)) {
-            setTitle(savedInstanceState.getString(MainActivity.ARG_FRAGMENT_TITLE_KEY));
+        if (savedInstanceState.containsKey(ARG_CHECKED_MENU_ITEM_ID_KEY)) {
+            int lastCheckedMenuItemId = savedInstanceState.getInt(MainActivity.ARG_CHECKED_MENU_ITEM_ID_KEY);
+            int lastCheckedMenuItemIndex = getMenuItemIndex(lastCheckedMenuItemId);
+            restoreLastCheckedMenuItem(lastCheckedMenuItemIndex);
         }
 
         //Restore the fragment's instance
         if (savedInstanceState.containsKey(ARG_FRAGMENT_KEY)) {
             activeFragmentListening = (OnSpotsListChanged) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
         }
+    }
 
+    void restoreLastCheckedMenuItem(int menuItemIndex) {
+        MenuItem lastCheckedMenuItem = nvDrawer.getMenu().getItem(menuItemIndex);
+        restoreLastCheckedMenuItem(lastCheckedMenuItem);
+    }
+
+    void restoreLastCheckedMenuItem(MenuItem lastCheckedMenuItem) {
+        nvDrawer.setNavigationItemSelectedListener(null);
+        setupSelectedFragment(lastCheckedMenuItem, lastCheckedMenuItem.getTitle().toString());
+        nvDrawer.setNavigationItemSelectedListener(this);
+    }
+
+    private int getCheckedItem(NavigationView navigationView) {
+        Menu menu = navigationView.getMenu();
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem item = menu.getItem(i);
+            if (item.isChecked()) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     @Override
@@ -337,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     void loadSpotList(int fragmentResourceId) {
         showProgressDialog(getResources().getString(R.string.map_loading_dialog));
 
-        this.fragmentToLoad = fragmentResourceId;
+        this.fragmentResourceId = fragmentResourceId;
 
         //Load markers and polylines
         loadTask = new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
@@ -361,9 +431,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
 
         //Select fragment
-        if (fragmentToLoad > -1) {
-            selectDrawerItem(fragmentToLoad);
-            fragmentToLoad = -1;
+        if (fragmentResourceId > -1) {
+            selectDrawerItem(fragmentResourceId);
+            fragmentResourceId = -1;
         } else
             updateUI();
 
@@ -386,23 +456,19 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+
+        //If any spot has been created, edited or deleted, let's reload the spotList from the database.
+        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED)
+            loadSpotList(-1);
 
         //If user is navigating back after spotList has been changed, let's reload it.
         if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false)) {
             loadSpotList(-1);
             prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
         }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        //If any spot has been created, edited or deleted, let's reload the spotList from the database.
-        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED)
-            loadSpotList(-1);
     }
 
     private ProgressDialog loadingDialog;
