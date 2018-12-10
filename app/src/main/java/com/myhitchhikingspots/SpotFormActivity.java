@@ -1453,7 +1453,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
                 return;
             } else if ((mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                    && is_part_of_a_route_check_box.isChecked() && getCallingActivity() == null) {
+                    && is_part_of_a_route_check_box.isChecked()) {
                 //Instantiate a new route spot and pass it, so that the user can adjust it as he wants and save it as a new spot.
                 mFormType = FormType.Create;
 
