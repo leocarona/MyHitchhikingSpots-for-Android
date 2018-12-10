@@ -1,13 +1,23 @@
 package com.myhitchhikingspots;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -19,6 +29,7 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
 
     MainActivity activity;
     List<Spot> spotList = new ArrayList();
+    Spot mCurrentWaitingSpot = null;
 
     TextView txtNumSpotsSaved, txtNumHWSpotsDownloaded, txtShortestWaitingTime, txtLongestWaitingTime;
     SharedPreferences prefs;
@@ -49,15 +60,74 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
         view.findViewById(R.id.go_to_my_map).setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
 
         if (getArguments() != null) {
-            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-            updateSpotList(Arrays.asList(bundleSpotList), null);
+            if (getArguments().containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
+                Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
+                updateSpotList(Arrays.asList(bundleSpotList), null);
+            }
         }
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //Important: setHasOptionsMenu must be called so that onOptionsItemSelected works
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.dashboard_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        boolean selectionHandled = false;
+
+        switch (item.getItemId()) {
+            case R.id.action_new_spot:
+                saveSpotButtonHandler(false);
+                selectionHandled = true;
+                break;
+        }
+
+        /*if (selectionHandled)
+            return true;
+        else*/
+        return super.onOptionsItemSelected(item);
+    }
+
+    boolean isWaitingForARide() {
+        return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                mCurrentWaitingSpot.getIsWaitingForARide() : false;
+    }
+
+    public void saveSpotButtonHandler(boolean isDestination) {
+        double cameraZoom = -1;
+        Spot spot = null;
+        int requestId = -1;
+        if (!isWaitingForARide()) {
+            requestId = Constants.SAVE_SPOT_REQUEST;
+            spot = new Spot();
+            spot.setIsHitchhikingSpot(!isDestination);
+            spot.setIsDestination(isDestination);
+            spot.setIsPartOfARoute(true);
+
+        } else {
+            requestId = Constants.EDIT_SPOT_REQUEST;
+            spot = mCurrentWaitingSpot;
+        }
+
+        Intent intent = new Intent(activity.getBaseContext(), SpotFormActivity.class);
+        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+        intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
+        startActivityForResult(intent, requestId);
+    }
 
     @Override
     public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
         this.spotList = spotList;
+        this.mCurrentWaitingSpot = mCurrentWaitingSpot;
 
         updateUI();
     }
