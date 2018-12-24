@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     List<Spot> spotList = new ArrayList();
     Spot mCurrentWaitingSpot;
-    Boolean mIsWaitingForARide, mWillItBeFirstSpotOfARoute;
 
     public static String ARG_SPOTLIST_KEY = "spot_list_arg";
     public static String ARG_CURRENTSPOT_KEY = "current_spot_arg";
@@ -422,13 +421,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         }
 
         this.spotList = spotList;
-
-        if (mCurrentWaitingSpot == null || mCurrentWaitingSpot.getIsWaitingForARide() == null)
-            this.mIsWaitingForARide = false;
-        else
-            this.mIsWaitingForARide = mCurrentWaitingSpot.getIsWaitingForARide();
-
-        this.mWillItBeFirstSpotOfARoute = spotList.size() == 0 || (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination());
+        this.mCurrentWaitingSpot = mCurrentWaitingSpot;
 
         //Select fragment
         if (fragmentResourceId > -1) {
