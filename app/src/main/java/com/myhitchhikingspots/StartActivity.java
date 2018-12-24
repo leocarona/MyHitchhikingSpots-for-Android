@@ -13,7 +13,12 @@ public class StartActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
+        finish();
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
+
+       /* MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
+        if (appContext.getDaoSession() == null)
+            appContext.loadDatabase();*/
 
 /*
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());

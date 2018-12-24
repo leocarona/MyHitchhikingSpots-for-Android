@@ -114,6 +114,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             PROPERTY_TITLE = "title", PROPERTY_SNIPPET = "snippet",
             PROPERTY_SHOULDHIDE = "shouldHide", PROPERTY_SELECTED = "selected";
 
+    public static String ARG_HWSPOTLIST_KEY = "hw_spot_list_arg";
+
     // Permissions variables
     private static final int PERMISSIONS_LOCATION = 0;
     private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
@@ -228,15 +230,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
         }
 
-        Bundle bundle = null;
-        if (savedInstanceState != null)
-            bundle = savedInstanceState;
-        else if (getArguments() != null)
-            savedInstanceState = getArguments();
-
-        if (savedInstanceState.containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
-            Spot[] bundleSpotList = (Spot[]) savedInstanceState.getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-            setupData(Arrays.asList(bundleSpotList), "");
+        if (savedInstanceState != null && savedInstanceState.containsKey(ARG_HWSPOTLIST_KEY)) {
+            Spot[] bundleSpotList = (Spot[]) savedInstanceState.getSerializable(ARG_HWSPOTLIST_KEY);
+            spotList = Arrays.asList(bundleSpotList);
         }
     }
 
@@ -799,7 +795,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
         Spot[] spotArray = new Spot[spotList.size()];
-        savedInstanceState.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
+        savedInstanceState.putSerializable(ARG_HWSPOTLIST_KEY, spotList.toArray(spotArray));
     }
 
 

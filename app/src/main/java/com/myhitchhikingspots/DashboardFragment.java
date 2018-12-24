@@ -62,8 +62,14 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
         if (getArguments() != null) {
             if (getArguments().containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
                 Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-                updateSpotList(Arrays.asList(bundleSpotList), null);
+                this.spotList = Arrays.asList(bundleSpotList);
             }
+
+            if (getArguments().containsKey(MainActivity.ARG_CURRENTSPOT_KEY)) {
+                this.mCurrentWaitingSpot = (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY);
+            }
+
+            updateUI();
         }
     }
 

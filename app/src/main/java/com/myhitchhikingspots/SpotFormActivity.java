@@ -249,7 +249,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         else {
             // If Id greater than zero, this means the user is editing a spot that was already saved in the database. So show full form.
             if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0) {
-                if ((mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide()))
+                if (isWaitingForARide())
                     mFormType = FormType.Evaluate;
                 else
                     mFormType = FormType.Edit;
@@ -484,6 +484,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
     }
 
+    boolean isWaitingForARide() {
+        return (mCurrentSpot != null && mCurrentSpot.getIsWaitingForARide() != null) ?
+                mCurrentSpot.getIsWaitingForARide() : false;
+    }
 
     void updateMapVisibility() {
         if (prefs.getBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, false)) {

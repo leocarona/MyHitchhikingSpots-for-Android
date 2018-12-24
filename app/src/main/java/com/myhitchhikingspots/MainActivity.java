@@ -357,6 +357,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         if (savedInstanceState.containsKey(ARG_FRAGMENT_KEY)) {
             activeFragmentListening = (OnSpotsListChanged) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
         }
+
+        updateUI();
     }
 
     void restoreLastCheckedMenuItem(int menuItemIndex) {
@@ -435,7 +437,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     void updateUI() {
         //Update the active fragment's data
-        if (activeFragmentListening != null && ((Fragment) activeFragmentListening).isVisible())
+        if (activeFragmentListening != null)// && ((Fragment) activeFragmentListening).isVisible())
             activeFragmentListening.updateSpotList(spotList, mCurrentWaitingSpot);
     }
 

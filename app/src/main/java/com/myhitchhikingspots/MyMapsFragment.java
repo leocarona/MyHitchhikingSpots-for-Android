@@ -75,6 +75,7 @@ import java.util.List;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
@@ -91,6 +92,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     Boolean shouldDisplayIcons = true;
     Boolean shouldDisplayOldRoutes = true;
     boolean wasSnackbarShown;
+    Boolean isLastArrayForSingleSpots = false;
 
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationLayerPlugin;
@@ -126,15 +128,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     //Each hitchhiking spot is a feature
     FeatureCollection featureCollection;
-    Feature[] featuresArray;
     //Each route is an item of polylineOptionsArray
     PolylineOptions[] polylineOptionsArray;
     GeoJsonSource source;
-    SymbolLayer markerStyleLayer;
 
     Spot mCurrentWaitingSpot;
-    boolean mIsWaitingForARide;
-    boolean mWillItBeFirstSpotOfARoute;
 
     public enum pageType {
         NOT_FETCHING_LOCATION,
@@ -224,16 +222,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             }
         });
 
-        /*fabShowAll = (FloatingActionButton) findViewById(R.id.fab_show_all);
-        fabShowAll.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mapboxMap != null) {
-                    zoomOutToFitAllMarkers();
-                }
-            }
-        });*/
-
         fabSpotAction1 = (FloatingActionButton) view.findViewById(R.id.fab_spot_action_1);
         fabSpotAction1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -241,7 +229,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //While waiting for a ride, MainActionButton is a "Got a ride" button
                 //when not waiting for a ride, it's a "Save spot" button
 
-                if (mIsWaitingForARide)
+                if (isWaitingForARide())
                     gotARideButtonHandler();
                 else
                     saveRegularSpotButtonHandler();
@@ -255,7 +243,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //While waiting for a ride, SecondaryActionButton is a "Arrived to destination" button
                 //when not waiting for a ride, it's a "Take a break" button
 
-                if (mIsWaitingForARide)
+                if (isWaitingForARide())
                     tookABreakButtonHandler();
                 else
                     saveDestinationSpotButtonHandler();
@@ -271,10 +259,53 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         loadMarkerIcons();
 
-        if (getArguments() != null && getArguments().containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
-            Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-            updateSpotList(Arrays.asList(bundleSpotList), (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY));
+        if (getArguments() != null) {
+            if (getArguments().containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
+                Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
+                this.spotList = Arrays.asList(bundleSpotList);
+            }
+
+            if (getArguments().containsKey(MainActivity.ARG_CURRENTSPOT_KEY)) {
+                this.mCurrentWaitingSpot = (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY);
+            }
+
+            updateUISaveButtons();
+
+            //onMapReady will take care of drawing the spots and routes on the map.
         }
+    }
+
+    //onMapReady is called after onResume()
+    @Override
+    public void onMapReady(MapboxMap mapboxMap) {
+        Crashlytics.log(Log.INFO, TAG, "onMapReady was called");
+        prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
+
+        this.mapboxMap = mapboxMap;
+
+        this.mapboxMap.getUiSettings().setCompassEnabled(false);
+        this.mapboxMap.getUiSettings().setLogoEnabled(false);
+        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
+
+        this.mapboxMap.addOnMapClickListener(this);
+
+        this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
+            @Override
+            public boolean onInfoWindowClick(@NonNull Marker marker) {
+                ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
+                onItemClick(myMarker.getTag());
+                return true;
+            }
+        });
+
+        setupIconImages();
+
+        locateUser();
+
+        if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
+            showInternetUnavailableAlertDialog();
+        else
+            drawAnnotations();
     }
 
     @Override
@@ -282,6 +313,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         super.onCreate(savedInstanceState);
         //Important: setHasOptionsMenu must be called so that onOptionsItemSelected works
         setHasOptionsMenu(true);
+    }
+
+    boolean isWaitingForARide() {
+        return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                mCurrentWaitingSpot.getIsWaitingForARide() : false;
+    }
+
+    boolean isFirstSpotOfARoute() {
+        return ((spotList == null || spotList.size() == 0) ||
+                (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()));
     }
 
     void locateUser() {
@@ -393,12 +434,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     protected void updateUISaveButtons() {
         //If it's not waiting for a ride
-        if (!mIsWaitingForARide) {
+        if (!isWaitingForARide()) {
             /*if (!locationEngine.areLocationPermissionsGranted() || locationEngine.getLastLocation() == null
                     || !mRequestingLocationUpdates) {
                 currentPage = pageType.NOT_FETCHING_LOCATION;
             } else {*/
-            if (mWillItBeFirstSpotOfARoute)
+            if (isFirstSpotOfARoute())
                 currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
             else {
                 currentPage = pageType.WILL_BE_REGULAR_SPOT;
@@ -468,36 +509,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 permissionsManager.requestLocationPermissions(activity);
             }
         }
-    }
-
-    //onMapReady is called after onResume()
-    @Override
-    public void onMapReady(MapboxMap mapboxMap) {
-        Crashlytics.log(Log.INFO, TAG, "onMapReady was called");
-        prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
-
-        this.mapboxMap = mapboxMap;
-
-        this.mapboxMap.getUiSettings().setCompassEnabled(false);
-        this.mapboxMap.getUiSettings().setLogoEnabled(false);
-        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
-
-        this.mapboxMap.addOnMapClickListener(this);
-
-        this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
-            @Override
-            public boolean onInfoWindowClick(@NonNull Marker marker) {
-                ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
-                onItemClick(myMarker.getTag());
-                return true;
-            }
-        });
-
-        setupIconImages();
-
-        locateUser();
-
-        drawAnnotationsIfInternetIsAvailable();
     }
 
     @Override
@@ -670,39 +681,39 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         this.spotList = spotList;
         this.mCurrentWaitingSpot = mCurrentWaitingSpot;
 
-        if (mapboxMap != null)
-            drawAnnotationsIfInternetIsAvailable();
+        updateUISaveButtons();
+
+        if (mapboxMap != null) {
+            if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
+                showInternetUnavailableAlertDialog();
+            else
+                drawAnnotations();
+        }
     }
 
-    void drawAnnotationsIfInternetIsAvailable() {
-        Crashlytics.log(Log.INFO, TAG, "drawAnnotationsIfInternetIsAvailable was called");
+    void showInternetUnavailableAlertDialog() {
+        new AlertDialog.Builder(activity)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getResources().getString(R.string.general_network_unavailable_message))
+                .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
+                .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
+                        prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
 
-        if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs)) {
-            new AlertDialog.Builder(activity)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getResources().getString(R.string.general_network_unavailable_message))
-                    .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
-                    .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
-                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
+                        startMyRoutesActivity();
+                    }
+                })
+                .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
+                        prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
 
-                            startMyRoutesActivity();
-                        }
-                    })
-                    .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
-                            prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
-
-                            drawAnnotations();
-                        }
-                    }).show();
-        } else {
-            drawAnnotations();
-        }
+                        drawAnnotations();
+                    }
+                }).show();
     }
 
     void drawAnnotations() {
@@ -713,9 +724,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    Boolean isLastArrayForSingleSpots = false;
-
     private void setupAnnotations(List<Route> routes, Boolean isLastArrayForSingleSpots, String errMsg) {
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+        }
+
         PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
         List<Feature> allFeatures = new ArrayList<>();
 
@@ -725,20 +738,31 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             allFeatures.addAll(Arrays.asList(route.features));
         }
 
-        Feature[] array = new Feature[allFeatures.size()];
+        setupLocalVariables(allPolylines, allFeatures, isLastArrayForSingleSpots);
+        setupMapBox();
+        dismissProgressDialog();
+    }
+
+    private void setupLocalVariables(PolylineOptions[] allPolylines, List<Feature> allFeatures, Boolean isLastArrayForSingleSpots) {
         this.polylineOptionsArray = allPolylines;
-        this.featuresArray = allFeatures.toArray(array);
         this.isLastArrayForSingleSpots = isLastArrayForSingleSpots;
 
+        Feature[] array = new Feature[allFeatures.size()];
+        Feature[] featuresArray = allFeatures.toArray(array);
+        this.featureCollection = FeatureCollection.fromFeatures(featuresArray);
+
+        if (mapboxMap != null && mapboxMap.getSource(MARKER_SOURCE_ID) == null)
+            source = new GeoJsonSource(MARKER_SOURCE_ID, featureCollection);
+        else
+            refreshSource();
+    }
+
+    void setupMapBox() {
         if (mapboxMap == null) {
             return;
         }
 
         mapboxMap.clear();
-
-        updateUISaveButtons();
-
-        featureCollection = FeatureCollection.fromFeatures(featuresArray);
 
         setupSource();
         setupStyleLayer();
@@ -752,50 +776,19 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             if (shouldZoomToFitAllMarkers) {
                 //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slower when it has all spots
                 // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
-                if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
-                    //Zoom close to current position or to the last saved position
-                    LatLng cameraPositionTo = null;
-                    int cameraZoomTo = -1;
-                    Location loc = null;
-                    try {
-                        loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
-                    } catch (SecurityException ex) {
-                    }
-
-                    if (loc != null) {
-                        cameraPositionTo = new LatLng(loc);
-                        cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                    } else {
-                        //Set start position for map camera: set it to the last spot saved
-                        Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getLastAddedRouteSpot();
-                        if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
-                                && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
-                            cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
-
-                            //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
-                            if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
-                                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                            else
-                                cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
-                        }
-                    }
-                    moveCamera(cameraPositionTo, cameraZoomTo);
-                } else
+                if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN)
+                    moveCameraToLastKnownLocation();
+                else
                     zoomOutToFitAllMarkers();
                 shouldZoomToFitAllMarkers = false;
             }
 
         } catch (Exception ex) {
             Crashlytics.logException(ex);
-            errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
+            String errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Adding markers failed - " + ex.getMessage());
-        }
-
-        if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
         }
-
-        dismissProgressDialog();
     }
 
     private static String spotLocationToString(Spot spot) {
@@ -882,7 +875,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         dismissProgressDialog();
     }
 
-
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         Crashlytics.log(Log.INFO, TAG, "onSaveInstanceState called");
@@ -891,7 +883,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
     }
-
 
     /**
      * Updates fields based on data stored in the bundle.
@@ -1115,38 +1106,43 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    private void moveCameraToLastKnownLocation() {
-        LatLng moveCameraPositionTo = null;
+    protected void moveCameraToLastKnownLocation() {
+        //Zoom close to current position or to the last saved position
+        LatLng cameraPositionTo = null;
+        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
-        //If we know the current position of the user, move the map camera to there
+        if (!isCameraZoomChangedByUser())
+            zoomLevel = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+
+        Location loc = null;
         try {
-            if (locationLayerPlugin != null) {
-                Location lastLoc = locationLayerPlugin.getLastKnownLocation();
-                if (lastLoc != null)
-                    moveCameraPositionTo = new LatLng(lastLoc);
-            }
+            loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
         } catch (SecurityException ex) {
         }
 
-        if (moveCameraPositionTo != null) {
-            moveCameraPositionTo = new LatLng(moveCameraPositionTo);
+        if (loc != null) {
+            cameraPositionTo = new LatLng(loc);
         } else {
-            //The user might still be close to the last spot saved, move the map camera there
+            //Set start position for map camera: set it to the last spot saved
             Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getLastAddedRouteSpot();
             if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                     && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
-                moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+                cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+
+                //If at the last added spot the user has gotten a ride, then he might be far from that spot.
+                // Let's zoom farther away from it.
+                if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE)
+                    zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
             }
         }
 
-        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+        if (cameraPositionTo != null)
+            moveCamera(cameraPositionTo, zoomLevel);
+    }
 
-        //If current zoom level is default (world level)
-        if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
-            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
-
-        if (moveCameraPositionTo != null)
-            moveCamera(moveCameraPositionTo, zoomLevel);
+    boolean isCameraZoomChangedByUser() {
+        //If current zoom level different than the default (world level)
+        return mapboxMap.getCameraPosition().zoom != mapboxMap.getMinZoomLevel();
     }
 
     private void showProgressDialog(String message) {
@@ -1556,27 +1552,22 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void setupSource() {
-        if (mapboxMap.getSource(MARKER_SOURCE_ID) == null) {
-            source = new GeoJsonSource(MARKER_SOURCE_ID, featureCollection);
+        if (mapboxMap.getSource(MARKER_SOURCE_ID) == null)
             mapboxMap.addSource(source);
-        } else
-            refreshSource();
     }
 
     /* Setup style layer */
     private void setupStyleLayer() {
         if (mapboxMap.getLayer(MARKER_STYLE_LAYER_ID) == null) {
             //A style layer ties together the source and image and specifies how they are displayed on the map
-            markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER_ID, MARKER_SOURCE_ID)
+            //Add markers layer
+            mapboxMap.addLayer(new SymbolLayer(MARKER_STYLE_LAYER_ID, MARKER_SOURCE_ID)
                     .withProperties(
                             PropertyFactory.iconAllowOverlap(true),
                             PropertyFactory.iconImage("{" + PROPERTY_ICONIMAGE + "}")
                     )
                     /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
-                    .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
-
-            //Add markers layer
-            mapboxMap.addLayer(markerStyleLayer);
+                    .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false))));
         }
     }
 
@@ -1632,7 +1623,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         double cameraZoom = -1;
         Spot spot = null;
         int requestId = -1;
-        if (!mIsWaitingForARide) {
+        if (!isWaitingForARide()) {
             requestId = Constants.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsHitchhikingSpot(!isDestination);
@@ -1679,7 +1670,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void evaluateSpotButtonHandler() {
         //mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
 
-        if (mIsWaitingForARide) {
+        if (isWaitingForARide()) {
             Intent intent = new Intent(activity.getBaseContext(), SpotFormActivity.class);
             intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
             startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
