@@ -865,10 +865,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     protected void zoomOutToFitAllMarkers() {
-        if (featureCollection == null || featureCollection.features().size() == 0) {
-            showErrorAlert("Empty list", "No spots on your map.");
+        if (featureCollection == null || featureCollection.features().size() == 0)
             return;
-        }
 
         try {
             if (mapboxMap != null) {
