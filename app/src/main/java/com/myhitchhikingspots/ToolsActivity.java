@@ -13,18 +13,15 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,7 +49,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
-import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,7 +63,7 @@ import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 
-public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.DownloadHWSpotsDialogListener {
+public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsDialog.DownloadHWSpotsDialogListener {
     TextView mfeedbacklabel;
     View coordinatorLayout;
 
@@ -80,35 +76,26 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
     final static String DBBackupSubdirectory = "/backup";
     final static String TAG = "settings-activity";
 
-    MainActivity activity;
-
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        activity = (MainActivity) context;
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_settings, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.tools_layout);
 
         //prefs
-        prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
-        mfeedbacklabel = (TextView) view.findViewById(R.id.feedbacklabel);
+        mfeedbacklabel = (TextView) findViewById(R.id.feedbacklabel);
         mfeedbacklabel.setVisibility(View.GONE);
+
+        //Set the toolbar as the app bar for this activity.
+        setSupportActionBar(findViewById(R.id.toolbar));
 
         String strLastDownload = "";
 
         Long millisecondsAtNow = System.currentTimeMillis();
         Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
         if (millisecondsLastCountriesRefresh > 0) {
-            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh), getContext());
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh), this);
             strLastDownload += "- " + String.format(getString(R.string.settings_last_countriesList_update_message), timePast);
         }
 
@@ -116,7 +103,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
         if (millisecondsLastExport > 0) {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
-            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport), getContext());
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport), this);
             strLastDownload += "- " + String.format(getString(R.string.settings_last_export_message), timePast);
         }
 
@@ -125,7 +112,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
 
-            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh), getContext());
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh), this);
             strLastDownload += "- " + String.format(getString(R.string.settings_last_download_message), timePast);
         }
 
@@ -134,15 +121,15 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
             mfeedbacklabel.setVisibility(View.VISIBLE);
         }
 
-        view.findViewById(R.id.btnExport).setOnClickListener(this::exportButtonHandler);
-        view.findViewById(R.id.btnImport).setOnClickListener(this::importButtonHandler);
-        view.findViewById(R.id.btnSelectContinents).setOnClickListener(this::showContinentsDialog);
-        view.findViewById(R.id.btnSelectCountries).setOnClickListener(this::showCountriesDialog);
-        view.findViewById(R.id.btnPickFile).setOnClickListener(this::pickFileButtonHandler);
+        findViewById(R.id.btnExport).setOnClickListener(this::exportButtonHandler);
+        findViewById(R.id.btnImport).setOnClickListener(this::importButtonHandler);
+        findViewById(R.id.btnSelectContinents).setOnClickListener(this::showContinentsDialog);
+        findViewById(R.id.btnSelectCountries).setOnClickListener(this::showCountriesDialog);
+        findViewById(R.id.btnPickFile).setOnClickListener(this::pickFileButtonHandler);
 
         hitchwikiStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
-        coordinatorLayout = view.findViewById(R.id.coordinatiorLayout);
+        coordinatorLayout = findViewById(R.id.coordinatiorLayout);
 
         setupContinentsContainer();
 
@@ -205,18 +192,18 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
         // Check which request we're responding to
         if (requestCode == PICK_DB_REQUEST) {
             // Make sure the request was successful
-            if (resultCode == activity.RESULT_OK) {
+            if (resultCode == RESULT_OK) {
                 // The user picked a contact.
                 // The Intent's data Uri identifies which contact was selected.
 
                 // Do something with the contact here (bigger example below)
                 try {
                     // Get the URI that points to the selected contact
-                    File mFile = new File(getPath(activity, data.getData()));
-                    CopyChosenFile(mFile, activity.getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
+                    File mFile = new File(getPath(this, data.getData()));
+                    CopyChosenFile(mFile, getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
                 } catch (Exception e) {
                     Crashlytics.logException(e);
-                    Toast.makeText(activity, "Can't read file.",
+                    Toast.makeText(this, "Can't read file.",
                             Toast.LENGTH_LONG).show();
                 }
             }
@@ -279,14 +266,14 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
                 break;
         }
 
-        if (!Utils.isNetworkAvailable(activity)) {
+        if (!Utils.isNetworkAvailable(this)) {
             showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_network_unavailable_message));
         } else
             new downloadPlacesAsyncTask(dialogType).execute();
     }
 
     protected void showErrorAlert(String title, String msg) {
-        new AlertDialog.Builder(activity)
+        new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(title)
                 .setMessage(msg)
@@ -303,8 +290,8 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
     }
 
     public void pickFileButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(activity))
-            requestStoragePermissions(activity);
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
         else {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("*/*");
@@ -314,8 +301,8 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
 
     public void importButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(activity))
-            requestStoragePermissions(activity);
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
         else {
             //Create a record to track usage of Import Database button
             Answers.getInstance().logCustom(new CustomEvent("Database imported"));
@@ -329,29 +316,30 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
                     importPickedFile(file);
                 }
             });
-            dialog.openDialog(activity, activity);
+            dialog.openDialog(this, this);
         }
     }
 
     void importPickedFile(File fileToImport) {
-        DatabaseImporter t = new DatabaseImporter(activity, fileToImport);
+        DatabaseImporter t = new DatabaseImporter(this, fileToImport);
 
         //Add listener to be called when task finished
         t.addListener(new AsyncTaskListener<ArrayList<String>>() {
             @Override
             public void notifyTaskFinished(Boolean success, ArrayList<String> messages) {
-                String title = activity.getString(R.string.general_import_finished_successful_message);
+                String title = getString(R.string.general_import_finished_successful_message);
 
                 if (!success)
-                    title = activity.getString(R.string.general_import_finished_failed_message);
+                    title = getString(R.string.general_import_finished_failed_message);
 
                 showErrorAlert(title, TextUtils.join("\n", messages));
 
                 //Show toast
-                if (success){
+                if (success) {
                     prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
 
-                    Toast.makeText(activity, title, Toast.LENGTH_SHORT).show();}
+                    Toast.makeText(getBaseContext(), title, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -359,8 +347,8 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
     }
 
     public void showContinentsDialog(View view) {
-        if (!isStoragePermissionsGranted(activity))
-            requestStoragePermissions(activity);
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
         else {
             if (continentsContainer.length == 0) {
                 showErrorAlert(getString(R.string.settings_select_continents_button_label), "The list of continents are not loaded. Try to navigate out of this screen and come back agian.");
@@ -371,8 +359,8 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
     }
 
     public void showCountriesDialog(View view) {
-        if (!isStoragePermissionsGranted(activity))
-            requestStoragePermissions(activity);
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
         else {
             if (countriesContainer == null || countriesContainer.length == 0) {
                 Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
@@ -382,7 +370,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
                     new getCountriesAsyncTask(false).execute();
                 } else {
                     //Ask user if they'd like to download the countries list now
-                    new AlertDialog.Builder(activity)
+                    new AlertDialog.Builder(this)
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setTitle(getString(R.string.settings_countriesList_is_empty_title))
                             .setMessage(getString(R.string.settings_countriesList_is_empty_message))
@@ -403,14 +391,14 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
 
     public void exportButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(activity))
-            requestStoragePermissions(activity);
+        if (!isStoragePermissionsGranted(this))
+            requestStoragePermissions(this);
         else {
             try {
                 //Create a record to track usage of Export Database button
                 Answers.getInstance().logCustom(new CustomEvent("Database exported"));
 
-                DatabaseExporter t = new DatabaseExporter(activity);
+                DatabaseExporter t = new DatabaseExporter(this);
                 //Add listener to be called when task finished
                 t.addListener(new AsyncTaskListener<String>() {
                     @Override
@@ -426,14 +414,14 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
                             mfeedbacklabel.setVisibility(View.VISIBLE);
 
                             //Show toast
-                            Toast.makeText(activity, activity.getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getBaseContext(), getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
                         } else
-                            showErrorAlert(activity.getString(R.string.general_export_finished_failed_message), message);
+                            showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
                     }
                 });
                 t.execute();
 
-                ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).loadDatabase();
+                ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
             } catch (Exception e) {
                 Crashlytics.logException(e);
@@ -451,10 +439,10 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
             String backupDBPath = DBBackupSubdirectory + "/" + Constants.INTERNAL_DB_FILE_NAME;
             File backedupDB = new File(sd, backupDBPath);
 
-            CopyChosenFile(backedupDB, activity.getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
+            CopyChosenFile(backedupDB, getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
 
         } else
-            Toast.makeText(activity, "Can't write to SD card.",
+            Toast.makeText(this, "Can't write to SD card.",
                     Toast.LENGTH_LONG).show();
     }
 
@@ -470,18 +458,18 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
                 src.close();
                 dst.close();
 
-                Toast.makeText(activity, "Database imported successfully.",
+                Toast.makeText(this, "Database imported successfully.",
                         Toast.LENGTH_LONG).show();
 
                 destinationPath = String.format("Database imported to:\n%s", currentDB.toString());
             } else {
-                Toast.makeText(activity, "No database found to be imported.",
+                Toast.makeText(this, "No database found to be imported.",
                         Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
             Crashlytics.logException(e);
 
-            Toast.makeText(activity, e.toString(), Toast.LENGTH_LONG)
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG)
                     .show();
 
         }
@@ -605,9 +593,9 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
     private void copyDataBase2(String dbname) throws IOException {
         try {
             // Open your local db as the input stream
-            InputStream myInput = activity.getAssets().open(dbname);
+            InputStream myInput = getAssets().open(dbname);
             // Path to the just created empty db
-            String outFileName = activity.getDatabasePath(dbname).getPath();
+            String outFileName = getDatabasePath(dbname).getPath();
             // Open the empty db as the output stream
             OutputStream myOutput = new FileOutputStream(outFileName);
             // transfer bytes from the inputfile to the outputfile
@@ -620,11 +608,11 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
             myOutput.flush();
             myOutput.close();
             myInput.close();
-            Toast.makeText(activity, "copied successfully",
+            Toast.makeText(this, "copied successfully",
                     Toast.LENGTH_LONG).show();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Toast.makeText(activity, e.toString(), Toast.LENGTH_LONG)
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG)
                     .show();
         }
     }
@@ -635,7 +623,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
         byte[] buffer = new byte[1024];
         String databasePath = "/BackupFolder/" + Constants.INTERNAL_DB_FILE_NAME;
         try {
-            InputStream databaseInputFile = activity.getAssets().open(Constants.INTERNAL_DB_FILE_NAME + ".db");
+            InputStream databaseInputFile = getAssets().open(Constants.INTERNAL_DB_FILE_NAME + ".db");
             OutputStream databaseOutputFile = new FileOutputStream(databasePath);
 
             while ((length = databaseInputFile.read(buffer)) > 0) {
@@ -645,15 +633,15 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
             databaseInputFile.close();
             databaseOutputFile.close();
 
-            Toast.makeText(activity, "copied successfully",
+            Toast.makeText(this, "copied successfully",
                     Toast.LENGTH_LONG).show();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Toast.makeText(activity, e.toString(), Toast.LENGTH_LONG)
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG)
                     .show();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(activity, e.toString(), Toast.LENGTH_LONG)
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG)
                     .show();
         }
 
@@ -663,7 +651,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
     private void showProgressDialog(String title, String message) {
         if (progressDialog == null) {
-            progressDialog = new ProgressDialog(activity);
+            progressDialog = new ProgressDialog(this);
             progressDialog.setIndeterminate(true);
             progressDialog.setCancelable(false);
         }
@@ -675,7 +663,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
     private void dismissProgressDialog() {
         //Remove the flag that keeps the screen from sleeping
-        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (progressDialog != null && progressDialog.isShowing())
             progressDialog.dismiss();
     }
@@ -712,7 +700,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
         @Override
         protected void onPostExecute(PairParcelable[] result) {
-            if (activity.isFinishing())
+            if (isFinishing())
                 return;
             showSelectionDialog(result, DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY);
             dismissProgressDialog();
@@ -736,7 +724,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
         @Override
         protected void onPostExecute(PairParcelable[] result) {
-            if (activity.isFinishing())
+            if (isFinishing())
                 return;
             dismissProgressDialog();
             showSelectionDialog(result, DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT);
@@ -808,7 +796,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
         @Override
         protected void onPostExecute(String result) {
-            if (activity.isFinishing())
+            if (isFinishing())
                 return;
 
             if (!result.contentEquals("countriesLoadedFromLocalStorage"))
@@ -821,7 +809,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
                 prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).apply();
                 prefs.edit().putInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, countriesContainer.length).apply();
 
-                Toast.makeText(activity, "Download successful!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), "Download successful!", Toast.LENGTH_SHORT).show();
                 Long millisecondsAtDownload = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
                 if (millisecondsAtDownload != 0) {
                     //convert millisecondsAtDownload to some kind of date and time text
@@ -842,7 +830,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
             if (result.contentEquals("countriesListDownloaded") || result.contentEquals("countriesLoadedFromLocalStorage")) {
                 if (countriesContainer.length == 0) {
                     //Ask user if they'd like to download the countries list now
-                    new AlertDialog.Builder(activity)
+                    new AlertDialog.Builder(getBaseContext())
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setTitle(getString(R.string.settings_countriesList_is_empty_title))
                             .setMessage(getString(R.string.settings_countriesList_is_empty_message))
@@ -947,7 +935,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
         @Override
         protected void onPostExecute(String result) {
-            if (activity.isFinishing())
+            if (isFinishing())
                 return;
 
             if (result.contentEquals("spotsDownloaded")) {
@@ -962,7 +950,7 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
 
                 //TODO: show how many megabytes were downloaded or saved locally
 
-                Toast.makeText(activity, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
 
                 //convert millisecondsAtRefresh to some kind of date and time text
                 SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
@@ -992,9 +980,9 @@ public class SettingsFragment extends Fragment implements DownloadHWSpotsDialog.
         args.putParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY, result);
         args.putString(Constants.DIALOG_TYPE_BUNDLE_KEY, dialogType);
 
-        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+        FragmentManager fragmentManager = getSupportFragmentManager();
         DownloadHWSpotsDialog dialog = new DownloadHWSpotsDialog();
-        dialog.setTargetFragment(this, 0);
+        //dialog.setTargetFragment(this, 0);
         dialog.setArguments(args);
         dialog.show(fragmentManager, "tagSelection");
     }

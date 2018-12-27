@@ -1,13 +1,9 @@
 package com.myhitchhikingspots;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,8 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.crashlytics.android.Crashlytics;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -124,10 +118,7 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
             spot = mCurrentWaitingSpot;
         }
 
-        Intent intent = new Intent(activity.getBaseContext(), SpotFormActivity.class);
-        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
-        startActivityForResult(intent, requestId);
+        activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, false, false);
     }
 
     @Override

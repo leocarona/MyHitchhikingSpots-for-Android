@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -147,10 +148,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 (resourceId == R.id.nav_my_dashboard || resourceId == R.id.nav_my_map))
             shouldLoadSpotListFirst = true;
 
-        if (shouldLoadSpotListFirst) {
+        if (shouldLoadSpotListFirst)
             loadSpotList(resourceId);
-            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
-        } else
+        else
             selectDrawerItem(menuItem);
 
         return true;
@@ -171,9 +171,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             case R.id.nav_offline_map:
                 menuItemIndex = 3;
                 break;
-            case R.id.nav_tools:
-                menuItemIndex = 4;
-                break;
         }
         return menuItemIndex;
     }
@@ -189,8 +186,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             menuItemResourceId = R.id.nav_hitchwiki_map;
         else if (className.equals(OfflineMapManagerFragment.class.getName()))
             menuItemResourceId = R.id.nav_offline_map;
-        else if (className.equals(SettingsFragment.class.getName()))
-            menuItemResourceId = R.id.nav_tools;
 
         return menuItemResourceId;
     }
@@ -201,14 +196,54 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     }
 
     public void selectDrawerItem(MenuItem menuItem) {
-        // Create a new fragment and specify the fragment to show based on nav item clicked
-        Class fragmentClass;
-        CharSequence title = menuItem.getTitle();
+        int selectedItemId = menuItem.getItemId();
 
-        switch (menuItem.getItemId()) {
+        if (selectedItemId == R.id.nav_tools)
+            startToolsActivityForResult();
+        else {
+            CharSequence title = menuItem.getTitle();
+            setupSelectedFragment(menuItem, title.toString());
+
+            //If spotList needs to be reloaded, let's do it here first.
+            //Once reload is completed, the fragment corresponding to the selected menuItem will be opened with the updated spot list.
+            if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false))
+                loadSpotList(selectedItemId);
+            else {
+                // Create a new fragment and specify the fragment to show based on nav item clicked
+                Class fragmentClass = getMenuItemFragment(selectedItemId);
+                replaceFragmentContainerWith(fragmentClass);
+            }
+        }
+
+        // Close the navigation drawer
+        mDrawer.closeDrawers();
+    }
+
+    public void startToolsActivityForResult() {
+        Intent intent = new Intent(getBaseContext(), ToolsActivity.class);
+        startActivityForResult(intent, 1);
+    }
+
+    /**
+     * @param shouldGoBack            should be set to true when you want the user to be sent to a new instance of MainActivity once they're done editing/adding a spot.
+     * @param shouldRetrieveHWDetails should be set to true when the given spot is a Hitchwiki spot, so that we'll download more data from HW and display them on SpotFormActivity.
+     */
+    public void startSpotFormActivityForResult(Spot spot, double cameraZoom, int requestId, boolean shouldGoBack, boolean shouldRetrieveHWDetails) {
+        Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+        intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
+        intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBack);
+        intent.putExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, shouldRetrieveHWDetails);
+        startActivityForResult(intent, requestId);
+    }
+
+    @NonNull
+    private Class getMenuItemFragment(int selectedItemId) {
+        Class fragmentClass;
+
+        switch (selectedItemId) {
             case R.id.nav_my_dashboard:
                 fragmentClass = DashboardFragment.class;
-                title = getString(R.string.app_name);
                 break;
             case R.id.nav_my_map:
                 fragmentClass = MyMapsFragment.class;
@@ -219,19 +254,10 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             case R.id.nav_offline_map:
                 fragmentClass = OfflineMapManagerFragment.class;
                 break;
-            case R.id.nav_tools:
-                fragmentClass = SettingsFragment.class;
-                break;
             default:
                 fragmentClass = BasicFragment.class;
         }
-
-        replaceFragmentContainerWith(fragmentClass);
-
-        setupSelectedFragment(menuItem, title.toString());
-
-        // Close the navigation drawer
-        mDrawer.closeDrawers();
+        return fragmentClass;
     }
 
     private void setupSelectedFragment(MenuItem menuItem, String title) {
@@ -273,14 +299,10 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment);
-
-        //Adding a transaction to the back stack, guarantees that when user clicks on the Back button
-        // they're sent back to the fragment they're come from.
-        //If it's the first fragment being loaded, we want the app to close when user clicks on the Back button,
-        // therefore we don't want to add the fragment to the back stack.
-        if (fragmentManager.getFragments().size() > 0)
-            fragmentTransaction.addToBackStack(fragment.getClass().getName());
+                .replace(R.id.fragment_container, fragment)
+                //Adding a transaction to the back stack through addToBackStack guarantees that when user clicks on the Back button
+                // they're sent back to the fragment they're come from.
+                .addToBackStack(fragment.getClass().getName());
 
         fragmentTransaction.commit();
     }
@@ -292,19 +314,16 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             mDrawer.closeDrawer(GravityCompat.START);
         } else {
+            int currentFragmentIndex = getSupportFragmentManager().getBackStackEntryCount() - 1;
+            if (currentFragmentIndex == 0)
+                finish();
 
-            int lastOpenedFragmentIndex = getSupportFragmentManager().getBackStackEntryCount() - 2;
-            String lastOpenedFragment = null;
-            if (lastOpenedFragmentIndex >= 0)
-                lastOpenedFragment = getSupportFragmentManager().getBackStackEntryAt(lastOpenedFragmentIndex).getName();
+            int lastOpenedFragmentIndex = currentFragmentIndex - 1;
 
-            int menuItemResourceId = defaultFragmentResourceId;
-            if (lastOpenedFragment != null)
-                menuItemResourceId = getMenuItemIdFromClassName(lastOpenedFragment);
-
-            int menuItemIndex = getMenuItemIndex(menuItemResourceId);
+            String lastOpenedFragmentTag = getSupportFragmentManager().getBackStackEntryAt(lastOpenedFragmentIndex).getName();
+            int lastOpenedMenuItemResourceId = getMenuItemIdFromClassName(lastOpenedFragmentTag);
+            int menuItemIndex = getMenuItemIndex(lastOpenedMenuItemResourceId);
             restoreLastCheckedMenuItem(menuItemIndex);
-
 
             super.onBackPressed();
         }
@@ -404,6 +423,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
      * Loads the spot list from database and then opens a fragment once the list is loaded.
      *
      * @param fragmentResourceId The resource id of the fragment to be loaded once loading finishes.
+     *                           if -1 then the updated values will be passed over to the current fragment
      */
     void loadSpotList(int fragmentResourceId) {
         showProgressDialog(getResources().getString(R.string.map_loading_dialog));
@@ -411,7 +431,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         this.fragmentResourceId = fragmentResourceId;
 
         //Load markers and polylines
-        loadTask = new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
+        this.loadTask = new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
+
+        prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
     }
 
 
@@ -454,16 +476,11 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-
-        //If any spot has been created, edited or deleted, let's reload the spotList from the database.
-        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED)
+        //If user is navigating back after spotList has been changed (meaning that one or more spots have been created, edited or deleted),
+        // let's reload the spotList from the database.
+        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) ||
+                (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED))
             loadSpotList(-1);
-
-        //If user is navigating back after spotList has been changed, let's reload it.
-        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false)) {
-            loadSpotList(-1);
-            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
-        }
     }
 
     private ProgressDialog loadingDialog;

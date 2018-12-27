@@ -35,7 +35,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,8 +75,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-
-import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
@@ -456,12 +453,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             //Create a record to track of HW spots viewed by the user
             Answers.getInstance().logCustom(new CustomEvent("HW spot viewed"));
 
-            Intent intent = new Intent(activity, SpotFormActivity.class);
-            //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-            intent.putExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, true);
-
-            startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
+            activity.startSpotFormActivityForResult(spot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, true);
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
@@ -700,7 +692,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 .setPositiveButton(getString(R.string.tools_title), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        activity.selectDrawerItem(R.id.nav_tools);
+                        activity.startToolsActivityForResult();
                     }
                 })
                 .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
@@ -873,6 +865,11 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     protected void zoomOutToFitAllMarkers() {
+        if (featureCollection == null || featureCollection.features().size() == 0) {
+            showErrorAlert("Empty list", "No spots on your map.");
+            return;
+        }
+
         try {
             if (mapboxMap != null) {
                 Location mCurrentLocation = null;
@@ -908,7 +905,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 }
             }
 
-        } catch (Exception ex) {
+        } catch (
+                Exception ex)
+
+        {
             Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Show all markers failed - " + ex.getMessage()));
@@ -1265,6 +1265,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             view.draw(canvas);
             return bitmap;
         }
+
     }
 
     /**

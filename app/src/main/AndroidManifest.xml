@@ -59,9 +59,8 @@ limitations under the License.
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ToolsActivity"
             android:label="@string/tools_title"
-            android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".MyMapsActivity"

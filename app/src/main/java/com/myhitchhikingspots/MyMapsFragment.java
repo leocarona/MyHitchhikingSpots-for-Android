@@ -75,7 +75,6 @@ import java.util.List;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
@@ -564,11 +563,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 }
             }
 
-            Intent intent = new Intent(activity.getBaseContext(), SpotFormActivity.class);
-            //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-            intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-            startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
+            activity.startSpotFormActivityForResult(spot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, false);
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
@@ -1049,6 +1044,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     protected void zoomOutToFitAllMarkers() {
+        if (featureCollection == null || featureCollection.features().size() == 0) {
+            showErrorAlert("Empty list", "No spots on your map.");
+            return;
+        }
+
         try {
             if (mapboxMap != null) {
                 Location mCurrentLocation = null;
@@ -1647,10 +1647,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
-        Intent intent = new Intent(activity.getBaseContext(), SpotFormActivity.class);
-        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
-        startActivityForResult(intent, requestId);
+        activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, false, false);
     }
 
     public void gotARideButtonHandler() {
@@ -1671,9 +1668,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         //mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
 
         if (isWaitingForARide()) {
-            Intent intent = new Intent(activity.getBaseContext(), SpotFormActivity.class);
-            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
-            startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
+            activity.startSpotFormActivityForResult(mCurrentWaitingSpot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, false, false);
         }
     }
 
