@@ -4,13 +4,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.AsyncTask;
-import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -62,9 +60,9 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         Crashlytics.setString("Chosen file", file.toString());
 
         String errorMessage = "";
-        if (file.getName().endsWith(".csv")) {
+        if (file.getName().endsWith(Constants.EXPORT_DB_AS_CSV_FILE_EXTENSION)) {
             errorMessage = importCSVFile();
-        } else if (file.getName().endsWith(".db")) {
+        } else if (file.getName().endsWith(Constants.INTERNAL_DB_FILE_EXTENSION)) {
             errorMessage = importDBFile();
         } else
             errorMessage = context.getString(R.string.general_selected_file_type_not_supported);

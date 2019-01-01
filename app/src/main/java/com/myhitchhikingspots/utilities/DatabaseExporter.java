@@ -17,6 +17,8 @@ import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.model.SpotDao;
 
+import org.joda.time.DateTime;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -60,7 +62,7 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
                 exportDir.mkdirs();
             }
 
-            String fileName = Utils.getExportFileName(new Date());
+            String fileName = Utils.getExportFileName(DateTime.now());
 
             File destinationFile = new File(exportDir, fileName);
             destinationFile.createNewFile();

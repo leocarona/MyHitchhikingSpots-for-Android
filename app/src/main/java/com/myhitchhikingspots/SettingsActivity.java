@@ -490,7 +490,7 @@ public class SettingsActivity extends BaseActivity {
 
                     //If a backup file already exists, RENAME it so that the new backup file we're generating now can use its name
                     if (backupDB.exists()) {
-                        String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
+                        String DATE_FORMAT_NOW = Constants.EXPORT_CSV_FILENAME_FORMAT;
                         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
                         String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.INTERNAL_DB_FILE_NAME;
                         backupDB.renameTo(new File(backupDir, newname));

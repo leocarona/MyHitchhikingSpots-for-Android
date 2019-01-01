@@ -51,9 +51,12 @@ public final class Constants {
     public static final int ZOOM_TO_SEE_CLOSE_TO_SPOT = 12;
     public static final int KEEP_ZOOM_LEVEL = -1;
 
-    public static final String SDCARD_STORAGE_PATH =  android.os.Environment.getExternalStorageDirectory() + "/MyHitchhikingSpots/";
+    public static final String SDCARD_STORAGE_PATH = android.os.Environment.getExternalStorageDirectory() + "/MyHitchhikingSpots/";
     public static final String EXPORTED_DB_STORAGE_PATH = SDCARD_STORAGE_PATH + "/App_backup";
     public static final String INTERNAL_DB_FILE_NAME = "my_hitchhiking_spots";
+    public static final String INTERNAL_DB_FILE_EXTENSION = ".db";
+    public static final String EXPORT_CSV_FILENAME_FORMAT = "yyyy_MM_dd_HHmm-";
+    public static final String EXPORT_DB_AS_CSV_FILE_EXTENSION = ".csv";
     public static final String HITCHWIKI_MAPS_STORAGE_OLDPATH = SDCARD_STORAGE_PATH + "/markersStorageFolder/";
     public static final String HITCHWIKI_MAPS_STORAGE_PATH = SDCARD_STORAGE_PATH + "/HitchwikiMapsDownloads/";
     public static final String HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME = "markersStorageFile";

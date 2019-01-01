@@ -10,18 +10,15 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-import java.util.logging.ErrorManager;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.text.format.DateUtils;
@@ -33,7 +30,6 @@ import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
-import com.myhitchhikingspots.BuildConfig;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.Spot;
@@ -233,10 +229,10 @@ public class Utils {
         return result;
     }
 
-    public static String getExportFileName(Date date) {
-        String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-        return String.format("%s.csv", sdf.format(date) + Constants.INTERNAL_DB_FILE_NAME);
+    public static String getExportFileName(DateTime date) {
+        String dt = DateTimeFormat.forPattern(Constants.EXPORT_CSV_FILENAME_FORMAT).print(date.toInstant());
+        return dt + Constants.INTERNAL_DB_FILE_NAME + Constants.EXPORT_DB_AS_CSV_FILE_EXTENSION;
+    }
     }
 
     public static String getLocalStoragePathToFile(String destinationFileName, Context context) {

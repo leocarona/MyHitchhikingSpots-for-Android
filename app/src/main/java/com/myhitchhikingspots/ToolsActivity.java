@@ -504,7 +504,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
                     //If a backup file already exists, RENAME it so that the new backup file we're generating now can use its name
                     if (backupDB.exists()) {
-                        String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
+                        String DATE_FORMAT_NOW = Constants.EXPORT_CSV_FILENAME_FORMAT;
                         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
                         String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.INTERNAL_DB_FILE_NAME;
                         backupDB.renameTo(new File(backupDir, newname));
@@ -623,7 +623,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
         byte[] buffer = new byte[1024];
         String databasePath = "/BackupFolder/" + Constants.INTERNAL_DB_FILE_NAME;
         try {
-            InputStream databaseInputFile = getAssets().open(Constants.INTERNAL_DB_FILE_NAME + ".db");
+            InputStream databaseInputFile = getAssets().open(Constants.INTERNAL_DB_FILE_NAME + Constants.INTERNAL_DB_FILE_EXTENSION);
             OutputStream databaseOutputFile = new FileOutputStream(databasePath);
 
             while ((length = databaseInputFile.read(buffer)) > 0) {
