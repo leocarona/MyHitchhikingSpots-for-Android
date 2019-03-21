@@ -136,7 +136,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
     protected static final String BUTTONS_PANEL_IS_VISIBLE_KEY = "buttons-panel-is-visible";
     protected static final String LAST_SELECTED_TAB_ID_KEY = "last-selected-tab";
-    protected static final String SHOULD_GO_BACK_KEY = "should-go-back";
     protected static final String REFRESH_DATETIME_ALERT_SHOWN_KEY = "PREF_REFRESH_DATETIME_ALERT_SHOWN_KEY";
 
     private Button placeButtonComments;
@@ -1763,7 +1762,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         savedInstanceState.putInt(LAST_SELECTED_TAB_ID_KEY, lastSelectedTab);
 
-        savedInstanceState.putBoolean(SHOULD_GO_BACK_KEY, shouldGoBackToPreviousActivity);
+        savedInstanceState.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBackToPreviousActivity);
 
         savedInstanceState.putBoolean(REFRESH_DATETIME_ALERT_SHOWN_KEY, refreshDatetimeAlertDialogWasShown);
 
@@ -1814,8 +1813,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             if (savedInstanceState.keySet().contains(LAST_SELECTED_TAB_ID_KEY))
                 lastSelectedTab = savedInstanceState.getInt(LAST_SELECTED_TAB_ID_KEY);
 
-            if (savedInstanceState.keySet().contains(SHOULD_GO_BACK_KEY))
-                shouldGoBackToPreviousActivity = savedInstanceState.getBoolean(SHOULD_GO_BACK_KEY);
+            if (savedInstanceState.keySet().contains(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY))
+                shouldGoBackToPreviousActivity = savedInstanceState.getBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY);
 
             if (savedInstanceState.keySet().contains(REFRESH_DATETIME_ALERT_SHOWN_KEY))
                 refreshDatetimeAlertDialogWasShown = savedInstanceState.getBoolean(REFRESH_DATETIME_ALERT_SHOWN_KEY);
