@@ -897,7 +897,8 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
             String res = "nothingToSync";
 
-            if (!lstToDownload.isEmpty()) {
+            try {
+                if (!lstToDownload.isEmpty()) {
                 res = "spotsDownloaded";
                 String[] codes = lstToDownload.split(DownloadHWSpotsDialog.LIST_SEPARATOR);
 
@@ -905,31 +906,24 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
                     case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
 
                         for (String continentCode : codes) {
-                            try {
                                 Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinent");
                                 hitchwikiAPI.getPlacesByContinent(continentCode, getPlacesByArea);
-                            } catch (Exception ex) {
-                                if (ex.getMessage() != null)
-                                    res = ex.getMessage();
-                                Crashlytics.logException(ex);
-                            }
                         }
                         break;
                     case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
                         for (String countryCode : codes) {
-                            try {
                                 Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByCountry");
                                 hitchwikiAPI.getPlacesByCountry(countryCode, getPlacesByArea);
-                            } catch (Exception ex) {
-                                if (ex.getMessage() != null)
-                                    res = ex.getMessage();
-                                Crashlytics.logException(ex);
-                            }
+
                         }
                         break;
                 }
             }
-
+            } catch (Exception ex) {
+                if (ex.getMessage() != null)
+                    res = ex.getMessage();
+                Crashlytics.logException(ex);
+            }
             return res;
         }
 
