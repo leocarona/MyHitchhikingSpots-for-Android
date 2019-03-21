@@ -82,6 +82,9 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
 
+/** @deprecated
+ * Classes extending BaseActivity are no longer in use.
+ * MyMapsActivity was replaced by MyMapsFragment. **/
 public class MyMapsActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener,
         MapboxMap.OnMapClickListener {
     private MapView mapView;

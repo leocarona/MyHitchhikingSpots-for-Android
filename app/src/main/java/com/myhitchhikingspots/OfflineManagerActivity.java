@@ -56,6 +56,9 @@ import java.util.ArrayList;
 /**
  * Download, view, navigate to, and delete an offline region.
  */
+/** @deprecated
+ * Classes extending BaseActivity are no longer in use.
+ * OfflineManagerActivity was replaced by OfflineManagerFragment. **/
 public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener {
 
     // JSON encoding/decoding

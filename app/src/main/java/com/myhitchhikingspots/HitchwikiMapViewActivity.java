@@ -82,6 +82,9 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
+/** @deprecated
+ * Classes extending BaseActivity are no longer in use.
+ * HitchwikiMapViewActivity was replaced by HitchwikiMapViewFragment **/
 public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener,
         MapboxMap.OnMapClickListener {
     private MapView mapView;
