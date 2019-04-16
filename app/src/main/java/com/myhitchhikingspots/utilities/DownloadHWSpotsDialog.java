@@ -65,7 +65,7 @@ public class DownloadHWSpotsDialog extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        callback = (DownloadHWSpotsDialogListener) getTargetFragment();
+        callback = (DownloadHWSpotsDialogListener) getActivity();
     }
 
     @Override
