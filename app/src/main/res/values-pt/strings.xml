@@ -151,6 +151,7 @@
     <string name="general_days_label">%02dd</string>
     <string name="general_hours_label">%02dh</string>
     <string name="general_minutes_label">%02dmin</string>
+    <string name="general_seconds_label">alguns segundos</string>
 
     <string name="general_edit_list">Editar lista</string>
     <string name="general_hide_icons_label">Esconder botōes</string>
