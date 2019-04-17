@@ -695,15 +695,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (moveCameraWasRequested) {
             moveCamera(cameraPositionTo, cameraZoomTo);
 
-            if (mFormType == FormType.Create) {
-                ViewTooltip
-                        .on(fabLocateUser)
-                        .autoHide(true, 5000)
-                        .corner(30)
-                        .position(ViewTooltip.Position.RIGHT)
-                        .text(getString(R.string.spot_form_locate_button_tooltip_text))
-                        .show();
-            }
+            if (mFormType == FormType.Create)
+                highlightLocateButton();
 
             /*if (shouldShowButtonsPanel) {
                 //Remove camera listener when requested position was reached and
@@ -722,6 +715,15 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         addPinToCenter();
     }
 
+    void highlightLocateButton() {
+        ViewTooltip
+                .on(fabLocateUser)
+                .autoHide(true, 5000)
+                .corner(30)
+                .position(ViewTooltip.Position.RIGHT)
+                .text(getString(R.string.spot_form_locate_button_tooltip_text))
+                .show();
+    }
 
     /**
      * Move the map camera to the given position with zoom Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT
