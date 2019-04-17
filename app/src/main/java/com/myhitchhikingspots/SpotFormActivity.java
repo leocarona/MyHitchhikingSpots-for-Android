@@ -718,7 +718,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     void highlightLocateButton() {
         ViewTooltip
                 .on(fabLocateUser)
-                .autoHide(true, 5000)
+                .autoHide(true, 7000)
                 .corner(30)
                 .position(ViewTooltip.Position.RIGHT)
                 .text(getString(R.string.spot_form_locate_button_tooltip_text))
