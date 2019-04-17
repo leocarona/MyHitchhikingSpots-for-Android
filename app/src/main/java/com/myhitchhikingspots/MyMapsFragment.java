@@ -1645,7 +1645,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
-        activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, false, false);
+        activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, true, false);
     }
 
     public void gotARideButtonHandler() {
@@ -1666,7 +1666,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         //mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
 
         if (isWaitingForARide()) {
-            activity.startSpotFormActivityForResult(mCurrentWaitingSpot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, false, false);
+            activity.startSpotFormActivityForResult(mCurrentWaitingSpot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, false);
         }
     }
 

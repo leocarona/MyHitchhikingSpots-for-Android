@@ -1424,69 +1424,29 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private void finishSaving(int result) {
         setResult(result);
 
-        if (is_hitchhiking_spot_check_box.isChecked()) {
-            //If it's Create mode, then we should pass the current spot so that it can be Evaluated. Otherwise, instantiate a new route spot and pass it instead.
-            if (mFormType == FormType.Create) {
-                //If spot is not part of a route (is_single_spot)
-                if (!is_part_of_a_route_check_box.isChecked())
-                    mFormType = FormType.Edit;
-                else
-                    mFormType = FormType.Evaluate;
+        //If a hitchhiking spot is being saved for the first time, then let the user evaluate it.
+        if (mFormType == FormType.Create && is_hitchhiking_spot_check_box.isChecked()) {
+            showEvaluatePanel();
+            return;
+        }
 
-                Crashlytics.setString("mFormType", mFormType.toString());
-
-                //Create a record to track usage of Save button when a new spot is saved for the first time
-                Answers.getInstance().logCustom(new CustomEvent("Spot created"));
-
-                refreshDatetimeAlertDialogWasShown = false;
-
-                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                hideKeyboard();
-
-                showViewMapSnackbar();
-
-                //We want to show the Evaluate tab when the user has just saved a new spot that doesn't belong to a route, so that he can evaluate it.
-                //updateUI will present Basic tab because mFormType is Edit. So make sure setSelectedItemId(R.id.action_evaluate) is called after updateUI() in here.
-                if (is_hitchhiking_spot_check_box.isChecked())
-                    lastSelectedTab = R.id.action_evaluate;
-                else
-                    lastSelectedTab = -1;
-
-                updateUI();
-
-                return;
-            } else if ((mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                    && is_part_of_a_route_check_box.isChecked()) {
-                //Instantiate a new route spot and pass it, so that the user can adjust it as he wants and save it as a new spot.
-                mFormType = FormType.Create;
-
-                Crashlytics.setString("mFormType", mFormType.toString());
-
-                refreshDatetimeAlertDialogWasShown = false;
-
-                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                hideKeyboard();
-
-                mCurrentSpot = new Spot();
-                mCurrentSpot.setIsHitchhikingSpot(true);
-                mCurrentSpot.setIsPartOfARoute(true);
-
-                shouldShowButtonsPanel = true;
-
-                mAddressRequested = false;
-                mAddressOutput = null;
-
-                showViewMapSnackbar();
-
-                lastSelectedTab = R.id.action_basic;
-
-                updateUI();
-
-                return;
-            }
+        //If the spot being saved is part of a route and it is not a destination,
+        // then show options to save a new spot or to view the map.
+        if (mFormType != FormType.Edit &&
+                is_part_of_a_route_check_box.isChecked() &&
+                !is_destination_check_box.isChecked()) {
+            showSaveNewOrViewMapPanel();
+            return;
         }
 
         finish();
+
+        /*if (!is_hitchhiking_spot_check_box.isChecked()) {
+            Intent i = new Intent(getBaseContext(), MyRoutesActivity.class);
+            i.putExtra(MyRoutesActivity.LAST_TAB_OPENED_KEY, MyRoutesActivity.SectionsPagerAdapter.TAB_SPOTS_INDEX);
+            i.putExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
+            startActivity(i);
+        } else */
 
         if (!shouldGoBackToPreviousActivity) {
             Intent i = new Intent(getBaseContext(), MainActivity.class);
@@ -1494,6 +1454,56 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             i.putExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, true);
             startActivity(i);
         }
+    }
+
+    void showSaveNewOrViewMapPanel() {
+        mFormType = FormType.Create;
+
+        Crashlytics.setString("mFormType", mFormType.toString());
+
+        refreshDatetimeAlertDialogWasShown = false;
+
+        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        hideKeyboard();
+
+        mCurrentSpot = new Spot();
+        mCurrentSpot.setIsHitchhikingSpot(true);
+        mCurrentSpot.setIsPartOfARoute(true);
+
+        shouldShowButtonsPanel = true;
+
+        mAddressRequested = false;
+        mAddressOutput = null;
+
+        showViewMapSnackbar();
+
+        //We want to show the Basic tab.
+        lastSelectedTab = R.id.action_basic;
+
+        // updateUI() will call setSelectedItemId(lastSelectedTab).
+        updateUI();
+    }
+
+    void showEvaluatePanel() {
+        mFormType = FormType.Evaluate;
+
+        Crashlytics.setString("mFormType", mFormType.toString());
+
+        //Create a record to track usage of Save button when a new spot is saved for the first time
+        Answers.getInstance().logCustom(new CustomEvent("Spot created"));
+
+        refreshDatetimeAlertDialogWasShown = false;
+
+        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        hideKeyboard();
+
+        showViewMapSnackbar();
+
+        //We want to show the Evaluate tab.
+        lastSelectedTab = R.id.action_evaluate;
+
+        // updateUI() will call setSelectedItemId(lastSelectedTab).
+        updateUI();
     }
 
     ProgressDialog loadingDialog;
