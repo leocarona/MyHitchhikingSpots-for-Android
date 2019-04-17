@@ -365,7 +365,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 });
 
                 // Set the plugin's camera mode
-                locationLayerPlugin.setCameraMode(CameraMode.TRACKING);
+                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);

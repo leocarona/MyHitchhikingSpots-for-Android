@@ -190,7 +190,7 @@ public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements O
     @Override
     public void onMapReady(MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
-        mapboxMap.getUiSettings().setCompassEnabled(false);
+        mapboxMap.getUiSettings().setCompassEnabled(true);
         mapboxMap.getUiSettings().setLogoEnabled(false);
         mapboxMap.getUiSettings().setAttributionEnabled(false);
         new LoadPoiDataTask(this).execute();
