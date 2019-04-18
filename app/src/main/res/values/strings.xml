@@ -94,6 +94,7 @@ The Hitchwiki team.
     <string name="spot_form_more_options_edit_label">(edit)</string>
     <string name="spot_form_comments_title">Comments by other hitchhikers</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
+    <string name="spot_form_unable_to_download_details" translatable="false">You may click on \'Evaluate\' tab to see the average hitchability of this location, but we\'re unable to download more details while your device doesn\'t have a internet connection.</string>
 
     <string name="menu_my_maps">My Maps</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
@@ -264,4 +265,11 @@ The Hitchwiki team.
     <string name="drawer_open" translatable="false">Open navigation drawer</string>
     <string name="drawer_close" translatable="false">Close navigation drawer</string>
 
+
+    <string name="dashboard_you_have_hitched" translatable="false">You\'ve hitched</string>
+    <string name="dashboard_number_of_rides" translatable="false">%d rides</string>
+    <string name="dashboard_you_have_downloaded_from_hw" translatable="false">You\'ve downloaded from Hitchwiki</string>
+    <string name="dashboard_number_of_hw_spots_downloaded" translatable="false">%d spots</string>
+    <string name="dashboard_your_longest_waiting_time" translatable="false">Your longest waiting time</string>
+    <string name="dashboard_your_shortest_waiting_time" translatable="false">Your shortest waiting time</string>
 </resources>

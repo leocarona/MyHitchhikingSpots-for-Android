@@ -157,8 +157,8 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
 
         Integer numHWSpotsDownloaded = prefs.getInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, 0);
 
-        txtNumSpotsSaved.setText(String.format("%d spots", spotList.size()));
-        txtNumHWSpotsDownloaded.setText(String.format("%d spots", numHWSpotsDownloaded));
+        txtNumSpotsSaved.setText(String.format(getString(R.string.dashboard_number_of_rides), spotList.size()));
+        txtNumHWSpotsDownloaded.setText(String.format(getString(R.string.dashboard_number_of_hw_spots_downloaded), numHWSpotsDownloaded));
         txtShortestWaitingTime.setText(Utils.getWaitingTimeAsString(shortestWaitingTime, activity.getBaseContext()));
         txtLongestWaitingTime.setText(Utils.getWaitingTimeAsString(longestWaitingTime, activity.getBaseContext()));
     }

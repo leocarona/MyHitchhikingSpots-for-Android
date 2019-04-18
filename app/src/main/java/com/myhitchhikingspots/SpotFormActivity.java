@@ -462,7 +462,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             if (!Utils.isNetworkAvailable(this)) {
                 //panel_buttons.setVisibility(View.GONE);
                 //panel_info.setVisibility(View.GONE);
-                showErrorAlert("Offline mode", "Your device doesn't seem to have an internet connection at the moment? :-)");
+                showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.spot_form_unable_to_download_details));
             } else {
                 //we use getSnippet() for id because original hitchwiki id is stored as snippet in our markers
                 //this avoids extending Marker class to add additional parameter for point id
