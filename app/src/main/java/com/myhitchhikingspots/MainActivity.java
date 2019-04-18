@@ -1,10 +1,12 @@
 package com.myhitchhikingspots;
 
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -200,6 +202,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         if (selectedItemId == R.id.nav_tools)
             startToolsActivityForResult();
+        else if (selectedItemId == R.id.nav_instagram)
+            startInstagram();
         else {
             CharSequence title = menuItem.getTitle();
             setupSelectedFragment(menuItem, title.toString());
@@ -222,6 +226,20 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void startToolsActivityForResult() {
         Intent intent = new Intent(getBaseContext(), ToolsActivity.class);
         startActivityForResult(intent, 1);
+    }
+
+    public void startInstagram() {
+        Uri uri = Uri.parse("https://www.instagram.com/explore/tags/myhitchhikingspots/");
+        Intent likeIng = new Intent(Intent.ACTION_VIEW, uri);
+
+        likeIng.setPackage("com.instagram.android");
+
+        try {
+            startActivity(likeIng);
+        } catch (ActivityNotFoundException e) {
+            startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://instagram.com/my.hitchhiking.spots")));
+        }
     }
 
     /**

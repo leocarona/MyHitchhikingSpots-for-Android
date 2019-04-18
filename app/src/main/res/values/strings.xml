@@ -99,6 +99,7 @@ The Hitchwiki team.
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
+    <string name="menu_instagram" translatable="false">#myhitchhikingspots</string>
 
     <string name="action_settings">Settings</string>
     <string name="spot_saved_successfuly">Spot saved</string>
