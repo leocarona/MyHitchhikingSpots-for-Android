@@ -500,8 +500,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     }
                 });
 
-                // Set the plugin's camera mode
-                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+                // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
+                locationLayerPlugin.setCameraMode(CameraMode.NONE);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);
