@@ -4,7 +4,7 @@
     <group android:checkableBehavior="single" android:id="@+id/menu_options">
         <item
             android:id="@+id/nav_my_dashboard"
-            android:icon="@android:drawable/ic_menu_mapmode"
+            android:icon="@drawable/ic_dashboard_black_24dp"
             android:title="Dashboard" />
         <item
             android:id="@+id/nav_my_map"
