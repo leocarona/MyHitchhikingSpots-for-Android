@@ -996,7 +996,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 });
 
                 // Set the plugin's camera mode
-                locationLayerPlugin.setCameraMode(CameraMode.TRACKING);
+                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);
