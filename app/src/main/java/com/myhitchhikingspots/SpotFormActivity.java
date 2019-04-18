@@ -1,6 +1,5 @@
 package com.myhitchhikingspots;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -24,7 +23,6 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -352,7 +350,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                         waiting_GPS_update = Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
                     waiting_GPS_update.show();
 
-                    locateUser();
+                    moveMapCameraToUserLocation();
                 }
             }
         });
@@ -511,8 +509,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     Toast waiting_GPS_update;
 
-    void locateUser() {
-        enableLocationPlugin();
+    void enableLocationLayer() {
+        //Setup location plugin to display the user location on a map.
+        // NOTE: map camera won't follow location updates by default here.
+        setupLocationPlugin();
 
         // Enable the location layer on the map
         if (PermissionsManager.areLocationPermissionsGranted(SpotFormActivity.this) && !locationLayerPlugin.isLocationLayerEnabled())
@@ -537,6 +537,18 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
             Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT).show();
         }*/
+    }
+
+
+    void moveMapCameraToUserLocation() {
+        if (locationLayerPlugin == null)
+            enableLocationLayer();
+
+        if (locationLayerPlugin == null)
+            return;
+
+        // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
+        locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     void hideKeyboard() {
@@ -647,54 +659,13 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         this.mapboxMap.getUiSettings().setLogoEnabled(false);
         this.mapboxMap.getUiSettings().setAttributionEnabled(false);
 
-        LatLng cameraPositionTo = null;
-        int cameraZoomTo = Constants.KEEP_ZOOM_LEVEL;
+        boolean mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
 
-        //Move camera manually
-        if (mCurrentSpot != null && mCurrentSpot.getLatitude() != null && mCurrentSpot.getLatitude() != 0
-                && mCurrentSpot.getLongitude() != null && mCurrentSpot.getLongitude() != 0) {
-            //Set start position for map camera: set it to the current waiting spot
-            cameraPositionTo = new LatLng(mCurrentSpot.getLatitude(), mCurrentSpot.getLongitude());
+        enableLocationLayer();
 
-            if (mFormType == FormType.Create && cameraZoomFromBundle != -1)
-                cameraZoomTo = (int) cameraZoomFromBundle;
-            else
-                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-        } else {
-            Location loc = null;
-            try {
-                loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
-            } catch (SecurityException ex) {
-            }
-
-            if (loc != null) {
-                cameraPositionTo = new LatLng(loc);
-                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                //Boolean equals = cameraPositionTo.getLatitude() == cameraPositionTo2.getLatitude() && cameraPositionTo.getLongitude() == cameraPositionTo2.getLongitude();
-                //Crashlytics.setBool("are equals", equals);
-                //}
-            } else {
-                //Set start position for map camera: set it to the last spot saved
-                Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
-                if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
-                        && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
-                    cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
-
-                    //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
-                    if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
-                        cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                    else
-                        cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
-                }
-            }
-        }
-
-        boolean moveCameraWasRequested = cameraPositionTo != null;
 
         //Set listeners only after requested camera position is reached
-        if (moveCameraWasRequested) {
-            moveCamera(cameraPositionTo, cameraZoomTo);
-
+        if (mapCameraWasMoved) {
             if (mFormType == FormType.Create)
                 highlightLocateButton();
 
@@ -706,10 +677,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 //Remove camera listener when requested position was reached
                 mapboxMap.setOnCameraChangeListener(addGestureListenerAfterRequestedPositionIsReached);
             }*/
-
         } else {
             //No request to position the map camera was made, so apply listeners directly
-            locateUser();
+            moveMapCameraToUserLocation();
         }
 
         addPinToCenter();
@@ -753,6 +723,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
     }
 
+    /**
+     * Move map camera to the last GPS location OR if it's not available,
+     * we'll try to move the map camera to the location of the last saved spot.
+     */
     private void moveCameraToLastKnownLocation() {
         LatLng moveCameraPositionTo = null;
 
@@ -785,6 +759,61 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         if (moveCameraPositionTo != null)
             moveCamera(moveCameraPositionTo, zoomLevel);
+    }
+
+    /**
+     * Move map camera to the given spot's location OR if it's not available,
+     * we'll try to move the map camera to the last GPS location.
+     * @return True if the map camera was moved anywhere.
+     */
+    boolean moveCameraToSpotLocation(Spot spot) {
+        LatLng cameraPositionTo = null;
+        int cameraZoomTo = Constants.KEEP_ZOOM_LEVEL;
+
+        //Move camera manually
+        if (spot != null && spot.getLatitude() != null && spot.getLatitude() != 0
+                && spot.getLongitude() != null && spot.getLongitude() != 0) {
+            //Set start position for map camera: set it to the current waiting spot
+            cameraPositionTo = new LatLng(spot.getLatitude(), spot.getLongitude());
+
+            if (mFormType == FormType.Create && cameraZoomFromBundle != -1)
+                cameraZoomTo = (int) cameraZoomFromBundle;
+            else
+                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+        } else {
+            Location loc = null;
+            try {
+                loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
+            } catch (SecurityException ex) {
+            }
+
+            if (loc != null) {
+                cameraPositionTo = new LatLng(loc);
+                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+                //Boolean equals = cameraPositionTo.getLatitude() == cameraPositionTo2.getLatitude() && cameraPositionTo.getLongitude() == cameraPositionTo2.getLongitude();
+                //Crashlytics.setBool("are equals", equals);
+                //}
+            } else {
+                //Set start position for map camera: set it to the last spot saved
+                Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
+                if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
+                        && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
+                    cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
+
+                    //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
+                    if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
+                        cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+                    else
+                        cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+                }
+            }
+        }
+
+        if (cameraPositionTo != null) {
+            moveCamera(cameraPositionTo, cameraZoomTo);
+            return true;
+        }
+        return false;
     }
 
     @NonNull
@@ -947,7 +976,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locateUser();
+                moveMapCameraToUserLocation();
             }
         }
     }
@@ -960,7 +989,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     @Override
     public void onPermissionResult(boolean granted) {
         if (granted) {
-            enableLocationPlugin();
+            enableLocationLayer();
         } else {
             Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
             finish();
@@ -968,7 +997,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     @SuppressWarnings({"MissingPermission"})
-    private void enableLocationPlugin() {
+    /**
+     * Setup location plugin to display the user location on a map.
+     * Map camera won't follow location updates by deafult.
+     */
+    private void setupLocationPlugin() {
         if (locationLayerPlugin == null) {
             // Check if permissions are enabled and if not request
             if (PermissionsManager.areLocationPermissionsGranted(this)) {
@@ -995,8 +1028,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     }
                 });
 
-                // Set the plugin's camera mode
-                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+                // Make map display the user's location, but the map camera shouldn't be moved when location updates.
+                locationLayerPlugin.setCameraMode(CameraMode.NONE);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);
@@ -1442,7 +1475,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 is_part_of_a_route_check_box.isChecked() &&
                 !is_destination_check_box.isChecked()) {
             showSaveNewOrViewMapPanel();
-            locateUser();
+            moveMapCameraToUserLocation();
             return;
         }
 
