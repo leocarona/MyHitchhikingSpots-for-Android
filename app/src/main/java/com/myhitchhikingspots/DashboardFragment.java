@@ -130,7 +130,7 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
     }
 
     void updateUI() {
-        Integer longestWaitingTime = 0, shortestWaitingTime = 0;
+        Integer longestWaitingTime = 0, shortestWaitingTime = 0, numOfRides = 0;
 
         if (spotList.size() > 0) {
             Spot spot = spotList.get(0);
@@ -141,23 +141,29 @@ public class DashboardFragment extends android.support.v4.app.Fragment implement
         for (Spot spot : spotList) {
             Boolean isDestination = spot.getIsDestination() == null ? false : spot.getIsDestination();
             Boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() == null ? false : spot.getIsHitchhikingSpot();
+            Boolean isGotARide = spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE;
 
-            if (isHitchhikingSpot && !isDestination) {
-                Integer waitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
-                if (waitingTime > longestWaitingTime)
-                    longestWaitingTime = waitingTime;
+            if (isHitchhikingSpot) {
+                if (isGotARide)
+                    numOfRides++;
 
-                //Only consider spots where the user has gotten rides
-                if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
-                    if (waitingTime < shortestWaitingTime)
-                        shortestWaitingTime = waitingTime;
+                if (!isDestination) {
+                    Integer waitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
+                    if (waitingTime > longestWaitingTime)
+                        longestWaitingTime = waitingTime;
+
+                    //Only consider spots where the user has gotten rides
+                    if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                        if (waitingTime < shortestWaitingTime)
+                            shortestWaitingTime = waitingTime;
+                    }
                 }
             }
         }
 
         Integer numHWSpotsDownloaded = prefs.getInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, 0);
 
-        txtNumSpotsSaved.setText(String.format(getString(R.string.dashboard_number_of_rides), spotList.size()));
+        txtNumSpotsSaved.setText(String.format(getString(R.string.dashboard_number_of_rides), numOfRides));
         txtNumHWSpotsDownloaded.setText(String.format(getString(R.string.dashboard_number_of_hw_spots_downloaded), numHWSpotsDownloaded));
         txtShortestWaitingTime.setText(Utils.getWaitingTimeAsString(shortestWaitingTime, activity.getBaseContext()));
         txtLongestWaitingTime.setText(Utils.getWaitingTimeAsString(longestWaitingTime, activity.getBaseContext()));
