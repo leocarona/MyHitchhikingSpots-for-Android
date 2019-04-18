@@ -1247,6 +1247,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         panel_buttons.setVisibility(View.GONE);
         panel_info.setVisibility(View.VISIBLE);
 
+        //Map camera should stop following gps updates
+        if (locationLayerPlugin != null)
+            locationLayerPlugin.setLocationLayerEnabled(false);
+
         updateSaveButtonState();
         updateSelectedTab();
 
@@ -1438,6 +1442,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 is_part_of_a_route_check_box.isChecked() &&
                 !is_destination_check_box.isChecked()) {
             showSaveNewOrViewMapPanel();
+            locateUser();
             return;
         }
 
