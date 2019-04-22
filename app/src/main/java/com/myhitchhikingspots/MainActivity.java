@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -22,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
@@ -62,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     public interface OnSpotsListChanged {
         void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot);
+
+        void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults);
     }
 
     @Override
@@ -423,6 +427,13 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         }
 
         return -1;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+        if (activeFragmentListening != null)
+            activeFragmentListening.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
