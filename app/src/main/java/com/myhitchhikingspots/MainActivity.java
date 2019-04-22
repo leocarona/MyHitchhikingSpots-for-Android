@@ -23,6 +23,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.ArrayList;
@@ -202,9 +204,11 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         if (selectedItemId == R.id.nav_tools)
             startToolsActivityForResult();
-        else if (selectedItemId == R.id.nav_instagram)
+        else if (selectedItemId == R.id.nav_instagram) {
+            //Record user's click on the Instagram button
+            Answers.getInstance().logCustom(new CustomEvent("Instagram button click"));
             startInstagram();
-        else {
+        } else {
             CharSequence title = menuItem.getTitle();
             setupSelectedFragment(menuItem, title.toString());
 
