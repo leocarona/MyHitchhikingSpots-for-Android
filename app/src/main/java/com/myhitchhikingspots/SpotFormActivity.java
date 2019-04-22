@@ -344,6 +344,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null) {
+                    if (locateUserTooltip != null && locateUserTooltip.isShown())
+                        locateUserTooltip.closeNow();
+
                     moveCameraToLastKnownLocation();
 
                     if (waiting_GPS_update == null)
@@ -686,7 +689,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     void highlightLocateButton() {
-        ViewTooltip
+        locateUserTooltip = ViewTooltip
                 .on(fabLocateUser)
                 .autoHide(true, 7000)
                 .corner(30)
@@ -2033,6 +2036,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
     }
 
+    ViewTooltip.TooltipView locateUserTooltip;
     Toast msgResult;
 
     /**
