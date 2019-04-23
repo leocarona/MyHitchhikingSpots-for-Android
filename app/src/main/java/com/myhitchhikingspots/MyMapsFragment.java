@@ -94,6 +94,13 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     boolean wasSnackbarShown;
     Boolean isLastArrayForSingleSpots = false;
 
+    /**
+     * True if the map camera should follow the GPS updates once the user grants the necessary permission.
+     * This flag is necessary because when the app starts up we automatically request permission to access the user location,
+     * and in this case we don't want the map camera to follow the GPS updates ({@link #zoomOutToFitAllMarkers()} will be called instead).
+     **/
+    boolean isLocationRequestedByUser = false;
+
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationLayerPlugin;
 
@@ -199,7 +206,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                         waiting_GPS_update = Toast.makeText(activity.getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
                     waiting_GPS_update.show();
 
-                    locateUser();
+                    isLocationRequestedByUser = true;
+
+                    moveMapCameraToUserLocation();
                 }
             }
         });
@@ -300,7 +309,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         setupIconImages();
 
-        locateUser();
+        enableLocationLayer();
 
         if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
             showInternetUnavailableAlertDialog();
@@ -325,12 +334,22 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()));
     }
 
-    void locateUser() {
-        enableLocationPlugin();
+    void enableLocationLayer() {
+        //Setup location plugin to display the user location on a map.
+        // NOTE: map camera won't follow location updates by default here.
+        setupLocationPlugin();
 
         // Enable the location layer on the map
         if (PermissionsManager.areLocationPermissionsGranted(activity) && !locationLayerPlugin.isLocationLayerEnabled())
             locationLayerPlugin.setLocationLayerEnabled(true);
+    }
+
+    void moveMapCameraToUserLocation() {
+        if (locationLayerPlugin == null)
+            enableLocationLayer();
+
+        // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
+        locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     void showSpotSavedSnackbar() {
@@ -457,8 +476,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_LOCATION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locateUser();
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && isLocationRequestedByUser) {
+                moveMapCameraToUserLocation();
+                isLocationRequestedByUser = false;
             }
         }
     }
@@ -471,13 +491,19 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     @Override
     public void onPermissionResult(boolean granted) {
         if (granted) {
-            enableLocationPlugin();
+            enableLocationLayer();
+        } else {
+            Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
         }
     }
 
 
     @SuppressWarnings({"MissingPermission"})
-    private void enableLocationPlugin() {
+    /**
+     * Setup location plugin to display the user location on a map.
+     * Map camera won't follow location updates by deafult.
+     */
+    private void setupLocationPlugin() {
         if (locationLayerPlugin == null) {
             // Check if permissions are enabled and if not request
             if (PermissionsManager.areLocationPermissionsGranted(activity.getBaseContext())) {
@@ -772,11 +798,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             //Automatically zoom out to fit all markers only the first time that spots are loaded.
             // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
             if (shouldZoomToFitAllMarkers) {
-                //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slower when it has all spots
-                // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
-                if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN)
+                if (spotList.size() == 0) {
+                    //If there's no spot to show, make map camera follow the GPS updates.
+                    moveMapCameraToUserLocation();
+                } else if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
+                    //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slow when it has all spots
+                    // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
                     moveCameraToLastKnownLocation();
-                else
+                } else
                     zoomOutToFitAllMarkers();
                 shouldZoomToFitAllMarkers = false;
             }
@@ -942,7 +971,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                                     startMyRoutesActivity();
                                 }
                             })
-                            .setNegativeButton(getResources().getString(R.string.general_cancel_option), null).show();
+                            .setNegativeButton(getResources().getString(R.string.general_cancel_option), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    //User opted to not download any HW spot, there's nothing to show but his/her current location.
+                                    if (spotList == null || spotList.size() == 0) {
+                                        //If there's no spot to show, move the map camera to the current GPS location.
+                                        moveMapCameraToUserLocation();
+                                    }
+                                }
+                            }).show();
                 } else
                     saveSpotButtonHandler(false);
                 selectionHandled = true;
@@ -1046,10 +1084,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
     }
 
+    /**
+     * Zoom out to fit all markers AND the user's last known location.
+     **/
     protected void zoomOutToFitAllMarkers() {
-        if (featureCollection == null || featureCollection.features().size() == 0)
-            return;
-
         try {
             if (mapboxMap != null) {
                 Location mCurrentLocation = null;
@@ -1062,17 +1100,19 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
                 //Include only features that are actually seen on the map (hidden features are excluded)
-                for (Feature feature : featureCollection.features()) {
-                    if (!feature.getBooleanProperty(PROPERTY_SHOULDHIDE)) {
-                        Point p = ((Point) feature.geometry());
-                        lst.add(new LatLng(p.latitude(), p.longitude()));
+                if (featureCollection != null) {
+                    for (Feature feature : featureCollection.features()) {
+                        if (!feature.getBooleanProperty(PROPERTY_SHOULDHIDE)) {
+                            Point p = ((Point) feature.geometry());
+                            lst.add(new LatLng(p.latitude(), p.longitude()));
+                        }
                     }
                 }
 
+                //Add current location to camera bounds
                 if (mCurrentLocation != null)
                     lst.add(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
 
-                //Add current location to camera bounds
                 if (lst.size() == 1)
                     moveCamera(new LatLng(lst.get(0).getLatitude(), lst.get(0).getLongitude()), Constants.ZOOM_TO_SEE_FARTHER_DISTANCE);
                 else if (lst.size() > 1) {
@@ -1107,6 +1147,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
+    /**
+     * Move map camera to the last GPS location OR if it's not available,
+     * we'll try to move the map camera to the location of the last saved spot.
+     */
     protected void moveCameraToLastKnownLocation() {
         //Zoom close to current position or to the last saved position
         LatLng cameraPositionTo = null;
