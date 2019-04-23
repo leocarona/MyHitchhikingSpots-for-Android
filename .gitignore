@@ -10,3 +10,7 @@ app/src/main/res/values/privateValues.xml
 app/release/app-release.apk
 
 app/release/output.json
+
+app/release/app.aab.sig
+
+app/release/app.aab
