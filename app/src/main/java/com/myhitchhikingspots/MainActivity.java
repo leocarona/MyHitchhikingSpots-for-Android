@@ -431,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
         if (activeFragmentListening != null)
             activeFragmentListening.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
