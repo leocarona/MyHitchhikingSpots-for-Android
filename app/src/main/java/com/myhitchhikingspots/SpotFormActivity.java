@@ -548,9 +548,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (locationLayerPlugin == null)
             enableLocationLayer();
 
-        if (locationLayerPlugin == null)
-            return;
-
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
         locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
@@ -987,7 +984,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -995,8 +992,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (granted) {
             enableLocationLayer();
         } else {
-            Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
-            finish();
+            Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
         }
     }
 

@@ -330,7 +330,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(activity, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+        Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override

@@ -95,6 +95,7 @@ The Hitchwiki team.
     <string name="spot_form_comments_title">Comments by other hitchhikers</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
     <string name="spot_form_unable_to_download_details" translatable="false">You may click on \'Evaluate\' tab to see the average hitchability of this location, but we\'re unable to download more details while your device doesn\'t have a internet connection.</string>
+    <string name="spot_form_user_location_permission_not_granted" translatable="false">Your location is unknown.</string>
 
     <string name="menu_my_maps">My Maps</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>

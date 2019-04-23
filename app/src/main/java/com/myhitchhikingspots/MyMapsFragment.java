@@ -465,7 +465,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(activity.getBaseContext(), "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+        Toast.makeText(activity.getBaseContext(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override
