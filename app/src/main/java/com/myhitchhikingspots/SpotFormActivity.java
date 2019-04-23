@@ -1556,6 +1556,15 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         //We want to show the Evaluate tab.
         lastSelectedTab = R.id.action_evaluate;
 
+        //Map camera should stop following gps updates here,
+        // so if user clicks on Basic tab again he'll see the last location that he saw when he left.
+        if (locationLayerPlugin != null) {
+            locationLayerPlugin.setCameraMode(CameraMode.NONE);
+
+            //Stop showing an arrow considering the compass of the device.
+            locationLayerPlugin.setRenderMode(RenderMode.NORMAL);
+        }
+
         // updateUI() will call setSelectedItemId(lastSelectedTab).
         updateUI();
     }
