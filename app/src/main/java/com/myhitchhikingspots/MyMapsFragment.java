@@ -345,11 +345,13 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     void moveMapCameraToUserLocation() {
-        if (locationLayerPlugin == null)
-            enableLocationLayer();
+        //Request permission of access to GPS updates or
+        // directly initialize and enable the location plugin if such permission was already granted.
+        enableLocationLayer();
 
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+        if (locationLayerPlugin != null)
+            locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     void showSpotSavedSnackbar() {
