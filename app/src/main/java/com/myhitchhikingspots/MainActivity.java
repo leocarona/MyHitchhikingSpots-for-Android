@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot);
 
         void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults);
+
+        void onActivityResult(int requestCode, int resultCode, Intent data);
     }
 
     @Override
@@ -514,6 +516,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) ||
                 (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED))
             loadSpotList(-1);
+
+        if (activeFragmentListening != null)
+            activeFragmentListening.onActivityResult(requestCode, resultCode, data);
     }
 
     private ProgressDialog loadingDialog;
