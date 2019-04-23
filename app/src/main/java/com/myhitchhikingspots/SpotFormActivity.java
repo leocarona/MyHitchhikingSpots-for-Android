@@ -86,6 +86,7 @@ import android.location.Location;
 
 import java.util.List;
 
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
 import com.myhitchhikingspots.adapters.CommentsListViewAdapter;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.MyLocation;
@@ -1033,6 +1034,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
                 // Make map display the user's location, but the map camera shouldn't be moved when location updates.
                 locationLayerPlugin.setCameraMode(CameraMode.NONE);
+                //Show as an arrow considering the compass of the device.
+                locationLayerPlugin.setRenderMode(RenderMode.COMPASS);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);

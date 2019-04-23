@@ -58,6 +58,7 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.plugins.locationlayer.OnCameraTrackingChangedListener;
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
 import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
@@ -366,6 +367,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
                 // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
                 locationLayerPlugin.setCameraMode(CameraMode.NONE);
+                //Show as an arrow considering the compass of the device.
+                locationLayerPlugin.setRenderMode(RenderMode.COMPASS);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);
