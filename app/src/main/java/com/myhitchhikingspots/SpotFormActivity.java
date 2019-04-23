@@ -1291,8 +1291,12 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         panel_info.setVisibility(View.VISIBLE);
 
         //Map camera should stop following gps updates
-        if (locationLayerPlugin != null)
-            locationLayerPlugin.setLocationLayerEnabled(false);
+        if (locationLayerPlugin != null) {
+            locationLayerPlugin.setCameraMode(CameraMode.NONE);
+
+            //Stop showing an arrow considering the compass of the device.
+            locationLayerPlugin.setRenderMode(RenderMode.NORMAL);
+        }
 
         updateSaveButtonState();
         updateSelectedTab();
