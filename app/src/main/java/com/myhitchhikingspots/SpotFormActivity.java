@@ -550,8 +550,12 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         enableLocationLayer();
 
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        if (locationLayerPlugin != null)
+        if (locationLayerPlugin != null) {
             locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+
+            //Show an arrow considering the compass of the device.
+            locationLayerPlugin.setRenderMode(RenderMode.COMPASS);
+        }
     }
 
     void hideKeyboard() {
@@ -1023,6 +1027,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                         //As the map camera was moved, we should clear the previous address data
                         mAddressOutput = null;
                         displayAddressOutput();
+
+                        //Stop showing an arrow considering the compass of the device.
+                        locationLayerPlugin.setRenderMode(RenderMode.NORMAL);
                     }
 
                     @Override
@@ -1033,8 +1040,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
                 // Make map display the user's location, but the map camera shouldn't be moved when location updates.
                 locationLayerPlugin.setCameraMode(CameraMode.NONE);
-                //Show as an arrow considering the compass of the device.
-                locationLayerPlugin.setRenderMode(RenderMode.COMPASS);
                 getLifecycle().addObserver(locationLayerPlugin);
             } else {
                 permissionsManager = new PermissionsManager(this);
