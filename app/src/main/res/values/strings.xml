@@ -101,7 +101,7 @@ The Hitchwiki team.
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
-    <string name="menu_instagram" translatable="false">#myhitchhikingspots</string>
+    <string name="menu_about_us" translatable="false">About Us</string>
 
     <string name="action_settings">Settings</string>
     <string name="spot_saved_successfuly">Spot saved</string>
@@ -273,4 +273,11 @@ The Hitchwiki team.
     <string name="dashboard_number_of_hw_spots_downloaded" translatable="false">%d spots</string>
     <string name="dashboard_your_longest_waiting_time" translatable="false">Your longest waiting time</string>
     <string name="dashboard_your_shortest_waiting_time" translatable="false">Your shortest waiting time</string>
+
+    <string name="about_us_first_title" translatable="false">About Us</string>
+    <string name="about_us_first_text" translatable="false">This app is an open source project published by Hitchwiki.org free of charge. Developed by and for hitchhikers. It exists thanks to our supporters, our developers and our users who rate and give us feedback, so we can improve.</string>
+    <string name="about_us_our_supporters_title" translatable="false">Our Supporters</string>
+    <string name="about_us_our_supporters_text" translatable="false">We have some amazing people who helped our developers so that this app could get to you. Friends or unknown people who hosted the developers of this app, who shared food with them, who paid their internet and electricity bills, because you know we need computers and all this stuff to build an app. Our supporters are of big importance for this project, for our nomadic developers and for you who use this useful tool as you explore the world.</string>
+    <string name="about_us_how_to_contribute_title" translatable="false">How You Can Contribute</string>
+    <string name="about_us_how_to_contribute_text" translatable="false">There are at least two ways you can contribute. No money needed for now, you know we\'ve been really good at finding amazing supporters out there. But you can rate My Hitchhiking Spots app on the Google Play Store, or share screenshots of your hitchhiking routes tagging us with #myhitchhikingspots. We read your words to know what\'s good and what can be improved on the app, and we like seen your screenshots as well as they show us your own way of using the app. That\'s all, and thank you for your interest in reading this. :-)</string>
 </resources>

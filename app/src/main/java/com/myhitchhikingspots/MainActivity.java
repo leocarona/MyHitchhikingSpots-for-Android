@@ -1,13 +1,10 @@
 package com.myhitchhikingspots;
 
 import android.app.ProgressDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -25,8 +22,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.ArrayList;
@@ -181,6 +176,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             case R.id.nav_offline_map:
                 menuItemIndex = 3;
                 break;
+            case R.id.nav_about_us:
+                menuItemIndex = 4;
+                break;
         }
         return menuItemIndex;
     }
@@ -196,6 +194,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             menuItemResourceId = R.id.nav_hitchwiki_map;
         else if (className.equals(OfflineMapManagerFragment.class.getName()))
             menuItemResourceId = R.id.nav_offline_map;
+        else if (className.equals(AboutUsFragment.class.getName()))
+            menuItemResourceId = R.id.nav_about_us;
 
         return menuItemResourceId;
     }
@@ -210,11 +210,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         if (selectedItemId == R.id.nav_tools)
             startToolsActivityForResult();
-        else if (selectedItemId == R.id.nav_instagram) {
-            //Record user's click on the Instagram button
-            Answers.getInstance().logCustom(new CustomEvent("Instagram button click"));
-            startInstagram();
-        } else {
+        else {
             CharSequence title = menuItem.getTitle();
             setupSelectedFragment(menuItem, title.toString());
 
@@ -236,20 +232,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void startToolsActivityForResult() {
         Intent intent = new Intent(getBaseContext(), ToolsActivity.class);
         startActivityForResult(intent, 1);
-    }
-
-    public void startInstagram() {
-        Uri uri = Uri.parse("https://www.instagram.com/explore/tags/myhitchhikingspots/");
-        Intent likeIng = new Intent(Intent.ACTION_VIEW, uri);
-
-        likeIng.setPackage("com.instagram.android");
-
-        try {
-            startActivity(likeIng);
-        } catch (ActivityNotFoundException e) {
-            startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://instagram.com/my.hitchhiking.spots")));
-        }
     }
 
     /**
@@ -281,6 +263,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 break;
             case R.id.nav_offline_map:
                 fragmentClass = OfflineMapManagerFragment.class;
+                break;
+            case R.id.nav_about_us:
+                fragmentClass = AboutUsFragment.class;
                 break;
             default:
                 fragmentClass = BasicFragment.class;

@@ -19,6 +19,11 @@
             android:icon="@drawable/ic_get_app_24dp"
             android:title="@string/menu_offline_maps" />
         <item
+            android:id="@+id/nav_about_us"
+            android:icon="@drawable/ic_info_outline_black_24dp"
+            android:title="@string/menu_about_us" />
+
+        <item
             android:id="@+id/nav_unselect"
             android:title=""
             android:visible="false"/>
@@ -29,10 +34,6 @@
             android:id="@+id/nav_tools"
             android:icon="@drawable/ic_settings_black_24dp"
             android:title="@string/menu_tools" />
-        <item
-            android:id="@+id/nav_instagram"
-            android:icon="@drawable/ic_instagram"
-            android:title="@string/menu_instagram" />
     </group>
 
 </menu>
