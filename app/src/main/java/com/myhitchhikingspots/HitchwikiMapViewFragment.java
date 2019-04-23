@@ -85,7 +85,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute {
+        MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute, MainActivity.OnSpotsListChanged {
     private MapView mapView;
     private MapboxMap mapboxMap;
     //private LocationEngine locationEngine;
@@ -745,6 +745,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         return "";
     }
 
+    @Override
+    public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
+        //spotList here is the one used by My Maps. Nothing needs to be done here.
+    }
 
     @Override
     public void onStart() {
@@ -784,6 +788,11 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        if (prefs.getBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, false)) {
+            prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, false).apply();
+            shouldZoomToFitAllMarkers = true;
+            loadHWSpotsIfTheyveBeenDownloaded();
+        }
 
         if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED)
             showSpotSavedSnackbar();

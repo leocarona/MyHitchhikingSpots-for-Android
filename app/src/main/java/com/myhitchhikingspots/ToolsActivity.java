@@ -941,6 +941,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
                 //also write into prefs that markers sync has occurred
                 prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
+                prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
 
                 //TODO: show how many megabytes were downloaded or saved locally
 
@@ -959,6 +960,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
                 if (result.contentEquals("nothingToSync")) {
                     //also write into prefs that markers sync has occurred
                     prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
+                    prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
 
                     showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
                 } else if (!result.isEmpty())
