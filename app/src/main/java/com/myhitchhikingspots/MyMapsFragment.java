@@ -13,7 +13,6 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -97,9 +96,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     /**
      * True if the map camera should follow the GPS updates once the user grants the necessary permission.
      * This flag is necessary because when the app starts up we automatically request permission to access the user location,
-     * and in this case we don't want the map camera to follow the GPS updates ({@link #zoomOutToFitAllMarkers()} will be called instead).
+     * and in this case we don't want the map camera to follow the GPS updates ({@link #zoomOutToFitMostRecentRoute()} will be called instead).
      **/
     boolean isLocationRequestedByUser = false;
+
+    /**
+     * Maximum number of spots to fit within the map camera when {@link #zoomOutToFitMostRecentRoute()} is called.
+     **/
+    int NUMBER_OF_SPOTS_TO_FIT = 10;
 
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationLayerPlugin;
@@ -755,6 +759,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
         }
 
+        //Define the number of spots to be considered when zoomOutToFitMostRecentRoute is called.
+        //We want to consider at maximum the spots from the last route saved.
+        if (routes.get(0).features.length < NUMBER_OF_SPOTS_TO_FIT)
+            NUMBER_OF_SPOTS_TO_FIT = routes.get(0).features.length;
+
         PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
         List<Feature> allFeatures = new ArrayList<>();
 
@@ -803,12 +812,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (spotList.size() == 0) {
                     //If there's no spot to show, make map camera follow the GPS updates.
                     moveMapCameraToUserLocation();
-                } else if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
-                    //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slow when it has all spots
-                    // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
-                    moveCameraToLastKnownLocation();
                 } else
-                    zoomOutToFitAllMarkers();
+                    zoomOutToFitMostRecentRoute();
                 shouldZoomToFitAllMarkers = false;
             }
 
@@ -1020,7 +1025,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null) {
-                    zoomOutToFitAllMarkers();
+                    zoomOutToFitMostRecentRoute();
                 }
                 break;
         }
@@ -1087,9 +1092,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     /**
-     * Zoom out to fit all markers AND the user's last known location.
+     * Zoom out to fit the most recent (@link #NUMBER_OF_SPOTS_TO_FIT) spots saved to the map AND the user's last known location.
      **/
-    protected void zoomOutToFitAllMarkers() {
+    protected void zoomOutToFitMostRecentRoute() {
         try {
             if (mapboxMap != null) {
                 Location mCurrentLocation = null;
@@ -1100,10 +1105,13 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                List<Feature> features = featureCollection == null ? new ArrayList<>() : featureCollection.features();
 
-                //Include only features that are actually seen on the map (hidden features are excluded)
-                if (featureCollection != null) {
-                    for (Feature feature : featureCollection.features()) {
+                //Consider the last saved spots
+                if (!features.isEmpty()) {
+                    for (int i = features.size() - 1; i >= 0 && lst.size() < NUMBER_OF_SPOTS_TO_FIT; i--) {
+                        Feature feature = features.get(i);
+                        //Include only features that are actually seen on the map (hidden features are excluded)
                         if (!feature.getBooleanProperty(PROPERTY_SHOULDHIDE)) {
                             Point p = ((Point) feature.geometry());
                             lst.add(new LatLng(p.latitude(), p.longitude()));
