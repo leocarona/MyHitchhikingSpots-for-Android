@@ -94,10 +94,21 @@ public class SpotListFragment extends Fragment {
                                     public void onClick(DialogInterface dialog, int which) {
                                         String errorMessage = "";
                                         try {
-                                            //Concatenate Id in a list as "Id.columnName = x"
+                                            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
+                                            Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
+                                                    mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
                                             ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
-                                            for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++)
-                                                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + mAdapter.getSelectedSpots().get(i) + "' ");
+
+                                            for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++) {
+                                                Integer selectedSpotId = mAdapter.getSelectedSpots().get(i);
+
+                                                //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+                                                if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
+                                                    ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).setCurrentSpot(null);
+
+                                                //Concatenate Id in a list as "Id.columnName = x"
+                                                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
+                                            }
 
                                             //Get a DB session
                                             Database db = DaoMaster.newDevSession(getContext(), Constants.INTERNAL_DB_FILE_NAME).getDatabase();

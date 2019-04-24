@@ -1421,7 +1421,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 DaoSession daoSession = ((MyHitchhikingSpotsApplication) getApplicationContext()).getDaoSession();
                 SpotDao spotDao = daoSession.getSpotDao();
                 spotDao.insertOrReplace(mCurrentSpot);
-                ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
 
                 // code runs in a thread
                 runOnUiThread(new Runnable() {
@@ -1488,6 +1487,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     private void finishSaving(int result) {
         setResult(result);
+
+        if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
+            ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
+        else
+            ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(null);
 
         //If a hitchhiking spot is being saved for the first time, then let the user evaluate it.
         if (mFormType == FormType.Create && is_hitchhiking_spot_check_box.isChecked()) {

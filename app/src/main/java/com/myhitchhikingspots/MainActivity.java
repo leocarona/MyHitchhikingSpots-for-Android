@@ -466,6 +466,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         this.spotList = spotList;
         this.mCurrentWaitingSpot = mCurrentWaitingSpot;
+        ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentWaitingSpot);
 
         //Select fragment
         if (fragmentResourceId > -1) {
