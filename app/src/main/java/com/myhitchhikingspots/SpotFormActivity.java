@@ -264,11 +264,23 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             mFormType = FormType.Create;
         }*/
 
-        //Always that SpotFormActivity is called a Spot must have been provided to it. This way we know a little about what the user wants to add/edit - single spot, destination spot, maybe some previously informed coordinates, etc
         if (mFormType == FormType.Unknown) {
+            //Always that SpotFormActivity is called a Spot must have been provided to it.
+            // This way we know a little about what the user wants to add/edit - single spot, destination spot, maybe some previously informed coordinates, etc
             showErrorAlert(getString(R.string.general_error_dialog_title), "Some data were missing. Please navigate back and try again.");
             Crashlytics.log(Log.WARN, TAG, "");
             return;
+        } else if (mFormType == FormType.Edit) {
+            //Prevent user from editing a spot if he's currently waiting for a ride somewhere else.
+            Spot s = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+
+            if (s != null &&
+                    s.getIsWaitingForARide() != null && s.getIsWaitingForARide() &&
+                    s.getId().equals(mCurrentSpot.getId())) {
+                showErrorAlert(getString(R.string.general_error_dialog_title),
+                        getString(R.string.spot_form_not_allowed_to_edit) + "\n" + getString(R.string.evaluate_running_spot_required));
+                return;
+            }
         }
 
         mSaveButton = (Button) findViewById(R.id.save_button);
