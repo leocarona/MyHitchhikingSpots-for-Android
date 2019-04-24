@@ -55,11 +55,6 @@ public class SpotListFragment extends Fragment {
      */
     protected Address mAddressOutput;
 
-    /**
-     * Receiver registered with this activity to get the response from FetchAddressIntentService.
-     */
-    private SpotFormActivity.AddressResultReceiver mResultReceiver;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,10 +94,21 @@ public class SpotListFragment extends Fragment {
                                     public void onClick(DialogInterface dialog, int which) {
                                         String errorMessage = "";
                                         try {
-                                            //Concatenate Id in a list as "Id.columnName = x"
+                                            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
+                                            Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
+                                                    mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
                                             ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
-                                            for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++)
-                                                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + mAdapter.getSelectedSpots().get(i) + "' ");
+
+                                            for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++) {
+                                                Integer selectedSpotId = mAdapter.getSelectedSpots().get(i);
+
+                                                //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+                                                if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
+                                                    ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).setCurrentSpot(null);
+
+                                                //Concatenate Id in a list as "Id.columnName = x"
+                                                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
+                                            }
 
                                             //Get a DB session
                                             Database db = DaoMaster.newDevSession(getContext(), Constants.INTERNAL_DB_FILE_NAME).getDatabase();
@@ -185,14 +191,10 @@ public class SpotListFragment extends Fragment {
                         }
                     }
 
-                    Bundle args = new Bundle();
-                    //Maybe we should send mCurrentWaitingSpot on the intent.putExtra so that we don't need to call spot.setAttemptResult(null) ?
-                    args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-                    args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-
                     Intent intent = new Intent(getContext(), SpotFormActivity.class);
-                    intent.putExtras(args);
-                    startActivityForResult(intent, BaseActivity.EDIT_SPOT_REQUEST);
+                    intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+                    startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
 
                     if (onOneOrMoreSpotsDeleted != null)
                         onOneOrMoreSpotsDeleted.onSpotClicked(spot);

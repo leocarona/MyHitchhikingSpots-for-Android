@@ -39,6 +39,8 @@ import com.myhitchhikingspots.utilities.Utils;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.zip.CheckedOutputStream;
 
 /**
  * Getting Location Updates.
@@ -202,9 +204,9 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
      */
     public void saveSpotButtonHandler(boolean isDestination) {
         Spot spot = null;
-        int requestCode = BaseActivity.EDIT_SPOT_REQUEST;
+        int requestCode = Constants.EDIT_SPOT_REQUEST;
         if (!mIsWaitingForARide) {
-            requestCode = BaseActivity.SAVE_SPOT_REQUEST;
+            requestCode = Constants.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsHitchhikingSpot(!isDestination);
             spot.setIsDestination(isDestination);
@@ -230,7 +232,7 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
 
             Intent intent = new Intent(getContext(), SpotFormActivity.class);
             intent.putExtras(args);
-            startActivity(intent);
+            startActivityForResult(intent, Constants.SAVE_SPOT_REQUEST);
         }
     }
 
@@ -261,13 +263,10 @@ public class MyLocationFragment extends Fragment implements View.OnClickListener
         mCurrentWaitingSpot.setHitchability(Utils.findTheOpposite(Math.round(hitchability_ratingbar.getRating())));
 
         if (mIsWaitingForARide) {
-            Bundle args = new Bundle();
-            args.putSerializable(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
-            args.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-
             Intent intent = new Intent(parentActivity.getApplicationContext(), SpotFormActivity.class);
-            intent.putExtras(args);
-            startActivity(intent);
+            intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, mCurrentWaitingSpot);
+            intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
+            startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
         }
     }
 

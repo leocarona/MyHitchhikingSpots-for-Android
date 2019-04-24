@@ -16,14 +16,13 @@ limitations under the License.
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.myhitchhikingspots">
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- Begin: Extra-permissions necessary for MapBox -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- End: Extra-permissions necessary for MapBox -->
     <application
@@ -33,9 +32,9 @@ limitations under the License.
         android:label="@string/app_name"
         android:theme="@style/Theme.Base.NoActionBar">
 
-        <!-- Begin: Necessary for MapBox -->
-        <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" />
-        <!-- End: Necessary for MapBox -->
+        <!-- Begin: Necessary for MapBox -
+        <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" >
+        - End: Necessary for MapBox -->
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -60,9 +59,8 @@ limitations under the License.
             android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ToolsActivity"
             android:label="@string/tools_title"
-            android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".MyMapsActivity"
@@ -78,6 +76,14 @@ limitations under the License.
             android:name=".OfflineManagerActivity"
             android:label="@string/offline_map"
             android:parentActivityName=".BaseActivity"
+            android:theme="@style/Theme.Base.NoActionBar"/>
+        <activity
+            android:name=".HitchwikiMapView_SymbolLayer"
+            android:label="menu_hitchwiki_maps_2"
+            android:theme="@style/Theme.Base.NoActionBar"/>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
             android:theme="@style/Theme.Base.NoActionBar"/>
         <!--
         Service to asynchronously fetch a location address using a Geocoder. Setting the

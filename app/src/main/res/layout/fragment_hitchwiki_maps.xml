@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinatiorLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+
+    <com.mapbox.mapboxsdk.maps.MapView
+        mapbox:mapbox_renderTextureMode="true"
+        android:id="@+id/mapview2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        mapbox:mapbox_styleUrl="@string/mapbox_style_mapbox_streets"
+        />
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_locate_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="80dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:srcCompat="@drawable/ic_my_location_24dp"
+        tools:ignore="VectorDrawableCompat"
+        app:useCompatPadding="true"
+        app:fabSize="mini"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_zoom_in"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="65dp"
+        android:alpha="0.5"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:useCompatPadding="true"
+        mapbox:srcCompat="@drawable/ic_zoom_in_white_24dp"
+        tools:ignore="VectorDrawableCompat" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_zoom_out"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="120dp"
+        android:alpha="0.5"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:useCompatPadding="true"
+        mapbox:srcCompat="@drawable/ic_zoom_out_white_24dp"
+        tools:ignore="VectorDrawableCompat" />
+
+
+
+</android.support.design.widget.CoordinatorLayout>

@@ -67,7 +67,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-
+/** @deprecated
+ * Classes extending BaseActivity are no longer in use.
+ * SettingsActivity was replaced by ToolsActivity. **/
 public class SettingsActivity extends BaseActivity {
     TextView mfeedbacklabel;
     CoordinatorLayout coordinatorLayout;

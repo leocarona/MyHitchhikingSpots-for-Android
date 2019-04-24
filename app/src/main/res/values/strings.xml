@@ -94,11 +94,15 @@ The Hitchwiki team.
     <string name="spot_form_more_options_edit_label">(edit)</string>
     <string name="spot_form_comments_title">Comments by other hitchhikers</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
+    <string name="spot_form_unable_to_download_details" translatable="false">You may click on \'Evaluate\' tab to see the average hitchability of this location, but we\'re unable to download more details while your device doesn\'t have a internet connection.</string>
+    <string name="spot_form_user_location_permission_not_granted" translatable="false">Your location is unknown.</string>
+    <string name="spot_form_not_allowed_to_edit" translatable="false">Unable to edit this spot. It seems like you\'re waiting for a ride at another spot.</string>
 
     <string name="menu_my_maps">My Maps</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
+    <string name="menu_about_us" translatable="false">About Us</string>
 
     <string name="action_settings">Settings</string>
     <string name="spot_saved_successfuly">Spot saved</string>
@@ -148,10 +152,12 @@ The Hitchwiki team.
     <string name="general_days_label">%02dd</string>
     <string name="general_hours_label">%02dh</string>
     <string name="general_minutes_label">%02dmin</string>
+    <string name="general_seconds_label">a few secs</string>
 
     <string name="general_edit_list">Edit list</string>
-    <string name="general_hide_icons_label">Hide icons</string>
-    <string name="general_show_icons_label">Show icons</string>
+    <string name="general_hide_icons_label">Hide buttons</string>
+    <string name="general_show_icons_label">Show buttons</string>
+    <string name="general_hide_routes_label">Toggle past routes</string>
     <string name="general_close_editing_mode_label" translatable="false">Close editing mode</string>
     <string name="general_ok_option">OK</string>
     <string name="general_yes_option">Yes</string>
@@ -224,13 +230,13 @@ The Hitchwiki team.
     <string name="waiting_time_missing_dialog_title">Waiting time not informed</string>
     <string name="waiting_time_missing_dialog_message">Want to calculate it before saving?</string>
 
-    <string name="continent_code_antarctica">Antarctica</string>
-    <string name="continent_code_africa">Africa</string>
-    <string name="continent_code_asia">Asia</string>
-    <string name="continent_code_europe">Europe</string>
-    <string name="continent_code_north_america">North America</string>
-    <string name="continent_code_south_america">South America</string>
-    <string name="continent_code_oceania">Oceania</string>
+    <string name="continent_name_antarctica">Antarctica</string>
+    <string name="continent_name_africa">Africa</string>
+    <string name="continent_name_asia">Asia</string>
+    <string name="continent_name_europe">Europe</string>
+    <string name="continent_name_north_america">North America</string>
+    <string name="continent_name_south_america">South America</string>
+    <string name="continent_name_oceania">Oceania</string>
 
     <string name="refresh_datetime_dialog_title">Update date and time?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
@@ -257,4 +263,22 @@ The Hitchwiki team.
     <string name="set_region_name_hint">Enter name</string>
     <string name="offline_map_in_progress_toast_message">Still in progress, please wait</string>
     <string name="tile_count_limit_exceed_error_message">This region is too big, download was stopped</string>
+
+    <string name="drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="drawer_close" translatable="false">Close navigation drawer</string>
+
+
+    <string name="dashboard_you_have_hitched" translatable="false">You\'ve hitched</string>
+    <string name="dashboard_number_of_rides" translatable="false">%d rides</string>
+    <string name="dashboard_you_have_downloaded_from_hw" translatable="false">You\'ve downloaded from Hitchwiki</string>
+    <string name="dashboard_number_of_hw_spots_downloaded" translatable="false">%d spots</string>
+    <string name="dashboard_your_longest_waiting_time" translatable="false">Your longest waiting time</string>
+    <string name="dashboard_your_shortest_waiting_time" translatable="false">Your shortest waiting time</string>
+
+    <string name="about_us_first_title" translatable="false">About Us</string>
+    <string name="about_us_first_text" translatable="false">This app is an open source project published by Hitchwiki.org free of charge. Developed by and for hitchhikers. It exists thanks to our supporters, our developers and our users who rate and give us feedback, so we can improve.</string>
+    <string name="about_us_our_supporters_title" translatable="false">Our Supporters</string>
+    <string name="about_us_our_supporters_text" translatable="false">We have some amazing people who helped our developers so that this app could get to you. Friends or unknown people who hosted the developers of this app, who shared food with them, who paid their internet and electricity bills, because you know we need computers and all this stuff to build an app. Our supporters are of big importance for this project, for our nomadic developers and for you who use this useful tool as you explore the world.</string>
+    <string name="about_us_how_to_contribute_title" translatable="false">How You Can Contribute</string>
+    <string name="about_us_how_to_contribute_text" translatable="false">There are at least two ways you can contribute. No money needed for now, you know we\'ve been really good at finding amazing supporters out there. But you can rate My Hitchhiking Spots app on the Google Play Store, or share screenshots of your hitchhiking routes tagging us with #myhitchhikingspots. We read your words to know what\'s good and what can be improved on the app, and we like seen your screenshots as well as they show us your own way of using the app. That\'s all, and thank you for your interest in reading this. :-)</string>
 </resources>

@@ -27,7 +27,7 @@ otherPrivateProperties.load(new FileInputStream(otherPrivatePropertiesFile))
 def minSdk = hasProperty('minSdk') ? minSdk : 15
 
 ext {
-    supportLibVersion = '25.3.1'
+    supportLibVersion = '27.1.1'
 }
 
 android {
@@ -40,19 +40,20 @@ android {
         }
     }
     compileSdkVersion 26
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         vectorDrawables.useSupportLibrary = true
         manifestPlaceholders = [fabricApiKey: otherPrivateProperties['fabricApiKey']]
         applicationId 'com.myhitchhikingspots'
         minSdkVersion minSdk
         targetSdkVersion 26
-        versionCode 21
-        versionName "2.1.5"
+        versionCode 24
+        versionName "2.2.2"
         // Stops the Gradle plugin’s automatic rasterization of vectors
         generatedDensities = []
         // Enabling multidex support.
         multiDexEnabled true
+        signingConfig signingConfigs.config
     }
 
     // Flag to tell aapt to keep the attribute ids around
@@ -69,6 +70,12 @@ android {
     productFlavors {
     }
     sourceSets { main { res.srcDirs = ['src/main/res', 'src/main/res/values-pt'] } }
+    dataBinding.enabled = true
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 repositories {
@@ -79,21 +86,25 @@ repositories {
 dependencies {
     //Begin: Dependencies for MapBox
     // add the Mapbox SDK dependency below
-    implementation('com.mapbox.mapboxsdk:mapbox-android-sdk:5.0.2@aar') {
-        transitive = true
-    }
+    implementation('com.mapbox.mapboxsdk:mapbox-android-sdk:6.4.0')
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-locationlayer:0.7.2'
+
     //End: Dependencies for MapBox
     implementation 'cz.msebera.android:httpclient:4.4.1.1'
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {
         transitive = true;
     }
     implementation 'org.greenrobot:greendao:3.2.0'
-    implementation 'com.google.android.gms:play-services-location:11.0.4'
+    implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'joda-time:joda-time:2.9.2'
-    implementation 'com.android.support:multidex:1.0.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.github.florent37:viewtooltip:1.0.8'
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.github.florent37:viewtooltip:1.1.5'
     implementation "com.android.support:appcompat-v7:${supportLibVersion}"
     implementation "com.android.support:recyclerview-v7:${supportLibVersion}"
     implementation "com.android.support:design:${supportLibVersion}"
+
+    implementation "com.squareup.picasso:picasso:2.5.2"
+    implementation "com.android.support:cardview-v7:${supportLibVersion}"
+
 }

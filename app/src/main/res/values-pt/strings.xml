@@ -151,10 +151,12 @@
     <string name="general_days_label">%02dd</string>
     <string name="general_hours_label">%02dh</string>
     <string name="general_minutes_label">%02dmin</string>
+    <string name="general_seconds_label">alguns segundos</string>
 
     <string name="general_edit_list">Editar lista</string>
     <string name="general_hide_icons_label">Esconder botōes</string>
     <string name="general_show_icons_label">Mostrar botōes</string>
+    <string name="general_hide_routes_label">Toggle past routes</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>
@@ -226,13 +228,13 @@
     <string name="waiting_time_missing_dialog_title">Tempo de espera não informado</string>
     <string name="waiting_time_missing_dialog_message">Deseja que o tempo de espera seja calculado automaticamente antes de salvar?</string>
 
-    <string name="continent_code_antarctica">Antártica</string>
-    <string name="continent_code_africa">África</string>
-    <string name="continent_code_asia">Ásia</string>
-    <string name="continent_code_europe">Europa</string>
-    <string name="continent_code_north_america">América do Norte</string>
-    <string name="continent_code_south_america">América do Sul (Brasil)</string>
-    <string name="continent_code_oceania">Oceania</string>
+    <string name="continent_name_antarctica">Antártica</string>
+    <string name="continent_name_africa">África</string>
+    <string name="continent_name_asia">Ásia</string>
+    <string name="continent_name_europe">Europa</string>
+    <string name="continent_name_north_america">América do Norte</string>
+    <string name="continent_name_south_america">América do Sul (Brasil)</string>
+    <string name="continent_name_oceania">Oceania</string>
 
     <string name="refresh_datetime_dialog_title">Atualizar data e hora?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutos já passaram desde que você abriu esta janela pela primeira vez. Você gostaria de atualizar a data e hora deste novo local? A atualização será feita de %2$s para %3$s.</string>

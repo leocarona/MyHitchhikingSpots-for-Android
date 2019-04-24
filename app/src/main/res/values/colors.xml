@@ -13,6 +13,13 @@
     <color name="route_color_3">#FF4081</color>
     <color name="route_color_4">#a082ff</color>
 
+    <color name="hitchability_unknown">#fff</color>
+    <color name="hitchability_very_good">#00ad00</color>
+    <color name="hitchability_good">#96ad00</color>
+    <color name="hitchability_average">#ffff00</color>
+    <color name="hitchability_bad">#ff8d00</color>
+    <color name="hitchability_senseless">#ff0000</color>
+
     <color name="ic_single_spot_bg_color">#a8f5a3f9</color>
 
     <!--lightened with http://www.hexcolortool.com/ -->
@@ -39,4 +46,11 @@
     <!--END: SpotForm bottom menu-->
 
     <color name="mapboxWhite">#ffffff</color>
+
+    <color name="mapboxGrayDark">#273d56</color>
+    <color name="mapboxGrayDark10">#476483</color>
+    <color name="mapboxGrayExtraDark">#2d3c4f</color>
+    <color name="mapboxGray">#607d9c</color>
+    <color name="mapboxGrayLight">#c6d2e1</color>
+    <color name="mapboxGrayFaint">#f4f7fb</color>
 </resources>

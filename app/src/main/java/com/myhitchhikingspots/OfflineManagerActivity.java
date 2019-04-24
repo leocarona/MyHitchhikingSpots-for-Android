@@ -36,7 +36,17 @@ import com.mapbox.mapboxsdk.offline.OfflineRegion;
 import com.mapbox.mapboxsdk.offline.OfflineRegionError;
 import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
 import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
-import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
+
+import android.content.pm.PackageManager;
+
+import com.mapbox.android.core.permissions.PermissionsListener;
+import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
+import com.mapbox.mapboxsdk.plugins.locationlayer.OnCameraTrackingChangedListener;
+import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
+
+import java.util.List;
+
 import com.myhitchhikingspots.model.Spot;
 
 import org.json.JSONObject;
@@ -46,7 +56,10 @@ import java.util.ArrayList;
 /**
  * Download, view, navigate to, and delete an offline region.
  */
-public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCallback {
+/** @deprecated
+ * Classes extending BaseActivity are no longer in use.
+ * OfflineManagerActivity was replaced by OfflineManagerFragment. **/
+public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCallback, PermissionsListener {
 
     // JSON encoding/decoding
     public static final String JSON_CHARSET = "UTF-8";
@@ -69,6 +82,8 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     private OfflineRegion offlineRegion;
     SharedPreferences prefs;
 
+    private PermissionsManager permissionsManager;
+    private LocationLayerPlugin locationLayerPlugin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,17 +202,73 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSIONS_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                locateUser();
+            }
+        }
+    }
+
+    @Override
+    public void onExplanationNeeded(List<String> permissionsToExplain) {
+        Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onPermissionResult(boolean granted) {
+        if (granted) {
+            enableLocationPlugin();
+        } else {
+            Toast.makeText(this, "R.string.user_location_permission_not_granted", Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
+
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationPlugin() {
+        if (locationLayerPlugin == null) {
+            // Check if permissions are enabled and if not request
+            if (PermissionsManager.areLocationPermissionsGranted(this)) {
+
+                // Create an instance of the plugin. Adding in LocationLayerOptions is also an optional parameter
+                locationLayerPlugin = new LocationLayerPlugin(mapView, mapboxMap);
+
+                locationLayerPlugin.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
+                    @Override
+                    public void onCameraTrackingDismissed() {
+                        // Tracking has been dismissed
+                    }
+
+                    @Override
+                    public void onCameraTrackingChanged(int currentMode) {
+                        // CameraMode has been updated
+                    }
+                });
+
+                // Set the plugin's camera mode
+                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS);
+                getLifecycle().addObserver(locationLayerPlugin);
+            } else {
+                permissionsManager = new PermissionsManager(this);
+                permissionsManager.requestLocationPermissions(this);
+            }
+        }
+    }
+
+
+    @Override
     public void onMapReady(final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
-        // Customize the user location icon using the getMyLocationViewSettings object.
+        /*// Customize the user location icon using the getMyLocationViewSettings object.
         //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
-        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")
+        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")*/
 
-        //Show GPS location on the map without making the map camera follow it
-        if (PermissionsManager.areLocationPermissionsGranted(OfflineManagerActivity.this) && !mapboxMap.isMyLocationEnabled())
-            mapboxMap.setMyLocationEnabled(true);
+        enableLocationPlugin();
 
         moveCameraToLastKnownLocation();
 
@@ -227,12 +298,6 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     public void onPause() {
         super.onPause();
         mapView.onPause();
-
-        // Ensure no memory leak occurs if we register the location listener but the call hasn't
-        // been made yet.
-        if (mapboxMap != null) {
-            mapboxMap.setOnMyLocationChangeListener(null);
-        }
     }
 
     @Override
@@ -256,7 +321,13 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
     Toast waiting_GPS_update;
 
     void locateUser() {
-        // Check if user has granted location permission
+        enableLocationPlugin();
+
+        // Enable the location layer on the map
+        if (PermissionsManager.areLocationPermissionsGranted(OfflineManagerActivity.this) && !locationLayerPlugin.isLocationLayerEnabled())
+            locationLayerPlugin.setLocationLayerEnabled(true);
+
+        /*// Check if user has granted location permission
         if (!PermissionsManager.areLocationPermissionsGranted(this)) {
             new android.support.v7.app.AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -302,7 +373,7 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
                     Toast.makeText(getBaseContext(), getString(R.string.location_updated_message), Toast.LENGTH_SHORT).show();
                 }
             });
-        }
+        }*/
     }
 
     Boolean isFirstLocationReceived = true;
@@ -343,8 +414,17 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
-        if (mapboxMap.getMyLocation() != null) {
-            moveCameraPositionTo = new LatLng(mapboxMap.getMyLocation());
+        try {
+            if (locationLayerPlugin != null) {
+                Location lastLoc = locationLayerPlugin.getLastKnownLocation();
+                if (lastLoc != null)
+                    moveCameraPositionTo = new LatLng(lastLoc);
+            }
+        } catch (SecurityException ex) {
+        }
+
+        if (moveCameraPositionTo != null) {
+            moveCameraPositionTo = new LatLng(moveCameraPositionTo);
         } else {
             //The user might still be close to the last spot saved, move the map camera there
             Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
@@ -481,14 +561,21 @@ public class OfflineManagerActivity extends BaseActivity implements OnMapReadyCa
                             String.valueOf(status.getCompletedResourceSize())));
                 } catch (Exception ex) {
                     Crashlytics.logException(ex);
+                    Toast.makeText(OfflineManagerActivity.this, "An exception occurred, but we'll keep trying", Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onError(OfflineRegionError error) {
-                // endProgress(getString(R.string.general_error_dialog_title));
+                String errMsg = "";
+                if (error.getMessage().equals("timeout"))
+                    errMsg = "Slow connection, but we'll keep trying";
+                else
+                    errMsg = error.getMessage() + ", but we'll keep trying";
+
+                Toast.makeText(OfflineManagerActivity.this, errMsg, Toast.LENGTH_LONG).show();
+
                 Crashlytics.log("onError message: " + error.getMessage());
-                Crashlytics.logException(new Exception("onError reason: " + error.getReason()));
             }
 
             /*

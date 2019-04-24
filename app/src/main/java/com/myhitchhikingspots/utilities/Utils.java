@@ -452,7 +452,9 @@ public class Utils {
         if (minutes > 0 && !dateFormated.isEmpty())
             dateFormated += " ";
 
-        if (minutes > 0 || dateFormated.isEmpty())
+        if (minutes == 0 && dateFormated.isEmpty())
+            dateFormated += context.getString(R.string.general_seconds_label);
+        else if (minutes > 0 || dateFormated.isEmpty())
             dateFormated += String.format(context.getString(R.string.general_minutes_label), minutes);
 
         return dateFormated;

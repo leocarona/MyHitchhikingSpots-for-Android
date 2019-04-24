@@ -1,6 +1,8 @@
 package com.myhitchhikingspots;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
@@ -15,6 +17,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MyRoutesActivity extends BaseActivity {
+public class MyRoutesActivity extends AppCompatActivity {
 
     /**
      * The {@link PagerAdapter} that will provide
@@ -51,7 +55,6 @@ public class MyRoutesActivity extends BaseActivity {
     private ViewPager mViewPager;
 
     CoordinatorLayout coordinatorLayout;
-    boolean wasSnackbarShown;
     static final String SNACKBAR_SHOWED_KEY = "snackbar-showed-key";
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
@@ -63,26 +66,24 @@ public class MyRoutesActivity extends BaseActivity {
      * Set shouldGoBackToPreviousActivity to true if instead of opening a new map, the action bar option should just finish current activity
      */
     Boolean shouldGoBackToPreviousActivity = false;
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.my_routes_activity_layout);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+
+        // Set a Toolbar to replace the ActionBar.
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
-        if (savedInstanceState == null) {
-            shouldGoBackToPreviousActivity = getIntent().getBooleanExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, false);
-            if (!wasSnackbarShown) {
-                if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
-                    showSpotSavedSnackbar();
-                else if (getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
-                    showSpotDeletedSnackbar();
-            }
-            wasSnackbarShown = true;
-        } else
-            updateValuesFromBundle(savedInstanceState);
+        if (savedInstanceState != null && savedInstanceState.keySet().contains(LAST_TAB_OPENED_KEY))
+            indexOfLastOpenTab = savedInstanceState.getInt(LAST_TAB_OPENED_KEY, 0);
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -100,6 +101,7 @@ public class MyRoutesActivity extends BaseActivity {
             @Override
             public void onListOfSelectedSpotsChanged() {
                 showSpotDeletedSnackbar();
+                prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
             }
 
             @Override
@@ -108,9 +110,6 @@ public class MyRoutesActivity extends BaseActivity {
                 //onSaveInstanceState will be executed right after onSpotClicked because when a spot is clicked, the fragment starts SpotFormActivity
             }
         };
-
-        mShouldShowLeftMenu = true;
-        super.onCreate(savedInstanceState);
     }
 
     public void selectTab(int tab_index) {
@@ -143,13 +142,13 @@ public class MyRoutesActivity extends BaseActivity {
 
     void showSpotSavedSnackbar() {
         showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
-                String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (shouldGoBackToPreviousActivity)
-                            finish();
-                        else
-                            startActivity(new Intent(getBaseContext(), MyMapsActivity.class));
+                String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), v -> {
+                    if (shouldGoBackToPreviousActivity)
+                        finish();
+                    else {
+                        Intent intent = new Intent(getBaseContext(), MainActivity.class);
+                        intent.putExtra(MainActivity.ARG_REQUEST_TO_OPEN_FRAGMENT, R.id.nav_my_map);
+                        startActivity(intent);
                     }
                 });
     }
@@ -196,24 +195,17 @@ public class MyRoutesActivity extends BaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Check which request we're responding to
-        //if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
-        // Make sure the request was successful
-       /* if (resultCode != RESULT_CANCELED) {
-            showViewMapSnackbar();
-        }*/
-
-
-        /*if (resultCode == RESULT_OBJECT_ADDED || resultCode == RESULT_OBJECT_EDITED)
+        Boolean shouldReloadSpotListOnNavigateBack = false;
+        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED) {
+            shouldReloadSpotListOnNavigateBack = true;
             showSpotSavedSnackbar();
+        } else if (resultCode == Constants.RESULT_OBJECT_DELETED) {
+            shouldReloadSpotListOnNavigateBack = true;
+            showSpotDeletedSnackbar();
+        }
 
-        if (resultCode == RESULT_OBJECT_DELETED)
-            showSpotDeletedSnackbar();*/
-
-        if (data != null)
-            updateValuesFromBundle(data.getExtras());
-
-        // }
+        if (shouldReloadSpotListOnNavigateBack)
+            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
     }
 
     @Override
@@ -277,24 +269,7 @@ public class MyRoutesActivity extends BaseActivity {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         indexOfLastOpenTab = mViewPager.getCurrentItem();
-        savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
         savedInstanceState.putInt(LAST_TAB_OPENED_KEY, indexOfLastOpenTab);
-    }
-
-
-    /**
-     * Updates fields based on data stored in the bundle.
-     *
-     * @param savedInstanceState The activity state saved in the Bundle.
-     */
-    private void updateValuesFromBundle(Bundle savedInstanceState) {
-        Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
-        if (savedInstanceState != null) {
-            if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
-                wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
-            if (savedInstanceState.keySet().contains(LAST_TAB_OPENED_KEY))
-                indexOfLastOpenTab = savedInstanceState.getInt(LAST_TAB_OPENED_KEY, 0);
-        }
     }
 
     /**

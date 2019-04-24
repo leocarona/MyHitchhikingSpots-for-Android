@@ -3,6 +3,7 @@ package com.myhitchhikingspots;
 import android.app.Application;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -12,6 +13,7 @@ import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 
+import hitchwikiMapsSDK.classes.APIConstants;
 import io.fabric.sdk.android.Fabric;
 
 import java.util.Calendar;
@@ -22,7 +24,7 @@ import java.util.List;
 /**
  * Created by leoboaventura on 08/03/2016.
  */
-public class MyHitchhikingSpotsApplication extends Application {
+public class MyHitchhikingSpotsApplication extends MultiDexApplication {
     public DaoSession daoSession;
     public Spot currentSpot;
 
@@ -34,6 +36,29 @@ public class MyHitchhikingSpotsApplication extends Application {
         // Mapbox access token is configured here. This needs to be called either in your application
         // object or in the same activity which contains the mapview.
         Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
+
+        APIConstants.ENDPOINT_PREFIX = getResources().getString(R.string.hitchwikiEndpointPrefix);
+        APIConstants.PLACE_INFO = "?" + getResources().getString(R.string.hitchwikiPlaceInfo);
+        APIConstants.PLACE_INFO_BASIC_POSTFIX = getResources().getString(R.string.hitchwikiPlaceInfoPostfix);
+        APIConstants.LIST_PLACES_FROM_AREA = "?" + getResources().getString(R.string.hitchwikiBounds);
+        APIConstants.LIST_PLACES_BY_CITY = "?" + getResources().getString(R.string.hitchwikiCity);
+        APIConstants.LIST_PLACES_BY_COUNTRY = "?" + getResources().getString(R.string.hitchwikiCountry);
+        APIConstants.LIST_PLACES_BY_CONTINENT = "?" + getResources().getString(R.string.hitchwikiContinent);
+
+        APIConstants.LIST_OF_COUNTRIES = "?" + getResources().getString(R.string.hitchwikiCountries);
+        APIConstants.LIST_OF_CONTINENTS = "?" + getResources().getString(R.string.hitchwikiContinents);
+        APIConstants.LIST_OF_COUNTRIES_AND_COORDINATES = "?" + getResources().getString(R.string.hitchwikiCountriesAndCoordinates);
+        APIConstants.LIST_OF_LANGUAGES = "?" + getResources().getString(R.string.hitchwikiLanguages);
+        APIConstants.TEST_PING = "?" + getResources().getString(R.string.hitchwikiPing);
+
+
+        APIConstants.CODE_CONTINENT_ASIA = getResources().getString(R.string.continent_code_asia);
+        APIConstants.CODE_CONTINENT_AFRICA = getResources().getString(R.string.continent_code_africa);
+        APIConstants.CODE_CONTINENT_NORTH_AMERICA = getResources().getString(R.string.continent_code_north_america);
+        APIConstants.CODE_CONTINENT_SOUTH_AMERICA = getResources().getString(R.string.continent_code_south_america);
+        APIConstants.CODE_CONTINENT_ANTARTICA = getResources().getString(R.string.continent_code_antarctica);
+        APIConstants.CODE_CONTINENT_EUROPE = getResources().getString(R.string.continent_code_europe);
+        APIConstants.CODE_CONTINENT_AUSTRALIA = getResources().getString(R.string.continent_code_oceania);
 
         loadDatabase();
     }

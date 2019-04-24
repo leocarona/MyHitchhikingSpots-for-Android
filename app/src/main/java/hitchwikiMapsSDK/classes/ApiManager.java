@@ -21,7 +21,7 @@ public class ApiManager {
         JSONObject response = mServerRequest.postRequest
                 (
                         APIConstants.ENDPOINT_PREFIX +
-                                APIConstants.PLACE_INFO_BASIC_PREFIX +
+                                APIConstants.PLACE_INFO +
                                 String.valueOf(id) +
                                 APIConstants.PLACE_INFO_BASIC_POSTFIX
                 );
@@ -50,7 +50,7 @@ public class ApiManager {
         JSONObject response = mServerRequest.postRequest
                 (
                         APIConstants.ENDPOINT_PREFIX +
-                                APIConstants.PLACE_INFO_BASIC_PREFIX +
+                                APIConstants.PLACE_INFO +
                                 String.valueOf(id)
                 );
 

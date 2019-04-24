@@ -122,10 +122,12 @@
     <string name="general_days_label">%02dd</string>
     <string name="general_hours_label">%02dt</string>
     <string name="general_minutes_label">%02dmin</string>
+    <string name="general_seconds_label">a few secs</string>
 
     <string name="general_edit_list">Edit list</string>
     <string name="general_hide_icons_label">Hide buttons</string>
     <string name="general_show_icons_label">Show buttons</string>
+    <string name="general_hide_routes_label">Toggle past routes</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>
     <string name="general_no_option">Nej</string>
@@ -212,13 +214,13 @@
     <string name="waiting_time_missing_dialog_title">Waiting time not informed</string>
     <string name="waiting_time_missing_dialog_message">Want to calculate it before saving?</string>
 
-    <string name="continent_code_antarctica">Antarctica</string>
-    <string name="continent_code_africa">Africa</string>
-    <string name="continent_code_asia">Asia</string>
-    <string name="continent_code_europe">Europe</string>
-    <string name="continent_code_north_america">North America</string>
-    <string name="continent_code_south_america">South America</string>
-    <string name="continent_code_oceania">Oceania</string>
+    <string name="continent_name_antarctica">Antarctica</string>
+    <string name="continent_name_africa">Africa</string>
+    <string name="continent_name_asia">Asia</string>
+    <string name="continent_name_europe">Europe</string>
+    <string name="continent_name_north_america">North America</string>
+    <string name="continent_name_south_america">South America</string>
+    <string name="continent_name_oceania">Oceania</string>
 
     <string name="refresh_datetime_dialog_title">Update date and time?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>

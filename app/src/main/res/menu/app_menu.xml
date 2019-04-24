@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="single" android:id="@+id/menu_options">
+        <item
+            android:id="@+id/nav_my_dashboard"
+            android:icon="@drawable/ic_dashboard_black_24dp"
+            android:title="Dashboard" />
         <item
             android:id="@+id/nav_my_map"
             android:icon="@android:drawable/ic_menu_mapmode"
@@ -15,13 +19,21 @@
             android:icon="@drawable/ic_get_app_24dp"
             android:title="@string/menu_offline_maps" />
         <item
-            android:id="@+id/nav_tools"
-            android:icon="@drawable/ic_settings_black_24dp"
-            android:title="@string/menu_tools" />
+            android:id="@+id/nav_about_us"
+            android:icon="@drawable/ic_info_outline_black_24dp"
+            android:title="@string/menu_about_us" />
+
         <item
             android:id="@+id/nav_unselect"
             android:title=""
             android:visible="false"/>
+    </group>
+
+    <group android:checkableBehavior="none" android:id="@+id/menu_extra_options">
+        <item
+            android:id="@+id/nav_tools"
+            android:icon="@drawable/ic_settings_black_24dp"
+            android:title="@string/menu_tools" />
     </group>
 
 </menu>
