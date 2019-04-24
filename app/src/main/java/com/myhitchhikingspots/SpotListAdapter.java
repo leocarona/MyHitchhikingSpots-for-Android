@@ -69,14 +69,13 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         for (int i = data.size() - 1; i >= 0; i--) {
             try {
                 Spot spot = data.get(i);
-                if (spot.getIsDestination() == null || !spot.getIsDestination()) {
-                    /*if (spot.getWaitingTime() != null)
-                        totalWaitingTimeMinutes += spot.getWaitingTime();*/
+                Boolean isDestination = spot.getIsDestination() == null ? false : spot.getIsDestination();
+                Boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() == null ? false : spot.getIsHitchhikingSpot();
+                Boolean isPartOfARoute = spot.getIsPartOfARoute() == null ? false : spot.getIsPartOfARoute();
+                Boolean isGotARide = spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE;
 
-                    //If user gave up on hitchhiking on this spot, then we must not count it as a ride
-                    if ((spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) &&
-                            (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) &&
-                            spot.getAttemptResult() == null || spot.getAttemptResult() != Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
+                if (!isDestination) {
+                    if (isHitchhikingSpot && isPartOfARoute && isGotARide)
                         totalRides++;
                 } else {
                     Integer minutes = 0;
