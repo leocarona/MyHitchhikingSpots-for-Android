@@ -761,7 +761,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         //Define the number of spots to be considered when zoomOutToFitMostRecentRoute is called.
         //We want to consider at maximum the spots from the last route saved.
-        if (routes.get(0).features.length < NUMBER_OF_SPOTS_TO_FIT)
+        if (routes != null && routes.size() > 0 && routes.get(0).features.length < NUMBER_OF_SPOTS_TO_FIT)
             NUMBER_OF_SPOTS_TO_FIT = routes.get(0).features.length;
 
         PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
