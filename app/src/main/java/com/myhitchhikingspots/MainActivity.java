@@ -18,10 +18,12 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.ArrayList;
@@ -274,6 +276,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     }
 
     private void setupSelectedFragment(MenuItem menuItem, String title) {
+        Crashlytics.setString("title", title);
+
         // Highlight the selected item has been done by NavigationView
         menuItem.setChecked(true);
 
@@ -322,21 +326,37 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     @Override
     public void onBackPressed() {
+        Crashlytics.log("User has pressed the back button.");
         activeFragmentListening = null;
 
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
+            Crashlytics.log("The drawer was closed and nothing more will happen.");
             mDrawer.closeDrawer(GravityCompat.START);
         } else {
-            int currentFragmentIndex = getSupportFragmentManager().getBackStackEntryCount() - 1;
+            int backStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
+            Crashlytics.setInt("backStackEntryCount", backStackEntryCount);
+
+            int currentFragmentIndex = backStackEntryCount - 1;
             if (currentFragmentIndex == 0)
                 finish();
 
             int lastOpenedFragmentIndex = currentFragmentIndex - 1;
+            Crashlytics.setInt("lastOpenedFragmentIndex", lastOpenedFragmentIndex);
 
-            String lastOpenedFragmentTag = getSupportFragmentManager().getBackStackEntryAt(lastOpenedFragmentIndex).getName();
-            int lastOpenedMenuItemResourceId = getMenuItemIdFromClassName(lastOpenedFragmentTag);
-            int menuItemIndex = getMenuItemIndex(lastOpenedMenuItemResourceId);
-            restoreLastCheckedMenuItem(menuItemIndex);
+            try {
+                String lastOpenedFragmentTag = getSupportFragmentManager().getBackStackEntryAt(lastOpenedFragmentIndex).getName();
+                Crashlytics.setString("lastOpenedFragmentTag", lastOpenedFragmentTag);
+
+                int lastOpenedMenuItemResourceId = getMenuItemIdFromClassName(lastOpenedFragmentTag);
+                Crashlytics.setInt("lastOpenedMenuItemResourceId", lastOpenedMenuItemResourceId);
+
+                int menuItemIndex = getMenuItemIndex(lastOpenedMenuItemResourceId);
+                Crashlytics.setInt("menuItemIndex", menuItemIndex);
+
+                restoreLastCheckedMenuItem(menuItemIndex);
+            } catch (Exception ex) {
+                Crashlytics.logException(ex);
+            }
 
             super.onBackPressed();
         }
