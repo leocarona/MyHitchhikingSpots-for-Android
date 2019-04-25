@@ -670,8 +670,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Deselects the state of all the features
      */
     private void deselectAll(boolean hideRecycler) {
-        for (Feature feature : featureCollection.features()) {
-            feature.properties().addProperty(PROPERTY_SELECTED, false);
+        if (featureCollection != null && featureCollection.features() != null) {
+            for (Feature feature : featureCollection.features()) {
+                feature.properties().addProperty(PROPERTY_SELECTED, false);
+            }
         }
 
         /*if (hideRecycler) {
