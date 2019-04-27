@@ -90,17 +90,17 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         // Setup drawer view
         nvDrawer.setNavigationItemSelectedListener(this);
 
+        int resourceToOpen = defaultFragmentResourceId;
+
         //If it is first time the activity is loaded, then load the list of spots with loadSpotList(),
         //If the activity is being restored, the activity's state will be restored by onRestoreInstanceState.
         if (savedInstanceState == null) {
-            int resourceToOpen = defaultFragmentResourceId;
-
             //A resourceId was received through ARG_REQUEST_TO_OPEN_FRAGMENT
             if (getIntent().getExtras() != null && getIntent().getExtras().containsKey(ARG_REQUEST_TO_OPEN_FRAGMENT))
                 resourceToOpen = getIntent().getExtras().getInt(ARG_REQUEST_TO_OPEN_FRAGMENT);
-
-            loadSpotList(resourceToOpen);
         }
+
+        loadSpotList(resourceToOpen);
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -369,10 +369,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         int checkedMenuItemIndex = getCheckedItem(nvDrawer);
 
-        Spot[] spotArray = new Spot[spotList.size()];
-        outState.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
-        outState.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
-
         if (checkedMenuItemIndex != -1) {
             MenuItem checkedMenuItem = nvDrawer.getMenu().getItem(checkedMenuItemIndex);
             outState.putInt(MainActivity.ARG_CHECKED_MENU_ITEM_ID_KEY, checkedMenuItem.getItemId());
@@ -389,15 +385,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         //Restoring state can also be done within onCreate(Bundle).
         // Though, doing it here makes the code cleaner and we also don't need to check if savedInstanceState is null.
-
-        if (savedInstanceState.containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
-            Spot[] bundleSpotList = (Spot[]) savedInstanceState.getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-            spotList = Arrays.asList(bundleSpotList);
-        }
-
-        if (savedInstanceState.containsKey(MainActivity.ARG_CURRENTSPOT_KEY)) {
-            mCurrentWaitingSpot = (Spot) savedInstanceState.getSerializable(MainActivity.ARG_CURRENTSPOT_KEY);
-        }
 
         if (savedInstanceState.containsKey(ARG_CHECKED_MENU_ITEM_ID_KEY)) {
             int lastCheckedMenuItemId = savedInstanceState.getInt(MainActivity.ARG_CHECKED_MENU_ITEM_ID_KEY);
