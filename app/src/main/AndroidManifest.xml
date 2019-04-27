@@ -47,40 +47,19 @@ limitations under the License.
         <activity
             android:name=".SpotFormActivity"
             android:label="@string/title_activity_scrolling"
-            android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar">
             <!--<meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.myhitchhikingspots.BaseActivity" />-->
+                 />-->
         </activity>
         <activity
             android:name=".MyRoutesActivity"
             android:label="@string/main_activity_title"
-            android:parentActivityName=".BaseActivity"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".ToolsActivity"
             android:label="@string/tools_title"
             android:theme="@style/Theme.Base.NoActionBar" />
-        <activity
-            android:name=".MyMapsActivity"
-            android:label="@string/menu_my_maps"
-            android:parentActivityName=".BaseActivity"
-            android:theme="@style/Theme.Base.NoActionBar"/>
-        <activity
-            android:name=".HitchwikiMapViewActivity"
-            android:label="@string/menu_hitchwiki_maps"
-            android:parentActivityName=".BaseActivity"
-            android:theme="@style/Theme.Base.NoActionBar"/>
-        <activity
-            android:name=".OfflineManagerActivity"
-            android:label="@string/offline_map"
-            android:parentActivityName=".BaseActivity"
-            android:theme="@style/Theme.Base.NoActionBar"/>
-        <activity
-            android:name=".HitchwikiMapView_SymbolLayer"
-            android:label="menu_hitchwiki_maps_2"
-            android:theme="@style/Theme.Base.NoActionBar"/>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"

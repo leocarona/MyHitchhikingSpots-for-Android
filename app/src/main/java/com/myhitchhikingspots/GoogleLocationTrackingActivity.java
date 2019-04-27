@@ -19,6 +19,7 @@ import org.joda.time.Minutes;
 import java.util.Date;
 import java.util.List;
 
+/** @deprecated **/
 public class GoogleLocationTrackingActivity extends TrackLocationBaseActivity {
     List<Spot> mSpotList;
     Spot mCurrentSpot;

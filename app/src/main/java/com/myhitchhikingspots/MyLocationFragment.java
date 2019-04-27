@@ -56,6 +56,7 @@ import java.util.zip.CheckedOutputStream;
  * uses Google Play services for authentication, see
  * https://github.com/googlesamples/android-google-accounts/tree/master/QuickStart.
  */
+/** @deprecated **/
 public class MyLocationFragment extends Fragment implements View.OnClickListener, CompoundButton.OnCheckedChangeListener, RatingBar.OnRatingBarChangeListener {
 
     // UI Widgets

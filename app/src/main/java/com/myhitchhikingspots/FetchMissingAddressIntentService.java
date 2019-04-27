@@ -24,6 +24,7 @@ import java.util.Locale;
  * location through an intent. Tries to fetch the address for the location using a Geocoder, and
  * sends the result to the ResultReceiver.
  */
+/** @deprecated **/
 public class FetchMissingAddressIntentService extends IntentService {
     private static final String TAG = "FetchMissingAddressIS";
 

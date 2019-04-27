@@ -114,6 +114,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textOffset;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textSize;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.visibility;
 
+/** @deprecated **/
 public class HitchwikiMapView_SymbolLayer extends AppCompatActivity implements OnMapReadyCallback,
         MapboxMap.OnMapClickListener {
     private static final String SOURCE_ID = "mapbox.poi";

@@ -20,6 +20,7 @@ import android.os.Handler;
 /**
  * Created by leoboaventura on 11/03/2016.
  */
+/** @deprecated **/
 public class RemoteControlReceiver extends BroadcastReceiver {
     protected static String TAG_MEDIA = "mytag";
     /*

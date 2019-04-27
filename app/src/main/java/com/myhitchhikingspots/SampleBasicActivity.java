@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
 
+/** @deprecated **/
 public class SampleBasicActivity extends BaseActivity {
 
     //WARNING: in order to use BaseActivity the method onCreate must be overridden

@@ -18,6 +18,7 @@ import java.util.Date;
 /**
  * Tracks user location using the help of Google Play services (GoogleApiClient)
  */
+/** @deprecated **/
 public class TrackLocationBaseActivity extends BaseActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
