@@ -365,7 +365,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private void setupLocationPlugin() {
         if (locationLayerPlugin == null) {
             // Check if permissions are enabled and if not request
-            if (PermissionsManager.areLocationPermissionsGranted(activity)) {
+            if (PermissionsManager.areLocationPermissionsGranted(activity) && mapboxMap != null) {
 
                 // Create an instance of the plugin. Adding in LocationLayerOptions is also an optional parameter
                 locationLayerPlugin = new LocationLayerPlugin(mapView, mapboxMap);

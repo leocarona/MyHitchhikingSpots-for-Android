@@ -1023,7 +1023,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private void setupLocationPlugin() {
         if (locationLayerPlugin == null) {
             // Check if permissions are enabled and if not request
-            if (PermissionsManager.areLocationPermissionsGranted(this)) {
+            if (PermissionsManager.areLocationPermissionsGranted(this) && mapboxMap != null) {
 
                 // Create an instance of the plugin. Adding in LocationLayerOptions is also an optional parameter
                 locationLayerPlugin = new LocationLayerPlugin(mapView, mapboxMap);
