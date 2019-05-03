@@ -1160,7 +1160,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
             //Add date time if it is set
             if (spot.getStartDateTime() != null)
-                snippet += SpotListAdapter.dateTimeToString(spot.getStartDateTime());
+                snippet += Utils.dateTimeToString(spot.getStartDateTime());
 
             //Add waiting time
             if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&

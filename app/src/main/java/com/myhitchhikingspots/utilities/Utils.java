@@ -13,6 +13,7 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import java.util.logging.ErrorManager;
 
 import android.annotation.SuppressLint;
@@ -458,5 +459,31 @@ public class Utils {
             dateFormated += String.format(context.getString(R.string.general_minutes_label), minutes);
 
         return dateFormated;
+    }
+
+    @NonNull
+    public static String dateTimeToString(Date dt) {
+        return dateTimeToString(dt, ", ");
+    }
+
+    @NonNull
+    public static String dateTimeToString(Date dt, String separator) {
+        if (dt != null) {
+            SimpleDateFormat res;
+            String dateFormat = "dd/MMM'" + separator + "'HH:mm";
+
+            if (Locale.getDefault() == Locale.US)
+                dateFormat = "MMM/dd'" + separator + "'HH:mm";
+
+            try {
+                res = new SimpleDateFormat(dateFormat);
+                return res.format(dt);
+            } catch (Exception ex) {
+                Crashlytics.setString("date", dt.toString());
+                Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
+                Crashlytics.logException(ex);
+            }
+        }
+        return "";
     }
 }

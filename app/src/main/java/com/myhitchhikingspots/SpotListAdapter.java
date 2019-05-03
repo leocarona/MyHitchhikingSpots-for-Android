@@ -25,12 +25,10 @@ import com.myhitchhikingspots.interfaces.ListListener;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by leocarona on 04/03/2016.
@@ -185,32 +183,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
-        }
-        return "";
-    }
-
-    @NonNull
-    public static String dateTimeToString(Date dt) {
-        return dateTimeToString(dt, ", ");
-    }
-
-    @NonNull
-    public static String dateTimeToString(Date dt, String separator) {
-        if (dt != null) {
-            SimpleDateFormat res;
-            String dateFormat = "dd/MMM'" + separator + "'HH:mm";
-
-            if (Locale.getDefault() == Locale.US)
-                dateFormat = "MMM/dd'" + separator + "'HH:mm";
-
-            try {
-                res = new SimpleDateFormat(dateFormat);
-                return res.format(dt);
-            } catch (Exception ex) {
-                Crashlytics.setString("date", dt.toString());
-                Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
-                Crashlytics.logException(ex);
-            }
         }
         return "";
     }
@@ -414,7 +386,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                 //Set the date and time
                 if (spot.getStartDateTime() != null)
-                    dateTime.setText(dateTimeToString(spot.getStartDateTime(), ",\n"));
+                    dateTime.setText(Utils.dateTimeToString(spot.getStartDateTime(), ",\n"));
 
                 //Set the address or coordinates
                 String spotLoc = getString(spot);

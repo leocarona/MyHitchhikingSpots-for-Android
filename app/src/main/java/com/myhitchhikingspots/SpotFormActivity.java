@@ -97,10 +97,8 @@ import com.myhitchhikingspots.utilities.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Locale;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -836,32 +834,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         return false;
     }
 
-    @NonNull
-    public static String dateTimeToString(Date dt) {
-        return dateTimeToString(dt, ", ");
-    }
-
-    @NonNull
-    public static String dateTimeToString(Date dt, String separator) {
-        if (dt != null) {
-            SimpleDateFormat res;
-            String dateFormat = "dd/MMM'" + separator + "'HH:mm";
-
-            if (Locale.getDefault() == Locale.US)
-                dateFormat = "MMM/dd'" + separator + "'HH:mm";
-
-            try {
-                res = new SimpleDateFormat(dateFormat);
-                return res.format(dt);
-            } catch (Exception ex) {
-                Crashlytics.setString("date", dt.toString());
-                Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
-                Crashlytics.logException(ex);
-            }
-        }
-        return "";
-    }
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -898,7 +870,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                             .setTitle(getString(R.string.refresh_datetime_dialog_title))
                             .setMessage(String.format(
                                     getString(R.string.refresh_datetime_dialog_message),
-                                    minutesPast, dateTimeToString(dateTime.toDate()), dateTimeToString(dateTimeNow.toDate())))
+                                    minutesPast, Utils.dateTimeToString(dateTime.toDate()), Utils.dateTimeToString(dateTimeNow.toDate())))
                             .setPositiveButton(getString(R.string.general_refresh_label), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -1780,7 +1752,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
 
     public void SetDateTime(DatePicker datePicker, TimePicker timePicker, Date date) {
-        selected_date.setText(SpotListAdapter.dateTimeToString(date));
+        selected_date.setText(Utils.dateTimeToString(date));
 
         DateTime dateTime = new DateTime(date);
 
@@ -1790,7 +1762,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(SpotListAdapter.dateTimeToString(selectedDateTime.toDate()));
+                selected_date.setText(Utils.dateTimeToString(selectedDateTime.toDate()));
             }
         });
 
@@ -1807,7 +1779,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onTimeChanged(TimePicker var1, int var2, int var3) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(SpotListAdapter.dateTimeToString(selectedDateTime.toDate()));
+                selected_date.setText(Utils.dateTimeToString(selectedDateTime.toDate()));
             }
         });
     }

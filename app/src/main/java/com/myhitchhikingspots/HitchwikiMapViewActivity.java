@@ -1096,7 +1096,7 @@ public class HitchwikiMapViewActivity extends BaseActivity implements OnMapReady
 
             //Add date time if it is set
             if (spot.getStartDateTime() != null)
-                snippet += SpotListAdapter.dateTimeToString(spot.getStartDateTime());
+                snippet += Utils.dateTimeToString(spot.getStartDateTime());
 
             //Add waiting time
             if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
