@@ -861,7 +861,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (!refreshDatetimeAlertDialogWasShown) {
             if (mFormType == FormType.Create && !shouldShowButtonsPanel) {
                 DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
-                final DateTime dateTimeNow = DateTime.now(DateTimeZone.UTC);
+                final DateTime dateTimeNow = Utils.getLocalDateTimeNowAsUTC();
                 int minutesPast = Minutes.minutesBetween(dateTime, dateTimeNow).getMinutes();
 
                 if (minutesPast > 10) {
@@ -1109,7 +1109,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             } else {
                 // In Create mode, SetDateTime will be called when the user clicks in "New spot" button (newSpotButtonHandler)
                 if (mFormType != FormType.Create || !shouldShowButtonsPanel) {
-                    DateTime spotStartDT = DateTime.now(DateTimeZone.UTC);
+                    DateTime spotStartDT = Utils.getLocalDateTimeNowAsUTC();
                     if (mCurrentSpot.getStartDateTime() != null)
                         spotStartDT = mCurrentSpot.getStartDateTime();
                     SetDateTime(date_datepicker, time_timepicker, spotStartDT);
@@ -1240,7 +1240,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     public void calculateWaitingTime(View view) {
         DateTime date = GetDateTime(date_datepicker, time_timepicker);
-        Integer minutes = Minutes.minutesBetween(date, DateTime.now(DateTimeZone.UTC)).getMinutes();
+        Integer minutes = Minutes.minutesBetween(date, Utils.getLocalDateTimeNowAsUTC()).getMinutes();
         waiting_time_edittext.setText(minutes.toString());
         Toast.makeText(this, getResources().getString(R.string.spot_form_waiting_time_label) + ": " + minutes, Toast.LENGTH_LONG).show();
     }
@@ -1270,7 +1270,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     public void newSpotButtonHandler(View view) {
         shouldShowButtonsPanel = false;
 
-        SetDateTime(date_datepicker, time_timepicker, DateTime.now(DateTimeZone.UTC));
+        SetDateTime(date_datepicker, time_timepicker, Utils.getLocalDateTimeNowAsUTC());
         panel_buttons.setVisibility(View.GONE);
         panel_info.setVisibility(View.VISIBLE);
 

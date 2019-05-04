@@ -12,6 +12,7 @@ import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
+import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -474,7 +475,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot8.setLatitude(41.015137);
         spot8.setLongitude(28.979530);
         spot8.setHitchability(3);
-        spot8.setStartDateTime(DateTime.now(DateTimeZone.UTC));
+        spot8.setStartDateTime(Utils.getLocalDateTimeNowAsUTC());
         spot8.setIsWaitingForARide(true);
         spot8.setIsPartOfARoute(true);
 

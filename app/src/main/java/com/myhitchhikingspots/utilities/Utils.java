@@ -487,4 +487,26 @@ public class Utils {
         }
         return "";
     }
+
+    /**
+     * Force the timezone of a DateTime instance to UTC timezone. No other data is changed or converted.
+     * E.g. If localDateTime is '1970-01-01 10:00 BRL', then the return will be '1970-01-01 10:00 UTC'.
+     **/
+    public static DateTime forceTimeZoneToUTC(DateTime localDateTime) {
+        return new DateTime(localDateTime.getYearOfEra(),
+                localDateTime.getMonthOfYear(),
+                localDateTime.getDayOfMonth(),
+                localDateTime.getHourOfDay(),
+                localDateTime.getMinuteOfHour(),
+                DateTimeZone.UTC
+        );
+    }
+
+    /**
+     * If the local date and time at this very moment is '1970-01-01 10:00 BRL',
+     * then the return will be '1970-01-01 10:00 UTC'.
+     **/
+    public static DateTime getLocalDateTimeNowAsUTC() {
+        return forceTimeZoneToUTC(DateTime.now());
+    }
 }
