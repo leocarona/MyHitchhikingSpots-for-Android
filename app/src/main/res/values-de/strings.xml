@@ -92,7 +92,7 @@
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Datum</string>
     <string name="spot_form_time_label">Zeit</string>
-    <string name="spot_form_waiting_time_label">Warte Zeit (in minuten)</string>
+    <string name="spot_form_waiting_time_label">Warte Zeit</string>
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Wann</string>
     <string name="spot_form_more_options_edit_label">(bearbeiten)</string>

@@ -1242,7 +1242,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         DateTime date = GetDateTime(date_datepicker, time_timepicker);
         Integer minutes = Minutes.minutesBetween(date, Utils.getLocalDateTimeNowAsUTC()).getMinutes();
         waiting_time_edittext.setText(minutes.toString());
-        Toast.makeText(this, getResources().getString(R.string.spot_form_waiting_time_label) + ": " + minutes, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getResources().getString(R.string.spot_form_waiting_time_label) + ": " + Utils.getWaitingTimeAsString(minutes, this), Toast.LENGTH_LONG).show();
     }
 
 

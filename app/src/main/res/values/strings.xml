@@ -88,7 +88,7 @@ The Hitchwiki team.
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Date</string>
     <string name="spot_form_time_label">Time</string>
-    <string name="spot_form_waiting_time_label">Waiting time (in minutes)</string>
+    <string name="spot_form_waiting_time_label">Waiting time</string>
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">When</string>
     <string name="spot_form_more_options_edit_label">(edit)</string>
