@@ -26,7 +26,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -57,10 +56,10 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         totalsToDestinations = new Hashtable<>();
         //Integer totalWaitingTimeMinutes = 0;
         Integer totalRides = 0;
-        Date startDate = null;
+        DateTime startDateTime = null;
 
         if (data.size() > 1)
-            startDate = data.get(data.size() - 1).getStartDateTime();
+            startDateTime = data.get(data.size() - 1).getStartDateTime();
 
         //The spots are ordered from the last saved ones to the first saved ones, so we need to
         // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
@@ -78,9 +77,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 } else {
                     Integer minutes = 0;
 
-                    if (startDate != null) {
-                        DateTime startDateTime = new DateTime(startDate);
-                        DateTime endDateTime = new DateTime(spot.getStartDateTime());
+                    if (startDateTime != null) {
+                        DateTime endDateTime = spot.getStartDateTime();
                         minutes = Minutes.minutesBetween(startDateTime, endDateTime).getMinutes();
                     }
 
@@ -92,10 +90,10 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                     //totalWaitingTimeMinutes = 0;
                     totalRides = 0;
-                    startDate = null;
+                    startDateTime = null;
 
                     if (i - 1 >= 0)
-                        startDate = data.get(i - 1).getStartDateTime();
+                        startDateTime = data.get(i - 1).getStartDateTime();
                 }
             } catch (Exception ex) {
                 Crashlytics.logException(ex);

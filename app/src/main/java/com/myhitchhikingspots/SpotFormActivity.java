@@ -95,10 +95,10 @@ import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 import android.content.Intent;
 import android.os.Handler;
@@ -861,7 +861,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (!refreshDatetimeAlertDialogWasShown) {
             if (mFormType == FormType.Create && !shouldShowButtonsPanel) {
                 DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
-                final DateTime dateTimeNow = DateTime.now();
+                final DateTime dateTimeNow = DateTime.now(DateTimeZone.UTC);
                 int minutesPast = Minutes.minutesBetween(dateTime, dateTimeNow).getMinutes();
 
                 if (minutesPast > 10) {
@@ -870,12 +870,12 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                             .setTitle(getString(R.string.refresh_datetime_dialog_title))
                             .setMessage(String.format(
                                     getString(R.string.refresh_datetime_dialog_message),
-                                    minutesPast, Utils.dateTimeToString(dateTime.toDate()), Utils.dateTimeToString(dateTimeNow.toDate())))
+                                    minutesPast, Utils.dateTimeToString(dateTime), Utils.dateTimeToString(dateTimeNow)))
                             .setPositiveButton(getString(R.string.general_refresh_label), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     refreshDatetimeAlertDialogWasShown = true;
-                                    SetDateTime(date_datepicker, time_timepicker, dateTimeNow.toDate());
+                                    SetDateTime(date_datepicker, time_timepicker, dateTimeNow);
                                 }
 
                             })
@@ -1109,7 +1109,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             } else {
                 // In Create mode, SetDateTime will be called when the user clicks in "New spot" button (newSpotButtonHandler)
                 if (mFormType != FormType.Create || !shouldShowButtonsPanel) {
-                    Date spotStartDT = new Date();
+                    DateTime spotStartDT = DateTime.now(DateTimeZone.UTC);
                     if (mCurrentSpot.getStartDateTime() != null)
                         spotStartDT = mCurrentSpot.getStartDateTime();
                     SetDateTime(date_datepicker, time_timepicker, spotStartDT);
@@ -1240,7 +1240,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     public void calculateWaitingTime(View view) {
         DateTime date = GetDateTime(date_datepicker, time_timepicker);
-        Integer minutes = Minutes.minutesBetween(date, DateTime.now()).getMinutes();
+        Integer minutes = Minutes.minutesBetween(date, DateTime.now(DateTimeZone.UTC)).getMinutes();
         waiting_time_edittext.setText(minutes.toString());
         Toast.makeText(this, getResources().getString(R.string.spot_form_waiting_time_label) + ": " + minutes, Toast.LENGTH_LONG).show();
     }
@@ -1270,7 +1270,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     public void newSpotButtonHandler(View view) {
         shouldShowButtonsPanel = false;
 
-        SetDateTime(date_datepicker, time_timepicker, new Date());
+        SetDateTime(date_datepicker, time_timepicker, DateTime.now(DateTimeZone.UTC));
         panel_buttons.setVisibility(View.GONE);
         panel_info.setVisibility(View.VISIBLE);
 
@@ -1352,7 +1352,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
             //Set chosen date & time
             DateTime dateTime = GetDateTime(date_datepicker, time_timepicker);
-            mCurrentSpot.setStartDateTime(dateTime.toDate());
+            mCurrentSpot.setStartDateTime(dateTime);
 
             if (!evaluate_menuitem.isEnabled()) {
                 mCurrentSpot.setAttemptResult(Constants.ATTEMPT_RESULT_UNKNOWN);
@@ -1751,7 +1751,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
 
-    public void SetDateTime(DatePicker datePicker, TimePicker timePicker, Date date) {
+    public void SetDateTime(DatePicker datePicker, TimePicker timePicker, DateTime date) {
         selected_date.setText(Utils.dateTimeToString(date));
 
         DateTime dateTime = new DateTime(date);
@@ -1762,7 +1762,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(Utils.dateTimeToString(selectedDateTime.toDate()));
+                selected_date.setText(Utils.dateTimeToString(selectedDateTime));
             }
         });
 
@@ -1779,7 +1779,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onTimeChanged(TimePicker var1, int var2, int var3) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(Utils.dateTimeToString(selectedDateTime.toDate()));
+                selected_date.setText(Utils.dateTimeToString(selectedDateTime));
             }
         });
     }
@@ -1797,7 +1797,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
 
         DateTime dateTime = new DateTime(datePicker.getYear(), datePicker.getMonth() + 1, datePicker.getDayOfMonth(),
-                hour, minute); // Must always add 1 to datePickers getMounth returned value, as it is 0 based
+                hour, minute, DateTimeZone.UTC); // Must always add 1 to datePickers getMounth returned value, as it is 0 based
         return dateTime;
     }
 

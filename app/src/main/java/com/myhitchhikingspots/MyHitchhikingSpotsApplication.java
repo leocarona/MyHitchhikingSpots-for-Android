@@ -13,6 +13,9 @@ import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import hitchwikiMapsSDK.classes.APIConstants;
 import io.fabric.sdk.android.Fabric;
 
@@ -150,7 +153,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(55.351012);
         spot.setLongitude(10.409609);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(2);
@@ -165,7 +168,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(55.389869);
         spot.setLongitude(11.359358);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(25);
@@ -181,7 +184,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(55.668537);
         spot.setLongitude(12.556718);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(true);
         spot.setGpsResolved(true);
         spot.setWaitingTime(45);
@@ -199,7 +202,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(55.650766);
         spot.setLongitude(12.507314);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(6);
@@ -215,7 +218,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(55.659183);
         spot.setLongitude(11.675878);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(23);
@@ -232,7 +235,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLongitude(11.301391);
         spot.setNote("Decided to pay for the ferry, didn't get a ride.");
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(5);
@@ -249,7 +252,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLongitude(10.220832);
         spot.setNote("Hitchhiked a car leaving the ferry.");
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(10);
@@ -265,7 +268,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(57.738293);
         spot.setLongitude(10.632600);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(true);
         spot.setGpsResolved(true);
         spot.setWaitingTime(15);
@@ -283,7 +286,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(57.725531);
         spot.setLongitude(10.559977);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(67);
@@ -299,7 +302,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(56.426606);
         spot.setLongitude(9.389536);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(2);
@@ -314,7 +317,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(56.153862);
         spot.setLongitude(9.009223);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(30);
@@ -330,7 +333,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setLatitude(55.683155);
         spot.setLongitude(9.562681);
         spot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setGpsResolved(true);
         spot.setWaitingTime(15);
@@ -345,7 +348,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot.setCountry("Denmark");
         spot.setLatitude(55.556310);
         spot.setLongitude(9.728092);
-        spot.setStartDateTime(spotStartDateTime.getTime());
+        spot.setStartDateTimeMillis(spotStartDateTime.getTimeInMillis());
         spot.setIsDestination(false);
         spot.setIsWaitingForARide(true);
         spot.setGpsResolved(true);
@@ -370,7 +373,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot1.setLongitude(-43.940933);
         spot1.setHitchability(1);
         spot1.setAttemptResult(1);
-        spot1.setStartDateTime(new GregorianCalendar(2011, 11, 11, 8, 00, 00).getTime());
+        spot1.setStartDateTimeMillis(new GregorianCalendar(2011, 11, 11, 8, 00, 00).getTimeInMillis());
         spot1.setIsPartOfARoute(true);
 
         Spot spot2 = new Spot();
@@ -384,7 +387,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot2.setLongitude(-43.19639);
         spot2.setHitchability(2);
         spot2.setAttemptResult(2);
-        spot2.setStartDateTime(new GregorianCalendar(2011, 11, 11, 10, 10, 00).getTime());
+        spot2.setStartDateTimeMillis(new GregorianCalendar(2011, 11, 11, 10, 10, 00).getTimeInMillis());
         spot2.setIsPartOfARoute(true);
 
         Spot spot3 = new Spot();
@@ -396,7 +399,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot3.setCountry("Brazil");
         spot3.setLatitude(13.69000);
         spot3.setLongitude(-89.19000);
-        spot3.setStartDateTime(new GregorianCalendar(2011, 11, 11, 16, 30, 00).getTime());
+        spot3.setStartDateTimeMillis(new GregorianCalendar(2011, 11, 11, 16, 30, 00).getTimeInMillis());
         spot3.setIsDestination(true);
         spot3.setIsPartOfARoute(true);
 
@@ -411,7 +414,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot4.setHitchability(1);
         spot4.setAttemptResult(1);
         spot4.setWaitingTime(50);
-        spot4.setStartDateTime(new GregorianCalendar(2012, 11, 11, 10, 00, 00).getTime());
+        spot4.setStartDateTimeMillis(new GregorianCalendar(2012, 11, 11, 10, 00, 00).getTimeInMillis());
         spot4.setIsPartOfARoute(true);
 
 
@@ -427,7 +430,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot5.setHitchability(3);
         spot5.setAttemptResult(1);
         spot5.setWaitingTime(15);
-        spot5.setStartDateTime(new GregorianCalendar(2012, 11, 11, 12, 00, 00).getTime());
+        spot5.setStartDateTimeMillis(new GregorianCalendar(2012, 11, 11, 12, 00, 00).getTimeInMillis());
         spot5.setIsPartOfARoute(true);
 
 
@@ -440,7 +443,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot6.setLatitude(42.698334);
         spot6.setLongitude(23.319941);
         spot6.setIsDestination(true);
-        spot6.setStartDateTime(new GregorianCalendar(2012, 11, 11, 14, 10, 00).getTime());
+        spot6.setStartDateTimeMillis(new GregorianCalendar(2012, 11, 11, 14, 10, 00).getTimeInMillis());
         spot6.setIsPartOfARoute(true);
 
 
@@ -458,7 +461,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot7.setWaitingTime(10);
         GregorianCalendar gcDate = new GregorianCalendar();
         gcDate.add(Calendar.MINUTE, -240);
-        spot7.setStartDateTime(gcDate.getTime());
+        spot7.setStartDateTimeMillis(gcDate.getTimeInMillis());
         spot7.setIsPartOfARoute(true);
 
         Spot spot8 = new Spot();
@@ -471,7 +474,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         spot8.setLatitude(41.015137);
         spot8.setLongitude(28.979530);
         spot8.setHitchability(3);
-        spot8.setStartDateTime(new Date());
+        spot8.setStartDateTime(DateTime.now(DateTimeZone.UTC));
         spot8.setIsWaitingForARide(true);
         spot8.setIsPartOfARoute(true);
 

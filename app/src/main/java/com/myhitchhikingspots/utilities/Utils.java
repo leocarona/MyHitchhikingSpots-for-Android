@@ -38,6 +38,9 @@ import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.Spot;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -462,22 +465,20 @@ public class Utils {
     }
 
     @NonNull
-    public static String dateTimeToString(Date dt) {
+    public static String dateTimeToString(DateTime dt) {
         return dateTimeToString(dt, ", ");
     }
 
     @NonNull
-    public static String dateTimeToString(Date dt, String separator) {
+    public static String dateTimeToString(DateTime dt, String separator) {
         if (dt != null) {
-            SimpleDateFormat res;
             String dateFormat = "dd/MMM'" + separator + "'HH:mm";
 
             if (Locale.getDefault() == Locale.US)
                 dateFormat = "MMM/dd'" + separator + "'HH:mm";
 
             try {
-                res = new SimpleDateFormat(dateFormat);
-                return res.format(dt);
+                return DateTimeFormat.forPattern(dateFormat).print(dt.toInstant());
             } catch (Exception ex) {
                 Crashlytics.setString("date", dt.toString());
                 Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());

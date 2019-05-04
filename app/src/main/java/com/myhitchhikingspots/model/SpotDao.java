@@ -35,7 +35,7 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         public final static Property IsReverseGeocoded = new Property(10, Boolean.class, "IsReverseGeocoded", false, "IS_REVERSE_GEOCODED");
         public final static Property Note = new Property(11, String.class, "Note", false, "NOTE");
         public final static Property Description = new Property(12, String.class, "Description", false, "DESCRIPTION");
-        public final static Property StartDateTime = new Property(13, java.util.Date.class, "StartDateTime", false, "START_DATE_TIME");
+        public final static Property StartDateTime = new Property(13, Long.class, "StartDateTime", false, "START_DATE_TIME");
         public final static Property WaitingTime = new Property(14, Integer.class, "WaitingTime", false, "WAITING_TIME");
         public final static Property Hitchability = new Property(15, Integer.class, "Hitchability", false, "HITCHABILITY");
         public final static Property AttemptResult = new Property(16, Integer.class, "AttemptResult", false, "ATTEMPT_RESULT");
@@ -162,9 +162,9 @@ public class SpotDao extends AbstractDao<Spot, Long> {
             stmt.bindString(13, Description);
         }
  
-        java.util.Date StartDateTime = entity.getStartDateTime();
+        Long StartDateTime = entity.getStartDateTimeMillis();
         if (StartDateTime != null) {
-            stmt.bindLong(14, StartDateTime.getTime());
+            stmt.bindLong(14, StartDateTime);
         }
  
         Integer WaitingTime = entity.getWaitingTime();
@@ -287,9 +287,9 @@ public class SpotDao extends AbstractDao<Spot, Long> {
             stmt.bindString(13, Description);
         }
  
-        java.util.Date StartDateTime = entity.getStartDateTime();
+        Long StartDateTime = entity.getStartDateTimeMillis();
         if (StartDateTime != null) {
-            stmt.bindLong(14, StartDateTime.getTime());
+            stmt.bindLong(14, StartDateTime);
         }
  
         Integer WaitingTime = entity.getWaitingTime();
@@ -364,7 +364,7 @@ public class SpotDao extends AbstractDao<Spot, Long> {
             cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0, // IsReverseGeocoded
             cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11), // Note
             cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12), // Description
-            cursor.isNull(offset + 13) ? null : new java.util.Date(cursor.getLong(offset + 13)), // StartDateTime
+            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // StartDateTime
             cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14), // WaitingTime
             cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15), // Hitchability
             cursor.isNull(offset + 16) ? null : cursor.getInt(offset + 16), // AttemptResult
@@ -394,7 +394,7 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         entity.setIsReverseGeocoded(cursor.isNull(offset + 10) ? null : cursor.getShort(offset + 10) != 0);
         entity.setNote(cursor.isNull(offset + 11) ? null : cursor.getString(offset + 11));
         entity.setDescription(cursor.isNull(offset + 12) ? null : cursor.getString(offset + 12));
-        entity.setStartDateTime(cursor.isNull(offset + 13) ? null : new java.util.Date(cursor.getLong(offset + 13)));
+        entity.setStartDateTimeMillis(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
         entity.setWaitingTime(cursor.isNull(offset + 14) ? null : cursor.getInt(offset + 14));
         entity.setHitchability(cursor.isNull(offset + 15) ? null : cursor.getInt(offset + 15));
         entity.setAttemptResult(cursor.isNull(offset + 16) ? null : cursor.getInt(offset + 16));

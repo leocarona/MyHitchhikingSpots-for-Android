@@ -45,7 +45,7 @@ public class DaoGenerator {
         spot.addStringProperty("Note");
         spot.addStringProperty("Description");
 
-        spot.addDateProperty("StartDateTime");
+        spot.addLongProperty("StartDateTime");
         spot.addIntProperty("WaitingTime");
 
         spot.addIntProperty("Hitchability");

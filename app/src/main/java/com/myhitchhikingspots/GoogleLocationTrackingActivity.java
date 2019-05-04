@@ -113,7 +113,7 @@ public class GoogleLocationTrackingActivity extends TrackLocationBaseActivity {
                     return;
                 mCurrentSpot = new Spot();
                 mCurrentSpot.setIsHitchhikingSpot(true);
-                mCurrentSpot.setStartDateTime(new Date());
+                mCurrentSpot.setStartDateTime(new DateTime());
                 mCurrentSpot.setIsWaitingForARide(true);
                 mCurrentSpot.setIsDestination(false);
                 mCurrentSpot.setLatitude(mCurrentLocation.getLatitude());
