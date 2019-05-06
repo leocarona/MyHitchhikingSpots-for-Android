@@ -63,6 +63,7 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 
 import hitchwikiMapsSDK.classes.APICallCompletionListener;
+import hitchwikiMapsSDK.classes.APIConstants;
 import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoComplete;
@@ -97,6 +98,7 @@ import com.myhitchhikingspots.utilities.Utils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Minutes;
+import org.joda.time.format.DateTimeFormat;
 
 import java.util.ArrayList;
 
@@ -1104,16 +1106,15 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             else
                 mDeleteButton.setVisibility(View.GONE);
 
-            if (shouldRetrieveDetailsFromHW) {
-                datePanel.setVisibility(View.GONE);
-            } else {
-                // In Create mode, SetDateTime will be called when the user clicks in "New spot" button (newSpotButtonHandler)
-                if (mFormType != FormType.Create || !shouldShowButtonsPanel) {
-                    DateTime spotStartDT = Utils.getLocalDateTimeNowAsUTC();
-                    if (mCurrentSpot.getStartDateTime() != null)
-                        spotStartDT = mCurrentSpot.getStartDateTime();
-                    SetDateTime(date_datepicker, time_timepicker, spotStartDT);
-                }
+            if (shouldRetrieveDetailsFromHW)
+                findViewById(R.id.imageView4).setEnabled(false);
+
+            // In Create mode, SetDateTime will be called when the user clicks in "New spot" button (newSpotButtonHandler)
+            if (mFormType != FormType.Create || !shouldShowButtonsPanel) {
+                DateTime spotStartDT = Utils.getLocalDateTimeNowAsUTC();
+                if (mCurrentSpot.getStartDateTime() != null)
+                    spotStartDT = mCurrentSpot.getStartDateTime();
+                SetDateTime(date_datepicker, time_timepicker, spotStartDT);
             }
 
             //If mFormType is Evaluate or WaitingTime wasn't set, leave the waiting time field empty
@@ -2189,6 +2190,12 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     mCurrentSpot.setCountry(placeWithCompleteDetails.getCountry_name());
                     mCurrentSpot.setCity(placeWithCompleteDetails.getLocality());
 
+                    if (placeWithCompleteDetails.getDescriptionENdatetime() != null && !placeWithCompleteDetails.getDescriptionENdatetime().isEmpty()) {
+                        DateTime extractedDateTime = DateTimeFormat.forPattern(APIConstants.PLACE_INFO_DATETIME_FORMAT).withZone(DateTimeZone.UTC)
+                                .parseDateTime(placeWithCompleteDetails.getDescriptionENdatetime());
+                        mCurrentSpot.setStartDateTime(extractedDateTime);
+                    }
+                    
                     //If a waiting time was informed, convert it into Integer
                     String waiting_stats_avg = placeWithCompleteDetails.getWaiting_stats_avg();
                     if (waiting_stats_avg != null && !waiting_stats_avg.equalsIgnoreCase("null") && !waiting_stats_avg.isEmpty())

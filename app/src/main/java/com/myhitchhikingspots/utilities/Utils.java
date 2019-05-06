@@ -532,10 +532,13 @@ public class Utils {
     @NonNull
     public static String dateTimeToString(DateTime dt, String separator) {
         if (dt != null) {
-            String dateFormat = "dd/MMM'" + separator + "'HH:mm";
+            String dateFormat = "dd/MMM";
 
-            if (Locale.getDefault() == Locale.US)
-                dateFormat = "MMM/dd'" + separator + "'HH:mm";
+            //Check whether displayer the year would be useful
+            if (dt.getYearOfEra() != DateTime.now(DateTimeZone.UTC).getYearOfEra())
+                dateFormat += "/yyyy";
+
+            dateFormat += "'" + separator + "'HH:mm";
 
             try {
                 return DateTimeFormat.forPattern(dateFormat).print(dt.toInstant());

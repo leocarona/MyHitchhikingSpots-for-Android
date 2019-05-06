@@ -44,6 +44,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         APIConstants.ENDPOINT_PREFIX = getResources().getString(R.string.hitchwikiEndpointPrefix);
         APIConstants.PLACE_INFO = "?" + getResources().getString(R.string.hitchwikiPlaceInfo);
         APIConstants.PLACE_INFO_BASIC_POSTFIX = getResources().getString(R.string.hitchwikiPlaceInfoPostfix);
+        APIConstants.PLACE_INFO_DATETIME_FORMAT =  getResources().getString(R.string.hitchwikiPlaceInfoDateTimeFormat);
         APIConstants.LIST_PLACES_FROM_AREA = "?" + getResources().getString(R.string.hitchwikiBounds);
         APIConstants.LIST_PLACES_BY_CITY = "?" + getResources().getString(R.string.hitchwikiCity);
         APIConstants.LIST_PLACES_BY_COUNTRY = "?" + getResources().getString(R.string.hitchwikiCountry);

@@ -7,6 +7,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 import org.junit.Test;
 
 public class UtilsUnitTests {
@@ -114,8 +115,15 @@ public class UtilsUnitTests {
     }
 
     @Test
-    public void dateTimeToString_dateTimeInUTC_ReturnDayMonthAndTime() {
-        DateTime dateTimeInUTC = new DateTime(2019, 1, 1, 12, 0, 0, DateTimeZone.UTC);
+    public void dateTimeToString_dateTimeInUTCOnADifferentYear_ReturnDayMonthYearAndTime() {
+        DateTime dateTimeInUTC = new DateTime(2015, 1, 1, 12, 0, 0, DateTimeZone.UTC);
+
+        assertThat(Utils.dateTimeToString(dateTimeInUTC)).isEqualTo("01/Jan/2015, 12:00");
+    }
+
+    @Test
+    public void dateTimeToString_dateTimeInUTCOnTheSameYear_ReturnDayMonthAndTimeWithoutYear() {
+        DateTime dateTimeInUTC = new DateTime(DateTime.now(DateTimeZone.UTC).getYearOfEra(), 1, 1, 12, 0, 0, DateTimeZone.UTC);
 
         assertThat(Utils.dateTimeToString(dateTimeInUTC)).isEqualTo("01/Jan, 12:00");
     }
