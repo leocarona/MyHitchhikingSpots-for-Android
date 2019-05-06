@@ -307,9 +307,6 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
         if (!isStoragePermissionsGranted(this))
             requestStoragePermissions(this);
         else {
-            //Create a record to track usage of Import Database button
-            Answers.getInstance().logCustom(new CustomEvent("Database imported"));
-
             FilePickerDialog dialog = new FilePickerDialog();
             //Add listener to be called when task finished
             dialog.addListener(new AsyncTaskListener<File>() {
@@ -363,22 +360,38 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
         t.addListener(new AsyncTaskListener<ArrayList<String>>() {
             @Override
             public void notifyTaskFinished(Boolean success, ArrayList<String> messages) {
-                String title = getString(R.string.general_import_finished_successful_message);
-
-                if (!success)
-                    title = getString(R.string.general_import_finished_failed_message);
-
-                showErrorAlert(title, TextUtils.join("\n", messages));
+                String title = "";
 
                 //Show toast
                 if (success) {
+                    title = getString(R.string.general_import_finished_successful_message);
+
                     prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
 
                     Toast.makeText(getBaseContext(), title, Toast.LENGTH_SHORT).show();
+
+                    String eventName = "Database import success";
+                    if (shouldFixStartDates) {
+                        eventName += " - ";
+                        if (userAlreadyAnswered)
+                            eventName += "StartDateTime have been fixed by user's choice";
+                        else
+                            eventName += "StartDateTime have been automatically fixed";
+                    }
+                    //Create a record to track database import
+                    Answers.getInstance().logCustom(new CustomEvent(eventName));
+
+                } else {
+                    title = getString(R.string.general_import_finished_failed_message);
+
+                    Answers.getInstance().logCustom(new CustomEvent("Database import failed"));
                 }
+
+                showErrorAlert(title, TextUtils.join("\n", messages));
 
                 //Reset this flag so that we verify whether we need to ask the user again if he chooses to import a second file
                 userAlreadyAnswered = false;
+                shouldFixStartDates = false;
             }
         });
 
@@ -461,9 +474,6 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
             requestStoragePermissions(this);
         else {
             try {
-                //Create a record to track usage of Export Database button
-                Answers.getInstance().logCustom(new CustomEvent("Database exported"));
-
                 DatabaseExporter t = new DatabaseExporter(this);
                 //Add listener to be called when task finished
                 t.addListener(new AsyncTaskListener<String>() {
@@ -481,8 +491,15 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
                             //Show toast
                             Toast.makeText(getBaseContext(), getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
-                        } else
+
+                            //Create a record to track Export Database success
+                            Answers.getInstance().logCustom(new CustomEvent("Database export success"));
+                        } else {
                             showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
+
+                            //Create a record to track Export Database failure
+                            Answers.getInstance().logCustom(new CustomEvent("Database export failed"));
+                        }
                     }
                 });
                 t.execute();

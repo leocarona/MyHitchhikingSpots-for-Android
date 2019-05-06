@@ -3,6 +3,8 @@ package com.myhitchhikingspots;
 import android.os.AsyncTask;
 
 import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -68,6 +70,10 @@ public class FixSpotsStartDateTimeAsyncTask extends AsyncTask<MyHitchhikingSpots
         super.onPostExecute(spotList);
         if (this.isCancelled())
             return;
+
+        //Create a record to track when all StartDateTime have been automatically fixed (if there was any spot on the list)
+        if (!spotList.isEmpty())
+            Answers.getInstance().logCustom(new CustomEvent("StartDateTime automatically fixed"));
 
         callback.setupData(spotList, mCurrentWaitingSpot, errMsg);
     }
