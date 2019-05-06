@@ -899,26 +899,25 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
             try {
                 if (!lstToDownload.isEmpty()) {
-                res = "spotsDownloaded";
-                String[] codes = lstToDownload.split(DownloadHWSpotsDialog.LIST_SEPARATOR);
+                    res = "spotsDownloaded";
+                    String[] codes = lstToDownload.split(DownloadHWSpotsDialog.LIST_SEPARATOR);
 
-                switch (typeToDownload) {
-                    case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
+                    switch (typeToDownload) {
+                        case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
 
-                        for (String continentCode : codes) {
+                            for (String continentCode : codes) {
                                 Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinent");
                                 hitchwikiAPI.getPlacesByContinent(continentCode, getPlacesByArea);
-                        }
-                        break;
-                    case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
-                        for (String countryCode : codes) {
+                            }
+                            break;
+                        case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
+                            for (String countryCode : codes) {
                                 Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByCountry");
                                 hitchwikiAPI.getPlacesByCountry(countryCode, getPlacesByArea);
 
                         }
                         break;
                 }
-            }
             } catch (Exception ex) {
                 if (ex.getMessage() != null)
                     res = ex.getMessage();
