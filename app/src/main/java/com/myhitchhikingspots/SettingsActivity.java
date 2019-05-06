@@ -308,7 +308,7 @@ public class SettingsActivity extends BaseActivity {
     }
 
     void importPickedFile(File fileToImport) {
-        DatabaseImporter t = new DatabaseImporter(context, fileToImport);
+        DatabaseImporter t = new DatabaseImporter(context, fileToImport, false);
 
         //Add listener to be called when task finished
         t.addListener(new AsyncTaskListener<ArrayList<String>>() {

@@ -230,10 +230,73 @@ public class Utils {
         return result;
     }
 
-    public static String getExportFileName(DateTime date) {
-        String dt = DateTimeFormat.forPattern(Constants.EXPORT_CSV_FILENAME_FORMAT).print(date.toInstant());
+    /**
+     * Get a name for a file exported on the given date and timezone. The format of this date will follow the format specified by Constants.EXPORT_CSV_FILENAME_FORMAT.
+     *
+     * @param date The datetime when the file is/was generated.
+     * @param zone The desired timezone to name the file. It is recommended to use DateTimeZone.getDefault() when exporting a file for the user, so he gets it named on his local timezone.
+     **/
+    public static String getNewExportFileName(DateTime date, DateTimeZone zone) {
+        String dt = DateTimeFormat.forPattern(Constants.EXPORT_CSV_FILENAME_FORMAT).withZone(zone).print(date.toInstant());
         return dt + Constants.INTERNAL_DB_FILE_NAME + Constants.EXPORT_DB_AS_CSV_FILE_EXTENSION;
     }
+
+    /**
+     * Extract the datetime from the name of a file exported before version 27. An exception will be thrown if fileName doesn't follow the format specified by Constants.OLD_EXPORT_CSV_FILENAME_FORMAT.
+     *
+     * @param fileName The name of the file with a datetime of when it was generated. e.g. '2019_01_01_1200-my-hitchhiking-spots.csv'
+     * @param zone     The default timezone on the device when the file name has been generated. E.g. if zone corresponds to Sao Paulo, then we'd get '2019_01_01 12:00-2:00' because -2 was the local offset (BRST) from UTC on that date.
+     * @return A datetime instance in the specified zone.
+     **/
+    protected static DateTime extractDateTimeFromOldFileName(String fileName, DateTimeZone zone) {
+        //Number of chars in the name of files that have been exported before app version 27. Refer to: Constants.OLD_EXPORT_CSV_FILENAME_FORMAT
+        int numOfCharsInFileNames = 16; //"yyyy_MM_dd_HHmm-".length();
+        String formattedDateTime = fileName.substring(0, numOfCharsInFileNames);
+        return DateTimeFormat.forPattern(Constants.OLD_EXPORT_CSV_FILENAME_FORMAT).withZone(zone).parseDateTime(formattedDateTime);
+    }
+
+    /**
+     * Extract the datetime from the name of a file exported after version 27. An exception will be thrown if fileName doesn't follow the format specified by Constants.EXPORT_CSV_FILENAME_FORMAT.
+     *
+     * @param fileName The name of the file with a datetime of when it was generated. e.g. '2019_01_01_1200-0000#my-hitchhiking-spots.csv'
+     * @param zone     The timezone in which you want the extracted datetime.
+     * @return A datetime instance in the specified zone.
+     **/
+    protected static DateTime extractDateTimeFromNewFileName(String fileName, DateTimeZone zone) {
+        //Number of chars in the name of files that have been exported after app version 27. Refer to: Constants.EXPORT_CSV_FILENAME_FORMAT
+        int numOfCharsInNewFileNames = 21; //"yyyy_MM_dd_HHmm-0000#".length();
+        String formattedDateTime = fileName.substring(0, numOfCharsInNewFileNames);
+
+        return DateTimeFormat.forPattern(Constants.EXPORT_CSV_FILENAME_FORMAT).withZone(zone).parseDateTime(formattedDateTime);
+    }
+
+    /**
+     * Extract the datetime from a file name.
+     * An exception will be thrown if fileName doesn't follow any of the two formats
+     * Constants.EXPORT_CSV_FILENAME_FORMAT or Constants.OLD_EXPORT_CSV_FILENAME_FORMAT.
+     *
+     * @param fileName The name of the file with a datetime of when it was generated.
+     *                 e.g. '2019_01_01_1200-my-hitchhiking-spots.csv',
+     *                 '2019_01_01_1200-0000#my-hitchhiking-spots.csv',
+     *                 '2019_01_01_1200-0000#anything-else.csv'.
+     * @param zone     The timezone of the device when the file has been generated.
+     * @return A datetime instance in the specified zone.
+     **/
+    public static DateTime extractDateTimeFromFileName(String fileName, DateTimeZone zone) throws IllegalArgumentException {
+        try {
+            return extractDateTimeFromNewFileName(fileName, zone);
+        } catch (Exception ex) {
+        }
+
+        try {
+            return extractDateTimeFromOldFileName(fileName, zone);
+        } catch (Exception ex) {
+        }
+
+        throw new IllegalArgumentException("No datetime could be extracted from the given file name (" + fileName + ")",
+                new Throwable("The specified name of file doesn't seem to have a datetime in any acceptable format. " +
+                        "An acceptable file name would start with: '" +
+                        Constants.EXPORT_CSV_FILENAME_FORMAT + "' or '" + Constants.OLD_EXPORT_CSV_FILENAME_FORMAT + "'."));
     }
 
     public static String getLocalStoragePathToFile(String destinationFileName, Context context) {

@@ -55,7 +55,8 @@ public final class Constants {
     public static final String EXPORTED_DB_STORAGE_PATH = SDCARD_STORAGE_PATH + "/App_backup";
     public static final String INTERNAL_DB_FILE_NAME = "my_hitchhiking_spots";
     public static final String INTERNAL_DB_FILE_EXTENSION = ".db";
-    public static final String EXPORT_CSV_FILENAME_FORMAT = "yyyy_MM_dd_HHmm-";
+    public static final String OLD_EXPORT_CSV_FILENAME_FORMAT = "yyyy_MM_dd_HHmm-";
+    public static final String EXPORT_CSV_FILENAME_FORMAT = "yyyy_MM_dd_HHmmZ#";
     public static final String EXPORT_DB_AS_CSV_FILE_EXTENSION = ".csv";
     public static final String HITCHWIKI_MAPS_STORAGE_OLDPATH = SDCARD_STORAGE_PATH + "/markersStorageFolder/";
     public static final String HITCHWIKI_MAPS_STORAGE_PATH = SDCARD_STORAGE_PATH + "/HitchwikiMapsDownloads/";
@@ -97,4 +98,6 @@ public final class Constants {
     public static final int RESULT_OBJECT_ADDED = 2;
     public static final int RESULT_OBJECT_EDITED = 3;
     public static final int RESULT_OBJECT_DELETED = 4;
+
+    public static final String APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME = "2019-05-05T00:00Z";
 }
