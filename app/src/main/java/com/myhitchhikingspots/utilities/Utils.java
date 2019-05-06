@@ -12,6 +12,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.InvalidPropertiesFormatException;
 import java.util.Locale;
 
 import android.annotation.SuppressLint;
@@ -504,5 +505,10 @@ public class Utils {
      **/
     public static DateTime getLocalDateTimeNowAsUTC() {
         return forceTimeZoneToUTC(DateTime.now());
+    }
+
+    public static DateTime fixDateTime(Long millis) {
+        DateTime dtInLocalTime = new DateTime(millis);
+        return Utils.forceTimeZoneToUTC(dtInLocalTime);
     }
 }

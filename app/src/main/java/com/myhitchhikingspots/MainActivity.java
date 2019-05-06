@@ -18,7 +18,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -27,7 +26,6 @@ import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoutesTask.onPostExecute, NavigationView.OnNavigationItemSelectedListener {
@@ -49,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     private ActionBarDrawerToggle drawerToggle;
 
     private AsyncTask loadTask;
+    private AsyncTask fixSpotsStartDateTimeTask;
 
     SharedPreferences prefs;
 
@@ -444,6 +443,11 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             this.loadTask.cancel(false);
             dismissProgressDialog();
         }
+
+        if (this.fixSpotsStartDateTimeTask != null) {
+            this.fixSpotsStartDateTimeTask.cancel(false);
+            dismissProgressDialog();
+        }
     }
 
     /**
@@ -468,6 +472,15 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+            return;
+        }
+
+        // If spots StartDateTime were not fixed yet, then execute FixSpotsStartDateTimeAsyncTask to fix them.
+        // Once FixSpotsStartDateTimeAsyncTask is finished, this method (setupData) will be called again.
+        // Make sure FixSpotsStartDateTimeAsyncTask is called only once at the first time when the app is updated.
+        if (!prefs.getBoolean(Constants.PREFS_SPOTSSTARTDATETIME_WERE_FIXED, false)) {
+            this.fixSpotsStartDateTimeTask = new FixSpotsStartDateTimeAsyncTask(this, spotList, mCurrentWaitingSpot).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
+            prefs.edit().putBoolean(Constants.PREFS_SPOTSSTARTDATETIME_WERE_FIXED, true).apply();
             return;
         }
 

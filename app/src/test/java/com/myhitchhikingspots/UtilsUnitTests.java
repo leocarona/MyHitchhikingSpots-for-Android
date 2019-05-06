@@ -51,8 +51,11 @@ public class UtilsUnitTests {
     public void getExportFileName_dateInLocalTimezone_ReturnsFileNameContainingTheSameDate() {
         DateTime date = new DateTime(2019, 1, 1, 12, 0, 0, DateTimeZone.UTC);
         String expectedFormattedString = "2019_01_01_1200-my_hitchhiking_spots.csv";
+    @Test
+    public void dateTimeToString_dateTimeInUTC_ReturnDayMonthAndTime() {
+        DateTime dateTimeInUTC = new DateTime(2019, 1, 1, 12, 0, 0, DateTimeZone.UTC);
 
-        assertThat(Utils.getExportFileName(date)).isEqualTo(expectedFormattedString);
+        assertThat(Utils.dateTimeToString(dateTimeInUTC)).isEqualTo("01/Jan, 12:00");
     }
 }
 

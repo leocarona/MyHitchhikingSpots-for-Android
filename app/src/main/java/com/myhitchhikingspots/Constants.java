@@ -70,6 +70,7 @@ public final class Constants {
     public static final String PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW = "shouldLoadCurrentView";
     public static final String PREFS_MAPBOX_WAS_EVER_LOADED = "mapBoxWasEverLoaded";
     public static final String PREFS_HITCHWIKI_STORAGE_RENAMED = "hitchwikiStorageRenamed";
+    public static final String PREFS_SPOTSSTARTDATETIME_WERE_FIXED = "startDateTimesFixed";
 
     public static final String PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD = "PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD";
     public static final String PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD = "PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD";
