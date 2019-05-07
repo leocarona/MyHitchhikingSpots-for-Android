@@ -1,14 +1,9 @@
 package com.myhitchhikingspots.utilities;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
-import com.mapbox.mapboxsdk.annotations.BaseMarkerOptions;
 import com.mapbox.mapboxsdk.annotations.BaseMarkerViewOptions;
-import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerView;
-import com.mapbox.mapboxsdk.annotations.MarkerViewOptions;
 import com.myhitchhikingspots.Constants;
 
 /**

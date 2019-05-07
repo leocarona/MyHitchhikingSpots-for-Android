@@ -1,9 +1,8 @@
 package com.myhitchhikingspots;
 
-import android.app.Application;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -14,14 +13,10 @@ import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.Utils;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
 import hitchwikiMapsSDK.classes.APIConstants;
 import io.fabric.sdk.android.Fabric;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 

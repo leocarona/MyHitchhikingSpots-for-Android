@@ -11,9 +11,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.InvalidPropertiesFormatException;
-import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -21,7 +18,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.format.DateUtils;
 import android.util.Log;
 

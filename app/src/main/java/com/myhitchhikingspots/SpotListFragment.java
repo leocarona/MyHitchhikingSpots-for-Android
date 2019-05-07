@@ -4,11 +4,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -234,9 +234,9 @@ public class SpotListFragment extends Fragment {
 
     void updateDeleteButtons() {
         if (mAdapter != null && mAdapter.getSelectedSpots().size() > 0)
-            fabDelete.setVisibility(View.VISIBLE);
+            fabDelete.show();
         else
-            fabDelete.setVisibility(View.GONE);
+            fabDelete.hide();
     }
 
     public void setIsEditMode(Boolean isEditMode) {
