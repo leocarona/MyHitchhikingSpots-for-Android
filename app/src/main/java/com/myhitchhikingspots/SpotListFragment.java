@@ -259,9 +259,18 @@ public class SpotListFragment extends Fragment {
             }
         } catch (Exception ex) {
             Crashlytics.logException(ex);
-            ((TrackLocationBaseActivity) getActivity()).showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Updating UI on fragment 2 - " + ex.getMessage()));
         }
+    }
+
+    protected void showErrorAlert(String title, String msg) {
+        new AlertDialog.Builder(getContext())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
+                .show();
     }
 
     @Override

@@ -41,10 +41,6 @@ limitations under the License.
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".SampleBasicActivity"
-            android:label="@string/sample_basic_master_title"
-            android:theme="@style/Theme.Base.NoActionBar" />
-        <activity
             android:name=".SpotFormActivity"
             android:label="@string/title_activity_scrolling"
             android:theme="@style/Theme.Base.NoActionBar">

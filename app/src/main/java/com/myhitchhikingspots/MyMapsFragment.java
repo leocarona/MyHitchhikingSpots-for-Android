@@ -970,8 +970,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 break;
             case R.id.action_new_spot:
                 //If mapboxMap was not loaded, we can't track the user location using MapBox.
-                // Let's give the user an option to track his location using Google Play services instead, which is done by {@link #TrackLocationBaseActivity}
-                if (mapboxMap == null) {
+                 if (mapboxMap == null) {
                     new AlertDialog.Builder(activity)
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setTitle(getString(R.string.save_spot_button_text))
