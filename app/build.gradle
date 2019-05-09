@@ -89,6 +89,9 @@ dependencies {
     // add the Mapbox SDK dependency below
     implementation('com.mapbox.mapboxsdk:mapbox-android-sdk:7.3.2')
 
+    //Mapbox plugins
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-localization-v7:0.9.0'
+
     //End: Dependencies for MapBox
     implementation 'cz.msebera.android:httpclient:4.4.1.1'
     implementation('com.crashlytics.sdk.android:crashlytics:2.9.4@aar') {

@@ -14,15 +14,19 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+
 import androidx.fragment.app.Fragment;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -56,6 +60,7 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
@@ -311,6 +316,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 showErrorAlert("infowindow clicked", "see which feature is marked as selected and call onItemClick for it");
                 return true;
             });
+
+            if(style.isFullyLoaded()) {
+                LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
+
+                try {
+                    localizationPlugin.matchMapLanguageWithDeviceDefault();
+                } catch (RuntimeException exception) {
+                    Crashlytics.logException(exception);
+                }
+            }
 
             setupIconImages();
 
@@ -814,7 +829,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             if (lastRouteIndex >= 0 && routes.get(lastRouteIndex).features.length > NUMBER_OF_SPOTS_TO_FIT)
                 NUMBER_OF_SPOTS_TO_FIT = routes.get(lastRouteIndex).features.length;
         }
-        
+
         PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
         List<Feature> allFeatures = new ArrayList<>();
 
@@ -1102,7 +1117,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 Location mCurrentLocation = null;
                 try {
                     if (PermissionsManager.areLocationPermissionsGranted(activity))
-                        mCurrentLocation =  mapboxMap.getLocationComponent().getLastKnownLocation();
+                        mCurrentLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
                 } catch (Exception ex) {
                 }
 

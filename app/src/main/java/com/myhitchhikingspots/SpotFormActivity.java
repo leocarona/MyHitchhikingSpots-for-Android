@@ -90,6 +90,7 @@ import android.location.Location;
 import java.util.List;
 
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.myhitchhikingspots.adapters.CommentsListViewAdapter;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.MyLocation;
@@ -646,6 +647,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             this.mapboxMap.getUiSettings().setAttributionEnabled(false);
 
             if (style.isFullyLoaded()) {
+                LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
+
+                try {
+                    localizationPlugin.matchMapLanguageWithDeviceDefault();
+                } catch (RuntimeException exception) {
+                    Crashlytics.logException(exception);
+                }
+
                 boolean mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
 
                 enableLocationLayer();
