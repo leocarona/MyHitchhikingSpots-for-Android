@@ -263,8 +263,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             }
         });
 
-        fabSpotAction1.setVisibility(View.INVISIBLE);
-        fabSpotAction2.setVisibility(View.INVISIBLE);
+        fabSpotAction1.hide();
+        fabSpotAction2.hide();
 
         mapView = (MapView) view.findViewById(R.id.mapview2);
         mapView.onCreate(savedInstanceState);
@@ -421,16 +421,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         switch (currentPage) {
             case NOT_FETCHING_LOCATION:
             default:
-                fabSpotAction1.setVisibility(View.INVISIBLE);
-                fabSpotAction2.setVisibility(View.INVISIBLE);
+                fabSpotAction1.hide();
+                fabSpotAction2.hide();
                 break;
             case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
                 fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
                 fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_regular_spot_color));
                 fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_regular_spot_color_lighter));
 
-                fabSpotAction1.setVisibility(View.VISIBLE);
-                fabSpotAction2.setVisibility(View.INVISIBLE);
+                fabSpotAction1.show();
+                fabSpotAction2.show();
                 break;
             case WILL_BE_REGULAR_SPOT:
                 fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
@@ -440,8 +440,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_arrival_color));
                 fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_arrival_color_lighter));
 
-                fabSpotAction1.setVisibility(View.VISIBLE);
-                fabSpotAction2.setVisibility(View.VISIBLE);
+                fabSpotAction1.show();
+                fabSpotAction2.show();
                 break;
             case WAITING_FOR_A_RIDE:
                 fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
@@ -451,8 +451,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_break_color));
                 fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_break_color_lighter));
 
-                fabSpotAction1.setVisibility(View.VISIBLE);
-                fabSpotAction2.setVisibility(View.VISIBLE);
+                fabSpotAction1.show();
+                fabSpotAction2.show();
                 break;
         }
     }
@@ -1002,21 +1002,21 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (shouldDisplayIcons) {
                     showAllRoutesOnMap();
 
-                    fabLocateUser.setVisibility(View.VISIBLE);
+                    fabLocateUser.show();
                     //fabShowAll.setVisibility(View.VISIBLE);
-                    fabZoomIn.setVisibility(View.VISIBLE);
-                    fabZoomOut.setVisibility(View.VISIBLE);
+                    fabZoomIn.show();
+                    fabZoomOut.show();
                     item.setTitle(getString(R.string.general_hide_icons_label));
 
                     //Call configureBottomFABButtons to show only the buttons that should be shown
                     configureBottomFABButtons();
                 } else {
-                    fabLocateUser.setVisibility(View.GONE);
+                    fabLocateUser.hide();
                     //fabShowAll.setVisibility(View.GONE);
-                    fabZoomIn.setVisibility(View.GONE);
-                    fabZoomOut.setVisibility(View.GONE);
-                    fabSpotAction1.setVisibility(View.GONE);
-                    fabSpotAction2.setVisibility(View.GONE);
+                    fabZoomIn.hide();
+                    fabZoomOut.hide();
+                    fabSpotAction1.hide();
+                    fabSpotAction2.hide();
                     item.setTitle(getString(R.string.general_show_icons_label));
                 }
                 break;
