@@ -87,8 +87,7 @@ repositories {
 dependencies {
     //Begin: Dependencies for MapBox
     // add the Mapbox SDK dependency below
-    implementation('com.mapbox.mapboxsdk:mapbox-android-sdk:6.4.0')
-    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-locationlayer:0.7.2'
+    implementation('com.mapbox.mapboxsdk:mapbox-android-sdk:7.3.2')
 
     //End: Dependencies for MapBox
     implementation 'cz.msebera.android:httpclient:4.4.1.1'
