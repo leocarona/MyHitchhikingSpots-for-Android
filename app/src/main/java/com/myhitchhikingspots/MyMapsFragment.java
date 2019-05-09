@@ -310,13 +310,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             this.mapboxMap.addOnMapClickListener(this);
 
-            this.mapboxMap.setOnInfoWindowClickListener(marker -> {
-                    /*ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
-                    onItemClick(myMarker.getTag());*/
-                showErrorAlert("infowindow clicked", "see which feature is marked as selected and call onItemClick for it");
-                return true;
-            });
-
             if(style.isFullyLoaded()) {
                 LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
 
