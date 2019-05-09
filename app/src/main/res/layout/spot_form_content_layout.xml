@@ -31,8 +31,7 @@
                 <com.mapbox.mapboxsdk.maps.MapView
                     android:id="@+id/mapview2"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    mapbox:mapbox_styleUrl="@string/mapbox_style_mapbox_streets" />
+                    android:layout_height="200dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

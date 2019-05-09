@@ -15,7 +15,6 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,25 +47,24 @@ import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
+import com.mapbox.mapboxsdk.location.LocationComponent;
+import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
+import com.mapbox.mapboxsdk.location.OnCameraTrackingChangedListener;
+import com.mapbox.mapboxsdk.location.modes.CameraMode;
+import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
-import com.mapbox.mapboxsdk.plugins.locationlayer.OnCameraTrackingChangedListener;
-import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
-import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode;
+import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.utilities.ExtendedMarkerView;
-import com.myhitchhikingspots.utilities.ExtendedMarkerViewOptions;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -88,6 +86,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute, MainActivity.OnSpotsListChanged {
     private MapView mapView;
     private MapboxMap mapboxMap;
+    private Style style;
     //private LocationEngine locationEngine;
     //private LocationEngineListener locationEngineListener;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
@@ -107,7 +106,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     static String locationSeparator = ", ";
 
     private PermissionsManager permissionsManager;
-    private LocationLayerPlugin locationLayerPlugin;
 
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
@@ -257,11 +255,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     void enableLocationLayer() {
         //Setup location plugin to display the user location on a map.
         // NOTE: map camera won't follow location updates by default here.
-        setupLocationPlugin();
+        setupLocationComponent(style);
+
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(activity) && !locationLayerPlugin.isLocationLayerEnabled())
-            locationLayerPlugin.setLocationLayerEnabled(true);
+        if (PermissionsManager.areLocationPermissionsGranted(activity) && !((LocationComponent) locationComponent).isLocationComponentEnabled())
+            locationComponent.setLocationComponentEnabled(true);
     }
 
     void moveMapCameraToUserLocation() {
@@ -270,8 +270,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         enableLocationLayer();
 
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        if (locationLayerPlugin != null)
-            locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+        mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     void showSpotSavedSnackbar() {
@@ -359,42 +358,43 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     @SuppressWarnings({"MissingPermission"})
     /**
-     * Setup location plugin to display the user location on a map.
+     * Setup location component to display the user location on a map.
      * Map camera won't follow location updates by deafult.
      */
-    private void setupLocationPlugin() {
-        if (locationLayerPlugin == null) {
-            // Check if permissions are enabled and if not request
-            if (PermissionsManager.areLocationPermissionsGranted(activity) && mapboxMap != null) {
+    private void setupLocationComponent(@NonNull Style loadedMapStyle) {
+        // Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(activity)) {
 
-                // Create an instance of the plugin. Adding in LocationLayerOptions is also an optional parameter
-                locationLayerPlugin = new LocationLayerPlugin(mapView, mapboxMap);
+            // Get an instance of the component
+            LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-                locationLayerPlugin.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
-                    @Override
-                    public void onCameraTrackingDismissed() {
-                        // Tracking has been dismissed
+            // Activate with options
+            locationComponent.activateLocationComponent(
+                    LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
+
+            // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
+            locationComponent.setCameraMode(CameraMode.NONE);
+
+            //Show as an arrow considering the compass of the device.
+            locationComponent.setRenderMode(RenderMode.COMPASS);
+
+            locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
+                @Override
+                public void onCameraTrackingDismissed() {
+                    // Tracking has been dismissed
+                }
+
+                @Override
+                public void onCameraTrackingChanged(int currentMode) {
+                    // CameraMode has been updated
+                    if (!wasFirstLocationReceived) {
+                        wasFirstLocationReceived = true;
                     }
-
-                    @Override
-                    public void onCameraTrackingChanged(int currentMode) {
-                        // CameraMode has been updated
-
-                        if (!wasFirstLocationReceived) {
-                            wasFirstLocationReceived = true;
-                        }
-                    }
-                });
-
-                // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
-                locationLayerPlugin.setCameraMode(CameraMode.NONE);
-                //Show as an arrow considering the compass of the device.
-                locationLayerPlugin.setRenderMode(RenderMode.COMPASS);
-                getLifecycle().addObserver(locationLayerPlugin);
-            } else {
-                permissionsManager = new PermissionsManager(this);
-                permissionsManager.requestLocationPermissions(activity);
-            }
+                }
+            });
+        } else {
+            permissionsManager = new PermissionsManager(this);
+            permissionsManager.requestLocationPermissions(activity);
         }
     }
 
@@ -407,33 +407,36 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         this.mapboxMap = mapboxMap;
 
-        this.mapboxMap.getUiSettings().setCompassEnabled(true);
-        this.mapboxMap.getUiSettings().setLogoEnabled(false);
-        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
+        this.mapboxMap.setStyle(Style.MAPBOX_STREETS, style -> {
+            // Map is set up and the style has loaded. Now you can add data or make other map adjustments.
+            HitchwikiMapViewFragment.this.style = style;
 
-        this.mapboxMap.addOnMapClickListener(this);
+            this.mapboxMap.getUiSettings().setCompassEnabled(true);
+            this.mapboxMap.getUiSettings().setLogoEnabled(false);
+            this.mapboxMap.getUiSettings().setAttributionEnabled(false);
 
-        this.mapboxMap.setOnInfoWindowClickListener(new MapboxMap.OnInfoWindowClickListener() {
-            @Override
-            public boolean onInfoWindowClick(@NonNull Marker marker) {
-                ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
-                onItemClick(myMarker.getTag());
+            this.mapboxMap.addOnMapClickListener(this);
+
+            this.mapboxMap.setOnInfoWindowClickListener(marker -> {
+                    /*ExtendedMarkerView myMarker = (ExtendedMarkerView) marker;
+                    onItemClick(myMarker.getTag());*/
+                showErrorAlert("infowindow clicked", "see which feature is marked as selected and call onItemClick for it");
                 return true;
-            }
+            });
+
+            setupIconImages();
+
+            enableLocationLayer();
+
+            if (spotList == null || spotList.size() == 0)
+                loadHWSpotsIfTheyveBeenDownloaded();
+            else
+                drawAnnotations();
         });
-
-        setupIconImages();
-
-        enableLocationLayer();
-
-        if (spotList == null || spotList.size() == 0)
-            loadHWSpotsIfTheyveBeenDownloaded();
-        else
-            drawAnnotations();
     }
 
     @Override
-    public void onMapClick(@NonNull LatLng point) {
+    public boolean onMapClick(@NonNull LatLng point) {
         PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
         List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, CALLOUT_LAYER_ID);
         if (!features.isEmpty()) {
@@ -444,6 +447,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             // we didn't find a click event on callout layer, try clicking maki layer
             handleClickIcon(screenPoint);
         }
+
+        return true;
     }
 
     /**
@@ -520,7 +525,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         deselectAll(false);
 
         Feature feature = featureCollection.features().get(index);
-        if (mapboxMap.getImage(feature.id()) == null) {
+        if (style.getImage(feature.id()) == null) {
             showProgressDialog("Loading data..");
 
             //Generate bitmaps from the layout_callout view that should appear when a icon is clicked
@@ -567,16 +572,16 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void setupIconImages() {
-        this.mapboxMap.addImage(ic_single_spot.getId(), ic_single_spot.getBitmap());
+        this.style.addImage(ic_single_spot.getId(), ic_single_spot.getBitmap());
         //this.mapboxMap.addImage(ic_point_on_the_route_spot.getId(), ic_point_on_the_route_spot.getBitmap());
-        this.mapboxMap.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
-        this.mapboxMap.addImage(ic_arrival_spot.getId(), ic_arrival_spot.getBitmap());
-        this.mapboxMap.addImage(ic_hitchability_unknown.getId(), ic_hitchability_unknown.getBitmap());
-        this.mapboxMap.addImage(ic_hitchability_very_good.getId(), ic_hitchability_very_good.getBitmap());
-        this.mapboxMap.addImage(ic_hitchability_good.getId(), ic_hitchability_good.getBitmap());
-        this.mapboxMap.addImage(ic_hitchability_average.getId(), ic_hitchability_average.getBitmap());
-        this.mapboxMap.addImage(ic_hitchability_bad.getId(), ic_hitchability_bad.getBitmap());
-        this.mapboxMap.addImage(ic_hitchability_senseless.getId(), ic_hitchability_senseless.getBitmap());
+        this.style.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
+        this.style.addImage(ic_arrival_spot.getId(), ic_arrival_spot.getBitmap());
+        this.style.addImage(ic_hitchability_unknown.getId(), ic_hitchability_unknown.getBitmap());
+        this.style.addImage(ic_hitchability_very_good.getId(), ic_hitchability_very_good.getBitmap());
+        this.style.addImage(ic_hitchability_good.getId(), ic_hitchability_good.getBitmap());
+        this.style.addImage(ic_hitchability_average.getId(), ic_hitchability_average.getBitmap());
+        this.style.addImage(ic_hitchability_bad.getId(), ic_hitchability_bad.getBitmap());
+        this.style.addImage(ic_hitchability_senseless.getId(), ic_hitchability_senseless.getBitmap());
     }
 
     SharedPreferences prefs;
@@ -627,6 +632,57 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
 
     private void setupAnnotations(List<Route> routes, String errMsg) {
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+        }
+
+        setupLocalVariables(routes);
+
+        if (mapboxMap == null) {
+            return;
+        }
+
+        mapboxMap.clear();
+
+        if (style.isFullyLoaded()) {
+            setupSource(style);
+            setupStyleLayer(style);
+            //Setup a layer with Android SDK call-outs (title of the feature is used as key for the iconImage)
+            setupCalloutLayer(style);
+
+
+            //If there's no spot to show, display dialog trying to encourage the user to go and download some HW spots
+            //This should be particularly useful when user had downloaded HW spots but the local file was manually deleted or got corrupted for some reason
+            if (routes.size() == 0) {
+                showDialogDownloadHWSpots();
+
+                //No markers to show
+                shouldZoomToFitAllMarkers = false;
+            }
+
+            try {
+                //Automatically zoom out to fit all markers only the first time that spots are loaded.
+                // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
+                if (shouldZoomToFitAllMarkers) {
+                    if (spotList.size() == 0) {
+                        //If there's no spot to show, make map camera follow the GPS updates.
+                        moveMapCameraToUserLocation();
+                    } else
+                        zoomOutToFitAllMarkers();
+                    shouldZoomToFitAllMarkers = false;
+                }
+            } catch (Exception ex) {
+                Crashlytics.logException(ex);
+                showErrorAlert(getResources().getString(R.string.general_error_dialog_title),
+                        String.format(getResources().getString(R.string.general_error_dialog_message),
+                                "Adding markers failed - " + ex.getMessage()));
+            }
+        }
+
+        dismissProgressDialog();
+    }
+
+    private void setupLocalVariables(List<Route> routes) {
         List<Feature> allFeatures = new ArrayList<>();
 
         for (int i = 0; i < routes.size(); i++) {
@@ -637,78 +693,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         Feature[] array = new Feature[allFeatures.size()];
         this.featuresArray = allFeatures.toArray(array);
 
-        if (mapboxMap == null) {
-            return;
-        }
-
-        mapboxMap.clear();
-
         featureCollection = FeatureCollection.fromFeatures(featuresArray);
-
-        setupSource();
-        setupStyleLayer();
-        //Setup a layer with Android SDK call-outs (title of the feature is used as key for the iconImage)
-        setupCalloutLayer();
-
-        try {
-            //Automatically zoom out to fit all markers only the first time that spots are loaded.
-            // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
-            if (shouldZoomToFitAllMarkers) {
-                if (spotList.size() == 0) {
-                    //If there's no spot to show, make map camera follow the GPS updates.
-                    moveMapCameraToUserLocation();
-                } else if (spotList.size() > 30 && Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN) {
-                    //If there's more than 30 spots on the list and it's an old version of Android, maybe the device will get too slower when it has all spots
-                    // within the map camera, so let's just zoom close to a location. 30 is a random number chosen here.
-                    LatLng cameraPositionTo = null;
-                    int cameraZoomTo = -1;
-                    Location loc = null;
-
-                    try {
-                        loc = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
-                    } catch (SecurityException ex) {
-                    }
-
-                    if (loc != null) {
-                        cameraPositionTo = new LatLng(loc);
-                        cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                    } else {
-                        //Set start position for map camera: set it to the last spot saved
-                        Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getLastAddedRouteSpot();
-                        if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
-                                && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
-                            cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
-
-                            //If at the last added spot the user took a break, then he might be still close to that spot - zoom close to it! Otherwise, we zoom a bit out/farther.
-                            if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_TOOK_A_BREAK)
-                                cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
-                            else
-                                cameraZoomTo = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
-                        }
-                    }
-                    moveCamera(cameraPositionTo, cameraZoomTo);
-                } else
-                    zoomOutToFitAllMarkers();
-                shouldZoomToFitAllMarkers = false;
-            }
-
-        } catch (Exception ex) {
-            Crashlytics.logException(ex);
-            errMsg = String.format(getResources().getString(R.string.general_error_dialog_message),
-                    "Adding markers failed - " + ex.getMessage());
-        }
-
-
-        if (!errMsg.isEmpty()) {
-            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-        } else {
-            //If there's no spot to show, display dialog trying to encourage the user to go and download some HW spots
-            //This should be particularly useful when user had downloaded HW spots but the local file was manually deleted or got corrupted for some reason
-            if (routes.size() == 0)
-                showDialogDownloadHWSpots();
-        }
-
-        dismissProgressDialog();
     }
 
     private void showDialogDownloadHWSpots() {
@@ -751,16 +736,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onStart() {
         super.onStart();
         mapView.onStart();
-        if (locationLayerPlugin != null)
-            locationLayerPlugin.onStart();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         mapView.onStop();
-        if (locationLayerPlugin != null)
-            locationLayerPlugin.onStop();
 
         /*
          * The device may have been rotated and the activity is going to be destroyed
@@ -868,20 +849,18 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        boolean selectionHandled = false;
-
         switch (item.getItemId()) {
             case R.id.action_toggle_icons:
                 shouldDisplayIcons = !shouldDisplayIcons;
                 if (shouldDisplayIcons) {
-                    fabLocateUser.setVisibility(View.VISIBLE);
-                    fabZoomIn.setVisibility(View.VISIBLE);
-                    fabZoomOut.setVisibility(View.VISIBLE);
+                    fabLocateUser.show();
+                    fabZoomIn.show();
+                    fabZoomOut.show();
                     item.setTitle(getString(R.string.general_hide_icons_label));
                 } else {
-                    fabLocateUser.setVisibility(View.GONE);
-                    fabZoomIn.setVisibility(View.GONE);
-                    fabZoomOut.setVisibility(View.GONE);
+                    fabLocateUser.hide();
+                    fabZoomIn.hide();
+                    fabZoomOut.hide();
                     item.setTitle(getString(R.string.general_show_icons_label));
                 }
                 break;
@@ -892,10 +871,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 break;
         }
 
-        if (selectionHandled)
-            return true;
-        else
-            return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -906,7 +882,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             if (mapboxMap != null) {
                 Location mCurrentLocation = null;
                 try {
-                    mCurrentLocation = (locationLayerPlugin != null) ? locationLayerPlugin.getLastKnownLocation() : null;
+                    if (PermissionsManager.areLocationPermissionsGranted(activity))
+                        mCurrentLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
                 } catch (SecurityException ex) {
                 }
 
@@ -978,12 +955,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         //If we know the current position of the user, move the map camera to there
         try {
-            if (locationLayerPlugin != null) {
-                Location lastLoc = locationLayerPlugin.getLastKnownLocation();
+            if (PermissionsManager.areLocationPermissionsGranted(activity)) {
+                Location lastLoc = mapboxMap.getLocationComponent().getLastKnownLocation();
                 if (lastLoc != null)
                     moveCameraPositionTo = new LatLng(lastLoc);
             }
-        } catch (SecurityException ex) {
+        } catch (Exception ex) {
         }
 
         if (moveCameraPositionTo != null) {
@@ -1044,9 +1021,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             if (activity == null)
                 return null;
 
-            List<List<ExtendedMarkerViewOptions>> trips = new ArrayList<>();
-            ArrayList<ExtendedMarkerViewOptions> spots = new ArrayList<>();
-            ArrayList<ExtendedMarkerViewOptions> singleSpots = new ArrayList<>();
+            List<List<Spot>> trips = new ArrayList<>();
+            ArrayList<Spot> spots = new ArrayList<>();
+            ArrayList<Spot> singleSpots = new ArrayList<>();
             Boolean isLastArrayForSingleSpots = false;
 
             //The spots are ordered from the last saved ones to the first saved ones, so we need to
@@ -1054,57 +1031,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             for (int i = spotList.length - 1; i >= 0; i--) {
                 Spot spot = spotList[i];
 
-                ExtendedMarkerViewOptions markerViewOptions = new ExtendedMarkerViewOptions()
-                        .position(new LatLng(spot.getLatitude(), spot.getLongitude()));
-
-                if (spot.getId() != null)
-                    markerViewOptions.tag(spot.getId().toString());
-
-                Icon ic = activity.ic_hitchability_unknown;
-                if (spot.getHitchability() != null) {
-                    switch (spot.getHitchability()) {
-                        case 1:
-                            ic = activity.ic_hitchability_senseless;
-                            break;
-                        case 2:
-                            ic = activity.ic_hitchability_bad;
-                            break;
-                        case 3:
-                            ic = activity.ic_hitchability_average;
-                            break;
-                        case 4:
-                            ic = activity.ic_hitchability_good;
-                            break;
-                        case 5:
-                            ic = activity.ic_hitchability_very_good;
-                            break;
-                    }
-                }
-
-                markerViewOptions.icon(ic);
-                markerViewOptions.spotType(Constants.SPOT_TYPE_HITCHHIKING_SPOT);
-
-                //Get a hitchability string to set as title
-                String title = "";
-                if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
-                    title = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
-
-                //Set hitchability as title
-                markerViewOptions.title(title.toUpperCase());
-
-                // Customize map with markers, polylines, etc.
-                String snippet = "(" + spot.getLatitude() + "," + spot.getLongitude() + ")";// getSnippet(activity, spot, "\n ", " ", "\n ");
-                markerViewOptions.snippet(snippet);
-
                 if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
-                    spots.add(markerViewOptions);
+                    spots.add(spot);
 
                     if (spot.getIsDestination() != null && spot.getIsDestination() || i == 0) {
                         trips.add(spots);
                         spots = new ArrayList<>();
                     }
                 } else
-                    singleSpots.add(markerViewOptions);
+                    singleSpots.add(spot);
             }
 
             if (singleSpots.size() > 0) {
@@ -1127,16 +1062,16 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
             for (int lc = 0; lc < trips.size(); lc++) {
                 try {
-                    List<ExtendedMarkerViewOptions> spots2 = trips.get(lc);
+                    List<Spot> spots2 = trips.get(lc);
                     Route route = new Route();
                     route.features = new Feature[spots2.size()];
 
                     //If it's the last array and isLastArrayForSingleSpots is true, add the markers with no polyline connecting them
                     if (isLastArrayForSingleSpots && lc == trips.size() - 1) {
                         for (int li = 0; li < spots2.size(); li++) {
-                            ExtendedMarkerViewOptions spot = spots2.get(li);
+                            Spot spot = spots2.get(li);
                             //Add marker to map
-                            route.features[li] = GetFeature(spot, lc);
+                            route.features[li] = GetFeature(spot, lc, activity);
                         }
                     }
                     routes.add(route);
@@ -1147,6 +1082,28 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
             }
             return routes;
+        }
+
+        private static String getIconId(HitchwikiMapViewFragment activity, int hitchability) {
+            Icon ic = activity.ic_hitchability_unknown;
+            switch (hitchability) {
+                case 1:
+                    ic = activity.ic_hitchability_senseless;
+                    break;
+                case 2:
+                    ic = activity.ic_hitchability_bad;
+                    break;
+                case 3:
+                    ic = activity.ic_hitchability_average;
+                    break;
+                case 4:
+                    ic = activity.ic_hitchability_good;
+                    break;
+                case 5:
+                    ic = activity.ic_hitchability_very_good;
+                    break;
+            }
+            return ic.getId();
         }
 
         @NonNull
@@ -1190,19 +1147,35 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             activity.setupAnnotations(routes, errMsg);
         }
 
-        static Feature GetFeature(ExtendedMarkerViewOptions oldMarker, int routeIndex) {
-            LatLng pos = oldMarker.getPosition();
+        static Feature GetFeature(Spot spot, int routeIndex, HitchwikiMapViewFragment activity) {
+            LatLng pos = new LatLng(spot.getLatitude(), spot.getLongitude());
+
+            String tag = spot.getId() != null ? spot.getId().toString() : "";
+            String icon = getIconId(activity, (spot.getHitchability() != null) ? spot.getHitchability() : -1);
+            int type = Constants.SPOT_TYPE_HITCHHIKING_SPOT;
+
+            //Get a hitchability string to set as title
+            String title = "";
+            if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
+                title = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+
+            //Set hitchability as title
+            title = title.toUpperCase();
+
+            // Customize map with markers, polylines, etc.
+            String snippet = "(" + spot.getLatitude() + "," + spot.getLongitude() + ")";// getSnippet(activity, spot, "\n ", " ", "\n ");
+
 
             JsonObject properties = new JsonObject();
-            properties.addProperty(PROPERTY_ICONIMAGE, oldMarker.getIcon().getId());
             properties.addProperty(PROPERTY_ROUTEINDEX, routeIndex);
-            properties.addProperty(PROPERTY_TAG, oldMarker.getTag());
-            properties.addProperty(PROPERTY_SPOTTYPE, oldMarker.getSpotType());
-            properties.addProperty(PROPERTY_TITLE, oldMarker.getTitle());
-            properties.addProperty(PROPERTY_SNIPPET, oldMarker.getSnippet());
             properties.addProperty(PROPERTY_SHOULDHIDE, false);
+            properties.addProperty(PROPERTY_ICONIMAGE, icon);
+            properties.addProperty(PROPERTY_TAG, tag);
+            properties.addProperty(PROPERTY_SPOTTYPE, type);
+            properties.addProperty(PROPERTY_TITLE, title);
+            properties.addProperty(PROPERTY_SNIPPET, snippet);
 
-            return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, oldMarker.getTag());
+            return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, tag);
         }
 
     }
@@ -1275,9 +1248,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     /**
      * Utility class to generate Bitmaps for Symbol.
-     * <p>
-     * Bitmaps can be added to the map with {@link MapboxMap#addImage(String, Bitmap)}
-     * </p>
      */
     private static class SymbolGenerator {
 
@@ -1308,15 +1278,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * Invoked when the balloons bitmaps have been generated for all features.
      */
     public void setImageGenResults(HashMap<String, Bitmap> imageMap) {
-        if (mapboxMap != null) {
+        if (style.isFullyLoaded()) {
             // calling addImages is faster as separate addImage calls for each bitmap.
-            mapboxMap.addImages(imageMap);
+            style.addImages(imageMap);
         }
-        // need to store reference to views to be able to use them as hitboxes for click events.
-        //this.viewMap = viewMap;
     }
 
-    protected void showErrorAlert(String title, String msg) {
+    private void showErrorAlert(String title, String msg) {
         new AlertDialog.Builder(activity)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(title)
@@ -1325,17 +1293,17 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 .show();
     }
 
-    private void setupSource() {
-        if (mapboxMap.getSource(MARKER_SOURCE_ID) == null) {
+    private void setupSource(@NonNull Style loadedMapStyle) {
+        if (loadedMapStyle.getSource(MARKER_SOURCE_ID) == null) {
             source = new GeoJsonSource(MARKER_SOURCE_ID, featureCollection);
-            mapboxMap.addSource(source);
+            loadedMapStyle.addSource(source);
         } else
             refreshSource();
     }
 
     /* Setup style layer */
-    private void setupStyleLayer() {
-        if (mapboxMap.getLayer(MARKER_STYLE_LAYER_ID) == null) {
+    private void setupStyleLayer(@NonNull Style loadedMapStyle) {
+        if (loadedMapStyle.getLayer(MARKER_STYLE_LAYER_ID) == null) {
             //A style layer ties together the source and image and specifies how they are displayed on the map
             markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER_ID, MARKER_SOURCE_ID)
                     .withProperties(
@@ -1346,7 +1314,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
 
             //Add markers layer
-            mapboxMap.addLayer(markerStyleLayer);
+            loadedMapStyle.addLayer(markerStyleLayer);
         }
     }
 
@@ -1356,9 +1324,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * tag of the feature is used as key for the iconImage
      * </p>
      */
-    private void setupCalloutLayer() {
-        if (mapboxMap.getLayer(CALLOUT_LAYER_ID) == null) {
-            mapboxMap.addLayer(new SymbolLayer(CALLOUT_LAYER_ID, MARKER_SOURCE_ID)
+    private void setupCalloutLayer(@NonNull Style loadedMapStyle) {
+        if (loadedMapStyle.getLayer(CALLOUT_LAYER_ID) == null) {
+            loadedMapStyle.addLayer(new SymbolLayer(CALLOUT_LAYER_ID, MARKER_SOURCE_ID)
                     .withProperties(
                             /* show image with id based on the value of the tag feature property */
                             iconImage("{" + PROPERTY_TAG + "}"),
