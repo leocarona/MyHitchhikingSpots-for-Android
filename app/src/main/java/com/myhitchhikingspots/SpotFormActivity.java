@@ -716,6 +716,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
      */
+    @SuppressWarnings( {"MissingPermission"})
     private void moveCameraToLastKnownLocation() {
         LatLng moveCameraPositionTo = null;
 
@@ -756,6 +757,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
      *
      * @return True if the map camera was moved anywhere.
      */
+    @SuppressWarnings( {"MissingPermission"})
     boolean moveCameraToSpotLocation(Spot spot) {
         LatLng cameraPositionTo = null;
         int cameraZoomTo = Constants.KEEP_ZOOM_LEVEL;

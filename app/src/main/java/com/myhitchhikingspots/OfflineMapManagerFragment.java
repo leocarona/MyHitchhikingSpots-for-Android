@@ -369,6 +369,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         }
     }
 
+    @SuppressWarnings({"MissingPermission"})
     private void moveCameraToLastKnownLocation() {
         LatLng moveCameraPositionTo = null;
 

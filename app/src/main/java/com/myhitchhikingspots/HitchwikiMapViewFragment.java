@@ -885,6 +885,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     /**
      * Zoom out to fit all markers AND the user's last known location.
      **/
+    @SuppressWarnings({"MissingPermission"})
     protected void zoomOutToFitAllMarkers() {
         try {
             if (mapboxMap != null) {
@@ -958,6 +959,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
      */
+    @SuppressWarnings({"MissingPermission"})
     private void moveCameraToLastKnownLocation() {
         LatLng moveCameraPositionTo = null;
 

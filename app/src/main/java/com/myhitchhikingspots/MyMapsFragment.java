@@ -1104,6 +1104,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     /**
      * Zoom out to fit the most recent (@link #NUMBER_OF_SPOTS_TO_FIT) spots saved to the map AND the user's last known location.
      **/
+    @SuppressWarnings({"MissingPermission"})
     protected void zoomOutToFitMostRecentRoute() {
         try {
             if (mapboxMap != null) {
@@ -1172,6 +1173,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
      */
+    @SuppressWarnings({"MissingPermission"})
     protected void moveCameraToLastKnownLocation() {
         //Zoom close to current position or to the last saved position
         LatLng cameraPositionTo = null;
