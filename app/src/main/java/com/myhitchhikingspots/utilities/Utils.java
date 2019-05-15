@@ -11,6 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -18,7 +19,9 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+
 import androidx.annotation.NonNull;
+
 import android.text.format.DateUtils;
 import android.util.Log;
 
@@ -28,9 +31,12 @@ import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
+import com.mapbox.geojson.Point;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
+import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.model.SubRoute;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -573,5 +579,73 @@ public class Utils {
     public static DateTime fixDateTime(Long millis) {
         DateTime dtInLocalTime = new DateTime(millis);
         return Utils.forceTimeZoneToUTC(dtInLocalTime);
+    }
+
+    public static void parseDBSpotList(@NonNull List<Spot> spotList, @NonNull List<Route> routes, @NonNull List<Spot> singleSpots) {
+        Route route = new Route();
+        route.spots = new ArrayList<>();
+        route.subRoutes = new ArrayList<>();
+        SubRoute subRoute = new SubRoute();
+        subRoute.points = new ArrayList<>();
+
+        for (int i = 0; i < spotList.size(); i++) {
+            Spot spot = spotList.get(i);
+
+            boolean isPartOfARoute = spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute();
+            boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot();
+            boolean isGotARide = isHitchhikingSpot && (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+            boolean isDestination = spot.getIsDestination() != null && spot.getIsDestination();
+            boolean isLastSpotOfTheList = i == spotList.size() - 1;
+            boolean isLastSpotOfARoute = isDestination || isLastSpotOfTheList;
+
+            if (!isPartOfARoute)
+                singleSpots.add(spot);
+            else {
+                route.spots.add(spot);
+
+                if (subRoute.points.isEmpty())
+                    subRoute.isHitchhikingRoute = isGotARide;
+
+                subRoute.points.add(Point.fromLngLat(spot.getLongitude(), spot.getLatitude()));
+
+                boolean isNextSpotGotARide = false;
+                boolean isNextSpotSameSubRoute = false;
+                boolean isNextSpotADestination = false;
+                boolean isNextSpotPartOfARoute = false;
+
+                if (!isLastSpotOfTheList) {
+                    Spot nextSpot = spotList.get(i + 1);
+                    boolean isNextSpotHitchhikingSpot = nextSpot.getIsHitchhikingSpot() != null && nextSpot.getIsHitchhikingSpot();
+                    isNextSpotGotARide = isNextSpotHitchhikingSpot && (nextSpot.getAttemptResult() != null && nextSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+                    isNextSpotSameSubRoute = !isNextSpotHitchhikingSpot || subRoute.isHitchhikingRoute == isNextSpotGotARide;
+                    isNextSpotADestination = nextSpot.getIsDestination() == null ? false : nextSpot.getIsDestination();
+                    isNextSpotPartOfARoute = nextSpot.getIsPartOfARoute() == null ? false : nextSpot.getIsPartOfARoute();
+                    isLastSpotOfARoute |= isNextSpotPartOfARoute != isPartOfARoute;
+                    //Copy next spot so that we know which was the last spot of this subRoute
+                    if (!isNextSpotSameSubRoute && !isNextSpotADestination && !isLastSpotOfARoute)
+                        subRoute.points.add(Point.fromLngLat(nextSpot.getLongitude(), nextSpot.getLatitude()));
+                }
+
+                boolean isSameSubRoute = !isHitchhikingSpot || subRoute.isHitchhikingRoute == isGotARide;
+
+                //If this spot isn't part of the sub route being built, then add the sub route being built to the list of sub routes and start a new sub route
+                if (!isSameSubRoute || (!isNextSpotSameSubRoute && !isNextSpotADestination) || isLastSpotOfARoute)
+                    route.subRoutes.add(subRoute);
+
+                //It's the last spot on the route, then add this route to the list and start a new route
+                if (isLastSpotOfARoute) {
+                    routes.add(route);
+
+                    route = new Route();
+                    route.spots = new ArrayList<>();
+                    route.subRoutes = new ArrayList<>();
+                }
+
+                if (isDestination || (!isNextSpotSameSubRoute && !isNextSpotADestination)) {
+                    subRoute = new SubRoute();
+                    subRoute.points = new ArrayList<>();
+                }
+            }
+        }
     }
 }

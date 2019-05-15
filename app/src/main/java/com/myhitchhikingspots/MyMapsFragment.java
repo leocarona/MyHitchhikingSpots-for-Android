@@ -44,10 +44,10 @@ import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
+
 import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.Polyline;
-import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -61,12 +61,20 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
+import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+
+import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.rgb;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
+
 import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.model.SubRoute;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -96,7 +104,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     Boolean shouldDisplayIcons = true;
     Boolean shouldDisplayOldRoutes = true;
     boolean wasSnackbarShown;
-    Boolean isLastArrayForSingleSpots = false;
 
     /**
      * True if the map camera should follow the GPS updates once the user grants the necessary permission.
@@ -112,8 +119,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private PermissionsManager permissionsManager;
 
-    private static final String MARKER_SOURCE_ID = "markers-source";
-    private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
+    private static final String SPOTS_SOURCE_ID = "spots-source";
+    private static final String ROUTES_SPOTS_STYLE_LAYER_ID = "spots-style-layer";
+    private static final String SUB_ROUTE_SOURCE_ID = "sub-routes-source";
+    private static final String LINES_STYLE_LAYER_ID = "lines-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
     private static final int PERMISSIONS_LOCATION = 0;
 
@@ -142,10 +151,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private ProgressDialog loadingDialog;
 
     //Each hitchhiking spot is a feature
-    FeatureCollection featureCollection;
-    //Each route is an item of polylineOptionsArray
-    PolylineOptions[] polylineOptionsArray;
-    GeoJsonSource source;
+    FeatureCollection spotsCollection;
+    FeatureCollection subRoutesCollection;
+    GeoJsonSource spotSource;
+    GeoJsonSource subRoutesSource;
 
     Spot mCurrentWaitingSpot;
 
@@ -310,7 +319,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             this.mapboxMap.addOnMapClickListener(this);
 
-            if(style.isFullyLoaded()) {
+            if (style.isFullyLoaded()) {
                 LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
 
                 try {
@@ -630,10 +639,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * @param screenPoint the point on screen clicked
      */
     private void handleClickIcon(PointF screenPoint) {
-        List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, MARKER_STYLE_LAYER_ID);
+        List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, ROUTES_SPOTS_STYLE_LAYER_ID);
         if (!features.isEmpty()) {
             String tag = features.get(0).getStringProperty(PROPERTY_TAG);
-            List<Feature> featureList = featureCollection.features();
+            List<Feature> featureList = spotsCollection.features();
+
             for (int i = 0; i < featureList.size(); i++) {
                 if (featureList.get(i).getStringProperty(PROPERTY_TAG).equals(tag)) {
                     setSelected(i, true);
@@ -641,7 +651,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             }
         } else {
             deselectAll(false);
-            refreshSource();
+            refreshSpotsSource();
+            refreshSubRoutesSource();
         }
     }
 
@@ -658,12 +669,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         deselectAll(false);
 
-        Feature feature = featureCollection.features().get(index);
+        Feature feature = spotsCollection.features().get(index);
         if (style.getImage(feature.id()) == null) {
             showProgressDialog("Loading data..");
 
             //Generate bitmaps from the layout_callout view that should appear when a icon is clicked
-            new GenerateBalloonsTask(this, featureCollection.features().get(index)).execute();
+            new GenerateBalloonsTask(this, spotsCollection.features().get(index)).execute();
         } else
             showBalloon(feature);
 
@@ -678,22 +689,18 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private void showBalloon(Feature feature) {
         dismissProgressDialog();
         selectFeature(feature);
-        refreshSource();
+        refreshSpotsSource();
     }
 
     /**
      * Deselects the state of all the features
      */
     private void deselectAll(boolean hideRecycler) {
-        if (featureCollection != null && featureCollection.features() != null) {
-            for (Feature feature : featureCollection.features()) {
+        if (spotsCollection != null && spotsCollection.features() != null) {
+            for (Feature feature : spotsCollection.features()) {
                 feature.properties().addProperty(PROPERTY_SELECTED, false);
             }
         }
-
-        /*if (hideRecycler) {
-            recyclerView.setVisibility(View.GONE);
-        }*/
     }
 
     /**
@@ -771,12 +778,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    private void setupAnnotations(List<Route> routes, Boolean isLastArrayForSingleSpots, String errMsg) {
-        if (!errMsg.isEmpty()) {
-            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-        }
+    private void setupAnnotations(ArrayList<Feature> spots, ArrayList<Feature> linesForSubRoutes, int numberOfSpotsOnMostRecentRoute) {
+        //Define the number of spots to be considered when zoomOutToFitMostRecentRoute is called.
+        //We want to include at least the spots from the most recent route.
+        if (numberOfSpotsOnMostRecentRoute > NUMBER_OF_SPOTS_TO_FIT)
+            NUMBER_OF_SPOTS_TO_FIT = numberOfSpotsOnMostRecentRoute;
 
-        setupLocalVariables(routes, isLastArrayForSingleSpots);
+        this.spotsCollection = FeatureCollection.fromFeatures(spots);
+        this.subRoutesCollection = FeatureCollection.fromFeatures(linesForSubRoutes);
 
         if (mapboxMap == null) {
             return;
@@ -785,9 +794,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (style.isFullyLoaded()) {
             mapboxMap.clear();
 
-            setupSource(style);
-            setupStyleLayer(style);
-            setupPolylines();
+            setupSpotsSource(style);
+            setupSubRoutesSource(style);
+            setupSpotsStyleLayer(style);
+            setupSubRoutesStyleLayer(style);
             //Setup a layer with Android SDK call-outs (title of the feature is used as key for the iconImage)
             setupCalloutLayer(style);
 
@@ -812,32 +822,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
 
         dismissProgressDialog();
-    }
-
-    private void setupLocalVariables(List<Route> routes, Boolean isLastArrayForSingleSpots) {
-        //Define the number of spots to be considered when zoomOutToFitMostRecentRoute is called.
-        if (routes != null) {
-            int lastRouteIndex = routes.size() - 1;
-            //We want to include at least the spots from the most recent route.
-            if (lastRouteIndex >= 0 && routes.get(lastRouteIndex).features.length > NUMBER_OF_SPOTS_TO_FIT)
-                NUMBER_OF_SPOTS_TO_FIT = routes.get(lastRouteIndex).features.length;
-        }
-
-        PolylineOptions[] allPolylines = new PolylineOptions[routes.size()];
-        List<Feature> allFeatures = new ArrayList<>();
-
-        for (int i = 0; i < routes.size(); i++) {
-            Route route = routes.get(i);
-            allPolylines[i] = route.polylines == null ? new PolylineOptions() : route.polylines;
-            allFeatures.addAll(Arrays.asList(route.features));
-        }
-
-        this.polylineOptionsArray = allPolylines;
-        this.isLastArrayForSingleSpots = isLastArrayForSingleSpots;
-
-        Feature[] array = new Feature[allFeatures.size()];
-        Feature[] featuresArray = allFeatures.toArray(array);
-        this.featureCollection = FeatureCollection.fromFeatures(featuresArray);
     }
 
     private static String spotLocationToString(Spot spot) {
@@ -1048,12 +1032,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     void showAllRoutesOnMap() {
         //Update all features setting PROPERTY_SHOULDHIDE to false
-        for (Feature f : featureCollection.features())
+        for (Feature f : spotsCollection.features())
             f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
 
-        refreshSource();
+        refreshSpotsSource();
 
-        mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
+        for (Feature f : subRoutesCollection.features())
+            f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+
+        refreshSubRoutesSource();
     }
 
     /*
@@ -1061,38 +1048,36 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Spots that don't belong to any route shall be hidden as well.
      * */
     void hideOldRoutesFromMap() {
-        //Remove all polylines
-        for (Polyline p : mapboxMap.getPolylines())
-            p.remove();
+        if (subRoutesCollection == null || subRoutesCollection.features() == null || subRoutesCollection.features().isEmpty())
+            return;
 
-        int numOfRoutes = polylineOptionsArray == null ? 0 : polylineOptionsArray.length;
-        int lastRouteIndex = numOfRoutes - 1;
+        int lastFeatureIndex = subRoutesCollection.features().size() - 1;
+        Feature lastFeature = subRoutesCollection.features().get(lastFeatureIndex);
+        int lastRouteIndex = (int) lastFeature.getNumberProperty(PROPERTY_ROUTEINDEX);
 
-        if (isLastArrayForSingleSpots)
-            lastRouteIndex--;
+        //Remove all spots except the ones belonging to the most recent route.
+        // Updates all features defining if they should be hidden or not.
+        for (Feature f : spotsCollection.features()) {
+            int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
 
-
-        if (numOfRoutes == 0) {
-            for (Feature f : featureCollection.features()) {
+            if (spotRouteIndex == lastRouteIndex)
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+            else
                 f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
-            }
-        } else {
-            //Add polylines of the most recent route only
-            mapboxMap.addPolyline(polylineOptionsArray[lastRouteIndex]);
-
-            //Remove all spots except the ones belonging to the most recent route.
-            // Updates all features defining if they should be hidden or not.
-            for (Feature f : featureCollection.features()) {
-                int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
-
-                if (spotRouteIndex < lastRouteIndex)
-                    f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
-                else
-                    f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
-            }
         }
 
-        refreshSource();
+        refreshSpotsSource();
+
+        for (Feature f : subRoutesCollection.features()) {
+            int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
+
+            if (spotRouteIndex == lastRouteIndex)
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+            else
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
+        }
+
+        refreshSubRoutesSource();
     }
 
     void startMyRoutesActivity() {
@@ -1117,7 +1102,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                List<Feature> features = featureCollection == null ? new ArrayList<>() : featureCollection.features();
+                List<Feature> features = spotsCollection == null ? new ArrayList<>() : spotsCollection.features();
 
                 //Consider the last saved spots
                 if (!features.isEmpty()) {
@@ -1236,109 +1221,72 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     /*
     Draws spots and routes on the map
      */
-    private static class DrawAnnotationsTask extends AsyncTask<Spot, Void, List<Route>> {
+    private static class DrawAnnotationsTask extends AsyncTask<Spot, Void, Boolean> {
         private final WeakReference<MyMapsFragment> activityRef;
-        String errMsg = "";
-        Boolean isLastArrayForSingleSpots = false;
+        ArrayList<Feature> spotsListAsFeatures = new ArrayList<>();
+        ArrayList<Feature> linesForSubRoutes = new ArrayList<>();
+        int numberOfSpotsOnMostRecentRoute = -1;
 
         DrawAnnotationsTask(MyMapsFragment activity) {
             this.activityRef = new WeakReference<>(activity);
         }
 
         @Override
-        protected List<Route> doInBackground(Spot... spotList) {
+        protected Boolean doInBackground(Spot... spotList) {
             if (isCancelled())
-                return null;
+                return false;
 
             MyMapsFragment activity = activityRef.get();
             if (activity == null)
-                return null;
+                return false;
 
-            List<List<Spot>> trips = new ArrayList<>();
-            ArrayList<Spot> spots = new ArrayList<>();
-            ArrayList<Spot> singleSpots = new ArrayList<>();
+            List<Route> routes = new ArrayList<>();
+            List<Spot> singleSpots = new ArrayList<>();
 
-            //The spots are ordered from the last saved ones to the first saved ones, so we need to
-            // go through the list in the opposite direction in order to sum up the route's totals from their origin to their destinations
+            List<Spot> inverseList = new ArrayList<>();
             for (int i = spotList.length - 1; i >= 0; i--) {
-                try {
-                    Spot spot = spotList[i];
+                inverseList.add(spotList[i]);
+            }
 
-                    if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
-                        spots.add(spot);
+            Utils.parseDBSpotList(inverseList, routes, singleSpots);
 
-                        if (spot.getIsDestination() != null && spot.getIsDestination() || i == 0) {
-                            trips.add(spots);
-                            spots = new ArrayList<>();
-                        }
-                    } else
-                        singleSpots.add(spot);
-                } catch (final Exception ex) {
-                    Crashlytics.logException(ex);
-                    errMsg = "Failed to load a spot";
+            if (routes.size() > 0)
+                numberOfSpotsOnMostRecentRoute = routes.get(routes.size() - 1).spots.size();
+
+            //Convert every spot that belong to no route (a.k.a single spot) into a Feature with properties
+            for (int j = 0; j < singleSpots.size(); j++) {
+                spotsListAsFeatures.add(GetFeature(singleSpots.get(j), 0, false, activityRef));
+            }
+
+            for (int i = 0; i < routes.size(); i++) {
+                Route r = routes.get(i);
+
+                //Convert every spot that belong to a route into a Feature with properties
+                for (int j = 0; j < r.spots.size(); j++) {
+                    Spot s = r.spots.get(j);
+                    spotsListAsFeatures.add(GetFeature(s, i, (j == 0), activityRef));
+                }
+
+                //Convert every SubRoute into a LineString with properties (color, style and routeIndex)
+                for (SubRoute sr : r.subRoutes) {
+                    //Convert point list into LineString
+                    JsonObject properties = new JsonObject();
+                    properties.addProperty(PROPERTY_ROUTEINDEX, i);
+                    properties.addProperty(PROPERTY_SHOULDHIDE, false);
+                    properties.addProperty("isHitchhikingRoute", sr.isHitchhikingRoute);
+                    int lineColorId = -1;
+                    if (sr.isHitchhikingRoute)
+                        lineColorId = getLineColorId(i);
+                    properties.addProperty("lineColor", lineColorId);
+
+                    // Create the LineString from the list of coordinates and then make a GeoJSON
+                    // FeatureCollection so we can add the line to our map as a layer.
+                    linesForSubRoutes.add(Feature.fromGeometry(
+                            LineString.fromLngLats(sr.points), properties));
                 }
             }
 
-            if (singleSpots.size() > 0) {
-                trips.add(singleSpots);
-                isLastArrayForSingleSpots = true;
-            }
-
-            if (!errMsg.isEmpty()) {
-                activity.activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        activity.showErrorAlert(activity.getResources().getString(R.string.general_error_dialog_title), "Loading spots failed.\n" + errMsg);
-                    }
-                });
-            }
-
-
-            List<Route> routes = new ArrayList<Route>();
-
-            for (int lc = 0; lc < trips.size(); lc++) {
-                try {
-                    List<Spot> spots2 = trips.get(lc);
-                    Route route = new Route();
-                    route.features = new Feature[spots2.size()];
-
-                    /* Source: A data source specifies the geographic coordinate where the image markers get placed. */
-                    //Feature for
-
-                    //If it's the last array and isLastArrayForSingleSpots is true, add the markers with no polyline connecting them
-                    if (isLastArrayForSingleSpots && lc == trips.size() - 1) {
-                        for (int li = 0; li < spots2.size(); li++) {
-                            Spot spot = spots2.get(li);
-                            //Add marker to map
-                            route.features[li] = GetFeature(spot, lc, li == 0, activityRef);
-                        }
-                    } else {
-                        PolylineOptions line = new PolylineOptions()
-                                .width(2)
-                                .color(Color.parseColor(activity.getResources().getString(activity.getPolylineColorAsId(lc))));//Color.parseColor(getPolylineColorAsString(lc)));
-
-
-                        //Add route to the map with markers and polylines connecting them
-                        for (int li = 0; li < spots2.size(); li++) {
-                            Spot spot = spots2.get(li);
-                            route.features[li] = GetFeature(spot, lc, li == 0, activityRef);
-
-                            //Add polyline connecting this marker
-                            line.add(new LatLng(spot.getLatitude(), spot.getLongitude()));
-                        }
-
-                        route.polylines = line;
-                    }
-
-                    routes.add(route);
-                } catch (Exception ex) {
-                    Crashlytics.logException(ex);
-                    errMsg = "Adding markers failed - " + ex.getMessage();
-                }
-
-            }
-
-            return routes;
+            return true;
         }
 
         @NonNull
@@ -1373,8 +1321,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
 
         @Override
-        protected void onPostExecute(List<Route> routes) {
-            super.onPostExecute(routes);
+        protected void onPostExecute(Boolean success) {
+            super.onPostExecute(success);
             if (isCancelled())
                 return;
 
@@ -1382,7 +1330,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             if (activity == null)
                 return;
 
-            activity.setupAnnotations(routes, isLastArrayForSingleSpots, errMsg);
+            activity.setupAnnotations(spotsListAsFeatures, linesForSubRoutes, numberOfSpotsOnMostRecentRoute);
         }
 
         static Feature GetFeature(Spot spot, int routeIndex, boolean isOrigin, WeakReference<MyMapsFragment> activityRef) {
@@ -1576,6 +1524,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             view.draw(canvas);
             return bitmap;
         }
+
     }
 
     /**
@@ -1599,20 +1548,28 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 .show();
     }
 
-    private void setupSource(@NonNull Style loadedMapStyle) {
-        if (loadedMapStyle.getSource(MARKER_SOURCE_ID) == null) {
-            source = new GeoJsonSource(MARKER_SOURCE_ID, featureCollection);
-            loadedMapStyle.addSource(source);
+    private void setupSpotsSource(@NonNull Style loadedMapStyle) {
+        if (loadedMapStyle.getSource(SPOTS_SOURCE_ID) == null) {
+            spotSource = new GeoJsonSource(SPOTS_SOURCE_ID, spotsCollection);
+            loadedMapStyle.addSource(spotSource);
         } else
-            refreshSource();
+            refreshSpotsSource();
+    }
+
+    private void setupSubRoutesSource(@NonNull Style loadedMapStyle) {
+        if (loadedMapStyle.getSource(SUB_ROUTE_SOURCE_ID) == null) {
+            subRoutesSource = new GeoJsonSource(SUB_ROUTE_SOURCE_ID, subRoutesCollection);
+            loadedMapStyle.addSource(subRoutesSource);
+        } else
+            refreshSubRoutesSource();
     }
 
     /* Setup style layer */
-    private void setupStyleLayer(@NonNull Style loadedMapStyle) {
-        if (loadedMapStyle.getLayer(MARKER_STYLE_LAYER_ID) == null) {
+    private void setupSpotsStyleLayer(@NonNull Style loadedMapStyle) {
+        if (loadedMapStyle.getLayer(ROUTES_SPOTS_STYLE_LAYER_ID) == null) {
             //A style layer ties together the source and image and specifies how they are displayed on the map
             //Add markers layer
-            loadedMapStyle.addLayer(new SymbolLayer(MARKER_STYLE_LAYER_ID, MARKER_SOURCE_ID)
+            loadedMapStyle.addLayer(new SymbolLayer(ROUTES_SPOTS_STYLE_LAYER_ID, SPOTS_SOURCE_ID)
                     .withProperties(
                             PropertyFactory.iconAllowOverlap(true),
                             PropertyFactory.iconImage("{" + PROPERTY_ICONIMAGE + "}")
@@ -1622,9 +1579,27 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    private void setupPolylines() {
-        //Add spots and polylines to map
-        mapboxMap.addPolylines(Arrays.asList(polylineOptionsArray));
+    private void setupSubRoutesStyleLayer(@NonNull Style loadedMapStyle) {
+        if (loadedMapStyle.getLayer(LINES_STYLE_LAYER_ID) == null) {
+            //A style layer ties together the source and image and specifies how they are displayed on the map
+            //Add markers layer
+            loadedMapStyle.addLayer(new LineLayer(LINES_STYLE_LAYER_ID, SUB_ROUTE_SOURCE_ID)
+                    .withProperties(
+                            PropertyFactory.lineColor(
+                                    match(get("lineColor"), rgb(169, 169, 169),
+                                            stop(0, rgb(133, 207, 58)),
+                                            stop(1, rgb(255, 187, 51)),
+                                            stop(2, rgb(51, 201, 187)),
+                                            stop(3, rgb(255, 64, 129)),
+                                            stop(4, rgb(160, 130, 255)))),
+                            PropertyFactory.lineWidth(2f),
+                            PropertyFactory.visibility(Property.VISIBLE),
+                            PropertyFactory.iconAllowOverlap(true),
+                            PropertyFactory.iconImage("{" + PROPERTY_ICONIMAGE + "}")
+                    )
+                    /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
+                    .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false))));
+        }
     }
 
     /**
@@ -1635,7 +1610,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      */
     private void setupCalloutLayer(@NonNull Style loadedMapStyle) {
         if (loadedMapStyle.getLayer(CALLOUT_LAYER_ID) == null) {
-            loadedMapStyle.addLayer(new SymbolLayer(CALLOUT_LAYER_ID, MARKER_SOURCE_ID)
+            loadedMapStyle.addLayer(new SymbolLayer(CALLOUT_LAYER_ID, SPOTS_SOURCE_ID)
                     .withProperties(
                             /* show image with id based on the value of the tag feature property */
                             iconImage("{" + PROPERTY_TAG + "}"),
@@ -1652,10 +1627,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    private void refreshSource() {
-        if (source != null && featureCollection != null) {
-            source.setGeoJson(featureCollection);
+    private void refreshSpotsSource() {
+        if (spotSource != null && spotsCollection != null) {
+            spotSource.setGeoJson(spotsCollection);
         }
+    }
+
+    private void refreshSubRoutesSource() {
+        if (subRoutesSource != null && subRoutesCollection != null)
+            subRoutesSource.setGeoJson(subRoutesCollection);
     }
 
     public void saveRegularSpotButtonHandler() {
@@ -1757,7 +1737,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return ContextCompat.getColorStateList(activity.getBaseContext(), getPolylineColorAsId(routeIndex));
     }
 
-    private int getPolylineColorAsId(int routeIndex) {
+    private static int getPolylineColorAsId(int routeIndex) {
         int polylineColor = R.color.route_color_unknown;
 
         if (routeIndex > -1) {
@@ -1782,6 +1762,20 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     polylineColor = R.color.route_color_4;
                     break;
             }
+        }
+
+        return polylineColor;
+    }
+
+    private static int getLineColorId(int routeIndex) {
+        int polylineColor = -1;
+
+        if (routeIndex > -1) {
+            int value = routeIndex;
+            if (value < 5)
+                value += 5;
+
+            return value % 5;
         }
 
         return polylineColor;

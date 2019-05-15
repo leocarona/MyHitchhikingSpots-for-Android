@@ -144,8 +144,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     List<Spot> spotList = new ArrayList();
     //Each hitchhiking spot is a feature
     FeatureCollection featureCollection;
-    //Each route is an item of featuresArray and polylineOptionsArray
-    Feature[] featuresArray;
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
 
@@ -432,6 +430,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 }
             }
 
+
+
             setupIconImages();
 
             enableLocationLayer();
@@ -639,12 +639,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
 
-    private void setupAnnotations(List<Route> routes, String errMsg) {
+    private void setupAnnotations(ArrayList<Feature> features, String errMsg) {
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
         }
 
-        setupLocalVariables(routes);
+        this.featureCollection = FeatureCollection.fromFeatures(features);
 
         if (mapboxMap == null) {
             return;
@@ -661,7 +661,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
             //If there's no spot to show, display dialog trying to encourage the user to go and download some HW spots
             //This should be particularly useful when user had downloaded HW spots but the local file was manually deleted or got corrupted for some reason
-            if (routes.size() == 0) {
+            if (features.size() == 0) {
                 showDialogDownloadHWSpots();
 
                 //No markers to show
@@ -688,20 +688,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
 
         dismissProgressDialog();
-    }
-
-    private void setupLocalVariables(List<Route> routes) {
-        List<Feature> allFeatures = new ArrayList<>();
-
-        for (int i = 0; i < routes.size(); i++) {
-            Route route = routes.get(i);
-            allFeatures.addAll(Arrays.asList(route.features));
-        }
-
-        Feature[] array = new Feature[allFeatures.size()];
-        this.featuresArray = allFeatures.toArray(array);
-
-        featureCollection = FeatureCollection.fromFeatures(featuresArray);
     }
 
     private void showDialogDownloadHWSpots() {
@@ -1017,7 +1003,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     /*
        Draws spots downloaded from Hitchwiki on the map
     */
-    private static class DrawAnnotationsTask extends AsyncTask<Spot, Void, List<Route>> {
+    private static class DrawAnnotationsTask extends AsyncTask<Spot, Void, ArrayList<Feature>> {
         private final WeakReference<HitchwikiMapViewFragment> activityRef;
         String errMsg = "";
 
@@ -1026,72 +1012,17 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
 
         @Override
-        protected List<Route> doInBackground(Spot... spotList) {
+        protected ArrayList<Feature> doInBackground(Spot... spotList) {
             HitchwikiMapViewFragment activity = activityRef.get();
             if (activity == null)
                 return null;
 
-            List<List<Spot>> trips = new ArrayList<>();
-            ArrayList<Spot> spots = new ArrayList<>();
-            ArrayList<Spot> singleSpots = new ArrayList<>();
-            Boolean isLastArrayForSingleSpots = false;
-
-            //The spots are ordered from the last saved ones to the first saved ones, so we need to
-            // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
-            for (int i = spotList.length - 1; i >= 0; i--) {
-                Spot spot = spotList[i];
-
-                if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
-                    spots.add(spot);
-
-                    if (spot.getIsDestination() != null && spot.getIsDestination() || i == 0) {
-                        trips.add(spots);
-                        spots = new ArrayList<>();
-                    }
-                } else
-                    singleSpots.add(spot);
+            ArrayList<Feature> features = new ArrayList<>();
+            for (int j = 0; j < spotList.length; j++) {
+                Spot s = spotList[j];
+                features.add(GetFeature(s, 0, activity));
             }
-
-            if (singleSpots.size() > 0) {
-                trips.add(singleSpots);
-                isLastArrayForSingleSpots = true;
-            }
-
-            if (!errMsg.isEmpty()) {
-                activity.getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        activity.showErrorAlert(activity.getString(R.string.general_error_dialog_title), String.format(activity.getResources().getString(R.string.general_error_dialog_message),
-                                errMsg));
-                    }
-                });
-                return new ArrayList<>();
-            }
-
-            List<Route> routes = new ArrayList<Route>();
-
-            for (int lc = 0; lc < trips.size(); lc++) {
-                try {
-                    List<Spot> spots2 = trips.get(lc);
-                    Route route = new Route();
-                    route.features = new Feature[spots2.size()];
-
-                    //If it's the last array and isLastArrayForSingleSpots is true, add the markers with no polyline connecting them
-                    if (isLastArrayForSingleSpots && lc == trips.size() - 1) {
-                        for (int li = 0; li < spots2.size(); li++) {
-                            Spot spot = spots2.get(li);
-                            //Add marker to map
-                            route.features[li] = GetFeature(spot, lc, activity);
-                        }
-                    }
-                    routes.add(route);
-                } catch (Exception ex) {
-                    Crashlytics.logException(ex);
-                    errMsg = "Adding markers failed - " + ex.getMessage();
-                }
-
-            }
-            return routes;
+            return features;
         }
 
         private static String getIconId(HitchwikiMapViewFragment activity, int hitchability) {
@@ -1148,13 +1079,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
 
         @Override
-        protected void onPostExecute(List<Route> routes) {
-            super.onPostExecute(routes);
+        protected void onPostExecute(ArrayList<Feature> features) {
+            super.onPostExecute(features);
             HitchwikiMapViewFragment activity = activityRef.get();
             if (activity == null)
                 return;
 
-            activity.setupAnnotations(routes, errMsg);
+            activity.setupAnnotations(features, errMsg);
         }
 
         static Feature GetFeature(Spot spot, int routeIndex, HitchwikiMapViewFragment activity) {
