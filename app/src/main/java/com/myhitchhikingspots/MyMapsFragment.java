@@ -99,6 +99,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
 
+    private boolean spotListWasChanged = false;
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     CoordinatorLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
@@ -670,6 +671,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         deselectAll(false);
 
         Feature feature = spotsCollection.features().get(index);
+
+        if (spotListWasChanged)
+            style.removeImage(feature.id());
+
         if (style.getImage(feature.id()) == null) {
             showProgressDialog("Loading data..");
 
@@ -734,6 +739,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
         this.spotList = spotList;
         this.mCurrentWaitingSpot = mCurrentWaitingSpot;
+        this.spotListWasChanged = true;
 
         updateUISaveButtons();
 
@@ -887,11 +893,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED)
+        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED) {
             showSpotSavedSnackbar();
+            spotListWasChanged = true;
+        }
 
-        if (resultCode == Constants.RESULT_OBJECT_DELETED)
+        if (resultCode == Constants.RESULT_OBJECT_DELETED) {
             showSpotDeletedSnackbar();
+            spotListWasChanged = true;
+        }
     }
 
     @Override
