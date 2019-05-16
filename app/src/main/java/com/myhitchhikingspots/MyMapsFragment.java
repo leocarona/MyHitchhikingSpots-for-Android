@@ -1381,7 +1381,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     //The spot is a destination
 
                     markerTitle = activity.getString(R.string.map_infoview_spot_type_got_off_here);
-                    icon = activity.ic_arrival_spot.getId();
+                    icon = activity.ic_point_on_the_route_spot.getId();
                     type = Constants.SPOT_TYPE_GOT_OFF_HERE;
                 } else {
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
