@@ -547,6 +547,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     Toast waiting_GPS_update;
 
     void enableLocationLayer() {
+        if (mapboxMap == null)
+            return;
+
         //Setup location plugin to display the user location on a map.
         // NOTE: map camera won't follow location updates by default here.
         setupLocationComponent(style);
@@ -559,6 +562,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     void moveMapCameraToUserLocation() {
+        if (mapboxMap == null)
+            return;
+
         //Request permission of access to GPS updates or
         // directly initialize and enable the location plugin if such permission was already granted. 
         enableLocationLayer();

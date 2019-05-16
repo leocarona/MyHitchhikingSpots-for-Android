@@ -256,6 +256,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
 
     void enableLocationLayer() {
+        if (mapboxMap == null)
+            return;
+
         //Setup location plugin to display the user location on a map.
         // NOTE: map camera won't follow location updates by default here.
         setupLocationComponent(style);
@@ -429,7 +432,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     Crashlytics.logException(exception);
                 }
             }
-
 
 
             setupIconImages();
