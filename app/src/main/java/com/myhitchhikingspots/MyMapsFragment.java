@@ -317,6 +317,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             this.mapboxMap.getUiSettings().setCompassEnabled(true);
             this.mapboxMap.getUiSettings().setLogoEnabled(false);
             this.mapboxMap.getUiSettings().setAttributionEnabled(false);
+            this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
 
             this.mapboxMap.addOnMapClickListener(this);
 

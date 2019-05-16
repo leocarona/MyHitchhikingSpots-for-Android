@@ -669,6 +669,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             this.mapboxMap.getUiSettings().setCompassEnabled(true);
             this.mapboxMap.getUiSettings().setLogoEnabled(false);
             this.mapboxMap.getUiSettings().setAttributionEnabled(false);
+            this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
 
             if (style.isFullyLoaded()) {
                 LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);

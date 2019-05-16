@@ -422,6 +422,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             this.mapboxMap.getUiSettings().setCompassEnabled(true);
             this.mapboxMap.getUiSettings().setLogoEnabled(false);
             this.mapboxMap.getUiSettings().setAttributionEnabled(false);
+            this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
 
             this.mapboxMap.addOnMapClickListener(this);
 
