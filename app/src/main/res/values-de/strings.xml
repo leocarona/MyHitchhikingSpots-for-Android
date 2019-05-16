@@ -134,6 +134,7 @@
     <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
     <string name="spot_form_is_destination_checkbox_text">Das ist mein bisheriges Ziel</string>
     <string name="spot_form_is_hitchhiking_spot_checkbox_text">This is a hitchhiking spot</string>
+    <string name="spot_form_is_got_off_here_checkbox_text">This is where I got off</string>
     <string name="spot_form_title_evaluate">Ort beurteilen</string>
     <string name="spot_form_title_edit">Standort bearbeiten</string>
     <string name="spot_form_lat_lng_label">Bg %1$s Lg %2$s</string>
@@ -208,6 +209,8 @@
     <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\nYou might need an internet connection to save this change.</string>
     <string name="save_spot_error_general">Irgendetwas ging schief :(\n%s</string>
 
+    <string name="map_infoview_spot_type_unknown_attempt_result">(DID YOU GET A RIDE HERE?)</string>
+    <string name="map_infoview_spot_type_got_off_here">(GOT OFF HERE)</string>
     <string name="map_infoview_spot_type_destination">(REISEZIEL)</string>
     <string name="map_infoview_spot_type_waiting">(WARTEN)</string>
     <string name="map_infoview_spot_type_origin">(ORIGIN)</string>

@@ -333,7 +333,7 @@
                         android:text="@string/spot_form_is_hitchhiking_spot_checkbox_text" />
 
                     <androidx.appcompat.widget.AppCompatCheckBox
-                        android:id="@+id/save_spot_form_is_single_spot_check_box"
+                        android:id="@+id/save_spot_form_is_part_of_route_check_box"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
@@ -345,6 +345,18 @@
                         android:text="@string/spot_form_is_part_of_a_route_checkbox_text" />
 
                     <androidx.appcompat.widget.AppCompatCheckBox
+                        android:id="@+id/save_spot_form_is_got_off_here_check_box"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:button="@null"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginRight="10dp"
+                        android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
+                        android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
+                        android:text="@string/spot_form_is_got_off_here_checkbox_text" />
+
+                    <androidx.appcompat.widget.AppCompatCheckBox
                         android:id="@+id/save_spot_form_is_destination_check_box"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -354,6 +366,7 @@
                         android:layout_marginRight="10dp"
                         android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
+                        android:visibility="gone"
                         android:text="@string/spot_form_is_destination_checkbox_text" />
 
                 </LinearLayout>

@@ -1377,6 +1377,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     markerTitle = activity.getString(R.string.map_infoview_spot_type_destination);
                     icon = activity.ic_arrival_spot.getId();
                     type = Constants.SPOT_TYPE_DESTINATION;
+                } else if (spot.getIsGotOffHere() != null && spot.getIsGotOffHere()) {
+                    //The spot is a destination
+
+                    markerTitle = activity.getString(R.string.map_infoview_spot_type_got_off_here);
+                    icon = activity.ic_arrival_spot.getId();
+                    type = Constants.SPOT_TYPE_GOT_OFF_HERE;
                 } else {
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
                         //The spot is a hitchhiking spot
@@ -1384,7 +1390,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                         switch (spot.getAttemptResult()) {
                             case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
-                            default:
                                 //The spot is a hitchhiking spot that was already evaluated
                                 icon = activity.getGotARideIconForRoute(routeIndex).getId();
                                 markerTitle = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
@@ -1394,6 +1399,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                                 //icon = ic_took_a_break_spot;
                                 icon = activity.ic_point_on_the_route_spot.getId();
                                 markerTitle = activity.getString(R.string.map_infoview_spot_type_break);
+                                break;
+                            default:
+                                icon = activity.getGotARideIconForRoute(routeIndex).getId();
+                                markerTitle = activity.getString(R.string.map_infoview_spot_type_unknown_attempt_result);
                                 break;
                         }
 
@@ -1416,7 +1425,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //This spot doesn't belong to a route (it's a single spot)
 
                 if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
-                    markerTitle = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                    if (spot.getAttemptResult() == null)
+                        markerTitle = activity.getString(R.string.map_infoview_spot_type_unknown_attempt_result);
+                    else
+                        markerTitle = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
 
                     icon = activity.ic_single_spot.getId();
                     type = Constants.SPOT_TYPE_SINGLE_SPOT;

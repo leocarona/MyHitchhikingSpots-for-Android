@@ -104,6 +104,7 @@
     <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
     <string name="spot_form_is_destination_checkbox_text">Det her er min destination for nu</string>
     <string name="spot_form_is_hitchhiking_spot_checkbox_text">Det her er et blaffe sted</string>
+    <string name="spot_form_is_got_off_here_checkbox_text">This is where I got off</string>
     <string name="spot_form_title_evaluate">Evaluer sted</string>
     <string name="spot_form_title_edit">Ændr sted</string>
     <string name="spot_form_lat_lng_label">Br %1$s L %2$s</string>
@@ -178,6 +179,8 @@
     <string name="save_spot_error_coordinate_not_informed_error_message">Vi er ikke i stand til at lokalisere stedet, du prøver at gemme. Internetforbindelse er måske nødvendig for at gemme denne ændring.</string>
     <string name="save_spot_error_general">Noget gik galt :(\n%s</string>
 
+    <string name="map_infoview_spot_type_unknown_attempt_result">(DID YOU GET A RIDE HERE?)</string>
+    <string name="map_infoview_spot_type_got_off_here">(GOT OFF HERE)</string>
     <string name="map_infoview_spot_type_destination">(DESTINATION)</string>
     <string name="map_infoview_spot_type_waiting">(VENTER)</string>
     <string name="map_infoview_spot_type_origin">(ORIGIN)</string>

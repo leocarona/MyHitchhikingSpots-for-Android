@@ -16,13 +16,18 @@ import android.location.Address;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
+
 import com.google.android.material.bottomnavigation.BottomNavigationItemView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -32,6 +37,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.Toolbar;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
@@ -109,6 +115,23 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.ResultReceiver;
 
+/*
+      A spot is just a coordinate and some extra data. Currently we allow 6 types of spots (listed below).
+      The logic of the checkboxes should allow the user to save a spot as:
+          got a ride -            is a hitchhiking spot;       x                          is not a destination
+          took a break -          is a hitchhiking spot;       x                          is not a destination
+          other -                 is not a hitchhiking spot;   x                          is not a destination
+
+          waiting spot -          is a hitchhiking spot;       is part of a route;        is not a destination
+          single spot -           is a hitchhiking spot;       is not part of a route;    is not a destination
+
+          got off here -          is not a hitchhiking spot;  is part of a route;         x
+          destination -           is not a hitchhiking spot;  is part of a route;         is a destination
+
+      Additionally, the names used should be understood as follow:
+          is NOT part of a route = is single spot
+          is NOT a hitchhiking spot = is other type of spot
+*/
 public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback,
         View.OnClickListener, CompoundButton.OnCheckedChangeListener, PermissionsListener {
 
@@ -119,7 +142,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
     private Spot mCurrentSpot;
-    private CheckBox is_part_of_a_route_check_box, is_destination_check_box, is_hitchhiking_spot_check_box;
+    private CheckBox is_part_of_a_route_check_box, is_destination_check_box, is_hitchhiking_spot_check_box, is_got_off_here_check_box;
     private TextView hitchabilityLabel, selected_date;
     private LinearLayout spot_form_evaluate, spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
@@ -295,9 +318,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         time_timepicker = (TimePicker) findViewById(R.id.spot_form_time_timepicker);
         waiting_time_edittext = (EditText) findViewById(R.id.spot_form_waiting_time_edittext);
         spot_form_more_options = (LinearLayout) findViewById(R.id.save_spot_form_more_options);
-        is_part_of_a_route_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_single_spot_check_box);
+        is_part_of_a_route_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_part_of_route_check_box);
         is_destination_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_destination_check_box);
         is_hitchhiking_spot_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_hitchhiking_spot_check_box);
+        is_got_off_here_check_box = (CheckBox) findViewById(R.id.save_spot_form_is_got_off_here_check_box);
         hitchability_ratingbar = (RatingBar) findViewById(R.id.spot_form_hitchability_ratingbar);
         hitchability_options = (LinearLayout) findViewById(R.id.save_spot_form_hitchability_options);
         hitchabilityLabel = (TextView) findViewById(R.id.spot_form_hitchability_selectedvalue);
@@ -466,12 +490,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             note_edittext.setHint(getString(R.string.spot_form_note_hint));
         else
             note_edittext.setHint(getString(R.string.spot_form_add_note_hint));*/
-
-
-        //Add checkboxes listeners
-        is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
-        is_destination_check_box.setOnCheckedChangeListener(this);
-        is_hitchhiking_spot_check_box.setOnCheckedChangeListener(this);
 
 
         //Load UI - Make sure all the relevant listeners were set BEFORE updateUI() is called
@@ -716,7 +734,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
      */
-    @SuppressWarnings( {"MissingPermission"})
+    @SuppressWarnings({"MissingPermission"})
     private void moveCameraToLastKnownLocation() {
         LatLng moveCameraPositionTo = null;
 
@@ -757,7 +775,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
      *
      * @return True if the map camera was moved anywhere.
      */
-    @SuppressWarnings( {"MissingPermission"})
+    @SuppressWarnings({"MissingPermission"})
     boolean moveCameraToSpotLocation(Spot spot) {
         LatLng cameraPositionTo = null;
         int cameraZoomTo = Constants.KEEP_ZOOM_LEVEL;
@@ -1109,25 +1127,20 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 note_edittext.setText("");
 
             Boolean isDestination = mCurrentSpot.getIsDestination() != null && mCurrentSpot.getIsDestination();
+            Boolean isGotOffHere = mCurrentSpot.getIsGotOffHere() != null && mCurrentSpot.getIsGotOffHere();
             Boolean isPartOfARouteSpot = mCurrentSpot.getIsPartOfARoute() != null && mCurrentSpot.getIsPartOfARoute();
             Boolean isHitchhikingSpot = mCurrentSpot.getIsHitchhikingSpot() != null && mCurrentSpot.getIsHitchhikingSpot();
 
-            is_destination_check_box.setChecked(isDestination);
-            is_part_of_a_route_check_box.setChecked(isPartOfARouteSpot);
-            is_hitchhiking_spot_check_box.setChecked(isHitchhikingSpot);
+            updateCheckboxesStates(isDestination, isGotOffHere, isPartOfARouteSpot, isHitchhikingSpot);
 
             if (shouldRetrieveDetailsFromHW) {
+                is_got_off_here_check_box.setVisibility(View.GONE);
                 is_destination_check_box.setVisibility(View.GONE);
-                is_part_of_a_route_check_box.setVisibility(View.VISIBLE);
-                is_part_of_a_route_check_box.setEnabled(false);
+                is_part_of_a_route_check_box.setVisibility(View.GONE);
                 is_hitchhiking_spot_check_box.setVisibility(View.VISIBLE);
                 is_hitchhiking_spot_check_box.setEnabled(false);
-            } else {
-                is_destination_check_box.setVisibility(View.VISIBLE);
-                is_part_of_a_route_check_box.setVisibility(View.VISIBLE);
-                is_hitchhiking_spot_check_box.setVisibility(View.VISIBLE);
-
-            }
+            } else
+                updateCheckboxesStyle();
 
             int h = 0;
             if (mCurrentSpot.getHitchability() != null) {
@@ -1318,6 +1331,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             mCurrentSpot.setIsPartOfARoute(is_part_of_a_route_check_box.isChecked());
 
             mCurrentSpot.setIsHitchhikingSpot(is_hitchhiking_spot_check_box.isChecked());
+
+            mCurrentSpot.setIsGotOffHere(is_got_off_here_check_box.isChecked());
 
             mCurrentSpot.setIsDestination(is_destination_check_box.isChecked());
 
@@ -1620,110 +1635,128 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     public void onCheckedChanged(CompoundButton checkBox, boolean isChecked) {
-        /*
-        A spot is just a coordinate and some extra data. Currently we allow 6 types of spots (listed below).
-        The logic of the checkboxes should allow the user to save a spot as:
-            got a ride -            is a hitchhiking spot;       x                          is not a destination
-            took a break -          is a hitchhiking spot;       x                          is not a destination
-            other -                 is not a hitchhiking spot;   x                          is not a destination
-
-            waiting spot -          is a hitchhiking spot;       is part of a route;        is not a destination
-            single spot -           is a hitchhiking spot;       is not part of a route;    is not a destination
-
-            destination -           is not a hitchhiking spot;  is part of a route;         is a destination
-
-        Additionally, the names used should be understood as follow:
-            is NOT part of a route = is single spot
-            is NOT a hitchhiking spot = is other type of spot
-        */
-
         //Clear all checkedChangedListener - it should be set again before the end of this method
         is_destination_check_box.setOnCheckedChangeListener(null);
+        is_got_off_here_check_box.setOnCheckedChangeListener(null);
         is_part_of_a_route_check_box.setOnCheckedChangeListener(null);
         is_hitchhiking_spot_check_box.setOnCheckedChangeListener(null);
 
-        switch (checkBox.getId()) {
-            case R.id.save_spot_form_is_destination_check_box:
-                if (isChecked) {
-                    //It is a destination
-                    is_destination_check_box.setTypeface(null, Typeface.BOLD);
+        updateCheckboxesStates(checkBox.getId(), isChecked);
+        updateCheckboxesStyle();
 
+        //Set all checkedChangedListener
+        is_destination_check_box.setOnCheckedChangeListener(this);
+        is_got_off_here_check_box.setOnCheckedChangeListener(this);
+        is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
+        is_hitchhiking_spot_check_box.setOnCheckedChangeListener(this);
+    }
+
+    void updateCheckboxesStates(int checkboxResourceId, boolean isChecked) {
+        switch (checkboxResourceId) {
+            case R.id.save_spot_form_is_hitchhiking_spot_check_box:
+                if (isChecked) {
+                    //It is a hitchhiking spot, it can not be a destination
+                    is_got_off_here_check_box.setChecked(false);
+                    is_destination_check_box.setChecked(false);
+                    is_destination_check_box.setVisibility(View.GONE);
+
+                    //If it is a hitchhiking spot, it can be a single spot
+                    is_part_of_a_route_check_box.setEnabled(true);
+                } else {
+                    //It is not a hitchhiking spot, it can be a destination
+                    //If it is not a hitchhiking spot, it can be a single spot
+                    is_part_of_a_route_check_box.setEnabled(true);
+                }
+                break;
+            case R.id.save_spot_form_is_got_off_here_check_box:
+                if (isChecked) {
                     //If it is a destination, it is not a hitchhiking spot
                     is_hitchhiking_spot_check_box.setChecked(false);
                     is_hitchhiking_spot_check_box.setEnabled(false);
-                    is_hitchhiking_spot_check_box.setTypeface(null, Typeface.NORMAL);
 
                     //If it is a destination, it is part of a route (it's not a single spot)
                     is_part_of_a_route_check_box.setChecked(true);
                     is_part_of_a_route_check_box.setEnabled(false);
-                    is_part_of_a_route_check_box.setTypeface(null, Typeface.BOLD);
-                } else {
-                    //It is not a destination
-                    is_destination_check_box.setTypeface(null, Typeface.NORMAL);
 
+                    is_destination_check_box.setVisibility(View.VISIBLE);
+                } else {
                     //It is not a destination, it can be a single spot or a hitchhiking spot
                     is_hitchhiking_spot_check_box.setEnabled(true);
                     is_part_of_a_route_check_box.setEnabled(true);
+
+                    //It is not a Got Off spot, then it can't be a destination
+                    is_destination_check_box.setVisibility(View.GONE);
+                    is_destination_check_box.setChecked(false);
                 }
 
                 break;
-            case R.id.save_spot_form_is_single_spot_check_box:
+            case R.id.save_spot_form_is_part_of_route_check_box:
                 if (isChecked) {
-                    //It is part of a route (not a single spot)
-                    is_part_of_a_route_check_box.setTypeface(null, Typeface.BOLD);
-
-                    //It is not a single spot, it can be a destination
-                    //is_destination_check_box.setChecked(false);
-                    is_destination_check_box.setEnabled(true);
+                    //It is part of a route (not a single spot), then it may be a got off here and/or destination
+                    is_got_off_here_check_box.setEnabled(true);
 
                     //It is not a single spot, it can be a hitchhiking spot
                     is_hitchhiking_spot_check_box.setEnabled(true);
                 } else {
-                    //It is not part of a route (it's a single spot)
-                    is_part_of_a_route_check_box.setTypeface(null, Typeface.NORMAL);
-
-                    //If it is a single spot, it can not be a destination
-                    is_destination_check_box.setChecked(false);
-                    //is_destination_check_box.setEnabled(false);
-                    is_destination_check_box.setTypeface(null, Typeface.NORMAL);
+                    //It is not part of a route (it's a single spot), then it may not be a got off spot neither a destination
+                    is_got_off_here_check_box.setEnabled(false);
+                    is_destination_check_box.setVisibility(View.GONE);
 
                     //If it is a single spot, it can be a hitchhiking spot
                     is_hitchhiking_spot_check_box.setEnabled(true);
                 }
                 break;
-            case R.id.save_spot_form_is_hitchhiking_spot_check_box:
-                if (isChecked) {
-                    //It is a hitchhiking spot
-                    is_hitchhiking_spot_check_box.setTypeface(null, Typeface.BOLD);
-
-                    //If it is a hitchhiking spot, it can not be a destination
-                    is_destination_check_box.setChecked(false);
-                    //is_destination_check_box.setEnabled(false);
-                    is_destination_check_box.setTypeface(null, Typeface.NORMAL);
-
-                    //If it is a hitchhiking spot, it can be a single spot
-                    is_part_of_a_route_check_box.setEnabled(true);
-
-                } else {
-                    //It is not a hitchhiking spot
-                    is_hitchhiking_spot_check_box.setTypeface(null, Typeface.NORMAL);
-
-                    //If it is not a hitchhiking spot, it can be a destination
-                    is_destination_check_box.setEnabled(true);
-
-                    //If it is not a hitchhiking spot, it can be a single spot
-                    is_part_of_a_route_check_box.setEnabled(true);
-                }
-
-                break;
         }
-
-        //Set all checkedChangedListener
-        is_destination_check_box.setOnCheckedChangeListener(this);
-        is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
-        is_hitchhiking_spot_check_box.setOnCheckedChangeListener(this);
     }
 
+    void updateCheckboxesStyle() {
+        //Apply styles
+        if (is_destination_check_box.isChecked())
+            is_destination_check_box.setTypeface(null, Typeface.BOLD);
+        else
+            is_destination_check_box.setTypeface(null, Typeface.NORMAL);
+
+        if (is_got_off_here_check_box.isChecked())
+            is_got_off_here_check_box.setTypeface(null, Typeface.BOLD);
+        else
+            is_got_off_here_check_box.setTypeface(null, Typeface.NORMAL);
+
+        if (is_part_of_a_route_check_box.isChecked())
+            is_part_of_a_route_check_box.setTypeface(null, Typeface.BOLD);
+        else
+            is_part_of_a_route_check_box.setTypeface(null, Typeface.NORMAL);
+
+        if (is_hitchhiking_spot_check_box.isChecked())
+            is_hitchhiking_spot_check_box.setTypeface(null, Typeface.BOLD);
+        else
+            is_hitchhiking_spot_check_box.setTypeface(null, Typeface.NORMAL);
+    }
+
+    private void updateCheckboxesStates(Boolean isDestination, Boolean isGotOffHere, Boolean isPartOfARouteSpot, Boolean isHitchhikingSpot) {
+        //Add checkboxes listeners
+        is_destination_check_box.setOnCheckedChangeListener(null);
+        is_part_of_a_route_check_box.setOnCheckedChangeListener(null);
+        is_got_off_here_check_box.setOnCheckedChangeListener(null);
+        is_hitchhiking_spot_check_box.setOnCheckedChangeListener(null);
+
+        is_destination_check_box.setChecked(isDestination);
+        is_part_of_a_route_check_box.setChecked(isPartOfARouteSpot);
+        is_got_off_here_check_box.setChecked(isGotOffHere);
+        is_hitchhiking_spot_check_box.setChecked(isHitchhikingSpot);
+
+        if (isGotOffHere)
+            is_destination_check_box.setVisibility(View.VISIBLE);
+        else
+            is_destination_check_box.setVisibility(View.GONE);
+
+        //Add checkboxes listeners
+        is_destination_check_box.setOnCheckedChangeListener(this);
+        is_part_of_a_route_check_box.setOnCheckedChangeListener(this);
+        is_got_off_here_check_box.setOnCheckedChangeListener(this);
+        is_hitchhiking_spot_check_box.setOnCheckedChangeListener(this);
+
+        updateCheckboxesStyle();
+    }
 
     public void SetDateTime(DatePicker datePicker, TimePicker timePicker, DateTime date) {
         selected_date.setText(Utils.dateTimeToString(date));
