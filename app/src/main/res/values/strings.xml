@@ -177,6 +177,7 @@ The Hitchwiki team.
     <string name="general_author_label">by %s</string>
     <string name="general_download_option">Download</string>
     <string name="general_downloading_message">Downloading&#8230;</string>
+    <string name="general_downloading_data_message">Downloading data&#8230;</string>
     <string name="general_items_downloaded_message">%d items were downloaded.</string>
     <string name="general_downloading_something_message">Downloading: %s</string>
     <string name="general_download_finished_successffull_message">Download successful</string>

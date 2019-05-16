@@ -1560,7 +1560,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             loadingDialog = new ProgressDialog(SpotFormActivity.this);
             loadingDialog.setIndeterminate(true);
             loadingDialog.setCancelable(false);
-            loadingDialog.setTitle(getString(R.string.general_loading_dialog_title));
+            loadingDialog.setTitle(getString(R.string.general_downloading_data_message));
             loadingDialog.setMessage(getString(R.string.general_loading_dialog_message));
         }
         loadingDialog.show();

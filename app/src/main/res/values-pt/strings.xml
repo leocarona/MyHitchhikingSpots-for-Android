@@ -172,6 +172,7 @@
     <string name="general_author_label">de %s</string>
     <string name="general_download_option">Baixar</string>
     <string name="general_downloading_message">Baixando&#8230;</string>
+    <string name="general_downloading_data_message">Baixando informaçōes&#8230;</string>
     <string name="general_items_downloaded_message">%d items baixados.</string>
     <string name="general_downloading_something_message">Baixando: %s</string>
     <string name="general_download_finished_successffull_message">Download concluído com sucesso</string>
