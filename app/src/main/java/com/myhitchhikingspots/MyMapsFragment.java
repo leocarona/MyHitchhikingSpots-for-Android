@@ -1683,6 +1683,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             requestId = Constants.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsHitchhikingSpot(!isDestination);
+            spot.setIsGotOffHere(isDestination);
             spot.setIsDestination(isDestination);
             spot.setIsPartOfARoute(true);
             if (mapboxMap != null) {
