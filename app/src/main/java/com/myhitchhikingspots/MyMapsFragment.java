@@ -100,6 +100,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
 
     private boolean spotListWasChanged = false;
+    private boolean isHandlingRequestToOpenSpotForm = false;
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     CoordinatorLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
@@ -255,6 +256,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             public void onClick(View view) {
                 //While waiting for a ride, MainActionButton is a "Got a ride" button
                 //when not waiting for a ride, it's a "Save spot" button
+                //Prevent from handling multiple clicks
+                if (isHandlingRequestToOpenSpotForm)
+                    return;
+                isHandlingRequestToOpenSpotForm = true;
 
                 if (isWaitingForARide())
                     gotARideButtonHandler();
@@ -269,6 +274,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             public void onClick(View view) {
                 //While waiting for a ride, SecondaryActionButton is a "Arrived to destination" button
                 //when not waiting for a ride, it's a "Take a break" button
+                //Prevent from handling multiple clicks
+                if (isHandlingRequestToOpenSpotForm)
+                    return;
+                isHandlingRequestToOpenSpotForm = true;
 
                 if (isWaitingForARide())
                     tookABreakButtonHandler();
@@ -601,6 +610,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void onItemClick(String spotId) {
+        //Prevent from handling multiple clicks
+        if (isHandlingRequestToOpenSpotForm)
+            return;
+        isHandlingRequestToOpenSpotForm = true;
+
         Crashlytics.setString("Clicked marker tag", spotId);
         Spot spot = null;
         for (Spot spot2 :
@@ -627,6 +641,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             }
 
             activity.startSpotFormActivityForResult(spot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, false);
+            isHandlingRequestToOpenSpotForm = false;
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
@@ -972,6 +987,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 selectionHandled = true;
                 break;
             case R.id.action_new_spot:
+                //Prevent from handling multiple clicks
+                if (isHandlingRequestToOpenSpotForm)
+                    break;
+                isHandlingRequestToOpenSpotForm = true;
+
                 //If mapboxMap was not loaded, we can't track the user location using MapBox.
                 if (mapboxMap == null) {
                     new AlertDialog.Builder(activity)
@@ -1705,6 +1725,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
 
         activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, true, false);
+        isHandlingRequestToOpenSpotForm =false;
     }
 
     public void gotARideButtonHandler() {
@@ -1727,6 +1748,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (isWaitingForARide()) {
             activity.startSpotFormActivityForResult(mCurrentWaitingSpot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, false);
         }
+        isHandlingRequestToOpenSpotForm =false;
     }
 
     private Icon getGotARideIconForRoute(int routeIndex) {
