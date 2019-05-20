@@ -512,7 +512,7 @@ public class UtilsUnitTests_parseDBSpotList {
 
     @Test
     public void parseDBSpotList_spotListWithOneGotARideSpotAndOneGotOffHereSpot_ReturnsTwoSubRoutes() {
-        //Got a ride at A, then saved a non-hitchhiking spot at B, and finally arrived at the destination C
+        //Got a ride from A to B, then moved non-hitchhiking from B to the destination C
         Spot A = newSpot();
         A.setIsPartOfARoute(true);
         A.setIsHitchhikingSpot(true);
@@ -521,7 +521,7 @@ public class UtilsUnitTests_parseDBSpotList {
         //Got off at B
         Spot B = newSpot();
         B.setIsPartOfARoute(true);
-        B.setIsGotOffHere(true);
+        B.setIsNotHitchhikedFromHere(true);
 
         //Arrived at destination C
         Spot C = newSpot();
@@ -539,13 +539,13 @@ public class UtilsUnitTests_parseDBSpotList {
         Utils.parseDBSpotList(spotList, routes, singleSpots);
 
         assertThat(routes.size()).isEqualTo(1);
-        //Two sub routes (hitchhiking from A to B, non-hitchhiking from B to C)
+        //Two sub routes (hitchhiking from A to B, non-hitchhiked from B to C)
         assertThat(routes.get(0).subRoutes.size()).isEqualTo(2);
     }
 
     @Test
     public void parseDBSpotList_spotListWithOneGotARideSpotAndOneGotOffHereSpot_ReturnsNonHitchhikingSubRouteStartingFromGotOffHereSpot() {
-        //Got a ride at A, then saved a non-hitchhiking spot at B, and finally arrived at the destination C
+        //Got a ride from A to B, then moved non-hitchhiking from B to the destination C
         Spot A = newSpot();
         A.setIsPartOfARoute(true);
         A.setIsHitchhikingSpot(true);
@@ -554,7 +554,7 @@ public class UtilsUnitTests_parseDBSpotList {
         //Got off at B
         Spot B = newSpot();
         B.setIsPartOfARoute(true);
-        B.setIsGotOffHere(true);
+        B.setIsNotHitchhikedFromHere(true);
 
         //Arrived at destination C
         Spot C = newSpot();
@@ -575,6 +575,33 @@ public class UtilsUnitTests_parseDBSpotList {
         assertThat(routes.get(0).subRoutes.get(1).isHitchhikingRoute).isEqualTo(false);
         //Second sub route should have 2 points (B, C)
         assertThat(routes.get(0).subRoutes.get(1).points.size()).isEqualTo(2);
+    }
+
+
+    @Test
+    public void parseDBSpotList_spotListWithTwoNotHitchhikedSpots_ReturnsOneSubRoute() {
+        //Got a ride from A to B, then moved non-hitchhiking from B to the destination C
+        Spot A = newSpot();
+        A.setIsPartOfARoute(true);
+        A.setIsNotHitchhikedFromHere(true);
+
+        //Got off at B
+        Spot B = newSpot();
+        B.setIsPartOfARoute(true);
+        B.setIsNotHitchhikedFromHere(true);
+
+
+        List<Spot> spotList = new ArrayList<>();
+        spotList.add(A);
+        spotList.add(B);
+
+        List<Route> routes = new ArrayList<>();
+        List<Spot> singleSpots = new ArrayList<>();
+
+        Utils.parseDBSpotList(spotList, routes, singleSpots);
+
+        assertThat(routes.get(0).subRoutes.size()).isEqualTo(1);
+        assertThat(routes.get(0).subRoutes.get(0).points.size()).isEqualTo(2);
     }
 
     @Test
@@ -617,6 +644,40 @@ public class UtilsUnitTests_parseDBSpotList {
         assertThat(routes.get(0).subRoutes.size()).isEqualTo(1);
         assertThat(routes.get(0).subRoutes.get(0).isHitchhikingRoute).isEqualTo(true);
         assertThat(routes.get(0).subRoutes.get(0).points.size()).isEqualTo(5);
+    }
+
+    @Test
+    public void parseDBSpotList_spotListStartedWithNotHitchhikedSpotAndFollowedByHitchhikingSpot_ReturnsTwoSubRoutes() {
+        //Did not hitchhike from A to B, and then hitchhiked from B to C
+        Spot A = newSpot();
+        A.setIsPartOfARoute(true);
+        A.setIsNotHitchhikedFromHere(true);
+
+        //Hitchhiked from B to C
+        Spot B = newSpot();
+        B.setIsPartOfARoute(true);
+        B.setIsHitchhikingSpot(true);
+        B.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+
+        Spot C = newSpot();
+        C.setIsPartOfARoute(true);
+        C.setIsDestination(true);
+
+        List<Spot> spotList = new ArrayList<>();
+        spotList.add(A);
+        spotList.add(B);
+        spotList.add(C);
+
+        List<Route> routes = new ArrayList<>();
+        List<Spot> singleSpots = new ArrayList<>();
+
+        Utils.parseDBSpotList(spotList, routes, singleSpots);
+
+        assertThat(routes.get(0).subRoutes.size()).isEqualTo(2);
+        assertThat(routes.get(0).subRoutes.get(0).isHitchhikingRoute).isEqualTo(false);
+        assertThat(routes.get(0).subRoutes.get(0).points.size()).isEqualTo(2);
+        assertThat(routes.get(0).subRoutes.get(1).points.size()).isEqualTo(2);
+        assertThat(routes.get(0).subRoutes.get(1).isHitchhikingRoute).isEqualTo(true);
     }
 
     private static List<Spot> getRouteWith3NonHitchhikingSpots() {

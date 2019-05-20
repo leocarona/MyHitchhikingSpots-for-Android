@@ -37,7 +37,7 @@ public class Spot implements java.io.Serializable {
     private Float Accuracy;
     private Boolean IsPartOfARoute;
     private Boolean IsHitchhikingSpot;
-    private Boolean IsGotOffHere;
+    private Boolean IsNotHitchhikedFromHere;
 
     @Generated
     public Spot() {
@@ -48,7 +48,7 @@ public class Spot implements java.io.Serializable {
     }
 
     @Generated
-    public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, Long StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination, String CountryCode, Boolean HasAccuracy, Float Accuracy, Boolean IsPartOfARoute, Boolean IsHitchhikingSpot, Boolean IsGotOffHere) {
+    public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, Long StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination, String CountryCode, Boolean HasAccuracy, Float Accuracy, Boolean IsPartOfARoute, Boolean IsHitchhikingSpot, Boolean IsNotHitchhikedFromHere) {
         this.id = id;
         this.Name = Name;
         this.Street = Street;
@@ -73,7 +73,7 @@ public class Spot implements java.io.Serializable {
         this.Accuracy = Accuracy;
         this.IsPartOfARoute = IsPartOfARoute;
         this.IsHitchhikingSpot = IsHitchhikingSpot;
-        this.IsGotOffHere = IsGotOffHere;
+        this.IsNotHitchhikedFromHere = IsNotHitchhikedFromHere;
     }
 
     public Long getId() {
@@ -288,12 +288,12 @@ public class Spot implements java.io.Serializable {
         this.IsHitchhikingSpot = IsHitchhikingSpot;
     }
 
-    public Boolean getIsGotOffHere() {
-        return IsGotOffHere;
+    public Boolean getIsNotHitchhikedFromHere() {
+        return IsNotHitchhikedFromHere;
     }
 
-    public void setIsGotOffHere(Boolean IsGotOffHere) {
-        this.IsGotOffHere = IsGotOffHere;
+    public void setIsNotHitchhikedFromHere(Boolean IsNotHitchhikedFromHere) {
+        this.IsNotHitchhikedFromHere = IsNotHitchhikedFromHere;
     }
 
 }

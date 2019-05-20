@@ -1390,7 +1390,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     markerTitle = activity.getString(R.string.map_infoview_spot_type_destination);
                     icon = activity.ic_arrival_spot.getId();
                     type = Constants.SPOT_TYPE_DESTINATION;
-                } else if (spot.getIsGotOffHere() != null && spot.getIsGotOffHere()) {
+                } else if (spot.getIsNotHitchhikedFromHere() != null && spot.getIsNotHitchhikedFromHere()) {
                     //The spot is a destination
 
                     markerTitle = activity.getString(R.string.map_infoview_spot_type_got_off_here);
@@ -1683,7 +1683,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             requestId = Constants.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsHitchhikingSpot(!isDestination);
-            spot.setIsGotOffHere(isDestination);
+            spot.setIsNotHitchhikedFromHere(isDestination);
             spot.setIsDestination(isDestination);
             spot.setIsPartOfARoute(true);
             if (mapboxMap != null) {

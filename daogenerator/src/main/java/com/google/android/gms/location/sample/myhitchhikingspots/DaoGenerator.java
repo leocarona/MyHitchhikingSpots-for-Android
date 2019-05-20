@@ -66,7 +66,7 @@ public class DaoGenerator {
         spot.addBooleanProperty("IsHitchhikingSpot");
 
         //1 field added on schema of database version 6 on May 15, 2019:
-        spot.addBooleanProperty("IsGotOffHere");
+        spot.addBooleanProperty("IsNotHitchhikedFromHere");
 
         spot.implementsSerializable();
 

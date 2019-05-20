@@ -132,7 +132,6 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             Boolean doesIsHitchhikingSpotColumnExist = false;
             Integer isDestinationColumnIndex = -1;
             Integer startDateTimeColumnIndex = -1;
-            Integer isGotOffHereColumnIndex = -1;
 
             // Ignore first column (ID column)
             for (int i = 1; i < csv_header_allvalues.length; i++) {
@@ -146,19 +145,13 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     isDestinationColumnIndex = i;
                 else if (csv_header_allvalues[i].equals(SpotDao.Properties.StartDateTime.columnName))
                     startDateTimeColumnIndex = i;
-                else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsGotOffHere.columnName))
-                    isGotOffHereColumnIndex = i;
             }
-
-            Boolean doesIsGotOffHereColumnExist = isGotOffHereColumnIndex > -1;
 
             //Add a column for missing columns
             if (!doesIsPartOfARouteColumnExist)
                 columnsNameList.add(SpotDao.Properties.IsPartOfARoute.columnName);
             if (!doesIsHitchhikingSpotColumnExist)
                 columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
-            if (!doesIsGotOffHereColumnExist)
-                columnsNameList.add(SpotDao.Properties.IsGotOffHere.columnName);
 
             Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
 
@@ -214,15 +207,6 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                             valuesList.add(Constants.ISHITCHHIKINGSPOT_DEFAULT_VALUE);
                         else
                             valuesList.add("0");
-                    }
-
-                    //Set default values for IsGotOffHere
-                    if (!doesIsGotOffHereColumnExist) {
-                        //If the spot is not a destination, then set IsGotOffHere to false
-                        if (!isDestination)
-                            valuesList.add("0");
-                        else
-                            valuesList.add("1");
                     }
 
                     //Copy spot if it doesn't already exist in the local DB. If it exists, skip it so that it doesn't duplicate.

@@ -594,7 +594,7 @@ public class Utils {
             boolean isPartOfARoute = spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute();
             boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot();
             boolean isGotARide = isHitchhikingSpot && (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-            boolean isGotOffHere = spot.getIsGotOffHere() != null && spot.getIsGotOffHere();
+            boolean isNotHitchhikedFromHere = spot.getIsNotHitchhikedFromHere() != null && spot.getIsNotHitchhikedFromHere();
             boolean isDestination = spot.getIsDestination() != null && spot.getIsDestination();
             boolean isLastSpotOfTheList = i == spotList.size() - 1;
             boolean isLastSpotOfARoute = isDestination || isLastSpotOfTheList;
@@ -610,15 +610,16 @@ public class Utils {
                 subRoute.points.add(Point.fromLngLat(spot.getLongitude(), spot.getLatitude()));
 
                 boolean isNextSpotGotARide = false;
-                boolean isNextSpotSameSubRoute = !isGotOffHere;
+                boolean isNextSpotSameSubRoute = false;
                 boolean isNextSpotADestination = false;
                 boolean isNextSpotPartOfARoute = false;
 
-                if (!isLastSpotOfTheList && !isGotOffHere) {
+                if (!isLastSpotOfTheList) {
                     Spot nextSpot = spotList.get(i + 1);
                     boolean isNextSpotHitchhikingSpot = nextSpot.getIsHitchhikingSpot() != null && nextSpot.getIsHitchhikingSpot();
+                    boolean isNextSpotNotHitchhikedFromHere = nextSpot.getIsNotHitchhikedFromHere() == null ? false : nextSpot.getIsNotHitchhikedFromHere();
                     isNextSpotGotARide = isNextSpotHitchhikingSpot && (nextSpot.getAttemptResult() != null && nextSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-                    isNextSpotSameSubRoute &= !isNextSpotHitchhikingSpot || subRoute.isHitchhikingRoute == isNextSpotGotARide;
+                    isNextSpotSameSubRoute = (!isNextSpotHitchhikingSpot && !isNextSpotNotHitchhikedFromHere) || subRoute.isHitchhikingRoute == isNextSpotGotARide;
                     isNextSpotADestination = nextSpot.getIsDestination() == null ? false : nextSpot.getIsDestination();
                     isNextSpotPartOfARoute = nextSpot.getIsPartOfARoute() == null ? false : nextSpot.getIsPartOfARoute();
                     isLastSpotOfARoute |= isNextSpotPartOfARoute != isPartOfARoute;
@@ -630,7 +631,7 @@ public class Utils {
                 boolean isSameSubRoute = !isHitchhikingSpot || subRoute.isHitchhikingRoute == isGotARide;
 
                 //If this spot isn't part of the sub route being built, then add the sub route being built to the list of sub routes and start a new sub route
-                if (!isSameSubRoute || (!isNextSpotSameSubRoute && !isNextSpotADestination) || isLastSpotOfARoute || isGotOffHere)
+                if (!isSameSubRoute || (!isNextSpotSameSubRoute && !isNextSpotADestination) || isLastSpotOfARoute)
                     route.subRoutes.add(subRoute);
 
                 //It's the last spot on the route, then add this route to the list and start a new route
@@ -642,13 +643,9 @@ public class Utils {
                     route.subRoutes = new ArrayList<>();
                 }
 
-                if (isGotOffHere || isDestination || (!isNextSpotSameSubRoute && !isNextSpotADestination)) {
+                if (isDestination || (!isNextSpotSameSubRoute && !isNextSpotADestination)) {
                     subRoute = new SubRoute();
                     subRoute.points = new ArrayList<>();
-
-                    if (isGotOffHere && !isDestination) {
-                        subRoute.points.add(Point.fromLngLat(spot.getLongitude(), spot.getLatitude()));
-                    }
                 }
             }
         }

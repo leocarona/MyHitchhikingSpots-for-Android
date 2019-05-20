@@ -134,7 +134,7 @@
     <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
     <string name="spot_form_is_destination_checkbox_text">Das ist mein bisheriges Ziel</string>
     <string name="spot_form_is_hitchhiking_spot_checkbox_text">This is a hitchhiking spot</string>
-    <string name="spot_form_is_got_off_here_checkbox_text">This is where I got off</string>
+    <string name="spot_form_is_not_hitchhiked_from_here_checkbox_text">From here I moved non-hitchhiking</string>
     <string name="spot_form_title_evaluate">Ort beurteilen</string>
     <string name="spot_form_title_edit">Standort bearbeiten</string>
     <string name="spot_form_lat_lng_label">Bg %1$s Lg %2$s</string>
