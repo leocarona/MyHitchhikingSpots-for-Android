@@ -4,11 +4,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
 import android.os.Bundle;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,6 +42,7 @@ public class SpotListFragment extends Fragment {
     static String IS_EDIT_MODE_KEY = "IS_EDIT_MODE_KEY";
     static final String TAG = "spot-list-fragment";
     SpotListAdapter mAdapter;
+    private boolean isHandlingRequestToOpenSpotForm = false;
 
     /**
      * Tracks whether the user has requested an address. Becomes true when the user requests an
@@ -173,10 +177,13 @@ public class SpotListFragment extends Fragment {
                 public void onListOfSelectedSpotsChanged() {
                     //Show or hide delete button. When one or more spot are delete, onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged() is fired
                     updateDeleteButtons();
+                    isHandlingRequestToOpenSpotForm = false;
                 }
 
                 @Override
                 public void onSpotClicked(Spot spot) {
+                    if (isHandlingRequestToOpenSpotForm)
+                        return;
                     Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
 
                     //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
@@ -191,6 +198,7 @@ public class SpotListFragment extends Fragment {
                         }
                     }
 
+                    isHandlingRequestToOpenSpotForm = true;
                     Intent intent = new Intent(getContext(), SpotFormActivity.class);
                     intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
                     intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
@@ -297,6 +305,10 @@ public class SpotListFragment extends Fragment {
 
         if (this.isResumed())
             updateUI();
+    }
+
+    public void onActivityResultFromSpotForm() {
+        isHandlingRequestToOpenSpotForm = false;
     }
 
    /* @Override

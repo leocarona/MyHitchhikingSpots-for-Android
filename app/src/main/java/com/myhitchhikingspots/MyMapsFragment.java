@@ -259,7 +259,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //Prevent from handling multiple clicks
                 if (isHandlingRequestToOpenSpotForm)
                     return;
-                isHandlingRequestToOpenSpotForm = true;
 
                 if (isWaitingForARide())
                     gotARideButtonHandler();
@@ -277,7 +276,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //Prevent from handling multiple clicks
                 if (isHandlingRequestToOpenSpotForm)
                     return;
-                isHandlingRequestToOpenSpotForm = true;
 
                 if (isWaitingForARide())
                     tookABreakButtonHandler();
@@ -606,15 +604,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * @param feature the feature that was clicked
      */
     private void handleClickCallout(Feature feature) {
-        onItemClick(feature.getStringProperty(PROPERTY_TAG));
-    }
-
-    private void onItemClick(String spotId) {
         //Prevent from handling multiple clicks
         if (isHandlingRequestToOpenSpotForm)
             return;
-        isHandlingRequestToOpenSpotForm = true;
 
+        String spotId = feature.getStringProperty(PROPERTY_TAG);
         Crashlytics.setString("Clicked marker tag", spotId);
         Spot spot = null;
         for (Spot spot2 :
@@ -640,8 +634,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 }
             }
 
+            isHandlingRequestToOpenSpotForm = true;
             activity.startSpotFormActivityForResult(spot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, false);
-            isHandlingRequestToOpenSpotForm = false;
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
@@ -911,6 +905,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        isHandlingRequestToOpenSpotForm = false;
+
         if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED) {
             showSpotSavedSnackbar();
             spotListWasChanged = true;
@@ -990,7 +986,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //Prevent from handling multiple clicks
                 if (isHandlingRequestToOpenSpotForm)
                     break;
-                isHandlingRequestToOpenSpotForm = true;
 
                 //If mapboxMap was not loaded, we can't track the user location using MapBox.
                 if (mapboxMap == null) {
@@ -1724,8 +1719,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
+        isHandlingRequestToOpenSpotForm = true;
         activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, true, false);
-        isHandlingRequestToOpenSpotForm =false;
     }
 
     public void gotARideButtonHandler() {
@@ -1746,9 +1741,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         //mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
 
         if (isWaitingForARide()) {
+            isHandlingRequestToOpenSpotForm = true;
             activity.startSpotFormActivityForResult(mCurrentWaitingSpot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, false);
         }
-        isHandlingRequestToOpenSpotForm =false;
     }
 
     private Icon getGotARideIconForRoute(int routeIndex) {
