@@ -2013,8 +2013,22 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
      */
     protected void displayAddressOutput() {
         if (mAddressOutput != null) {
-            mCurrentSpot.setCity(mAddressOutput.getLocality());
-            mCurrentSpot.setState(mAddressOutput.getAdminArea());
+            String cityName = mAddressOutput.getLocality();
+            if (cityName == null)
+                cityName = mAddressOutput.getSubLocality();
+
+            String subAdminArea = mAddressOutput.getSubAdminArea();
+            String adminArea = mAddressOutput.getAdminArea();
+
+            //If admin area was not found, then use sub admin area instead,
+            // otherwise (if area was found but city name was not), then use sub admin area as city name.
+            if (adminArea == null && subAdminArea != null)
+                adminArea = subAdminArea;
+            else if (subAdminArea != null)
+                cityName = subAdminArea;
+
+            mCurrentSpot.setCity(cityName);
+            mCurrentSpot.setState(adminArea);
             mCurrentSpot.setCountry(mAddressOutput.getCountryName());
             mCurrentSpot.setCountryCode(mAddressOutput.getCountryCode());
             mCurrentSpot.setGpsResolved(true);
