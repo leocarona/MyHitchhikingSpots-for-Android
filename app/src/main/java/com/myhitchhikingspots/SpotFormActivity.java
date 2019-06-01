@@ -422,8 +422,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         note_edittext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //   Toast.makeText(getBaseContext(), "EXPANDED", Toast.LENGTH_LONG).show();
-                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                expandBottomSheet();
             }
         });
 
@@ -437,7 +436,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                         spot_form_basic.setVisibility(View.VISIBLE);
                         spot_form_evaluate.setVisibility(View.GONE);
 
-                        //mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                         hideKeyboard();
                         break;
                     case R.id.action_evaluate:
@@ -516,6 +514,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 taskThatRetrievesCompleteDetails = new retrievePlaceDetailsAsyncTask().execute(mCurrentSpot.getId().toString());
             }
         }
+    }
+
+    private void expandBottomSheet() {
+        //Expand mBottomSheetBehavior
+        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        //Hide locateUserTooltip so that it doesn't cover note_edittext
+        if (locateUserTooltip != null && locateUserTooltip.isShown())
+            locateUserTooltip.closeNow();
     }
 
     boolean isWaitingForARide() {
@@ -1010,7 +1016,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 public void onCameraTrackingDismissed() {
                     // Tracking has been dismissed
 
-                    mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    collapseBottomSheet();
                     hideKeyboard();
 
                     //As the map camera was moved, we should clear the previous address data
@@ -1030,6 +1036,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(this);
         }
+    }
+
+    private void collapseBottomSheet() {
+        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
     @Override
@@ -1501,7 +1511,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         refreshDatetimeAlertDialogWasShown = false;
 
-        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        collapseBottomSheet();
         hideKeyboard();
 
         mCurrentSpot = new Spot();
@@ -1532,7 +1542,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         refreshDatetimeAlertDialogWasShown = false;
 
-        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        collapseBottomSheet();
         hideKeyboard();
 
         showViewMapSnackbar();
@@ -1633,11 +1643,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     public void editDateButtonHandler(View view) {
         if (spot_form_more_options.getVisibility() == View.VISIBLE) {
             spot_form_more_options.setVisibility(View.GONE);
-            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            collapseBottomSheet();
             hideKeyboard();
         } else {
             spot_form_more_options.setVisibility(View.VISIBLE);
-            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            expandBottomSheet();
         }
     }
 
