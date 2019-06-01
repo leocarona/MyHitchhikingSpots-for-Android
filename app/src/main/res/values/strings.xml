@@ -214,7 +214,7 @@ The Hitchwiki team.
     <string name="save_spot_error_general">Something went wrong :(\n%s</string>
 
     <string name="map_infoview_spot_type_unknown_attempt_result">(DID YOU GET A RIDE HERE?)</string>
-    <string name="map_infoview_spot_type_got_off_here">(GOT OFF HERE)</string>
+    <string name="map_infoview_spot_type_got_off_here">(NON-HITCHHIKING SPOT)</string>
     <string name="map_infoview_spot_type_destination">(DESTINATION)</string>
     <string name="map_infoview_spot_type_waiting">(WAITING)</string>
     <string name="map_infoview_spot_type_origin">(ORIGIN)</string>

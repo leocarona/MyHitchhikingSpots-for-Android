@@ -210,7 +210,7 @@
     <string name="save_spot_error_general">Houve uma falha :(\n%s</string>
 
     <string name="map_infoview_spot_type_unknown_attempt_result">(VOCÊ PEGOU UMA CARONA AQUI?)</string>
-    <string name="map_infoview_spot_type_got_off_here">(DESCI AQUI)</string>
+    <string name="map_infoview_spot_type_got_off_here">(LOCAL DE NÃO CARONA)</string>
     <string name="map_infoview_spot_type_destination">(DESTINO)</string>
     <string name="map_infoview_spot_type_waiting">(AGUARDANDO)</string>
     <string name="map_infoview_spot_type_origin">(ORIGEM)</string>
