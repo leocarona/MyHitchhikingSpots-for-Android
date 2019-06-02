@@ -30,9 +30,10 @@ public final class Constants {
     public static final int SPOT_TYPE_ORIGIN = 1;
     public static final int SPOT_TYPE_HITCHHIKING_SPOT = 2;
     public static final int SPOT_TYPE_WAITING = 3;
-    public static final int SPOT_TYPE_DESTINATION = 4;
-    public static final int SPOT_TYPE_SINGLE_SPOT = 5;
-    public static final int SPOT_TYPE_POINT_ON_THE_ROUTE = 6;
+    public static final int SPOT_TYPE_GOT_OFF_HERE = 4;
+    public static final int SPOT_TYPE_DESTINATION = 5;
+    public static final int SPOT_TYPE_SINGLE_SPOT = 6;
+    public static final int SPOT_TYPE_POINT_ON_THE_ROUTE = 7;
 
     public static final String DIALOG_STRINGLIST_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_STRINGLIST_BUNDLE_KEY";
     public static final String DIALOG_TYPE_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_TYPE_BUNDLE_KEY";
@@ -51,9 +52,13 @@ public final class Constants {
     public static final int ZOOM_TO_SEE_CLOSE_TO_SPOT = 12;
     public static final int KEEP_ZOOM_LEVEL = -1;
 
-    public static final String SDCARD_STORAGE_PATH =  android.os.Environment.getExternalStorageDirectory() + "/MyHitchhikingSpots/";
+    public static final String SDCARD_STORAGE_PATH = android.os.Environment.getExternalStorageDirectory() + "/MyHitchhikingSpots/";
     public static final String EXPORTED_DB_STORAGE_PATH = SDCARD_STORAGE_PATH + "/App_backup";
     public static final String INTERNAL_DB_FILE_NAME = "my_hitchhiking_spots";
+    public static final String INTERNAL_DB_FILE_EXTENSION = ".db";
+    public static final String OLD_EXPORT_CSV_FILENAME_FORMAT = "yyyy_MM_dd_HHmm-";
+    public static final String EXPORT_CSV_FILENAME_FORMAT = "yyyy_MM_dd_HHmmZ#";
+    public static final String EXPORT_DB_AS_CSV_FILE_EXTENSION = ".csv";
     public static final String HITCHWIKI_MAPS_STORAGE_OLDPATH = SDCARD_STORAGE_PATH + "/markersStorageFolder/";
     public static final String HITCHWIKI_MAPS_STORAGE_PATH = SDCARD_STORAGE_PATH + "/HitchwikiMapsDownloads/";
     public static final String HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME = "markersStorageFile";
@@ -67,6 +72,7 @@ public final class Constants {
     public static final String PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW = "shouldLoadCurrentView";
     public static final String PREFS_MAPBOX_WAS_EVER_LOADED = "mapBoxWasEverLoaded";
     public static final String PREFS_HITCHWIKI_STORAGE_RENAMED = "hitchwikiStorageRenamed";
+    public static final String PREFS_SPOTSSTARTDATETIME_WERE_FIXED = "startDateTimesFixed";
 
     public static final String PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD = "PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD";
     public static final String PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD = "PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD";
@@ -93,4 +99,6 @@ public final class Constants {
     public static final int RESULT_OBJECT_ADDED = 2;
     public static final int RESULT_OBJECT_EDITED = 3;
     public static final int RESULT_OBJECT_DELETED = 4;
+
+    public static final String APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME = "2019-06-01T00:00Z";
 }

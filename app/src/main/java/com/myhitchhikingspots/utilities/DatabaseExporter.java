@@ -3,12 +3,10 @@ package com.myhitchhikingspots.utilities;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
@@ -17,11 +15,12 @@ import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.model.SpotDao;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
     private ProgressDialog dialog;
@@ -60,7 +59,7 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
                 exportDir.mkdirs();
             }
 
-            String fileName = Utils.getExportFileName(new Date());
+            String fileName = Utils.getNewExportFileName(DateTime.now(), DateTimeZone.getDefault());
 
             File destinationFile = new File(exportDir, fileName);
             destinationFile.createNewFile();

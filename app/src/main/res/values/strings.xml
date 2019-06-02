@@ -77,6 +77,9 @@ The Hitchwiki team.
     <string name="settings_import_total_spots_skipped">%d already existed and were skipped.</string>
     <string name="settings_import_total_successfuly_imported">%s were imported.</string>
     <string name="settings_import_happening_message">Importing hitchhiking spots from CSV file..</string>
+    <string name="settings_fixing_date_message" translatable="false">Datetimes getting fixed..</string>
+    <string name="settings_automatically_fix_spots_datetime_title" translatable="false">We can fix the datetimes</string>
+    <string name="settings_automatically_fix_spots_datetime_message" translatable="false">Would you like to get them automatically fixed?</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -88,7 +91,7 @@ The Hitchwiki team.
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Date</string>
     <string name="spot_form_time_label">Time</string>
-    <string name="spot_form_waiting_time_label">Waiting time (in minutes)</string>
+    <string name="spot_form_waiting_time_label">Waiting time</string>
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">When</string>
     <string name="spot_form_more_options_edit_label">(edit)</string>
@@ -134,6 +137,7 @@ The Hitchwiki team.
     <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
     <string name="spot_form_is_destination_checkbox_text">This is my route\'s destination</string>
     <string name="spot_form_is_hitchhiking_spot_checkbox_text">This is a hitchhiking spot</string>
+    <string name="spot_form_is_not_hitchhiked_from_here_checkbox_text">From here I moved non-hitchhiking</string>
     <string name="spot_form_title_evaluate">Evaluate spot</string>
     <string name="spot_form_title_edit">Edit spot</string>
     <string name="spot_form_lat_lng_label">Lat %1$s Lng %2$s</string>
@@ -173,6 +177,7 @@ The Hitchwiki team.
     <string name="general_author_label">by %s</string>
     <string name="general_download_option">Download</string>
     <string name="general_downloading_message">Downloading&#8230;</string>
+    <string name="general_downloading_data_message">Downloading data&#8230;</string>
     <string name="general_items_downloaded_message">%d items were downloaded.</string>
     <string name="general_downloading_something_message">Downloading: %s</string>
     <string name="general_download_finished_successffull_message">Download successful</string>
@@ -208,6 +213,8 @@ The Hitchwiki team.
     <string name="save_spot_error_coordinate_not_informed_error_message">We are unable to locate the spot that you\'re trying to save.\nYou might need an internet connection to save this change.</string>
     <string name="save_spot_error_general">Something went wrong :(\n%s</string>
 
+    <string name="map_infoview_spot_type_unknown_attempt_result">(DID YOU GET A RIDE HERE?)</string>
+    <string name="map_infoview_spot_type_got_off_here">(NON-HITCHHIKING SPOT)</string>
     <string name="map_infoview_spot_type_destination">(DESTINATION)</string>
     <string name="map_infoview_spot_type_waiting">(WAITING)</string>
     <string name="map_infoview_spot_type_origin">(ORIGIN)</string>

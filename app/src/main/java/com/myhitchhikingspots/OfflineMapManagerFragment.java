@@ -7,11 +7,15 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatDelegate;
+
+import androidx.annotation.NonNull;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatDelegate;
+
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -31,17 +35,19 @@ import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
+import com.mapbox.mapboxsdk.location.LocationComponent;
+import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
+import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.offline.OfflineManager;
 import com.mapbox.mapboxsdk.offline.OfflineRegion;
 import com.mapbox.mapboxsdk.offline.OfflineRegionError;
 import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
 import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
-import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
-import com.mapbox.mapboxsdk.plugins.locationlayer.OnCameraTrackingChangedListener;
-import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode;
+import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.myhitchhikingspots.model.Spot;
 
 import org.json.JSONObject;
@@ -61,6 +67,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
     // UI elements
     private MapView mapView;
     private MapboxMap mapboxMap;
+    private Style style;
     private ProgressBar progressBar;
     private BottomNavigationView menu_bottom;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
@@ -76,7 +83,6 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
     SharedPreferences prefs;
 
     private PermissionsManager permissionsManager;
-    private LocationLayerPlugin locationLayerPlugin;
 
     Toast waiting_GPS_update;
 
@@ -165,7 +171,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                             waiting_GPS_update = Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
                         waiting_GPS_update.show();
 
-                        locateUser();
+                        locateUser(style);
                     }
                 }
             }
@@ -208,10 +214,12 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (permissionsManager == null)
+            permissionsManager = new PermissionsManager(this);
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locateUser();
+                locateUser(style);
             }
         }
     }
@@ -224,39 +232,34 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
     @Override
     public void onPermissionResult(boolean granted) {
         if (granted) {
-            enableLocationPlugin();
+            enableLocationComponent(style);
         }
     }
 
 
     @SuppressWarnings({"MissingPermission"})
-    private void enableLocationPlugin() {
-        if (locationLayerPlugin == null) {
-            // Check if permissions are enabled and if not request
-            if (PermissionsManager.areLocationPermissionsGranted(activity)) {
+    private void enableLocationComponent(@NonNull Style loadedMapStyle) {
+        // Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(activity)) {
 
-                // Create an instance of the plugin. Adding in LocationLayerOptions is also an optional parameter
-                locationLayerPlugin = new LocationLayerPlugin(mapView, mapboxMap);
+            // Get an instance of the component
+            LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-                locationLayerPlugin.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
-                    @Override
-                    public void onCameraTrackingDismissed() {
-                        // Tracking has been dismissed
-                    }
+            // Activate with options
+            locationComponent.activateLocationComponent(
+                    LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
 
-                    @Override
-                    public void onCameraTrackingChanged(int currentMode) {
-                        // CameraMode has been updated
-                    }
-                });
+            // Enable to make component visible
+            locationComponent.setLocationComponentEnabled(true);
 
-                // Set the plugin's camera mode
-                locationLayerPlugin.setCameraMode(CameraMode.TRACKING_GPS);
-                getLifecycle().addObserver(locationLayerPlugin);
-            } else {
-                permissionsManager = new PermissionsManager(this);
-                permissionsManager.requestLocationPermissions(activity);
-            }
+            // Set the component's camera mode
+            locationComponent.setCameraMode(CameraMode.TRACKING_GPS);
+
+            // Set the component's render mode
+            //locationComponent.setRenderMode(RenderMode.COMPASS);
+        } else {
+            permissionsManager = new PermissionsManager(this);
+            permissionsManager.requestLocationPermissions(activity);
         }
     }
 
@@ -266,15 +269,24 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         this.mapboxMap = mapboxMap;
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
-        /*// Customize the user location icon using the getMyLocationViewSettings object.
-        //this.mapboxMap.getMyLocationViewSettings().setPadding(0, 500, 0, 0);
-        this.mapboxMap.getMyLocationViewSettings().setForegroundTintColor(ContextCompat.getColor(getBaseContext(), R.color.mapbox_my_location_ring_copy));//Color.parseColor("#56B881")*/
+        this.mapboxMap.setStyle(Style.MAPBOX_STREETS, style -> {
+            // Map is set up and the style has loaded. Now you can add data or make other map adjustments.
+            OfflineMapManagerFragment.this.style = style;
 
-        enableLocationPlugin();
+            if (style.isFullyLoaded()) {
+                LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
 
-        moveCameraToLastKnownLocation();
+                try {
+                    localizationPlugin.matchMapLanguageWithDeviceDefault();
+                } catch (RuntimeException exception) {
+                    Crashlytics.logException(exception);
+                }
+            }
 
-        locateUser();
+            moveCameraToLastKnownLocation();
+
+            locateUser(style);
+        });
     }
 
     // Override Activity lifecycle methods
@@ -320,12 +332,14 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         mapView.onLowMemory();
     }
 
-    void locateUser() {
-        enableLocationPlugin();
+    void locateUser(Style loadedMapStyle) {
+        enableLocationComponent(loadedMapStyle);
+
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(activity) && !locationLayerPlugin.isLocationLayerEnabled())
-            locationLayerPlugin.setLocationLayerEnabled(true);
+        if (PermissionsManager.areLocationPermissionsGranted(activity) && !locationComponent.isLocationComponentEnabled())
+            locationComponent.setLocationComponentEnabled(true);
     }
 
     /**
@@ -357,17 +371,18 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         }
     }
 
+    @SuppressWarnings({"MissingPermission"})
     private void moveCameraToLastKnownLocation() {
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
         try {
-            if (locationLayerPlugin != null) {
-                Location lastLoc = locationLayerPlugin.getLastKnownLocation();
+            if (PermissionsManager.areLocationPermissionsGranted(activity)) {
+                Location lastLoc = mapboxMap.getLocationComponent().getLastKnownLocation();
                 if (lastLoc != null)
                     moveCameraPositionTo = new LatLng(lastLoc);
             }
-        } catch (SecurityException ex) {
+        } catch (Exception ex) {
         }
 
         if (moveCameraPositionTo != null) {
@@ -442,7 +457,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
         // Create offline definition using the current
         // style and boundaries of visible map area
-        String styleUrl = mapboxMap.getStyleUrl();
+        String styleUrl = mapboxMap.getStyle().getUrl();
         LatLngBounds bounds = mapboxMap.getProjection().getVisibleRegion().latLngBounds;
         double minZoom = mapboxMap.getCameraPosition().zoom;
         double maxZoom = mapboxMap.getMaxZoomLevel();

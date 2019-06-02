@@ -13,11 +13,10 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -30,6 +29,8 @@ import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.google.gson.Gson;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
+import com.myhitchhikingspots.model.DaoMaster;
+import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
 import com.myhitchhikingspots.utilities.DatabaseImporter;
 import com.myhitchhikingspots.utilities.DownloadHWSpotsDialog;
@@ -37,7 +38,9 @@ import com.myhitchhikingspots.utilities.FilePickerDialog;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
 
+import org.greenrobot.greendao.database.Database;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -304,9 +307,6 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
         if (!isStoragePermissionsGranted(this))
             requestStoragePermissions(this);
         else {
-            //Create a record to track usage of Import Database button
-            Answers.getInstance().logCustom(new CustomEvent("Database imported"));
-
             FilePickerDialog dialog = new FilePickerDialog();
             //Add listener to be called when task finished
             dialog.addListener(new AsyncTaskListener<File>() {
@@ -320,30 +320,109 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
         }
     }
 
+    boolean shouldFixStartDates = false;
+    boolean userAlreadyAnswered = false;
+
     void importPickedFile(File fileToImport) {
-        DatabaseImporter t = new DatabaseImporter(this, fileToImport);
+
+        if (shouldAutomaticallyFixStartDateTimes(fileToImport.getName())) {
+            //if positive answer from user
+            shouldFixStartDates = true;
+        } else if (!userAlreadyAnswered) {
+
+            //Ask user if he'd like to fix the StartDateTime of all spots being imported and only continue after he chooses an option.
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getString(R.string.settings_automatically_fix_spots_datetime_title))
+                    .setMessage(getString(R.string.settings_automatically_fix_spots_datetime_message))
+                    .setPositiveButton(getResources().getString(R.string.general_yes_option), (dialog, which) -> {
+                        userAlreadyAnswered = true;
+                        //if positive answer from user
+                        shouldFixStartDates = true;
+                        //regardless of user's answer, call this method again
+                        importPickedFile(fileToImport);
+                    })
+                    .setNegativeButton(getString(R.string.general_no_option), (dialog, which) -> {
+                        userAlreadyAnswered = true;
+                        //if negative answer from user
+                        shouldFixStartDates = false;
+                        //regardless of user's answer, call this method again
+                        importPickedFile(fileToImport);
+                    })
+                    .show();
+
+            return;
+        }
+
+        DatabaseImporter t = new DatabaseImporter(this, fileToImport, shouldFixStartDates);
 
         //Add listener to be called when task finished
         t.addListener(new AsyncTaskListener<ArrayList<String>>() {
             @Override
             public void notifyTaskFinished(Boolean success, ArrayList<String> messages) {
-                String title = getString(R.string.general_import_finished_successful_message);
-
-                if (!success)
-                    title = getString(R.string.general_import_finished_failed_message);
-
-                showErrorAlert(title, TextUtils.join("\n", messages));
+                String title = "";
 
                 //Show toast
                 if (success) {
+                    title = getString(R.string.general_import_finished_successful_message);
+
                     prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
 
                     Toast.makeText(getBaseContext(), title, Toast.LENGTH_SHORT).show();
+
+                    String eventName = "Database import success";
+                    if (shouldFixStartDates) {
+                        eventName += " - ";
+                        if (userAlreadyAnswered)
+                            eventName += "StartDateTime have been fixed by user's choice";
+                        else
+                            eventName += "StartDateTime have been automatically fixed";
+                    }
+                    //Create a record to track database import
+                    Answers.getInstance().logCustom(new CustomEvent(eventName));
+
+                } else {
+                    title = getString(R.string.general_import_finished_failed_message);
+
+                    Answers.getInstance().logCustom(new CustomEvent("Database import failed"));
                 }
+
+                showErrorAlert(title, TextUtils.join("\n", messages));
+
+                //Reset this flag so that we verify whether we need to ask the user again if he chooses to import a second file
+                userAlreadyAnswered = false;
+                shouldFixStartDates = false;
             }
         });
 
         t.execute(); //execute asyncTask to import data into database from selected file.
+    }
+
+    /**
+     * Check whether we should automatically fix all StartDateTime of the spots being imported.
+     *
+     * @return True if we were able to guess that the file might have been generated by the app before version 26.
+     * False if the file has been exported before version 27 - what means that the spots StartDateTime do not need to be fixed.
+     **/
+    public static boolean shouldAutomaticallyFixStartDateTimes(String fileName) {
+        boolean shouldAutomaticallyFixStartDateTimes;
+        try {
+            DateTime version27_releasedOn = DateTime.parse(Constants.APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME);
+
+            //NOTE:
+            // Version 27 has automatically fixed all StartDateTime of spots that have been saved before its release.
+            // Databases exported before version 27 were named with the format Constants.OLD_EXPORT_CSV_FILENAME_FORMAT.
+
+            // If fileName doesn't follow any naming format (which means it has been renamed and its name doesn't contain a datetime in any expected format), an exception will be thrown.
+            DateTime file_exportedOn = Utils.extractDateTimeFromFileName(fileName, DateTimeZone.getDefault());
+
+            //Check if fileName tells us that the database has been exported before version 27.
+            shouldAutomaticallyFixStartDateTimes = file_exportedOn.isBefore(version27_releasedOn);
+        } catch (Exception ex) {
+            //The file has probably been renamed, so we were not able to extract the datetime when it was generated.
+            shouldAutomaticallyFixStartDateTimes = false;
+        }
+        return shouldAutomaticallyFixStartDateTimes;
     }
 
     public void showContinentsDialog(View view) {
@@ -395,9 +474,6 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
             requestStoragePermissions(this);
         else {
             try {
-                //Create a record to track usage of Export Database button
-                Answers.getInstance().logCustom(new CustomEvent("Database exported"));
-
                 DatabaseExporter t = new DatabaseExporter(this);
                 //Add listener to be called when task finished
                 t.addListener(new AsyncTaskListener<String>() {
@@ -405,7 +481,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
                     public void notifyTaskFinished(Boolean success, String message) {
 
                         if (success) {
-                            DateTime now = DateTime.now();
+                            DateTime now = DateTime.now(DateTimeZone.UTC);
                             //Set date of last time an export (backup) was made
                             prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
 
@@ -415,8 +491,15 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
                             //Show toast
                             Toast.makeText(getBaseContext(), getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
-                        } else
+
+                            //Create a record to track Export Database success
+                            Answers.getInstance().logCustom(new CustomEvent("Database export success"));
+                        } else {
                             showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
+
+                            //Create a record to track Export Database failure
+                            Answers.getInstance().logCustom(new CustomEvent("Database export failed"));
+                        }
                     }
                 });
                 t.execute();
@@ -504,7 +587,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
                     //If a backup file already exists, RENAME it so that the new backup file we're generating now can use its name
                     if (backupDB.exists()) {
-                        String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
+                        String DATE_FORMAT_NOW = Constants.EXPORT_CSV_FILENAME_FORMAT;
                         SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
                         String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.INTERNAL_DB_FILE_NAME;
                         backupDB.renameTo(new File(backupDir, newname));
@@ -623,7 +706,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
         byte[] buffer = new byte[1024];
         String databasePath = "/BackupFolder/" + Constants.INTERNAL_DB_FILE_NAME;
         try {
-            InputStream databaseInputFile = getAssets().open(Constants.INTERNAL_DB_FILE_NAME + ".db");
+            InputStream databaseInputFile = getAssets().open(Constants.INTERNAL_DB_FILE_NAME + Constants.INTERNAL_DB_FILE_EXTENSION);
             OutputStream databaseOutputFile = new FileOutputStream(databasePath);
 
             while ((length = databaseInputFile.read(buffer)) > 0) {
@@ -899,26 +982,26 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
             try {
                 if (!lstToDownload.isEmpty()) {
-                res = "spotsDownloaded";
-                String[] codes = lstToDownload.split(DownloadHWSpotsDialog.LIST_SEPARATOR);
+                    res = "spotsDownloaded";
+                    String[] codes = lstToDownload.split(DownloadHWSpotsDialog.LIST_SEPARATOR);
 
-                switch (typeToDownload) {
-                    case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
+                    switch (typeToDownload) {
+                        case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
 
-                        for (String continentCode : codes) {
+                            for (String continentCode : codes) {
                                 Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinent");
                                 hitchwikiAPI.getPlacesByContinent(continentCode, getPlacesByArea);
-                        }
-                        break;
-                    case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
-                        for (String countryCode : codes) {
+                            }
+                            break;
+                        case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
+                            for (String countryCode : codes) {
                                 Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByCountry");
                                 hitchwikiAPI.getPlacesByCountry(countryCode, getPlacesByArea);
 
-                        }
-                        break;
+                            }
+                            break;
+                    }
                 }
-            }
             } catch (Exception ex) {
                 if (ex.getMessage() != null)
                     res = ex.getMessage();

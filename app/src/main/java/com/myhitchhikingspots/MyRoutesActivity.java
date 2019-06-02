@@ -4,21 +4,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.PagerAdapter;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import androidx.annotation.NonNull;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
+
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.core.content.ContextCompat;
+import androidx.viewpager.widget.PagerAdapter;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -129,7 +135,7 @@ public class MyRoutesActivity extends AppCompatActivity {
         snackbar.setActionTextColor(Color.BLACK);
 
         // change snackbar text color
-        int snackbarTextId = android.support.design.R.id.snackbar_text;
+        int snackbarTextId = com.google.android.material.R.id.snackbar_text;
         TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
         if (textView != null) textView.setTextColor(Color.WHITE);
 
@@ -195,16 +201,19 @@ public class MyRoutesActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Boolean shouldReloadSpotListOnNavigateBack = false;
+        Boolean spotListWasChanged = false;
         if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED) {
-            shouldReloadSpotListOnNavigateBack = true;
+            spotListWasChanged = true;
             showSpotSavedSnackbar();
         } else if (resultCode == Constants.RESULT_OBJECT_DELETED) {
-            shouldReloadSpotListOnNavigateBack = true;
+            spotListWasChanged = true;
             showSpotDeletedSnackbar();
         }
 
-        if (shouldReloadSpotListOnNavigateBack)
+        if (mSectionsPagerAdapter != null)
+            mSectionsPagerAdapter.onActivityResultFromSpotForm();
+
+        if (spotListWasChanged)
             prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
     }
 
@@ -390,6 +399,13 @@ public class MyRoutesActivity extends AppCompatActivity {
         public void toggleSpotsListEditMode() {
             if (tab_single_spots_list != null)
                 tab_single_spots_list.setIsEditMode(!tab_single_spots_list.getIsEditMode());
+        }
+
+        public void onActivityResultFromSpotForm() {
+            if (tab_route_spots_list != null)
+                tab_route_spots_list.onActivityResultFromSpotForm();
+            if (tab_single_spots_list != null)
+                tab_single_spots_list.onActivityResultFromSpotForm();
         }
     }
 }

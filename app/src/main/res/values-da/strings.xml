@@ -62,7 +62,7 @@
     <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Dato</string>
     <string name="spot_form_time_label">Tid</string>
-    <string name="spot_form_waiting_time_label">Ventetid (i minutter)</string>
+    <string name="spot_form_waiting_time_label">Ventetid</string>
     <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Hvornår</string>
     <string name="spot_form_more_options_edit_label">(ændr)</string>
@@ -104,6 +104,7 @@
     <string name="spot_form_is_part_of_a_route_checkbox_text">This spot belongs to a route</string>
     <string name="spot_form_is_destination_checkbox_text">Det her er min destination for nu</string>
     <string name="spot_form_is_hitchhiking_spot_checkbox_text">Det her er et blaffe sted</string>
+    <string name="spot_form_is_not_hitchhiked_from_here_checkbox_text">From here I moved non-hitchhiking</string>
     <string name="spot_form_title_evaluate">Evaluer sted</string>
     <string name="spot_form_title_edit">Ændr sted</string>
     <string name="spot_form_lat_lng_label">Br %1$s L %2$s</string>
@@ -142,6 +143,7 @@
     <string name="general_author_label">by %s</string>
     <string name="general_download_option">Hent</string>
     <string name="general_downloading_message">Downloading&#8230;</string>
+    <string name="general_downloading_data_message">Downloading data&#8230;</string>
     <string name="general_items_downloaded_message">%d items were downloaded.</string>
     <string name="general_downloading_something_message">Downloading: %s</string>
     <string name="general_download_finished_successffull_message">Download successful</string>
@@ -178,6 +180,8 @@
     <string name="save_spot_error_coordinate_not_informed_error_message">Vi er ikke i stand til at lokalisere stedet, du prøver at gemme. Internetforbindelse er måske nødvendig for at gemme denne ændring.</string>
     <string name="save_spot_error_general">Noget gik galt :(\n%s</string>
 
+    <string name="map_infoview_spot_type_unknown_attempt_result">(DID YOU GET A RIDE HERE?)</string>
+    <string name="map_infoview_spot_type_got_off_here">(NON-HITCHHIKING SPOT)</string>
     <string name="map_infoview_spot_type_destination">(DESTINATION)</string>
     <string name="map_infoview_spot_type_waiting">(VENTER)</string>
     <string name="map_infoview_spot_type_origin">(ORIGIN)</string>

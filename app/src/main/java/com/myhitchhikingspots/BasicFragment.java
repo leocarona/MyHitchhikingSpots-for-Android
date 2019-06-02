@@ -2,15 +2,18 @@ package com.myhitchhikingspots;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.fragment.app.Fragment;
+
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
-public class BasicFragment extends android.support.v4.app.Fragment {
+public class BasicFragment extends Fragment {
 
     MapView mapView;
     MainActivity activity;

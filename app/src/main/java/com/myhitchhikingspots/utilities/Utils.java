@@ -10,19 +10,18 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.logging.ErrorManager;
+import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.Environment;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
+
 import android.text.format.DateUtils;
 import android.util.Log;
 
@@ -32,11 +31,16 @@ import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
-import com.myhitchhikingspots.BuildConfig;
+import com.mapbox.geojson.Point;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
+import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.model.SubRoute;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -229,10 +233,73 @@ public class Utils {
         return result;
     }
 
-    public static String getExportFileName(Date date) {
-        String DATE_FORMAT_NOW = "yyyy_MM_dd_HHmm-";
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-        return String.format("%s.csv", sdf.format(date) + Constants.INTERNAL_DB_FILE_NAME);
+    /**
+     * Get a name for a file exported on the given date and timezone. The format of this date will follow the format specified by Constants.EXPORT_CSV_FILENAME_FORMAT.
+     *
+     * @param date The datetime when the file is/was generated.
+     * @param zone The desired timezone to name the file. It is recommended to use DateTimeZone.getDefault() when exporting a file for the user, so he gets it named on his local timezone.
+     **/
+    public static String getNewExportFileName(DateTime date, DateTimeZone zone) {
+        String dt = DateTimeFormat.forPattern(Constants.EXPORT_CSV_FILENAME_FORMAT).withZone(zone).print(date.toInstant());
+        return dt + Constants.INTERNAL_DB_FILE_NAME + Constants.EXPORT_DB_AS_CSV_FILE_EXTENSION;
+    }
+
+    /**
+     * Extract the datetime from the name of a file exported before version 27. An exception will be thrown if fileName doesn't follow the format specified by Constants.OLD_EXPORT_CSV_FILENAME_FORMAT.
+     *
+     * @param fileName The name of the file with a datetime of when it was generated. e.g. '2019_01_01_1200-my-hitchhiking-spots.csv'
+     * @param zone     The default timezone on the device when the file name has been generated. E.g. if zone corresponds to Sao Paulo, then we'd get '2019_01_01 12:00-2:00' because -2 was the local offset (BRST) from UTC on that date.
+     * @return A datetime instance in the specified zone.
+     **/
+    protected static DateTime extractDateTimeFromOldFileName(String fileName, DateTimeZone zone) {
+        //Number of chars in the name of files that have been exported before app version 27. Refer to: Constants.OLD_EXPORT_CSV_FILENAME_FORMAT
+        int numOfCharsInFileNames = 16; //"yyyy_MM_dd_HHmm-".length();
+        String formattedDateTime = fileName.substring(0, numOfCharsInFileNames);
+        return DateTimeFormat.forPattern(Constants.OLD_EXPORT_CSV_FILENAME_FORMAT).withZone(zone).parseDateTime(formattedDateTime);
+    }
+
+    /**
+     * Extract the datetime from the name of a file exported after version 27. An exception will be thrown if fileName doesn't follow the format specified by Constants.EXPORT_CSV_FILENAME_FORMAT.
+     *
+     * @param fileName The name of the file with a datetime of when it was generated. e.g. '2019_01_01_1200-0000#my-hitchhiking-spots.csv'
+     * @param zone     The timezone in which you want the extracted datetime.
+     * @return A datetime instance in the specified zone.
+     **/
+    protected static DateTime extractDateTimeFromNewFileName(String fileName, DateTimeZone zone) {
+        //Number of chars in the name of files that have been exported after app version 27. Refer to: Constants.EXPORT_CSV_FILENAME_FORMAT
+        int numOfCharsInNewFileNames = 21; //"yyyy_MM_dd_HHmm-0000#".length();
+        String formattedDateTime = fileName.substring(0, numOfCharsInNewFileNames);
+
+        return DateTimeFormat.forPattern(Constants.EXPORT_CSV_FILENAME_FORMAT).withZone(zone).parseDateTime(formattedDateTime);
+    }
+
+    /**
+     * Extract the datetime from a file name.
+     * An exception will be thrown if fileName doesn't follow any of the two formats
+     * Constants.EXPORT_CSV_FILENAME_FORMAT or Constants.OLD_EXPORT_CSV_FILENAME_FORMAT.
+     *
+     * @param fileName The name of the file with a datetime of when it was generated.
+     *                 e.g. '2019_01_01_1200-my-hitchhiking-spots.csv',
+     *                 '2019_01_01_1200-0000#my-hitchhiking-spots.csv',
+     *                 '2019_01_01_1200-0000#anything-else.csv'.
+     * @param zone     The timezone of the device when the file has been generated.
+     * @return A datetime instance in the specified zone.
+     **/
+    public static DateTime extractDateTimeFromFileName(String fileName, DateTimeZone zone) throws IllegalArgumentException {
+        try {
+            return extractDateTimeFromNewFileName(fileName, zone);
+        } catch (Exception ex) {
+        }
+
+        try {
+            return extractDateTimeFromOldFileName(fileName, zone);
+        } catch (Exception ex) {
+        }
+
+        throw new IllegalArgumentException("No datetime could be extracted from the given file name (" + fileName + ")",
+                new Throwable("The specified name of file doesn't seem to have a datetime in any acceptable format. " +
+                        "An acceptable file name would start with: '" +
+                        Constants.EXPORT_CSV_FILENAME_FORMAT + "' or '" + Constants.OLD_EXPORT_CSV_FILENAME_FORMAT + "'."));
     }
 
     public static String getLocalStoragePathToFile(String destinationFileName, Context context) {
@@ -458,5 +525,129 @@ public class Utils {
             dateFormated += String.format(context.getString(R.string.general_minutes_label), minutes);
 
         return dateFormated;
+    }
+
+    @NonNull
+    public static String dateTimeToString(DateTime dt) {
+        return dateTimeToString(dt, ", ");
+    }
+
+    @NonNull
+    public static String dateTimeToString(DateTime dt, String separator) {
+        if (dt != null) {
+            String dateFormat = "dd/MMM";
+
+            //Check whether displayer the year would be useful
+            if (dt.getYearOfEra() != DateTime.now(DateTimeZone.UTC).getYearOfEra())
+                dateFormat += "/yyyy";
+
+            dateFormat += "'" + separator + "'HH:mm";
+
+            try {
+                return DateTimeFormat.forPattern(dateFormat).print(dt.toInstant());
+            } catch (Exception ex) {
+                Crashlytics.setString("date", dt.toString());
+                Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
+                Crashlytics.logException(ex);
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Force the timezone of a DateTime instance to UTC timezone. No other data is changed or converted.
+     * E.g. If localDateTime is '1970-01-01 10:00 BRL', then the return will be '1970-01-01 10:00 UTC'.
+     **/
+    public static DateTime forceTimeZoneToUTC(DateTime localDateTime) {
+        return new DateTime(localDateTime.getYearOfEra(),
+                localDateTime.getMonthOfYear(),
+                localDateTime.getDayOfMonth(),
+                localDateTime.getHourOfDay(),
+                localDateTime.getMinuteOfHour(),
+                DateTimeZone.UTC
+        );
+    }
+
+    /**
+     * If the local date and time at this very moment is '1970-01-01 10:00 BRL',
+     * then the return will be '1970-01-01 10:00 UTC'.
+     **/
+    public static DateTime getLocalDateTimeNowAsUTC() {
+        return forceTimeZoneToUTC(DateTime.now());
+    }
+
+    public static DateTime fixDateTime(Long millis) {
+        DateTime dtInLocalTime = new DateTime(millis);
+        return Utils.forceTimeZoneToUTC(dtInLocalTime);
+    }
+
+    public static void parseDBSpotList(@NonNull List<Spot> spotList, @NonNull List<Route> routes, @NonNull List<Spot> singleSpots) {
+        Route route = new Route();
+        route.spots = new ArrayList<>();
+        route.subRoutes = new ArrayList<>();
+        SubRoute subRoute = new SubRoute();
+        subRoute.points = new ArrayList<>();
+
+        for (int i = 0; i < spotList.size(); i++) {
+            Spot spot = spotList.get(i);
+
+            boolean isPartOfARoute = spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute();
+            boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot();
+            boolean isGotARide = isHitchhikingSpot && (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+            boolean isNotHitchhikedFromHere = spot.getIsNotHitchhikedFromHere() != null && spot.getIsNotHitchhikedFromHere();
+            boolean isDestination = spot.getIsDestination() != null && spot.getIsDestination();
+            boolean isLastSpotOfTheList = i == spotList.size() - 1;
+            boolean isLastSpotOfARoute = isDestination || isLastSpotOfTheList;
+
+            if (!isPartOfARoute)
+                singleSpots.add(spot);
+            else {
+                route.spots.add(spot);
+
+                if (subRoute.points.isEmpty())
+                    subRoute.isHitchhikingRoute = isGotARide;
+
+                subRoute.points.add(Point.fromLngLat(spot.getLongitude(), spot.getLatitude()));
+
+                boolean isNextSpotGotARide = false;
+                boolean isNextSpotSameSubRoute = false;
+                boolean isNextSpotADestination = false;
+                boolean isNextSpotPartOfARoute = false;
+
+                if (!isLastSpotOfTheList) {
+                    Spot nextSpot = spotList.get(i + 1);
+                    boolean isNextSpotHitchhikingSpot = nextSpot.getIsHitchhikingSpot() != null && nextSpot.getIsHitchhikingSpot();
+                    boolean isNextSpotNotHitchhikedFromHere = nextSpot.getIsNotHitchhikedFromHere() == null ? false : nextSpot.getIsNotHitchhikedFromHere();
+                    isNextSpotGotARide = isNextSpotHitchhikingSpot && (nextSpot.getAttemptResult() != null && nextSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+                    isNextSpotSameSubRoute = (!isNextSpotHitchhikingSpot && !isNextSpotNotHitchhikedFromHere) || subRoute.isHitchhikingRoute == isNextSpotGotARide;
+                    isNextSpotADestination = nextSpot.getIsDestination() == null ? false : nextSpot.getIsDestination();
+                    isNextSpotPartOfARoute = nextSpot.getIsPartOfARoute() == null ? false : nextSpot.getIsPartOfARoute();
+                    isLastSpotOfARoute |= isNextSpotPartOfARoute != isPartOfARoute;
+                    //Copy next spot so that we know which was the last spot of this subRoute
+                    if (!isNextSpotSameSubRoute && !isNextSpotADestination && !isLastSpotOfARoute)
+                        subRoute.points.add(Point.fromLngLat(nextSpot.getLongitude(), nextSpot.getLatitude()));
+                }
+
+                boolean isSameSubRoute = !isHitchhikingSpot || subRoute.isHitchhikingRoute == isGotARide;
+
+                //If this spot isn't part of the sub route being built, then add the sub route being built to the list of sub routes and start a new sub route
+                if (!isSameSubRoute || (!isNextSpotSameSubRoute && !isNextSpotADestination) || isLastSpotOfARoute)
+                    route.subRoutes.add(subRoute);
+
+                //It's the last spot on the route, then add this route to the list and start a new route
+                if (isLastSpotOfARoute) {
+                    routes.add(route);
+
+                    route = new Route();
+                    route.spots = new ArrayList<>();
+                    route.subRoutes = new ArrayList<>();
+                }
+
+                if (isDestination || (!isNextSpotSameSubRoute && !isNextSpotADestination)) {
+                    subRoute = new SubRoute();
+                    subRoute.points = new ArrayList<>();
+                }
+            }
+        }
     }
 }

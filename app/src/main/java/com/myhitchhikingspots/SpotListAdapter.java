@@ -3,10 +3,10 @@ package com.myhitchhikingspots;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.AppCompatCheckBox;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,12 +25,9 @@ import com.myhitchhikingspots.interfaces.ListListener;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by leocarona on 04/03/2016.
@@ -59,10 +56,10 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         totalsToDestinations = new Hashtable<>();
         //Integer totalWaitingTimeMinutes = 0;
         Integer totalRides = 0;
-        Date startDate = null;
+        DateTime startDateTime = null;
 
         if (data.size() > 1)
-            startDate = data.get(data.size() - 1).getStartDateTime();
+            startDateTime = data.get(data.size() - 1).getStartDateTime();
 
         //The spots are ordered from the last saved ones to the first saved ones, so we need to
         // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
@@ -80,9 +77,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 } else {
                     Integer minutes = 0;
 
-                    if (startDate != null) {
-                        DateTime startDateTime = new DateTime(startDate);
-                        DateTime endDateTime = new DateTime(spot.getStartDateTime());
+                    if (startDateTime != null) {
+                        DateTime endDateTime = spot.getStartDateTime();
                         minutes = Minutes.minutesBetween(startDateTime, endDateTime).getMinutes();
                     }
 
@@ -94,10 +90,10 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                     //totalWaitingTimeMinutes = 0;
                     totalRides = 0;
-                    startDate = null;
+                    startDateTime = null;
 
                     if (i - 1 >= 0)
-                        startDate = data.get(i - 1).getStartDateTime();
+                        startDateTime = data.get(i - 1).getStartDateTime();
                 }
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
@@ -185,32 +181,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             return TextUtils.join(locationSeparator, loc);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
-        }
-        return "";
-    }
-
-    @NonNull
-    public static String dateTimeToString(Date dt) {
-        return dateTimeToString(dt, ", ");
-    }
-
-    @NonNull
-    public static String dateTimeToString(Date dt, String separator) {
-        if (dt != null) {
-            SimpleDateFormat res;
-            String dateFormat = "dd/MMM'" + separator + "'HH:mm";
-
-            if (Locale.getDefault() == Locale.US)
-                dateFormat = "MMM/dd'" + separator + "'HH:mm";
-
-            try {
-                res = new SimpleDateFormat(dateFormat);
-                return res.format(dt);
-            } catch (Exception ex) {
-                Crashlytics.setString("date", dt.toString());
-                Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
-                Crashlytics.logException(ex);
-            }
         }
         return "";
     }
@@ -414,7 +384,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                 //Set the date and time
                 if (spot.getStartDateTime() != null)
-                    dateTime.setText(dateTimeToString(spot.getStartDateTime(), ",\n"));
+                    dateTime.setText(Utils.dateTimeToString(spot.getStartDateTime(), ",\n"));
 
                 //Set the address or coordinates
                 String spotLoc = getString(spot);

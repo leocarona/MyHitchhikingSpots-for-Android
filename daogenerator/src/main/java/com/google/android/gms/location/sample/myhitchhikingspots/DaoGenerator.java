@@ -10,7 +10,7 @@ public class DaoGenerator {
     private static final String PROJECT_DIR = System.getProperty("user.dir").replace("\\", "/");
     public static void main(String args[]) throws Exception {
 
-        Schema schema = new Schema(5, "com.myhitchhikingspots.model");
+        Schema schema = new Schema(6, "com.myhitchhikingspots.model");
         /*Entity person = schema.addEntity("Person");
         person.addIdProperty();
         person.addStringProperty("name");
@@ -45,7 +45,7 @@ public class DaoGenerator {
         spot.addStringProperty("Note");
         spot.addStringProperty("Description");
 
-        spot.addDateProperty("StartDateTime");
+        spot.addLongProperty("StartDateTime");
         spot.addIntProperty("WaitingTime");
 
         spot.addIntProperty("Hitchability");
@@ -65,6 +65,8 @@ public class DaoGenerator {
         //1 field added on schema of database version 5 on July 8, 2017:
         spot.addBooleanProperty("IsHitchhikingSpot");
 
+        //1 field added on schema of database version 6 on May 15, 2019:
+        spot.addBooleanProperty("IsNotHitchhikedFromHere");
 
         spot.implementsSerializable();
 

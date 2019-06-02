@@ -4,11 +4,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Address;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,6 +42,7 @@ public class SpotListFragment extends Fragment {
     static String IS_EDIT_MODE_KEY = "IS_EDIT_MODE_KEY";
     static final String TAG = "spot-list-fragment";
     SpotListAdapter mAdapter;
+    private boolean isHandlingRequestToOpenSpotForm = false;
 
     /**
      * Tracks whether the user has requested an address. Becomes true when the user requests an
@@ -173,10 +177,13 @@ public class SpotListFragment extends Fragment {
                 public void onListOfSelectedSpotsChanged() {
                     //Show or hide delete button. When one or more spot are delete, onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged() is fired
                     updateDeleteButtons();
+                    isHandlingRequestToOpenSpotForm = false;
                 }
 
                 @Override
                 public void onSpotClicked(Spot spot) {
+                    if (isHandlingRequestToOpenSpotForm)
+                        return;
                     Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
 
                     //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
@@ -191,6 +198,7 @@ public class SpotListFragment extends Fragment {
                         }
                     }
 
+                    isHandlingRequestToOpenSpotForm = true;
                     Intent intent = new Intent(getContext(), SpotFormActivity.class);
                     intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
                     intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
@@ -234,9 +242,9 @@ public class SpotListFragment extends Fragment {
 
     void updateDeleteButtons() {
         if (mAdapter != null && mAdapter.getSelectedSpots().size() > 0)
-            fabDelete.setVisibility(View.VISIBLE);
+            fabDelete.show();
         else
-            fabDelete.setVisibility(View.GONE);
+            fabDelete.hide();
     }
 
     public void setIsEditMode(Boolean isEditMode) {
@@ -259,9 +267,18 @@ public class SpotListFragment extends Fragment {
             }
         } catch (Exception ex) {
             Crashlytics.logException(ex);
-            ((TrackLocationBaseActivity) getActivity()).showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
                     "Updating UI on fragment 2 - " + ex.getMessage()));
         }
+    }
+
+    protected void showErrorAlert(String title, String msg) {
+        new AlertDialog.Builder(getContext())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
+                .show();
     }
 
     @Override
@@ -288,6 +305,10 @@ public class SpotListFragment extends Fragment {
 
         if (this.isResumed())
             updateUI();
+    }
+
+    public void onActivityResultFromSpotForm() {
+        isHandlingRequestToOpenSpotForm = false;
     }
 
    /* @Override

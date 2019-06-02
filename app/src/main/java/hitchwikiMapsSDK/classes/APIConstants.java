@@ -251,6 +251,8 @@ public class APIConstants {
     public static String TEST_PING;
 
 
+    public static String PLACE_INFO_DATETIME_FORMAT;
+
     //getters and setters:
 
     public static String getPLACE_INFO() {

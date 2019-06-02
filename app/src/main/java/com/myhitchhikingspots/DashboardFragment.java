@@ -3,7 +3,7 @@ package com.myhitchhikingspots;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -19,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DashboardFragment extends android.support.v4.app.Fragment implements MainActivity.OnSpotsListChanged {
+public class DashboardFragment extends Fragment implements MainActivity.OnSpotsListChanged {
 
     MainActivity activity;
     List<Spot> spotList = new ArrayList();

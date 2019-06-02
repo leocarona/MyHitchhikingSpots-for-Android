@@ -7,18 +7,17 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import androidx.annotation.NonNull;
+import com.google.android.material.navigation.NavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -27,7 +26,6 @@ import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoutesTask.onPostExecute, NavigationView.OnNavigationItemSelectedListener {
@@ -49,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     private ActionBarDrawerToggle drawerToggle;
 
     private AsyncTask loadTask;
+    private AsyncTask fixSpotsStartDateTimeTask;
 
     SharedPreferences prefs;
 
@@ -90,17 +89,17 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         // Setup drawer view
         nvDrawer.setNavigationItemSelectedListener(this);
 
+        int resourceToOpen = defaultFragmentResourceId;
+
         //If it is first time the activity is loaded, then load the list of spots with loadSpotList(),
         //If the activity is being restored, the activity's state will be restored by onRestoreInstanceState.
         if (savedInstanceState == null) {
-            int resourceToOpen = defaultFragmentResourceId;
-
             //A resourceId was received through ARG_REQUEST_TO_OPEN_FRAGMENT
             if (getIntent().getExtras() != null && getIntent().getExtras().containsKey(ARG_REQUEST_TO_OPEN_FRAGMENT))
                 resourceToOpen = getIntent().getExtras().getInt(ARG_REQUEST_TO_OPEN_FRAGMENT);
-
-            loadSpotList(resourceToOpen);
         }
+
+        loadSpotList(resourceToOpen);
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -369,10 +368,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         int checkedMenuItemIndex = getCheckedItem(nvDrawer);
 
-        Spot[] spotArray = new Spot[spotList.size()];
-        outState.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
-        outState.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
-
         if (checkedMenuItemIndex != -1) {
             MenuItem checkedMenuItem = nvDrawer.getMenu().getItem(checkedMenuItemIndex);
             outState.putInt(MainActivity.ARG_CHECKED_MENU_ITEM_ID_KEY, checkedMenuItem.getItemId());
@@ -389,15 +384,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         //Restoring state can also be done within onCreate(Bundle).
         // Though, doing it here makes the code cleaner and we also don't need to check if savedInstanceState is null.
-
-        if (savedInstanceState.containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
-            Spot[] bundleSpotList = (Spot[]) savedInstanceState.getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-            spotList = Arrays.asList(bundleSpotList);
-        }
-
-        if (savedInstanceState.containsKey(MainActivity.ARG_CURRENTSPOT_KEY)) {
-            mCurrentWaitingSpot = (Spot) savedInstanceState.getSerializable(MainActivity.ARG_CURRENTSPOT_KEY);
-        }
 
         if (savedInstanceState.containsKey(ARG_CHECKED_MENU_ITEM_ID_KEY)) {
             int lastCheckedMenuItemId = savedInstanceState.getInt(MainActivity.ARG_CHECKED_MENU_ITEM_ID_KEY);
@@ -457,6 +443,11 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             this.loadTask.cancel(false);
             dismissProgressDialog();
         }
+
+        if (this.fixSpotsStartDateTimeTask != null) {
+            this.fixSpotsStartDateTimeTask.cancel(false);
+            dismissProgressDialog();
+        }
     }
 
     /**
@@ -481,6 +472,15 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+            return;
+        }
+
+        // If spots StartDateTime were not fixed yet, then execute FixSpotsStartDateTimeAsyncTask to fix them.
+        // Once FixSpotsStartDateTimeAsyncTask is finished, this method (setupData) will be called again.
+        // Make sure FixSpotsStartDateTimeAsyncTask is called only once at the first time when the app is updated.
+        if (!prefs.getBoolean(Constants.PREFS_SPOTSSTARTDATETIME_WERE_FIXED, false)) {
+            this.fixSpotsStartDateTimeTask = new FixSpotsStartDateTimeAsyncTask(this, spotList, mCurrentWaitingSpot).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
+            prefs.edit().putBoolean(Constants.PREFS_SPOTSSTARTDATETIME_WERE_FIXED, true).apply();
             return;
         }
 

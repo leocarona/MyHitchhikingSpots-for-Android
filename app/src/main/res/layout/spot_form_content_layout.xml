@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -10,7 +10,7 @@
     tools:context=".SpotFormActivity"
     tools:showIn="@layout/spot_form_master_layout">
 
-    <android.support.design.widget.CoordinatorLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/save_spot_form_basic"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <android.support.design.widget.CoordinatorLayout
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -31,8 +31,7 @@
                 <com.mapbox.mapboxsdk.maps.MapView
                     android:id="@+id/mapview2"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    mapbox:mapbox_styleUrl="@string/mapbox_style_mapbox_streets" />
+                    android:layout_height="200dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -54,7 +53,7 @@
                         android:textColor="#FFF" />
                 </LinearLayout>
 
-                <android.support.design.widget.FloatingActionButton
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab_locate_user"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -66,7 +65,7 @@
                     mapbox:srcCompat="@drawable/ic_my_location_24dp"
                     tools:ignore="VectorDrawableCompat" />
 
-                <android.support.design.widget.FloatingActionButton
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab_zoom_in"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -81,7 +80,7 @@
                     mapbox:srcCompat="@drawable/ic_zoom_in_white_24dp"
                     tools:ignore="VectorDrawableCompat" />
 
-                <android.support.design.widget.FloatingActionButton
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab_zoom_out"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -95,17 +94,17 @@
                     mapbox:srcCompat="@drawable/ic_zoom_out_white_24dp"
                     tools:ignore="VectorDrawableCompat" />
 
-            </android.support.design.widget.CoordinatorLayout>
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
         </LinearLayout>
 
-        <android.support.v4.widget.NestedScrollView
+        <androidx.core.widget.NestedScrollView
             android:id="@+id/spot_form_scrollview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#FFF"
             android:paddingBottom="120dp"
-            app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -149,11 +148,11 @@
                     android:paddingTop="10dp"
                     android:visibility="visible">
 
-                    <android.support.design.widget.TextInputLayout
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <android.support.design.widget.TextInputEditText
+                        <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/spot_form_note_edittext"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -163,7 +162,7 @@
                             android:hint="@string/spot_form_note_hint"
                             android:inputType="textMultiLine"
                             android:minLines="2" />
-                    </android.support.design.widget.TextInputLayout>
+                    </com.google.android.material.textfield.TextInputLayout>
 
 
                     <RelativeLayout
@@ -201,7 +200,7 @@
                             android:textStyle="normal|bold" />
 
 
-                        <android.support.design.widget.FloatingActionButton
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
                             android:id="@+id/imageView3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -217,7 +216,7 @@
                             mapbox:srcCompat="@drawable/ic_autorenew_black_24dp"
                             tools:ignore="VectorDrawableCompat" />
 
-                        <android.support.design.widget.FloatingActionButton
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
                             android:id="@+id/imageView2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -261,7 +260,7 @@
                             android:textStyle="normal|bold" />
 
 
-                        <android.support.design.widget.FloatingActionButton
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
                             android:id="@+id/imageView4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -321,7 +320,7 @@
                          android:layout_width="match_parent"
                          android:layout_height="wrap_content" />-->
 
-                    <android.support.v7.widget.AppCompatCheckBox
+                    <androidx.appcompat.widget.AppCompatCheckBox
                         android:id="@+id/save_spot_form_is_hitchhiking_spot_check_box"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -333,8 +332,8 @@
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
                         android:text="@string/spot_form_is_hitchhiking_spot_checkbox_text" />
 
-                    <android.support.v7.widget.AppCompatCheckBox
-                        android:id="@+id/save_spot_form_is_single_spot_check_box"
+                    <androidx.appcompat.widget.AppCompatCheckBox
+                        android:id="@+id/save_spot_form_is_part_of_route_check_box"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
@@ -345,7 +344,19 @@
                         android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
                         android:text="@string/spot_form_is_part_of_a_route_checkbox_text" />
 
-                    <android.support.v7.widget.AppCompatCheckBox
+                    <androidx.appcompat.widget.AppCompatCheckBox
+                        android:id="@+id/save_spot_form_is_not_hitchhiked_from_here_check_box"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:button="@null"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginRight="10dp"
+                        android:drawableEnd="?android:attr/listChoiceIndicatorMultiple"
+                        android:drawableRight="?android:attr/listChoiceIndicatorMultiple"
+                        android:text="@string/spot_form_is_not_hitchhiked_from_here_checkbox_text" />
+
+                    <androidx.appcompat.widget.AppCompatCheckBox
                         android:id="@+id/save_spot_form_is_destination_check_box"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -359,8 +370,8 @@
 
                 </LinearLayout>
             </LinearLayout>
-        </android.support.v4.widget.NestedScrollView>
-    </android.support.design.widget.CoordinatorLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <LinearLayout
         android:id="@+id/save_spot_form_evaluate"
@@ -425,7 +436,7 @@
                 android:orientation="vertical"
                 android:weightSum="1">
 
-                <android.support.v7.widget.AppCompatImageButton
+                <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/got_a_ride_button"
                     android:layout_width="92dp"
                     android:layout_height="wrap_content"
@@ -455,7 +466,7 @@
                 android:orientation="vertical"
                 android:weightSum="1">
 
-                <android.support.v7.widget.AppCompatImageButton
+                <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/break_button"
                     android:layout_width="92dp"
                     android:layout_height="wrap_content"
@@ -482,11 +493,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <android.support.design.widget.TextInputLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <android.support.design.widget.TextInputEditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/spot_form_waiting_time_edittext"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -495,10 +506,10 @@
                     android:focusableInTouchMode="true"
                     android:hint="@string/spot_form_waiting_time_label"
                     android:inputType="number" />
-            </android.support.design.widget.TextInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
 
-            <android.support.design.widget.FloatingActionButton
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/spot_form_waiting_time_refresh_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -573,7 +584,7 @@
             android:text="see comments" />
     </LinearLayout>
 
-    <android.support.design.widget.BottomNavigationView
+    <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -584,4 +595,4 @@
         app:itemIconTint="@color/menu_bottom_selector"
         app:itemTextColor="@color/menu_bottom_selector"
         app:menu="@menu/menu_spot_form_bottom" />
-</android.support.design.widget.CoordinatorLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

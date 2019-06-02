@@ -4,24 +4,24 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.AsyncTask;
-import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
+import com.myhitchhikingspots.ToolsActivity;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.SpotDao;
 
 import org.greenrobot.greendao.database.Database;
+import org.joda.time.DateTime;
 
 public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     private Context context;
@@ -31,7 +31,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     private final String TAG = "database-importer";
     private final String TEMPORARY_COPY_DB_FILE_NAME = "temporary_db_copy.db";
     private Integer numberOfSpotsOnCSVFile = 0, numberOfSpotsSkipped = 0, numberOfSpotsFailedImporting = 0, numberOfSpotsImported = 0;
-
+    private boolean shouldFixDateTime = false;
 
     //%1$s : table name
     //%2$ : column names sequence, on this format: "STREET, COUNTRY, NOTE"
@@ -41,9 +41,10 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     private String sqlSelectDuplicatedStatement = "SELECT * FROM %1$s WHERE %2$s LIMIT 1";
 
 
-    public DatabaseImporter(Context context, File file) {
+    public DatabaseImporter(Context context, File file, boolean shouldFixDateTime) {
         this.context = context;
         this.file = file;
+        this.shouldFixDateTime = shouldFixDateTime;
     }
 
     @Override
@@ -62,9 +63,9 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         Crashlytics.setString("Chosen file", file.toString());
 
         String errorMessage = "";
-        if (file.getName().endsWith(".csv")) {
+        if (file.getName().endsWith(Constants.EXPORT_DB_AS_CSV_FILE_EXTENSION)) {
             errorMessage = importCSVFile();
-        } else if (file.getName().endsWith(".db")) {
+        } else if (file.getName().endsWith(Constants.INTERNAL_DB_FILE_EXTENSION)) {
             errorMessage = importDBFile();
         } else
             errorMessage = context.getString(R.string.general_selected_file_type_not_supported);
@@ -130,6 +131,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             Boolean doesIsPartOfARouteColumnExist = false;
             Boolean doesIsHitchhikingSpotColumnExist = false;
             Integer isDestinationColumnIndex = -1;
+            Integer startDateTimeColumnIndex = -1;
 
             // Ignore first column (ID column)
             for (int i = 1; i < csv_header_allvalues.length; i++) {
@@ -141,6 +143,8 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     doesIsHitchhikingSpotColumnExist = true;
                 else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsDestination.columnName))
                     isDestinationColumnIndex = i;
+                else if (csv_header_allvalues[i].equals(SpotDao.Properties.StartDateTime.columnName))
+                    startDateTimeColumnIndex = i;
             }
 
             //Add a column for missing columns
@@ -148,7 +152,6 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                 columnsNameList.add(SpotDao.Properties.IsPartOfARoute.columnName);
             if (!doesIsHitchhikingSpotColumnExist)
                 columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
-
 
             Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
 
@@ -175,9 +178,17 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                             valuesList.add("''");
                         } else {
                             String value = DatabaseUtils.sqlEscapeString(rawValue);
+                            String comparisonStr = csv_header_allvalues[i] + "=" + value;
+
+                            if (startDateTimeColumnIndex == i && shouldFixDateTime) {
+                                long startDateTimeInMillis = Long.valueOf(rawValue);
+                                DateTime fixedDateTime = Utils.fixDateTime(startDateTimeInMillis);
+                                value = DatabaseUtils.sqlEscapeString(String.valueOf(fixedDateTime.getMillis()));
+                                comparisonStr += " OR " + csv_header_allvalues[i] + "=" + value;
+                            }
 
                             //Notice: we must use csv_header_allvalues[i] instead of columnsNameList[i] here because i starts from 1 to skip ID column
-                            comparisonsList.add(csv_header_allvalues[i] + "=" + value);
+                            comparisonsList.add(comparisonStr);
                             valuesList.add(value);
                         }
 
@@ -262,6 +273,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     Boolean doesIsPartOfARouteColumnExist = false;
                     Boolean doesIsHitchhikingSpotColumnExist = false;
                     Integer isDestinationColumnIndex = -1;
+                    Integer startDateTimeColumnIndex = -1;
 
                     // Ignore first column (ID column)
                     for (int i = 1; i < csv_header_allvalues.length; i++) {
@@ -273,6 +285,8 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                             doesIsHitchhikingSpotColumnExist = true;
                         else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsDestination.columnName))
                             isDestinationColumnIndex = i;
+                        else if (csv_header_allvalues[i].equals(SpotDao.Properties.StartDateTime.columnName))
+                            startDateTimeColumnIndex = i;
                     }
 
                     //Add a column for missing columns
@@ -303,9 +317,17 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                                     valuesList.add("''");
                                 } else {
                                     String value = DatabaseUtils.sqlEscapeString(rawValue);
+                                    String comparisonStr = csv_header_allvalues[i] + "=" + DatabaseUtils.sqlEscapeString(rawValue);
+
+                                    if (startDateTimeColumnIndex == i && shouldFixDateTime) {
+                                        long startDateTimeInMillis = Long.valueOf(rawValue);
+                                        DateTime fixedDateTime = Utils.fixDateTime(startDateTimeInMillis);
+                                        value = DatabaseUtils.sqlEscapeString(String.valueOf(fixedDateTime.getMillis()));
+                                        comparisonStr += " OR " + csv_header_allvalues[i] + "=" + value;
+                                    }
 
                                     //Notice: we must use csv_header_allvalues[i] instead of columnsNameList[i] here because i starts from 1 to skip ID column
-                                    comparisonsList.add(csv_header_allvalues[i] + "=" + value);
+                                    comparisonsList.add(comparisonStr);
                                     valuesList.add(value);
                                 }
 
