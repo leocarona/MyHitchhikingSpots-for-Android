@@ -100,5 +100,5 @@ public final class Constants {
     public static final int RESULT_OBJECT_EDITED = 3;
     public static final int RESULT_OBJECT_DELETED = 4;
 
-    public static final String APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME = "2019-05-05T00:00Z";
+    public static final String APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME = "2019-06-01T00:00Z";
 }
