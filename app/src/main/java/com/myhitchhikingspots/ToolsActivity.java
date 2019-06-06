@@ -13,10 +13,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -34,6 +36,7 @@ import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
 import com.myhitchhikingspots.utilities.DatabaseImporter;
 import com.myhitchhikingspots.utilities.DownloadHWSpotsDialog;
+import com.myhitchhikingspots.utilities.DownloadPlacesAsyncTask;
 import com.myhitchhikingspots.utilities.FilePickerDialog;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
@@ -54,6 +57,7 @@ import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -271,8 +275,73 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
         if (!Utils.isNetworkAvailable(this)) {
             showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_network_unavailable_message));
-        } else
-            new downloadPlacesAsyncTask(dialogType).execute();
+        } else {
+            String lstToDownload = "";
+            switch (dialogType) {
+                case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
+                    lstToDownload = prefs.getString(Constants.PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD, "");
+                    break;
+                case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
+                    lstToDownload = prefs.getString(Constants.PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD, "");
+                    break;
+            }
+
+            showProgressDialog(getString(R.string.settings_downloadHDSpots_button_label), String.format(getString(R.string.general_downloading_something_message), lstToDownload));
+
+            //create folder if not already created
+            if (!hitchwikiStorageFolder.exists()) {
+                //create folder for the first time
+                hitchwikiStorageFolder.mkdirs();
+                Crashlytics.log(Log.INFO, TAG, "Directory created. " + hitchwikiStorageFolder.getPath());
+            }
+
+            //recreate placesContainer, it might not be empty
+            if (placesContainer == null)
+                placesContainer = new ArrayList<>();
+            else
+                placesContainer.clear();
+
+            new DownloadPlacesAsyncTask(hitchwikiStorageFolder, dialogType, lstToDownload, getPlacesByArea, this::onDownloadedFinished).execute();
+        }
+    }
+
+    void onDownloadedFinished(String result) {
+        if (result.contentEquals("spotsDownloaded")) {
+
+            savePlacesListLocally(placesContainer);
+
+            //Get current datetime in milliseconds
+            Long millisecondsAtRefresh = System.currentTimeMillis();
+
+            //also write into prefs that markers sync has occurred
+            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
+            prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
+
+            //TODO: show how many megabytes were downloaded or saved locally
+
+            Toast.makeText(getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
+
+            //convert millisecondsAtRefresh to some kind of date and time text
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+            Date resultdate = new Date(millisecondsAtRefresh);
+            String timeStamp = sdf.format(resultdate);
+
+            showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()) +
+                            " " + String.format(getString(R.string.general_last_sync_date), timeStamp),
+                    Constants.CROUTON_DURATION_5000);
+
+        } else {
+            if (result.contentEquals("nothingToSync")) {
+                //also write into prefs that markers sync has occurred
+                prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
+                prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
+
+                showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
+            } else if (!result.isEmpty())
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_hitchwikiMapsSpots_download_failed_message), result));
+        }
+
+        dismissProgressDialog();
     }
 
     protected void showErrorAlert(String title, String msg) {
@@ -927,127 +996,6 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
                             .show();
                 } else
                     new showCountriesDialogAsyncTask().execute();
-            }
-
-            dismissProgressDialog();
-        }
-    }
-
-    //async task to retrieve markers
-    public class downloadPlacesAsyncTask extends AsyncTask<Void, Void, String> {
-        String lstToDownload = "";
-        String typeToDownload = "";
-
-        public downloadPlacesAsyncTask(String type) {
-            typeToDownload = type;
-            switch (type) {
-                case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
-                    lstToDownload = prefs.getString(Constants.PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD, "");
-                    break;
-                case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
-                    lstToDownload = prefs.getString(Constants.PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD, "");
-                    break;
-            }
-        }
-
-        @Override
-        protected void onPreExecute() {
-            showProgressDialog(getString(R.string.settings_downloadHDSpots_button_label), String.format(getString(R.string.general_downloading_something_message), lstToDownload));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        protected String doInBackground(Void... params) {
-            if (isCancelled()) {
-                return "Canceled";
-            }
-
-            //create folder if not already created
-            if (!hitchwikiStorageFolder.exists()) {
-                //create folder for the first time
-                hitchwikiStorageFolder.mkdirs();
-                Crashlytics.log(Log.INFO, TAG, "Directory created. " + hitchwikiStorageFolder.getPath());
-            }
-
-            //folder exists, but it may be a case that file with stored markers is missing, so lets check that
-            File fileCheck = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
-            fileCheck.delete();
-            //recreate placesContainer, it might not be empty
-            if (placesContainer == null)
-                placesContainer = new ArrayList<>();
-            else
-                placesContainer.clear();
-
-            String res = "nothingToSync";
-
-            try {
-                if (!lstToDownload.isEmpty()) {
-                    res = "spotsDownloaded";
-                    String[] codes = lstToDownload.split(DownloadHWSpotsDialog.LIST_SEPARATOR);
-
-                    switch (typeToDownload) {
-                        case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
-
-                            for (String continentCode : codes) {
-                                Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinent");
-                                hitchwikiAPI.getPlacesByContinent(continentCode, getPlacesByArea);
-                            }
-                            break;
-                        case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
-                            for (String countryCode : codes) {
-                                Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByCountry");
-                                hitchwikiAPI.getPlacesByCountry(countryCode, getPlacesByArea);
-
-                            }
-                            break;
-                    }
-                }
-            } catch (Exception ex) {
-                if (ex.getMessage() != null)
-                    res = ex.getMessage();
-                Crashlytics.logException(ex);
-            }
-            return res;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            if (isFinishing())
-                return;
-
-            if (result.contentEquals("spotsDownloaded")) {
-
-                savePlacesListLocally(placesContainer);
-
-                //Get current datetime in milliseconds
-                Long millisecondsAtRefresh = System.currentTimeMillis();
-
-                //also write into prefs that markers sync has occurred
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
-                prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
-
-                //TODO: show how many megabytes were downloaded or saved locally
-
-                Toast.makeText(getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
-
-                //convert millisecondsAtRefresh to some kind of date and time text
-                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-                Date resultdate = new Date(millisecondsAtRefresh);
-                String timeStamp = sdf.format(resultdate);
-
-                showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()) +
-                                " " + String.format(getString(R.string.general_last_sync_date), timeStamp),
-                        Constants.CROUTON_DURATION_5000);
-
-            } else {
-                if (result.contentEquals("nothingToSync")) {
-                    //also write into prefs that markers sync has occurred
-                    prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
-                    prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
-
-                    showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
-                } else if (!result.isEmpty())
-                    showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_hitchwikiMapsSpots_download_failed_message), result));
             }
 
             dismissProgressDialog();
