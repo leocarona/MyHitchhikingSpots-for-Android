@@ -225,6 +225,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     boolean wasSnackbarShown;
     Context context;
     Boolean shouldRetrieveDetailsFromHW = false;
+    Boolean shouldMoveMapCameraToUserLocationOnMapLoad = false;
     double cameraZoomFromBundle = -1;
 
     private PermissionsManager permissionsManager;
@@ -261,6 +262,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             wasSnackbarShown = true;
             shouldShowButtonsPanel = getIntent().getBooleanExtra(Constants.SHOULD_SHOW_BUTTONS_KEY, false);
             shouldRetrieveDetailsFromHW = getIntent().getBooleanExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, false);
+
+            if (mCurrentSpot != null && mCurrentSpot.getLongitude() == null || mCurrentSpot.getLatitude() == null)
+                shouldMoveMapCameraToUserLocationOnMapLoad = true;
         } else
             updateValuesFromBundle(savedInstanceState);
 
@@ -578,7 +582,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-           // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
+            // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
             locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
 
             //Show an arrow considering the compass of the device.
@@ -694,10 +698,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
 
                 //Set listeners only after requested camera position is reached
-                if (mapCameraWasMoved) {
+                if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad) {
                     if (mFormType == FormType.Create)
                         highlightLocateButton();
                 } else {
+                    shouldMoveMapCameraToUserLocationOnMapLoad = false;
                     //No request to position the map camera was made, so apply listeners directly
                     moveMapCameraToUserLocation();
                 }
