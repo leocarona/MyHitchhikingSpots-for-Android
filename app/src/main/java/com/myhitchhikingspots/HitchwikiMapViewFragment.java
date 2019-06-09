@@ -458,15 +458,16 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 }
             }
 
-
             setupIconImages();
 
             enableLocationLayer();
 
             if (spotList == null || spotList.size() == 0)
                 loadHWSpotsIfTheyveBeenDownloaded();
-            else
-                drawAnnotations();
+            else if (mapboxMap != null) {
+                shouldZoomToFitAllMarkers = true;
+                updateAnnotations();
+            }
         });
     }
 
@@ -657,11 +658,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         dismissProgressDialog();
 
-        if (mapboxMap != null && spotList.size() > 0)
-            drawAnnotations();
+        if (mapboxMap != null) {
+            updateAnnotations();
+        }
     }
 
-    void drawAnnotations() {
+    void updateAnnotations() {
         if (mapboxMap != null) {
             showProgressDialog("Drawing hitchwiki spots..");
             Spot[] spotArray = new Spot[spotList.size()];
@@ -676,12 +678,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
 
         this.featureCollection = FeatureCollection.fromFeatures(features);
-
-        if (mapboxMap == null) {
-            return;
-        }
-
-        mapboxMap.clear();
 
         if (style.isFullyLoaded()) {
             setupSource(style);
@@ -997,6 +993,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         dismissProgressDialog();
 
+        shouldZoomToFitAllMarkers = true;
         executeLoadHWSpotsTask();
     }
 
@@ -1070,7 +1067,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         if (prefs.getBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, false)) {
             prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, false).apply();
-            shouldZoomToFitAllMarkers = true;
+            shouldZoomToFitAllMarkers = false;
             loadHWSpotsIfTheyveBeenDownloaded();
         }
 
