@@ -65,6 +65,7 @@ public class MyRoutesActivity extends AppCompatActivity {
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
     ListListener spotsListListener = null;
+    Spot mCurrentWaitingSpot;
 
     int indexOfLastOpenTab = 0;
 
@@ -188,6 +189,7 @@ public class MyRoutesActivity extends AppCompatActivity {
         SpotDao spotDao = daoSession.getSpotDao();
 
         mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
+        mCurrentWaitingSpot = appContext.getCurrentSpot();
 
         //Update fragments
         if (mSectionsPagerAdapter != null) {
@@ -230,6 +232,9 @@ public class MyRoutesActivity extends AppCompatActivity {
         boolean selectionHandled = false;
 
         switch (item.getItemId()) {
+            case R.id.action_new_spot:
+                saveSpotButtonHandler(false);
+                break;
             case R.id.action_edit_list:
                 if (mSectionsPagerAdapter != null)
                     switch (mViewPager.getCurrentItem()) {
@@ -407,5 +412,42 @@ public class MyRoutesActivity extends AppCompatActivity {
             if (tab_single_spots_list != null)
                 tab_single_spots_list.onActivityResultFromSpotForm();
         }
+    }
+
+    private void saveSpotButtonHandler(boolean isDestination) {
+        double cameraZoom = -1;
+        Spot spot = null;
+        int requestId = -1;
+        if (!isWaitingForARide()) {
+            requestId = Constants.SAVE_SPOT_REQUEST;
+            spot = new Spot();
+            spot.setIsHitchhikingSpot(!isDestination);
+            spot.setIsDestination(isDestination);
+            spot.setIsPartOfARoute(true);
+
+        } else {
+            requestId = Constants.EDIT_SPOT_REQUEST;
+            spot = mCurrentWaitingSpot;
+        }
+
+        startSpotFormActivityForResult(spot, cameraZoom, requestId, true, false);
+    }
+
+    private boolean isWaitingForARide() {
+        return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                mCurrentWaitingSpot.getIsWaitingForARide() : false;
+    }
+
+    /**
+     * @param shouldGoBack            should be set to true when you want the user to be sent to a new instance of MainActivity once they're done editing/adding a spot.
+     * @param shouldRetrieveHWDetails should be set to true when the given spot is a Hitchwiki spot, so that we'll download more data from HW and display them on SpotFormActivity.
+     */
+    private void startSpotFormActivityForResult(Spot spot, double cameraZoom, int requestId, boolean shouldGoBack, boolean shouldRetrieveHWDetails) {
+        Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
+        intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
+        intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBack);
+        intent.putExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, shouldRetrieveHWDetails);
+        startActivityForResult(intent, requestId);
     }
 }

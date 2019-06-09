@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/action_new_spot"
+        android:title="@string/save_spot_button_text"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_add_new_black_24dp" />
     <item android:id="@+id/action_edit_list"
         android:title="@string/general_edit_list"
         android:icon="@drawable/ic_delete_black_24dp"
