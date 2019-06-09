@@ -71,6 +71,7 @@
     <string name="spot_form_comments_title">Kommentarer fra andre blaffere</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
 
+    <string name="menu_dashboard">Dashboard</string>
     <string name="menu_my_maps">Min Kort</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Kort</string>
     <string name="menu_tools">@string/tools_title</string>

@@ -101,6 +101,7 @@
     <string name="spot_form_comments_title">Kommentare von anderen Trampern</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
 
+    <string name="menu_dashboard">Dashboard</string>
     <string name="menu_my_maps">Meine Karten</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Karten</string>
     <string name="menu_tools">@string/tools_title</string>
