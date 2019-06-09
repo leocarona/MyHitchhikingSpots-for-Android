@@ -298,7 +298,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         enableLocationLayer();
 
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+        if (PermissionsManager.areLocationPermissionsGranted(activity))
+            mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     void showSpotSavedSnackbar() {

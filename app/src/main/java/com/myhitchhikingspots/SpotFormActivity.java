@@ -575,13 +575,15 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         // directly initialize and enable the location plugin if such permission was already granted. 
         enableLocationLayer();
 
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+            LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-        // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+           // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
+            locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
 
-        //Show an arrow considering the compass of the device.
-        locationComponent.setRenderMode(RenderMode.COMPASS);
+            //Show an arrow considering the compass of the device.
+            locationComponent.setRenderMode(RenderMode.COMPASS);
+        }
     }
 
     void hideKeyboard() {
