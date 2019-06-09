@@ -51,6 +51,8 @@
     <string name="settings_import_total_spots_skipped">%d already existed and were skipped.</string>
     <string name="settings_import_total_successfuly_imported">%s were imported.</string>
     <string name="settings_import_happening_message">Importing hitchhiking spots from CSV file..</string>
+    <string name="hwmaps_spotslist_cleared_title">Hitchwiki Maps cleared</string>
+    <string name="hwmaps_spotslist_cleared_message">All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more countries.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

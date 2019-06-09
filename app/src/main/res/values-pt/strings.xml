@@ -86,6 +86,8 @@
     <string name="settings_import_total_spots_skipped">%d já existiam e foram ignorados.</string>
     <string name="settings_import_total_successfuly_imported">%s foram importados.</string>
     <string name="settings_import_happening_message">Importando locais de carona do arquivo CSV..</string>
+    <string name="hwmaps_spotslist_cleared_title">Hitchwiki Maps vazio</string>
+    <string name="hwmaps_spotslist_cleared_message">Todos os locais previamente baixados do Hitchwiki Maps foram excluídos do seu dispositivo. Para baixar locais, selecione um ou mais países.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

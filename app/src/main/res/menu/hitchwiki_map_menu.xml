@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/action_download_hw_spots"
+        android:title="@string/settings_downloadHDSpots_button_label"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_cloud_download_black_24dp" />
     <item android:id="@+id/action_zoom_to_fit_all"
         android:title="@string/general_zoom_to_fit_all"
         android:orderInCategory="100"

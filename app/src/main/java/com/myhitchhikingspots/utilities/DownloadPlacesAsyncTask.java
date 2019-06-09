@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import hitchwikiMapsSDK.classes.APICallCompletionListener;
+import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
@@ -27,6 +28,7 @@ public class DownloadPlacesAsyncTask extends AsyncTask<Void, Void, String> {
     private File hitchwikiStorageFolder;
     private onPlacesDownloadedListener callback;
     private APICallCompletionListener<PlaceInfoBasic[]> getPlacesByArea;
+    public static final ApiManager hitchwikiAPI = new ApiManager();
 
     public interface onPlacesDownloadedListener {
         void onDownloadedFinished(String result);
@@ -63,13 +65,13 @@ public class DownloadPlacesAsyncTask extends AsyncTask<Void, Void, String> {
 
                         for (String continentCode : codes) {
                             Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinent");
-                            ToolsActivity.hitchwikiAPI.getPlacesByContinent(continentCode, getPlacesByArea);
+                            hitchwikiAPI.getPlacesByContinent(continentCode, getPlacesByArea);
                         }
                         break;
                     case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
                         for (String countryCode : codes) {
                             Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByCountry");
-                            ToolsActivity.hitchwikiAPI.getPlacesByCountry(countryCode, getPlacesByArea);
+                            hitchwikiAPI.getPlacesByCountry(countryCode, getPlacesByArea);
 
                         }
                         break;
@@ -80,6 +82,7 @@ public class DownloadPlacesAsyncTask extends AsyncTask<Void, Void, String> {
                 res = ex.getMessage();
             Crashlytics.logException(ex);
         }
+
         return res;
     }
 

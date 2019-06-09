@@ -80,6 +80,8 @@ The Hitchwiki team.
     <string name="settings_fixing_date_message" translatable="false">Datetimes getting fixed..</string>
     <string name="settings_automatically_fix_spots_datetime_title" translatable="false">We can fix the datetimes</string>
     <string name="settings_automatically_fix_spots_datetime_message" translatable="false">Would you like to get them automatically fixed?</string>
+    <string name="hwmaps_spotslist_cleared_title">Hitchwiki Maps cleared</string>
+    <string name="hwmaps_spotslist_cleared_message">All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more countries.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

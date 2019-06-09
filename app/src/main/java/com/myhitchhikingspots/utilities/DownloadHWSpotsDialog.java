@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+
 import androidx.fragment.app.DialogFragment;
 import androidx.appcompat.app.AlertDialog;
+
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -36,6 +38,10 @@ public class DownloadHWSpotsDialog extends DialogFragment {
         String getCountryContainer(int item);
     }
 
+    public DownloadHWSpotsDialog(DownloadHWSpotsDialogListener callback) {
+        this.callback = callback;
+    }
+
     void setValuesFromBundle(Bundle args) {
         items = (PairParcelable[]) args.getParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY);
         dialog_type = args.getString(Constants.DIALOG_TYPE_BUNDLE_KEY);
@@ -60,12 +66,6 @@ public class DownloadHWSpotsDialog extends DialogFragment {
         for (int i = 0; i < lst.length; i++)
             lst[i] = items[i].getValue();
         return lst;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        callback = (DownloadHWSpotsDialogListener) getActivity();
     }
 
     @Override
