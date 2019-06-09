@@ -22,7 +22,6 @@ import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -122,13 +121,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      **/
     boolean isLocationRequestedByUser = false;
 
-    boolean wasSnackbarShown;
-
     static String locationSeparator = ", ";
 
     private PermissionsManager permissionsManager;
-
-    protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
     Boolean shouldZoomToFitAllMarkers = true;
 
@@ -163,8 +158,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
 
-    Snackbar snackbar;
-
     public static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
 
     MainActivity activity;
@@ -191,18 +184,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         coordinatorLayout = view.findViewById(R.id.coordinatiorLayout);
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
-
-        //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
-        if (savedInstanceState == null) {
-            if (!wasSnackbarShown) {
-                if (activity.getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
-                    showSpotSavedSnackbar();
-                else if (activity.getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
-                    showSpotDeletedSnackbar();
-            }
-            wasSnackbarShown = true;
-        } else
-            updateValuesFromBundle(savedInstanceState);
 
         fabLocateUser = (FloatingActionButton) view.findViewById(R.id.fab_locate_user);
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
@@ -300,49 +281,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
         if (PermissionsManager.areLocationPermissionsGranted(activity))
             mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
-    }
-
-    void showSpotSavedSnackbar() {
-        showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
-                null, null);
-    }
-
-    void showSpotDeletedSnackbar() {
-        showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
-                null, null);
-    }
-
-    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        String t = "";
-        if (text.length() > 0)
-            t = text.toString();
-        snackbar = Snackbar.make(coordinatorLayout, t.toUpperCase(), Snackbar.LENGTH_LONG)
-                .setAction(action, listener);
-
-        // get snackbar view
-        View snackbarView = snackbar.getView();
-
-        // set action button color
-        snackbar.setActionTextColor(Color.BLACK);
-
-        // change snackbar text color
-        int snackbarTextId = com.google.android.material.R.id.snackbar_text;
-        TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
-        if (textView != null) textView.setTextColor(Color.WHITE);
-
-
-        // change snackbar background
-        snackbarView.setBackgroundColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_regular_spot_color));
-
-        snackbar.show();
-    }
-
-    void dismissSnackbar() {
-        try {
-            if (snackbar != null && snackbar.isShown())
-                snackbar.dismiss();
-        } catch (Exception e) {
-        }
     }
 
     private void loadMarkerIcons() {
@@ -1071,20 +1009,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             shouldZoomToFitAllMarkers = false;
             loadHWSpotsIfTheyveBeenDownloaded();
         }
-
-        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED)
-            showSpotSavedSnackbar();
-
-        if (resultCode == Constants.RESULT_OBJECT_DELETED)
-            showSpotDeletedSnackbar();
-
-      /*
-        // Check which request we're responding to
-        if (requestCode == SAVE_SPOT_REQUEST || requestCode == EDIT_SPOT_REQUEST) {
-            // Make sure the request was successful
-            if (resultCode > RESULT_FIRST_USER)
-                updateUI();
-        }*/
     }
 
 
@@ -1093,7 +1017,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         super.onPause();
         mapView.onPause();
 
-        dismissSnackbar();
         dismissProgressDialog();
     }
 
@@ -1101,22 +1024,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         mapView.onSaveInstanceState(savedInstanceState);
-
-        savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
-    }
-
-
-    /**
-     * Updates fields based on data stored in the bundle.
-     *
-     * @param savedInstanceState The activity state saved in the Bundle.
-     */
-    private void updateValuesFromBundle(Bundle savedInstanceState) {
-        Crashlytics.log(Log.INFO, TAG, "Updating values from bundle");
-        if (savedInstanceState != null) {
-            if (savedInstanceState.keySet().contains(SNACKBAR_SHOWED_KEY))
-                wasSnackbarShown = savedInstanceState.getBoolean(SNACKBAR_SHOWED_KEY);
-        }
     }
 
     @Override
