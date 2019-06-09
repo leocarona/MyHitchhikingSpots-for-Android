@@ -83,7 +83,7 @@ public class ToolsActivity extends AppCompatActivity {
         Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
         if (millisecondsLastCountriesRefresh > 0) {
             String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh), this);
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_countriesList_update_message), timePast);
+            strLastDownload += "- " + String.format(getString(R.string.hwmaps_last_countriesList_update_message), timePast);
         }
 
         Long millisecondsLastExport = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, 0);
@@ -100,7 +100,7 @@ public class ToolsActivity extends AppCompatActivity {
                 strLastDownload += "\n";
 
             String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh), this);
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_download_message), timePast);
+            strLastDownload += "- " + String.format(getString(R.string.hwmaps_last_download_message), timePast);
         }
 
         if (!strLastDownload.isEmpty()) {

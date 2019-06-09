@@ -713,7 +713,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     onPlacesDownloadedListener onPlacesDownloadedListener = new onPlacesDownloadedListener() {
         @Override
         public void onDownloadBegins() {
-            showProgressDialog(getString(R.string.settings_downloadCountriesList_button_label));
+            showProgressDialog(getString(R.string.hwmaps_downloadCountriesList_button_label));
 
             //create folder if not already created
             if (!hitchwikiStorageFolder.exists()) {
@@ -753,15 +753,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                             Constants.CROUTON_DURATION_5000);
                 }
             } else if (!result.contentEquals("countriesLoadedFromLocalStorage") && !result.isEmpty())
-                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_countriesList_download_failed_message), result));
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.hwmaps_countriesList_download_failed_message), result));
 
             if (result.contentEquals("countriesListDownloaded") || result.contentEquals("countriesLoadedFromLocalStorage")) {
                 if (countriesContainer.length == 0) {
                     //Ask user if they'd like to download the countries list now
                     new AlertDialog.Builder(getContext())
                             .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setTitle(getString(R.string.settings_countriesList_is_empty_title))
-                            .setMessage(getString(R.string.settings_countriesList_is_empty_message))
+                            .setTitle(getString(R.string.hwmaps_countriesList_is_empty_title))
+                            .setMessage(getString(R.string.hwmaps_countriesList_is_empty_message))
                             .setPositiveButton(getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -850,8 +850,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     //Ask user if they'd like to download the countries list now
                     new AlertDialog.Builder(activity)
                             .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setTitle(activity.getString(R.string.settings_countriesList_is_empty_title))
-                            .setMessage(activity.getString(R.string.settings_countriesList_is_empty_message))
+                            .setTitle(activity.getString(R.string.hwmaps_countriesList_is_empty_title))
+                            .setMessage(activity.getString(R.string.hwmaps_countriesList_is_empty_message))
                             .setPositiveButton(getResources().getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -932,7 +932,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     break;
             }
 
-            showProgressDialog(getString(R.string.settings_downloadHDSpots_button_label), String.format(getString(R.string.general_downloading_something_message), lstToDownload));
+            showProgressDialog(getString(R.string.hwmaps_downloadHDSpots_button_label), String.format(getString(R.string.general_downloading_something_message), lstToDownload));
 
             //create folder if not already created
             if (!hitchwikiStorageFolder.exists()) {
@@ -989,7 +989,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
                 showErrorAlert(getString(R.string.hwmaps_spotslist_cleared_title), getString(R.string.hwmaps_spotslist_cleared_message));
             } else if (!result.isEmpty())
-                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_hitchwikiMapsSpots_download_failed_message), result));
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.hwmaps_hitchwikiMapsSpots_download_failed_message), result));
         }
 
         dismissProgressDialog();

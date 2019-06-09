@@ -95,9 +95,9 @@ public class DownloadHWSpotsDialog extends DialogFragment {
 
         String title = "";
         if (dialog_type.equals(DIALOG_TYPE_CONTINENT))
-            title = getString(R.string.settings_select_continents_button_label);
+            title = getString(R.string.hwmaps_select_continents_button_label);
         else if (dialog_type.equals(DIALOG_TYPE_COUNTRY))
-            title = getString(R.string.settings_select_countries_button_label);
+            title = getString(R.string.hwmaps_select_countries_button_label);
 
         builder.setTitle(title)
                 .setMultiChoiceItems(getItemsValueArray(), lst, new DialogInterface.OnMultiChoiceClickListener() {

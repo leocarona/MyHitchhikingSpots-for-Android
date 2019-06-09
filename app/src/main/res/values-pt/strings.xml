@@ -69,24 +69,25 @@
     <string name="tools_title">Ferramentas</string>
     <string name="settings_importdb_button_label">Importar banco de dados</string>
     <string name="settings_exportdb_button_label">Exportar banco de dados</string>
-    <string name="settings_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>
-    <string name="settings_select_continents_button_label">Selecionar continentes</string>
-    <string name="settings_select_countries_button_label">Selecionar países</string>
-    <string name="settings_downloadCountriesList_button_label">Baixando lista de países</string>
     <string name="settings_exporting_db_message">Sua lista de locais será salva em seu celular como um arquivo de excel (CSV)..</string>
-    <string name="settings_countriesList_is_empty_title">Lista de países não baixada</string>
-    <string name="settings_countriesList_is_empty_message">Uma vez que a lista de países estiver baixada, você poderá baixar locais de carona do Hitchwiki Maps para os países de sua escolha. Desta forma pouca memória do seu celular será consumida. :-)\nVocê gostaria de baixar a lista de países?</string>
     <string name="settings_exportdb_finish_successfull_message">Exportado para:\n%s</string>
-    <string name="settings_countriesList_download_failed_message">Houve um erro ao tentar baixar a lista de países.\n"%s"</string>
-    <string name="settings_hitchwikiMapsSpots_download_failed_message">Houve um erro ao tentar baixar pontos de carona do Hitchwiki Maps.\n"%s"</string>
-    <string name="settings_last_countriesList_update_message">Última atualização da lista de países foi feita há %s atrás.</string>
     <string name="settings_last_export_message">Última vez que sua lista de locais foi exportada foi há %s atrás.</string>
-    <string name="settings_last_download_message">Último download de locais do Hitchwiki Maps foi feito há %s atrás.</string>
     <string name="settings_import_total_spots_on_selected_file">Existem %d locais no arquivo CSV selecionado.</string>
     <string name="settings_import_total_not_imported">%d não puderam ser importados.</string>
     <string name="settings_import_total_spots_skipped">%d já existiam e foram ignorados.</string>
     <string name="settings_import_total_successfuly_imported">%s foram importados.</string>
     <string name="settings_import_happening_message">Importando locais de carona do arquivo CSV..</string>
+
+    <string name="hwmaps_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>
+    <string name="hwmaps_select_continents_button_label">Selecionar continentes</string>
+    <string name="hwmaps_select_countries_button_label">Selecionar países</string>
+    <string name="hwmaps_downloadCountriesList_button_label">Baixando lista de países</string>
+    <string name="hwmaps_countriesList_is_empty_title">Lista de países não baixada</string>
+    <string name="hwmaps_countriesList_is_empty_message">Uma vez que a lista de países estiver baixada, você poderá baixar locais de carona do Hitchwiki Maps para os países de sua escolha. Desta forma pouca memória do seu celular será consumida. :-)\nVocê gostaria de baixar a lista de países?</string>
+    <string name="hwmaps_countriesList_download_failed_message">Houve um erro ao tentar baixar a lista de países.\n"%s"</string>
+    <string name="hwmaps_hitchwikiMapsSpots_download_failed_message">Houve um erro ao tentar baixar pontos de carona do Hitchwiki Maps.\n"%s"</string>
+    <string name="hwmaps_last_countriesList_update_message">Última atualização da lista de países foi feita há %s atrás.</string>
+    <string name="hwmaps_last_download_message">Último download de locais do Hitchwiki Maps foi feito há %s atrás.</string>
     <string name="hwmaps_spotslist_cleared_title">Hitchwiki Maps vazio</string>
     <string name="hwmaps_spotslist_cleared_message">Todos os locais previamente baixados do Hitchwiki Maps foram excluídos do seu dispositivo. Para baixar locais, selecione um ou mais países.</string>
 
