@@ -1,9 +1,12 @@
 package com.myhitchhikingspots;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+
 import androidx.annotation.Nullable;
+
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,6 +32,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnSpotsL
 
     TextView txtNumSpotsSaved, txtNumHWSpotsDownloaded, txtShortestWaitingTime, txtLongestWaitingTime;
     SharedPreferences prefs;
+    private boolean isHandlingRequestToOpenSpotForm = false;
 
     @Override
     public void onAttach(Context context) {
@@ -84,18 +88,13 @@ public class DashboardFragment extends Fragment implements MainActivity.OnSpotsL
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        boolean selectionHandled = false;
-
         switch (item.getItemId()) {
             case R.id.action_new_spot:
-                saveSpotButtonHandler(false);
-                selectionHandled = true;
+                if (!isHandlingRequestToOpenSpotForm)
+                    saveSpotButtonHandler(false);
                 break;
         }
 
-        /*if (selectionHandled)
-            return true;
-        else*/
         return super.onOptionsItemSelected(item);
     }
 
@@ -120,7 +119,15 @@ public class DashboardFragment extends Fragment implements MainActivity.OnSpotsL
             spot = mCurrentWaitingSpot;
         }
 
+        isHandlingRequestToOpenSpotForm = true;
         activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, false, false);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        isHandlingRequestToOpenSpotForm = false;
     }
 
     @Override
