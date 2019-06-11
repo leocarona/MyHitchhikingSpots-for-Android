@@ -336,11 +336,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 } catch (RuntimeException exception) {
                     Crashlytics.logException(exception);
                 }
+
+                setupIconImages(style);
+
+                enableLocationLayer(style);
             }
-
-            setupIconImages();
-
-            enableLocationLayer(style);
 
             if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
                 showInternetUnavailableAlertDialog();
@@ -384,7 +384,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         enableLocationLayer(loadedMapStyle);
 
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+        if (PermissionsManager.areLocationPermissionsGranted(activity))
+            mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     void showSpotSavedSnackbar() {
@@ -729,17 +730,17 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         feature.properties().addProperty(PROPERTY_SELECTED, true);
     }
 
-    private void setupIconImages() {
-        this.style.addImage(ic_single_spot.getId(), ic_single_spot.getBitmap());
-        this.style.addImage(ic_point_on_the_route_spot.getId(), ic_point_on_the_route_spot.getBitmap());
-        this.style.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
-        this.style.addImage(ic_arrival_spot.getId(), ic_arrival_spot.getBitmap());
-        this.style.addImage(ic_typeunknown_spot.getId(), ic_typeunknown_spot.getBitmap());
-        this.style.addImage(ic_got_a_ride_spot0.getId(), ic_got_a_ride_spot0.getBitmap());
-        this.style.addImage(ic_got_a_ride_spot1.getId(), ic_got_a_ride_spot1.getBitmap());
-        this.style.addImage(ic_got_a_ride_spot2.getId(), ic_got_a_ride_spot2.getBitmap());
-        this.style.addImage(ic_got_a_ride_spot3.getId(), ic_got_a_ride_spot3.getBitmap());
-        this.style.addImage(ic_got_a_ride_spot4.getId(), ic_got_a_ride_spot4.getBitmap());
+    private void setupIconImages(@NonNull Style loadedMapStyle) {
+        loadedMapStyle.addImage(ic_single_spot.getId(), ic_single_spot.getBitmap());
+        loadedMapStyle.addImage(ic_point_on_the_route_spot.getId(), ic_point_on_the_route_spot.getBitmap());
+        loadedMapStyle.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
+        loadedMapStyle.addImage(ic_arrival_spot.getId(), ic_arrival_spot.getBitmap());
+        loadedMapStyle.addImage(ic_typeunknown_spot.getId(), ic_typeunknown_spot.getBitmap());
+        loadedMapStyle.addImage(ic_got_a_ride_spot0.getId(), ic_got_a_ride_spot0.getBitmap());
+        loadedMapStyle.addImage(ic_got_a_ride_spot1.getId(), ic_got_a_ride_spot1.getBitmap());
+        loadedMapStyle.addImage(ic_got_a_ride_spot2.getId(), ic_got_a_ride_spot2.getBitmap());
+        loadedMapStyle.addImage(ic_got_a_ride_spot3.getId(), ic_got_a_ride_spot3.getBitmap());
+        loadedMapStyle.addImage(ic_got_a_ride_spot4.getId(), ic_got_a_ride_spot4.getBitmap());
     }
 
     private LatLng convertToLatLng(Feature feature) {
@@ -810,8 +811,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
 
         if (style.isFullyLoaded()) {
-            mapboxMap.clear();
-
             setupSpotsSource(style);
             setupSubRoutesSource(style);
             setupSpotsStyleLayer(style);

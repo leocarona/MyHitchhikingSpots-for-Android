@@ -63,24 +63,27 @@
     <string name="tools_title">Werkzeuge</string>
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export database</string>
-    <string name="settings_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
-    <string name="settings_select_continents_button_label">Select continents</string>
-    <string name="settings_select_countries_button_label">Select countries</string>
-    <string name="settings_downloadCountriesList_button_label">Downloading countries list</string>
     <string name="settings_exporting_db_message">Your spots list will be saved on your phone as CSV file..</string>
-    <string name="settings_countriesList_is_empty_title">Countries list not downloaded</string>
-    <string name="settings_countriesList_is_empty_message">Once the country options are downloaded, you\'ll be able to download spots from Hitchwiki Maps for the countries of your preference. This means just a small part of your phone memory will be used. :-)\nWould you like to download the countries list now?</string>
     <string name="settings_exportdb_finish_successfull_message">Copied to:\n%s</string>
-    <string name="settings_countriesList_download_failed_message">An exception occurred while trying to download the countries list.\n"%s"</string>
-    <string name="settings_hitchwikiMapsSpots_download_failed_message">An exception occurred while trying to download hitchhiking spots from Hitchwiki Maps.\n"%s"</string>
-    <string name="settings_last_countriesList_update_message">Last update of countries list was done %s ago.</string>
     <string name="settings_last_export_message">Last export was done %s ago.</string>
-    <string name="settings_last_download_message">Last download was done %s ago.</string>
     <string name="settings_import_total_spots_on_selected_file">There were %d spots on the selected CSV file.</string>
     <string name="settings_import_total_not_imported">%d could not be imported.</string>
     <string name="settings_import_total_spots_skipped">%d already existed and were skipped.</string>
     <string name="settings_import_total_successfuly_imported">%s were imported.</string>
     <string name="settings_import_happening_message">Importing hitchhiking spots from CSV file..</string>
+
+    <string name="hwmaps_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
+    <string name="hwmaps_select_continents_button_label">Select continents</string>
+    <string name="hwmaps_select_countries_button_label">Select countries</string>
+    <string name="hwmaps_downloadCountriesList_button_label">Downloading countries list</string>
+    <string name="hwmaps_countriesList_is_empty_title">Countries list not downloaded</string>
+    <string name="hwmaps_countriesList_is_empty_message">Once the country options are downloaded, you\'ll be able to download spots from Hitchwiki Maps for the countries of your preference. This means just a small part of your phone memory will be used. :-)\nWould you like to download the countries list now?</string>
+    <string name="hwmaps_countriesList_download_failed_message">An exception occurred while trying to download the countries list.\n"%s"</string>
+    <string name="hwmaps_hitchwikiMapsSpots_download_failed_message">An exception occurred while trying to download hitchhiking spots from Hitchwiki Maps.\n"%s"</string>
+    <string name="hwmaps_last_countriesList_update_message">Last update of countries list was done %s ago.</string>
+    <string name="hwmaps_last_download_message">Last download was done %s ago.</string>
+    <string name="hwmaps_spotslist_cleared_title">Hitchwiki Maps cleared</string>
+    <string name="hwmaps_spotslist_cleared_message">All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more countries.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -99,6 +102,7 @@
     <string name="spot_form_comments_title">Kommentare von anderen Trampern</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
 
+    <string name="menu_dashboard">Dashboard</string>
     <string name="menu_my_maps">Meine Karten</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Karten</string>
     <string name="menu_tools">@string/tools_title</string>

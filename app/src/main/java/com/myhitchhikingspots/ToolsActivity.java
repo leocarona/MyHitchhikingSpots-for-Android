@@ -4,19 +4,18 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentManager;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -27,22 +26,15 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
-import com.google.gson.Gson;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
-import com.myhitchhikingspots.model.DaoMaster;
-import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
 import com.myhitchhikingspots.utilities.DatabaseImporter;
-import com.myhitchhikingspots.utilities.DownloadHWSpotsDialog;
 import com.myhitchhikingspots.utilities.FilePickerDialog;
-import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
 
-import org.greenrobot.greendao.database.Database;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -55,18 +47,10 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import hitchwikiMapsSDK.classes.APICallCompletionListener;
-import hitchwikiMapsSDK.classes.APIConstants;
-import hitchwikiMapsSDK.classes.ApiManager;
-import hitchwikiMapsSDK.entities.CountryInfoBasic;
-import hitchwikiMapsSDK.entities.Error;
-import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
-
-public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsDialog.DownloadHWSpotsDialogListener {
+public class ToolsActivity extends AppCompatActivity {
     TextView mfeedbacklabel;
     View coordinatorLayout;
 
@@ -99,7 +83,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
         Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
         if (millisecondsLastCountriesRefresh > 0) {
             String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh), this);
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_countriesList_update_message), timePast);
+            strLastDownload += "- " + String.format(getString(R.string.hwmaps_last_countriesList_update_message), timePast);
         }
 
         Long millisecondsLastExport = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, 0);
@@ -116,7 +100,7 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
                 strLastDownload += "\n";
 
             String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh), this);
-            strLastDownload += "- " + String.format(getString(R.string.settings_last_download_message), timePast);
+            strLastDownload += "- " + String.format(getString(R.string.hwmaps_last_download_message), timePast);
         }
 
         if (!strLastDownload.isEmpty()) {
@@ -126,49 +110,9 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
 
         findViewById(R.id.btnExport).setOnClickListener(this::exportButtonHandler);
         findViewById(R.id.btnImport).setOnClickListener(this::importButtonHandler);
-        findViewById(R.id.btnSelectContinents).setOnClickListener(this::showContinentsDialog);
-        findViewById(R.id.btnSelectCountries).setOnClickListener(this::showCountriesDialog);
         findViewById(R.id.btnPickFile).setOnClickListener(this::pickFileButtonHandler);
 
-        hitchwikiStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
-
         coordinatorLayout = findViewById(R.id.coordinatiorLayout);
-
-        setupContinentsContainer();
-
-        //Rename old Hitchwiki Maps directory to something more intuitive for the user
-        if (prefs.getBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, false)) {
-            File oldFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
-            File newFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
-            oldFolder.renameTo(newFolder);
-            prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
-        }
-    }
-
-    private void setupContinentsContainer() {
-        continentsContainer = new PairParcelable[7];
-        continentsContainer[0] = new PairParcelable(APIConstants.CODE_CONTINENT_ANTARTICA, getString(R.string.continent_name_antarctica));
-        continentsContainer[1] = new PairParcelable(APIConstants.CODE_CONTINENT_AFRICA, getString(R.string.continent_name_africa));
-        continentsContainer[2] = new PairParcelable(APIConstants.CODE_CONTINENT_ASIA, getString(R.string.continent_name_asia));
-        continentsContainer[3] = new PairParcelable(APIConstants.CODE_CONTINENT_EUROPE, getString(R.string.continent_name_europe));
-        continentsContainer[4] = new PairParcelable(APIConstants.CODE_CONTINENT_NORTH_AMERICA, getString(R.string.continent_name_north_america));
-        continentsContainer[5] = new PairParcelable(APIConstants.CODE_CONTINENT_SOUTH_AMERICA, getString(R.string.continent_name_south_america));
-        continentsContainer[6] = new PairParcelable(APIConstants.CODE_CONTINENT_AUSTRALIA, getString(R.string.continent_name_oceania));
-    }
-
-    @Override
-    public void onDownloadConfirmClicked(String selectedCodes, String dialog_type) {
-        downloadHWSpots(selectedCodes, dialog_type);
-    }
-
-    @Override
-    public String getContinentsContainer(int item) {
-        return continentsContainer[item].getKey();
-    }
-
-    @Override
-    public String getCountryContainer(int item) {
-        return countriesContainer[item].getIso();
     }
 
     //persmission method.
@@ -252,27 +196,6 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
         }
         Crashlytics.log(Log.DEBUG, "", "Chosen path = " + filePath);
         return filePath;
-    }
-
-    public void downloadHWSpots(String selectedCodes, String dialogType) {
-        String places = "";
-        switch (dialogType) {
-            case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
-                prefs.edit().putString(Constants.PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD, selectedCodes).apply();
-                prefs.edit().remove(Constants.PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD).apply();
-                places = "Selected continents: " + prefs.getString(Constants.PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD, "");
-                break;
-            case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
-                prefs.edit().putString(Constants.PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD, selectedCodes).apply();
-                prefs.edit().remove(Constants.PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD).apply();
-                places = "Selected countries: " + prefs.getString(Constants.PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD, "");
-                break;
-        }
-
-        if (!Utils.isNetworkAvailable(this)) {
-            showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_network_unavailable_message));
-        } else
-            new downloadPlacesAsyncTask(dialogType).execute();
     }
 
     protected void showErrorAlert(String title, String msg) {
@@ -423,49 +346,6 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
             shouldAutomaticallyFixStartDateTimes = false;
         }
         return shouldAutomaticallyFixStartDateTimes;
-    }
-
-    public void showContinentsDialog(View view) {
-        if (!isStoragePermissionsGranted(this))
-            requestStoragePermissions(this);
-        else {
-            if (continentsContainer.length == 0) {
-                showErrorAlert(getString(R.string.settings_select_continents_button_label), "The list of continents are not loaded. Try to navigate out of this screen and come back agian.");
-            } else {
-                new showContinentsDialogAsyncTask().execute();
-            }
-        }
-    }
-
-    public void showCountriesDialog(View view) {
-        if (!isStoragePermissionsGranted(this))
-            requestStoragePermissions(this);
-        else {
-            if (countriesContainer == null || countriesContainer.length == 0) {
-                Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
-                //If the countries list were previously downloaded (we know that by checking if there's a date set from countries download)
-                if (millisecondsLastCountriesRefresh > 0) {
-                    //Load the countries list from local storage
-                    new getCountriesAsyncTask(false).execute();
-                } else {
-                    //Ask user if they'd like to download the countries list now
-                    new AlertDialog.Builder(this)
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setTitle(getString(R.string.settings_countriesList_is_empty_title))
-                            .setMessage(getString(R.string.settings_countriesList_is_empty_message))
-                            .setPositiveButton(getResources().getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    new getCountriesAsyncTask(true).execute();
-                                }
-                            })
-                            .setNegativeButton(getString(R.string.general_cancel_option), null)
-                            .show();
-                }
-            } else {
-                new showCountriesDialogAsyncTask().execute();
-            }
-        }
     }
 
 
@@ -751,421 +631,6 @@ public class ToolsActivity extends AppCompatActivity implements DownloadHWSpotsD
             progressDialog.dismiss();
     }
 
-    public class showCountriesDialogAsyncTask extends AsyncTask<Void, Void, PairParcelable[]> {
-
-        @Override
-        protected void onPreExecute() {
-            showProgressDialog(getString(R.string.general_loading_dialog_title), getString(R.string.general_loading_dialog_message));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        protected PairParcelable[] doInBackground(Void... params) {
-            if (isCancelled()) {
-                return new PairParcelable[0];
-            }
-
-            PairParcelable[] lst = new PairParcelable[countriesContainer.length];
-            for (int i = 0; i < countriesContainer.length; i++) {
-                CountryInfoBasic country = countriesContainer[i];
-
-                //Build string to show
-                String c2 = country.getName();
-                if (country.getPlaces() != null && !country.getPlaces().isEmpty())
-                    c2 += " (" + country.getPlaces() + " " + getString(R.string.main_activity_single_spots_list_tab) + ")";
-
-                PairParcelable item = new PairParcelable(country.getIso(), c2);
-                lst[i] = item;
-            }
-
-            return lst;
-        }
-
-        @Override
-        protected void onPostExecute(PairParcelable[] result) {
-            if (isFinishing())
-                return;
-            showSelectionDialog(result, DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY);
-            dismissProgressDialog();
-        }
-    }
-
-    public class showContinentsDialogAsyncTask extends AsyncTask<Void, Void, PairParcelable[]> {
-        @Override
-        protected void onPreExecute() {
-            showProgressDialog(getString(R.string.general_loading_dialog_title), getString(R.string.general_loading_dialog_message));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        protected PairParcelable[] doInBackground(Void... params) {
-            if (isCancelled()) {
-                return new PairParcelable[0];
-            }
-            return continentsContainer;
-        }
-
-        @Override
-        protected void onPostExecute(PairParcelable[] result) {
-            if (isFinishing())
-                return;
-            dismissProgressDialog();
-            showSelectionDialog(result, DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT);
-        }
-    }
-
-
-    public class getCountriesAsyncTask extends AsyncTask<Void, Void, String> {
-        Boolean shouldDeleteExisting;
-
-        public getCountriesAsyncTask(Boolean shouldDeleteExisting) {
-            this.shouldDeleteExisting = shouldDeleteExisting;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            String strToShow = "Fetching countries list...";
-
-            if (shouldDeleteExisting)
-                strToShow = "Updating countries list...";
-
-            showProgressDialog(getString(R.string.settings_downloadCountriesList_button_label), strToShow);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        protected String doInBackground(Void... params) {
-            if (isCancelled()) {
-                return "Canceled";
-            }
-
-            //create folder if not already created
-            if (!hitchwikiStorageFolder.exists()) {
-                //create folder for the first time
-                hitchwikiStorageFolder.mkdirs();
-                Crashlytics.log(Log.INFO, TAG, "Directory created. " + hitchwikiStorageFolder.getPath());
-            }
-
-            //recreate countriesContainer, it might not be empty
-            countriesContainer = new CountryInfoBasic[0];
-
-            //folder exists, but it may be a case that file with stored markers is missing, so lets check that
-            File fileCheck = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
-
-            String result = "";
-            if ((fileCheck.exists() && fileCheck.length() == 0) || shouldDeleteExisting) {
-                if (fileCheck.exists()) { //folder exists (totally expected), so lets delete existing file now
-                    //but its size is 0KB, so lets delete it and download markers again
-                    fileCheck.delete();
-                }
-
-                try {
-                    Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getCountriesWithCoordinatesAndMarkersNumber");
-                    hitchwikiAPI.getCountriesWithCoordinatesAndMarkersNumber(getCountriesAndCoordinates);
-                    result = "countriesListDownloaded";
-                } catch (Exception ex) {
-                    Crashlytics.logException(ex);
-                    result = ex.getMessage();
-                }
-            } else {
-                countriesContainer = Utils.loadCountriesListFromLocalFile();
-                if (countriesContainer == null)
-                    countriesContainer = new CountryInfoBasic[0];
-                result = "countriesLoadedFromLocalStorage";
-            }
-
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            if (isFinishing())
-                return;
-
-            if (!result.contentEquals("countriesLoadedFromLocalStorage"))
-                saveCountriesListLocally(countriesContainer);
-
-
-            if (result.contentEquals("countriesListDownloaded")) {
-                //also write into prefs that markers sync has occurred
-                Long currentMillis = System.currentTimeMillis();
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).apply();
-                prefs.edit().putInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, countriesContainer.length).apply();
-
-                Toast.makeText(getBaseContext(), "Download successful!", Toast.LENGTH_SHORT).show();
-                Long millisecondsAtDownload = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
-                if (millisecondsAtDownload != 0) {
-                    //convert millisecondsAtDownload to some kind of date and time text
-                    SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-                    Date resultdate = new Date(millisecondsAtDownload);
-                    String timeStamp = sdf.format(resultdate);
-
-                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), countriesContainer.length) + " " +
-                                    String.format(getString(R.string.general_last_sync_date), timeStamp),
-                            Constants.CROUTON_DURATION_5000);
-                } else {
-                    showCrouton(String.format(getString(R.string.general_items_downloaded_message), countriesContainer.length),
-                            Constants.CROUTON_DURATION_5000);
-                }
-            } else if (!result.contentEquals("countriesLoadedFromLocalStorage") && !result.isEmpty())
-                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_countriesList_download_failed_message), result));
-
-            if (result.contentEquals("countriesListDownloaded") || result.contentEquals("countriesLoadedFromLocalStorage")) {
-                if (countriesContainer.length == 0) {
-                    //Ask user if they'd like to download the countries list now
-                    new AlertDialog.Builder(getBaseContext())
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setTitle(getString(R.string.settings_countriesList_is_empty_title))
-                            .setMessage(getString(R.string.settings_countriesList_is_empty_message))
-                            .setPositiveButton(getString(R.string.general_download_option), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    new getCountriesAsyncTask(true).execute();
-                                }
-                            })
-                            .setNegativeButton(getResources().getString(R.string.general_cancel_option), null)
-                            .show();
-                } else
-                    new showCountriesDialogAsyncTask().execute();
-            }
-
-            dismissProgressDialog();
-        }
-    }
-
-    //async task to retrieve markers
-    public class downloadPlacesAsyncTask extends AsyncTask<Void, Void, String> {
-        String lstToDownload = "";
-        String typeToDownload = "";
-
-        public downloadPlacesAsyncTask(String type) {
-            typeToDownload = type;
-            switch (type) {
-                case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
-                    lstToDownload = prefs.getString(Constants.PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD, "");
-                    break;
-                case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
-                    lstToDownload = prefs.getString(Constants.PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD, "");
-                    break;
-            }
-        }
-
-        @Override
-        protected void onPreExecute() {
-            showProgressDialog(getString(R.string.settings_downloadHDSpots_button_label), String.format(getString(R.string.general_downloading_something_message), lstToDownload));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        protected String doInBackground(Void... params) {
-            if (isCancelled()) {
-                return "Canceled";
-            }
-
-            //create folder if not already created
-            if (!hitchwikiStorageFolder.exists()) {
-                //create folder for the first time
-                hitchwikiStorageFolder.mkdirs();
-                Crashlytics.log(Log.INFO, TAG, "Directory created. " + hitchwikiStorageFolder.getPath());
-            }
-
-            //folder exists, but it may be a case that file with stored markers is missing, so lets check that
-            File fileCheck = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
-            fileCheck.delete();
-            //recreate placesContainer, it might not be empty
-            if (placesContainer == null)
-                placesContainer = new ArrayList<>();
-            else
-                placesContainer.clear();
-
-            String res = "nothingToSync";
-
-            try {
-                if (!lstToDownload.isEmpty()) {
-                    res = "spotsDownloaded";
-                    String[] codes = lstToDownload.split(DownloadHWSpotsDialog.LIST_SEPARATOR);
-
-                    switch (typeToDownload) {
-                        case DownloadHWSpotsDialog.DIALOG_TYPE_CONTINENT:
-
-                            for (String continentCode : codes) {
-                                Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinent");
-                                hitchwikiAPI.getPlacesByContinent(continentCode, getPlacesByArea);
-                            }
-                            break;
-                        case DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY:
-                            for (String countryCode : codes) {
-                                Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByCountry");
-                                hitchwikiAPI.getPlacesByCountry(countryCode, getPlacesByArea);
-
-                            }
-                            break;
-                    }
-                }
-            } catch (Exception ex) {
-                if (ex.getMessage() != null)
-                    res = ex.getMessage();
-                Crashlytics.logException(ex);
-            }
-            return res;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            if (isFinishing())
-                return;
-
-            if (result.contentEquals("spotsDownloaded")) {
-
-                savePlacesListLocally(placesContainer);
-
-                //Get current datetime in milliseconds
-                Long millisecondsAtRefresh = System.currentTimeMillis();
-
-                //also write into prefs that markers sync has occurred
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
-                prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
-
-                //TODO: show how many megabytes were downloaded or saved locally
-
-                Toast.makeText(getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
-
-                //convert millisecondsAtRefresh to some kind of date and time text
-                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-                Date resultdate = new Date(millisecondsAtRefresh);
-                String timeStamp = sdf.format(resultdate);
-
-                showCrouton(String.format(getString(R.string.general_items_downloaded_message), placesContainer.size()) +
-                                " " + String.format(getString(R.string.general_last_sync_date), timeStamp),
-                        Constants.CROUTON_DURATION_5000);
-
-            } else {
-                if (result.contentEquals("nothingToSync")) {
-                    //also write into prefs that markers sync has occurred
-                    prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
-                    prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
-
-                    showErrorAlert("Hitchwiki Maps cleared", "All spots previously downloaded from Hitchwiki Maps were deleted from your device. To download spots, select one or more continent.");
-                } else if (!result.isEmpty())
-                    showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.settings_hitchwikiMapsSpots_download_failed_message), result));
-            }
-
-            dismissProgressDialog();
-        }
-    }
-
-    public void showSelectionDialog(PairParcelable[] result, String dialogType) {
-        Bundle args = new Bundle();
-        args.putParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY, result);
-        args.putString(Constants.DIALOG_TYPE_BUNDLE_KEY, dialogType);
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        DownloadHWSpotsDialog dialog = new DownloadHWSpotsDialog();
-        //dialog.setTargetFragment(this, 0);
-        dialog.setArguments(args);
-        dialog.show(fragmentManager, "tagSelection");
-    }
-
-    public File hitchwikiStorageFolder;
-    public static List<PlaceInfoBasic> placesContainer = new ArrayList<>();
-    public static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
-    public static PairParcelable[] continentsContainer = new PairParcelable[0];
-    public boolean placesContainerIsEmpty = true;
-    public static final ApiManager hitchwikiAPI = new ApiManager();
-
-    APICallCompletionListener<PlaceInfoBasic[]> getPlacesByArea = new APICallCompletionListener<PlaceInfoBasic[]>() {
-        @Override
-        public void onComplete(boolean success, int intParam, String stringParam, Error error, PlaceInfoBasic[] object) {
-            if (success) {
-                for (int i = 0; i < object.length; i++) {
-                    placesContainer.add(object[i]);
-                }
-
-            } else {
-                System.out.println("Error message : " + error.getErrorDescription());
-            }
-        }
-    };
-
-
-    APICallCompletionListener<CountryInfoBasic[]> getCountriesAndCoordinates = new APICallCompletionListener<CountryInfoBasic[]>() {
-        @Override
-        public void onComplete(boolean success, int k, String s, Error error, CountryInfoBasic[] object) {
-            if (success) {
-                System.out.println(object.length);
-                countriesContainer = object;
-
-            } else {
-                System.out.println("Error message : " + error.getErrorDescription());
-            }
-        }
-    };
-
-    //crouton instead of Toast messages, because Croutons are awesome
-    private void showCrouton(String croutonText, int duration) {
-        Crashlytics.log(Log.DEBUG, TAG, croutonText);
-        mfeedbacklabel.setText(croutonText);
-        mfeedbacklabel.setVisibility(View.VISIBLE);
-    }
-
-    void savePlacesListLocally(List<PlaceInfoBasic> places) {
-        //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
-        //so we have to create file in storage folder and stream placesContainer into it using gson
-        File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
-
-        try {
-            FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
-
-            Gson gsonC = new Gson();
-            String placesContainerAsString = gsonC.toJson(places);
-
-            InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
-
-            //create a buffer...
-            byte[] buffer = new byte[1024];
-            int bufferLength = 0; //used to store a temporary size of the buffer
-
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                //add the data in the buffer to the file in the file output stream (the file on the sd card
-                fileOutput.write(buffer, 0, bufferLength);
-            }
-
-            //close the output stream when done
-            fileOutput.close();
-
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
-        }
-
-    }
-
-    void saveCountriesListLocally(CountryInfoBasic[] countriesList) {
-        File file = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
-
-        try {
-            FileOutputStream fileOutput = new FileOutputStream(file);
-
-            Gson gsonC = new Gson();
-            String placesContainerAsString = gsonC.toJson(countriesList);
-
-            InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
-
-            //create a buffer...
-            byte[] buffer = new byte[1024];
-            int bufferLength = 0; //used to store a temporary size of the buffer
-
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                //add the data in the buffer to the file in the file output stream (the file on the sd card
-                fileOutput.write(buffer, 0, bufferLength);
-            }
-
-            //close the output stream when done
-            fileOutput.close();
-
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
-        }
-    }
 }
 
 

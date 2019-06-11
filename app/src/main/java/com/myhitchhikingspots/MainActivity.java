@@ -7,8 +7,11 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
+
 import com.google.android.material.navigation.NavigationView;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -18,6 +21,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -41,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public static String ARG_FRAGMENT_KEY = "my-fragment-arg";
     public static String ARG_REQUEST_TO_OPEN_FRAGMENT = "request-to-open-resource-id";
     public static String ARG_CHECKED_MENU_ITEM_ID_KEY = "my-fragment-title-arg";
+    protected static final String TAG = "main-activity";
 
     // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
     // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
@@ -53,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     OnSpotsListChanged activeFragmentListening;
 
-    int fragmentResourceId = -1;
+    int fragmentIdToBeOpenedOnSpotsListLoaded = -1;
 
     //Default fragment that will open on the app startup
     int defaultFragmentResourceId = R.id.nav_my_map;
@@ -202,7 +208,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     }
 
     public void selectDrawerItem(int resourceId) {
+        Crashlytics.log(Log.INFO, TAG, "selectDrawerItem was called with resourceId = " + resourceId);
         int menuItemIndex = getMenuItemIndex(resourceId);
+        Crashlytics.setInt("menuItemIndex", menuItemIndex);
         selectDrawerItem(nvDrawer.getMenu().getItem(menuItemIndex));
     }
 
@@ -396,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             activeFragmentListening = (OnSpotsListChanged) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
         }
 
-        updateUI();
+        fragmentIdToBeOpenedOnSpotsListLoaded = -1;
     }
 
     void restoreLastCheckedMenuItem(int menuItemIndex) {
@@ -459,7 +467,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     void loadSpotList(int fragmentResourceId) {
         showProgressDialog(getResources().getString(R.string.map_loading_dialog));
 
-        this.fragmentResourceId = fragmentResourceId;
+        this.fragmentIdToBeOpenedOnSpotsListLoaded = fragmentResourceId;
 
         //Load markers and polylines
         this.loadTask = new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
@@ -469,7 +477,11 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
 
     @Override
+    /**
+     * This method is called when LoadSpotsAndRoutesTask completes.
+     * **/
     public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
+        Crashlytics.log(Log.INFO, TAG, "LoadSpotsAndRoutesTask has finished. setupData was called");
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
             return;
@@ -489,9 +501,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentWaitingSpot);
 
         //Select fragment
-        if (fragmentResourceId > -1) {
-            selectDrawerItem(fragmentResourceId);
-            fragmentResourceId = -1;
+        if (fragmentIdToBeOpenedOnSpotsListLoaded > -1) {
+            selectDrawerItem(fragmentIdToBeOpenedOnSpotsListLoaded);
+            fragmentIdToBeOpenedOnSpotsListLoaded = -1;
         } else
             updateUI();
 

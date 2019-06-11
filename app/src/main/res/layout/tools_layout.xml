@@ -79,29 +79,6 @@
                 <TextView
                     style="?android:attr/listSeparatorTextViewStyle"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:text="@string/settings_downloadHDSpots_button_label" />
-
-                <Button
-                    android:id="@+id/btnSelectContinents"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/settings_select_continents_button_label"
-                    android:textAllCaps="true" />
-
-                <Button
-                    android:id="@+id/btnSelectCountries"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/settings_select_countries_button_label"
-                    android:textAllCaps="true" />
-
-                <TextView
-                    style="?android:attr/listSeparatorTextViewStyle"
-                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
                 <TextView
