@@ -2228,7 +2228,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     mCurrentSpot.setCountry(placeWithCompleteDetails.getCountry_name());
                     mCurrentSpot.setCity(placeWithCompleteDetails.getLocality());
 
-                    if (placeWithCompleteDetails.getDescriptionENdatetime() != null && !placeWithCompleteDetails.getDescriptionENdatetime().isEmpty()) {
+                    if (placeWithCompleteDetails.getDescriptionENdatetime() != null &&
+                            placeWithCompleteDetails.getDescriptionENdatetime() != "null" &&
+                            !placeWithCompleteDetails.getDescriptionENdatetime().isEmpty()) {
                         DateTime extractedDateTime = DateTimeFormat.forPattern(APIConstants.PLACE_INFO_DATETIME_FORMAT).withZone(DateTimeZone.UTC)
                                 .parseDateTime(placeWithCompleteDetails.getDescriptionENdatetime());
                         mCurrentSpot.setStartDateTime(extractedDateTime);
