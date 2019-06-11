@@ -395,11 +395,11 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 } catch (RuntimeException exception) {
                     Crashlytics.logException(exception);
                 }
+
+                setupIconImages(style);
+
+                enableLocationLayer();
             }
-
-            setupIconImages();
-
-            enableLocationLayer();
 
             if (spotList == null || spotList.size() == 0)
                 loadHWSpotsIfTheyveBeenDownloaded();
@@ -546,17 +546,17 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         feature.properties().addProperty(PROPERTY_SELECTED, true);
     }
 
-    private void setupIconImages() {
-        this.style.addImage(ic_single_spot.getId(), ic_single_spot.getBitmap());
+    private void setupIconImages(@NonNull Style loadedMapStyle) {
+        loadedMapStyle.addImage(ic_single_spot.getId(), ic_single_spot.getBitmap());
         //this.mapboxMap.addImage(ic_point_on_the_route_spot.getId(), ic_point_on_the_route_spot.getBitmap());
-        this.style.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
-        this.style.addImage(ic_arrival_spot.getId(), ic_arrival_spot.getBitmap());
-        this.style.addImage(ic_hitchability_unknown.getId(), ic_hitchability_unknown.getBitmap());
-        this.style.addImage(ic_hitchability_very_good.getId(), ic_hitchability_very_good.getBitmap());
-        this.style.addImage(ic_hitchability_good.getId(), ic_hitchability_good.getBitmap());
-        this.style.addImage(ic_hitchability_average.getId(), ic_hitchability_average.getBitmap());
-        this.style.addImage(ic_hitchability_bad.getId(), ic_hitchability_bad.getBitmap());
-        this.style.addImage(ic_hitchability_senseless.getId(), ic_hitchability_senseless.getBitmap());
+        loadedMapStyle.addImage(ic_waiting_spot.getId(), ic_waiting_spot.getBitmap());
+        loadedMapStyle.addImage(ic_arrival_spot.getId(), ic_arrival_spot.getBitmap());
+        loadedMapStyle.addImage(ic_hitchability_unknown.getId(), ic_hitchability_unknown.getBitmap());
+        loadedMapStyle.addImage(ic_hitchability_very_good.getId(), ic_hitchability_very_good.getBitmap());
+        loadedMapStyle.addImage(ic_hitchability_good.getId(), ic_hitchability_good.getBitmap());
+        loadedMapStyle.addImage(ic_hitchability_average.getId(), ic_hitchability_average.getBitmap());
+        loadedMapStyle.addImage(ic_hitchability_bad.getId(), ic_hitchability_bad.getBitmap());
+        loadedMapStyle.addImage(ic_hitchability_senseless.getId(), ic_hitchability_senseless.getBitmap());
     }
 
     SharedPreferences prefs;
