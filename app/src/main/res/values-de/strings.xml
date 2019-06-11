@@ -71,6 +71,9 @@
     <string name="settings_import_total_spots_skipped">%d already existed and were skipped.</string>
     <string name="settings_import_total_successfuly_imported">%s were imported.</string>
     <string name="settings_import_happening_message">Importing hitchhiking spots from CSV file..</string>
+    <string name="settings_fixing_date_message">Datetimes getting fixed..</string>
+    <string name="settings_automatically_fix_spots_datetime_title">We can fix the datetimes</string>
+    <string name="settings_automatically_fix_spots_datetime_message">We realized that the date and time of spots saved with My Hitchhiking Spots v2.2.5 (or prior) have not been saved properly. The file being imported seem to have been generated before version 2.2.5. Would you like us to automatically fix the dates and times of the spots being imported?</string>
 
     <string name="hwmaps_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
     <string name="hwmaps_select_continents_button_label">Select continents</string>
@@ -107,6 +110,7 @@
     <string name="menu_hitchwiki_maps">Hitchwiki Karten</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
+    <string name="menu_about_us">@string/about_us_first_title</string>
 
     <string name="action_settings">Einstellungen</string>
     <string name="spot_saved_successfuly">Standort gespeichert</string>
@@ -270,4 +274,18 @@
     <string name="set_region_name_hint">Enter name</string>
     <string name="offline_map_in_progress_toast_message">Still in progress, please wait</string>
     <string name="tile_count_limit_exceed_error_message">This region is too big, download was stopped</string>
+
+    <string name="dashboard_you_have_hitched">You\'ve hitched</string>
+    <string name="dashboard_number_of_rides">%d rides</string>
+    <string name="dashboard_you_have_downloaded_from_hw">You\'ve downloaded from Hitchwiki</string>
+    <string name="dashboard_number_of_hw_spots_downloaded">%d spots</string>
+    <string name="dashboard_your_longest_waiting_time">Your longest waiting time</string>
+    <string name="dashboard_your_shortest_waiting_time">Your shortest waiting time</string>
+
+    <string name="about_us_first_title">Über uns</string>
+    <string name="about_us_first_text">This app is an open source project published by Hitchwiki.org free of charge. Developed by and for hitchhikers. It exists thanks to our supporters, our developers and our users who rate and give us feedback, so we can improve.</string>
+    <string name="about_us_our_supporters_title">Our Supporters</string>
+    <string name="about_us_our_supporters_text">We have some amazing people who helped our developers so that this app could get to you. Friends or unknown people who hosted the developers of this app, who shared food with them, who paid their internet and electricity bills, because you know we need computers and all this stuff to build an app. Our supporters are of big importance for this project, for our nomadic developers and for you who use this useful tool as you explore the world.</string>
+    <string name="about_us_how_to_contribute_title">How You Can Contribute</string>
+    <string name="about_us_how_to_contribute_text">There are at least two ways you can contribute. No money needed for now, you know we\'ve been really good at finding amazing supporters out there. But you can rate My Hitchhiking Spots app on the Google Play Store, or share screenshots of your hitchhiking routes tagging us with #myhitchhikingspots. We read your words to know what\'s good and what can be improved on the app, and we like seen your screenshots as well as they show us your own way of using the app. That\'s all, and thank you for your interest in reading this. :-)</string>
 </resources>

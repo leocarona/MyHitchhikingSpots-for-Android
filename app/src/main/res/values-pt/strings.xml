@@ -65,6 +65,7 @@
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
     <string name="menu_tools">@string/tools_title</string>
     <string name="menu_offline_maps">@string/offline_map</string>
+    <string name="menu_about_us">@string/about_us_first_title</string>
 
     <string name="tools_title">Ferramentas</string>
     <string name="settings_importdb_button_label">Importar banco de dados</string>
@@ -77,6 +78,9 @@
     <string name="settings_import_total_spots_skipped">%d já existiam e foram ignorados.</string>
     <string name="settings_import_total_successfuly_imported">%s foram importados.</string>
     <string name="settings_import_happening_message">Importando locais de carona do arquivo CSV..</string>
+    <string name="settings_fixing_date_message">Corrigindo datas e horários dos locais..</string>
+    <string name="settings_automatically_fix_spots_datetime_title">Nós podemos corrigir as datas e horas</string>
+    <string name="settings_automatically_fix_spots_datetime_message">A data e hora de locais de carona salvos com o Meus Locais de Carona v2.2.5 (ou inferior) não eram salvas de forma apropriada, o que acarretava em informaçōes incorretas ao viajar a alguma região com outro fuso horário. O arquivo sendo importado parece ter sido gerado numa versão anterior do aplicaitov. Você gostaria que corrigíssimos as datas e horas nos locais sendo importados?</string>
 
     <string name="hwmaps_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>
     <string name="hwmaps_select_continents_button_label">Selecionar continentes</string>
@@ -270,4 +274,17 @@
     <string name="offline_map_in_progress_toast_message">Operação em andamento, aguarde..</string>
     <string name="tile_count_limit_exceed_error_message">A região selecionada é muito grande, o download não pode ser completado</string>
 
+    <string name="dashboard_you_have_hitched">Quantas caronas você pegou</string>
+    <string name="dashboard_number_of_rides">%d caronas</string>
+    <string name="dashboard_you_have_downloaded_from_hw">Locais de carona baixados do Hitchwiki</string>
+    <string name="dashboard_number_of_hw_spots_downloaded">%d locais</string>
+    <string name="dashboard_your_longest_waiting_time">Seu maior tempo de espera</string>
+    <string name="dashboard_your_shortest_waiting_time">Seu menor tempo de espera</string>
+
+    <string name="about_us_first_title">Sobre Nós</string>
+    <string name="about_us_first_text">Este aplicativo é um projeto de código aberto publicado pela Hitchwiki.org gratuitamente. É desenvolvido por e para caroneiros. Existe graças aos nossos apoiadores, nossos desenvolvedores e nossos usuários que avaliam o aplicativo e nos dão feedback, o que nos permite melhorar.</string>
+    <string name="about_us_our_supporters_title">Quem Nos Apoia</string>
+    <string name="about_us_our_supporters_text">Algumas pessoas incríveis ajudaram nossos desenvolvedores para que esse aplicativo pudesse chegar até você. Amigos ou pessoas desconhecidas que hospedaram os desenvolvedores deste aplicativo, que compartilharam comida com eles, que pagaram suas contas de eletricidade e internet, porque você sabe que precisamos de computadores e coisas do tipo para criarmos um aplicativo. Nossos apoiadores são de grande importância para este projeto, para nossos desenvolvedores nômades e para você que usa esta ferramenta útil ao explorar o mundo.</string>
+    <string name="about_us_how_to_contribute_title">Como Você Pode Contribuir</string>
+    <string name="about_us_how_to_contribute_text">Há pelo menos duas formas através das quais você pode contribuir com este projeto. Não é necessário dinheiro por enquanto, nós já te contamos que temos sido muito bons em encontrar apoiadores incríveis por aí. Porém, você pode avaliar o aplicativo Meus Locais de Carona na Google Play ou compartilhar capturas de tela das suas rotas de carona marcando a gente com #myhitchhikingspots. Nós te ouviremos para saber o que é bom e o que pode melhorar no aplicativo, e gostaríamos de ver suas capturas de tela para através delas podermos conhecer sua maneira pessoal de usar o aplicativo. É só isso mesmo, e obrigado pelo seu interesse em ler até aqui. :-)</string>
 </resources>
