@@ -1304,14 +1304,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         @Override
         protected ArrayList<Feature> doInBackground(Spot... spotList) {
-            HitchwikiMapViewFragment activity = activityRef.get();
-            if (activity == null)
-                return null;
-
             ArrayList<Feature> features = new ArrayList<>();
+            if (isCancelled())
+                return features;
+
             for (int j = 0; j < spotList.length; j++) {
                 Spot s = spotList[j];
-                features.add(GetFeature(s, 0, activity));
+                features.add(GetFeature(s, 0, activityRef));
             }
             return features;
         }
@@ -1341,6 +1340,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         @Override
         protected void onPostExecute(ArrayList<Feature> features) {
             super.onPostExecute(features);
+            if (isCancelled())
+                return;
             HitchwikiMapViewFragment activity = activityRef.get();
             if (activity == null)
                 return;
@@ -1348,7 +1349,11 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             activity.setupAnnotations(features, errMsg);
         }
 
-        static Feature GetFeature(Spot spot, int routeIndex, HitchwikiMapViewFragment activity) {
+        static Feature GetFeature(Spot spot, int routeIndex, WeakReference<HitchwikiMapViewFragment> activityRef) {
+            HitchwikiMapViewFragment activity = activityRef.get();
+            if (activity == null)
+                return null;
+
             LatLng pos = new LatLng(spot.getLatitude(), spot.getLongitude());
 
             String tag = spot.getId() != null ? spot.getId().toString() : "";
@@ -1358,7 +1363,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             //Get a hitchability string to set as title
             String title = "";
             if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
-                title = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                title = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
 
             //Set hitchability as title
             title = title.toUpperCase();
@@ -1406,6 +1411,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         @SuppressWarnings("WrongThread")
         @Override
         protected HashMap<String, Bitmap> doInBackground(Void... params) {
+            if (isCancelled())
+                return null;
+
             HitchwikiMapViewFragment activity = activityRef.get();
             if (activity != null) {
                 HashMap<String, Bitmap> imagesMap = new HashMap<>();
@@ -1439,6 +1447,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         @Override
         protected void onPostExecute(HashMap<String, Bitmap> bitmapHashMap) {
             super.onPostExecute(bitmapHashMap);
+            if (isCancelled())
+                return;
+
             HitchwikiMapViewFragment activity = activityRef.get();
             if (activity != null && bitmapHashMap != null) {
                 activity.setImageGenResults(bitmapHashMap);
