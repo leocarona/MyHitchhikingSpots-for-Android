@@ -66,6 +66,7 @@ public class MyRoutesActivity extends AppCompatActivity {
     static final String TAG = "main-activity";
     ListListener spotsListListener = null;
     Spot mCurrentWaitingSpot;
+    private boolean isHandlingRequestToOpenSpotForm = false;
 
     int indexOfLastOpenTab = 0;
 
@@ -212,6 +213,8 @@ public class MyRoutesActivity extends AppCompatActivity {
             showSpotDeletedSnackbar();
         }
 
+        isHandlingRequestToOpenSpotForm = false;
+
         if (mSectionsPagerAdapter != null)
             mSectionsPagerAdapter.onActivityResultFromSpotForm();
 
@@ -233,7 +236,8 @@ public class MyRoutesActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.action_new_spot:
-                saveSpotButtonHandler(false);
+                if (!isHandlingRequestToOpenSpotForm)
+                    saveSpotButtonHandler(false);
                 break;
             case R.id.action_edit_list:
                 if (mSectionsPagerAdapter != null)
@@ -430,6 +434,7 @@ public class MyRoutesActivity extends AppCompatActivity {
             spot = mCurrentWaitingSpot;
         }
 
+        isHandlingRequestToOpenSpotForm = true;
         startSpotFormActivityForResult(spot, cameraZoom, requestId, true, false);
     }
 
