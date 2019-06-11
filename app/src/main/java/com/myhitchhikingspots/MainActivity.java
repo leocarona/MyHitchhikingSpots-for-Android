@@ -22,6 +22,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public static String ARG_FRAGMENT_KEY = "my-fragment-arg";
     public static String ARG_REQUEST_TO_OPEN_FRAGMENT = "request-to-open-resource-id";
     public static String ARG_CHECKED_MENU_ITEM_ID_KEY = "my-fragment-title-arg";
+    protected static final String TAG = "main-activity";
 
     // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
     // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
@@ -206,7 +208,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     }
 
     public void selectDrawerItem(int resourceId) {
+        Crashlytics.log(Log.INFO, TAG, "selectDrawerItem was called with resourceId = " + resourceId);
         int menuItemIndex = getMenuItemIndex(resourceId);
+        Crashlytics.setInt("menuItemIndex", menuItemIndex);
         selectDrawerItem(nvDrawer.getMenu().getItem(menuItemIndex));
     }
 
@@ -477,6 +481,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
      * This method is called when LoadSpotsAndRoutesTask completes.
      * **/
     public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
+        Crashlytics.log(Log.INFO, TAG, "LoadSpotsAndRoutesTask has finished. setupData was called");
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
             return;
