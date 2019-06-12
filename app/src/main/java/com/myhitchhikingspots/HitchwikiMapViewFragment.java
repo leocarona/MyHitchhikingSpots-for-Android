@@ -308,8 +308,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && isLocationRequestedByUser) {
                 moveMapCameraToUserLocation();
                 isLocationRequestedByUser = false;
-                showDialogDownloadHWSpots();
             }
+            showDialogDownloadHWSpots();
         } else if (requestCode == PERMISSIONS_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 showDialogDownloadHWSpots();
@@ -411,8 +411,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 if (wasHWSpotsDownloaded())
                     executeLoadHWSpotsTask();
                 else if (wasCountriesListDownloaded())
-                    loadOrDownloadCountriesList(false);
-                else
+                    showDialogDownloadHWSpots();
+                else if (PermissionsManager.areLocationPermissionsGranted(activity))
                     showCountriesListHasNotBeenDownloadedDialog();
             } else if (mapboxMap != null) {
                 shouldZoomToFitAllMarkers = true;
@@ -421,22 +421,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         });
     }
 
-    void loadOrDownloadCountriesList(boolean shouldDeleteExisting) {
+    void loadOrDownloadCountriesList() {
+        if (!isStoragePermissionsGranted(activity))
+            return;
+
         //folder exists, but it may be a case that file with stored markers is missing, so lets check that
         File fileCheck = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
-        if (!(fileCheck.exists() && fileCheck.length() == 0))
-            shouldDeleteExisting = true;
-
-        CountryInfoBasic[] res = null;
-
-        if (shouldDeleteExisting) {
-            if (fileCheck.exists()) { //folder exists (totally expected), so lets delete existing file now
-                //but its size is 0KB, so lets delete it and download markers again
-                fileCheck.delete();
-            }
-        } else
-            res = Utils.loadCountriesListFromLocalFile();
+        CountryInfoBasic[] res = Utils.loadCountriesListFromLocalFile();
 
         if (res != null)
             onPlacesDownloadedListener.onDownloadedFinished("countriesLoadedFromLocalStorage", res);
@@ -817,7 +809,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 //If the countries list were previously downloaded (we know that by checking if there's a date set from countries download)
                 if (wasCountriesListDownloaded()) {
                     //Load the countries list from local storage
-                    loadOrDownloadCountriesList(false);
+                    loadOrDownloadCountriesList();
                 } else {
                     showCountriesListHasNotBeenDownloadedDialog();
                 }
@@ -855,7 +847,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 .setTitle(activity.getString(R.string.hwmaps_countriesList_is_empty_title))
                 .setMessage(activity.getString(R.string.hwmaps_countriesList_is_empty_message))
                 .setPositiveButton(getResources().getString(R.string.general_download_option), (dialog, which) ->
-                        loadOrDownloadCountriesList(true))
+                        showDialogDownloadHWSpots())
                 .setNegativeButton(activity.getString(R.string.general_cancel_option), null)
                 .show();
     }
