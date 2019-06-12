@@ -44,6 +44,9 @@ public class ServerRequest {
 
         Crashlytics.log(Log.INFO, TAG, "Received result converted into string:" + jsonResult);
 
+        if (jsonResult.isEmpty())
+            errorMsg = "Something went wrong and no data has been fetched from " + url;
+
         if (!errorMsg.isEmpty()) {
             Error er = new Error(true, errorMsg);
             jObj = er.toJSONObject();
