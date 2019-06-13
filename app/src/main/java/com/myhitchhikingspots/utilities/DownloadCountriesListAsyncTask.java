@@ -74,8 +74,7 @@ public class DownloadCountriesListAsyncTask extends AsyncTask<Void, Void, Boolea
                 //-----callback.onComplete(false, -1, "", (Error) resultObject, null);
                 //throw new RuntimeException(errMsg);
 
-                if (errMsg == null || errMsg.isEmpty())
-                    return false;
+                return false;
             }
 
             return true;
