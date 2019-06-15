@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hitchwikiEndpointPrefix" translatable="false">http://hitchwiki.org/maps/api/</string>
+    <string name="hitchwikiEndpointPrefix" translatable="false">https://hitchwiki.org/maps/api/</string>
     <string name="hitchwikiPlaceInfo" translatable="false">place=</string>
     <string name="hitchwikiPlaceInfoPostfix" translatable="false">&amp;dot</string>
     <string name="hitchwikiPlaceInfoDateTimeFormat" translatable="false">yyyy-MM-dd HH:mm:ss</string>
