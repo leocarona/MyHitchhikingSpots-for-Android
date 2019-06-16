@@ -728,6 +728,9 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
     // Progress bar methods
     private void startProgress() {
+        if (activity == null || activity.isFinishing())
+            return;
+
         // Start and show the progress bar
         isInProgress = true;
         progressBar.setIndeterminate(true);
@@ -750,7 +753,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
     private void endProgress(final String message) {
         // Don't notify more than once
-        if (!isInProgress) {
+        if (!isInProgress || activity == null || activity.isFinishing()) {
             return;
         }
 
