@@ -387,9 +387,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mapboxMap != null) {
+                if (mapboxMap != null && style != null && style.isFullyLoaded()) {
                     if (locateUserTooltip != null && locateUserTooltip.isShown())
                         locateUserTooltip.closeNow();
+
+                    if (!PermissionsManager.areLocationPermissionsGranted(getBaseContext())) {
+                        enableLocationLayer();
+                        return;
+                    }
 
                     moveCameraToLastKnownLocation();
 
@@ -556,7 +561,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     Toast waiting_GPS_update;
 
-    void enableLocationLayer() {
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationLayer() {
         if (mapboxMap == null)
             return;
 
@@ -750,6 +756,22 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
     }
 
+    private Location tryGetLastKnownLocation() {
+        if (mapboxMap == null)
+            return null;
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+        if (!locationComponent.isLocationComponentEnabled())
+            return null;
+
+        Location loc = null;
+        try {
+            if (PermissionsManager.areLocationPermissionsGranted(this))
+                loc = locationComponent.getLastKnownLocation();
+        } catch (SecurityException ex) {
+        }
+        return loc;
+    }
+
     /**
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
@@ -759,14 +781,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
-        try {
-            if (PermissionsManager.areLocationPermissionsGranted(this)) {
-                Location lastLoc = mapboxMap.getLocationComponent().getLastKnownLocation();
-                if (lastLoc != null)
-                    moveCameraPositionTo = new LatLng(lastLoc);
-            }
-        } catch (SecurityException ex) {
-        }
+        Location lastLoc = tryGetLastKnownLocation();
+        if (lastLoc != null)
+            moveCameraPositionTo = new LatLng(lastLoc);
 
         if (moveCameraPositionTo != null) {
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
@@ -811,12 +828,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             else
                 cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
         } else {
-            Location loc = null;
-            try {
-                if (PermissionsManager.areLocationPermissionsGranted(this))
-                    loc = mapboxMap.getLocationComponent().getLastKnownLocation();
-            } catch (Exception ex) {
-            }
+            Location loc = tryGetLastKnownLocation();
 
             if (loc != null) {
                 cameraPositionTo = new LatLng(loc);

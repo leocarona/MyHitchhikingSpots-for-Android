@@ -218,7 +218,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mapboxMap != null) {
+                if (mapboxMap != null && style != null && style.isFullyLoaded()) {
+                    if (!PermissionsManager.areLocationPermissionsGranted(activity)) {
+                        enableLocationLayer(style);
+                        return;
+                    }
+
                     moveCameraToLastKnownLocation();
 
                     if (waiting_GPS_update == null)
@@ -366,7 +371,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()));
     }
 
-    void enableLocationLayer(@NonNull Style loadedMapStyle) {
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationLayer(@NonNull Style loadedMapStyle) {
         //Setup location plugin to display the user location on a map.
         // NOTE: map camera won't follow location updates by default here.
         setupLocationComponent(loadedMapStyle);
@@ -1120,12 +1126,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     protected void zoomOutToFitMostRecentRoute() {
         try {
             if (mapboxMap != null) {
-                Location mCurrentLocation = null;
-                try {
-                    if (PermissionsManager.areLocationPermissionsGranted(activity))
-                        mCurrentLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
-                } catch (Exception ex) {
-                }
+                Location mCurrentLocation = tryGetLastKnownLocation();
 
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -1181,6 +1182,22 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
+    private Location tryGetLastKnownLocation() {
+        if (mapboxMap == null)
+            return null;
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+        if (!locationComponent.isLocationComponentEnabled())
+            return null;
+
+        Location loc = null;
+        try {
+            if (PermissionsManager.areLocationPermissionsGranted(activity))
+                loc = locationComponent.getLastKnownLocation();
+        } catch (SecurityException ex) {
+        }
+        return loc;
+    }
+
     /**
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
@@ -1194,12 +1211,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (!isCameraZoomChangedByUser())
             zoomLevel = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
 
-        Location loc = null;
-        try {
-            if (PermissionsManager.areLocationPermissionsGranted(activity))
-                loc = mapboxMap.getLocationComponent().getLastKnownLocation();
-        } catch (SecurityException ex) {
-        }
+        Location loc = tryGetLastKnownLocation();
 
         if (loc != null) {
             cameraPositionTo = new LatLng(loc);

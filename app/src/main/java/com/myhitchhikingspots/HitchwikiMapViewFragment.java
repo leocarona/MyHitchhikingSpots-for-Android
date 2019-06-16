@@ -188,7 +188,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mapboxMap != null) {
+                if (mapboxMap != null && style != null && style.isFullyLoaded()) {
+                    if (!PermissionsManager.areLocationPermissionsGranted(activity)) {
+                        enableLocationLayer();
+                        return;
+                    }
+
                     moveCameraToLastKnownLocation();
 
                     if (waiting_GPS_update == null)
@@ -239,7 +244,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     }
 
-    void enableLocationLayer() {
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationLayer() {
         if (mapboxMap == null)
             return;
 
@@ -250,7 +256,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (areLocationPermissionsGranted(activity) && !((LocationComponent) locationComponent).isLocationComponentEnabled())
+        if (areLocationPermissionsGranted(activity) && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
     }
 
@@ -1104,6 +1110,22 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         return super.onOptionsItemSelected(item);
     }
 
+    private Location tryGetLastKnownLocation() {
+        if (mapboxMap == null)
+            return null;
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+        if (!locationComponent.isLocationComponentEnabled())
+            return null;
+
+        Location loc = null;
+        try {
+            if (PermissionsManager.areLocationPermissionsGranted(activity))
+                loc = locationComponent.getLastKnownLocation();
+        } catch (SecurityException ex) {
+        }
+        return loc;
+    }
+
     /**
      * Zoom out to fit all markers AND the user's last known location.
      **/
@@ -1111,13 +1133,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     protected void zoomOutToFitAllMarkers() {
         try {
             if (mapboxMap != null) {
-                Location mCurrentLocation = null;
-                try {
-                    if (areLocationPermissionsGranted(activity))
-                        mCurrentLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
-                } catch (SecurityException ex) {
-                }
-
+                Location mCurrentLocation = tryGetLastKnownLocation();
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
@@ -1186,14 +1202,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
-        try {
-            if (areLocationPermissionsGranted(activity)) {
-                Location lastLoc = mapboxMap.getLocationComponent().getLastKnownLocation();
-                if (lastLoc != null)
-                    moveCameraPositionTo = new LatLng(lastLoc);
-            }
-        } catch (Exception ex) {
-        }
+        Location lastLoc = tryGetLastKnownLocation();
+        if (lastLoc != null)
+            moveCameraPositionTo = new LatLng(lastLoc);
 
         if (moveCameraPositionTo != null) {
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);

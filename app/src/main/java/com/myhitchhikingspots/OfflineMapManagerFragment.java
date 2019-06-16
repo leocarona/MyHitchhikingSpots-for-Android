@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -164,7 +165,12 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                     //Show a toast to indicate that the download is still in progress
                     showStillInProgressToast();
                 } else {
-                    if (mapboxMap != null) {
+                    if (mapboxMap != null && style != null && style.isFullyLoaded()) {
+                        if (!PermissionsManager.areLocationPermissionsGranted(activity)) {
+                            enableLocationLayer(style);
+                            return;
+                        }
+
                         moveCameraToLastKnownLocation();
 
                         if (waiting_GPS_update == null)
@@ -232,13 +238,33 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
     @Override
     public void onPermissionResult(boolean granted) {
         if (granted) {
-            enableLocationComponent(style);
+            setupLocationComponent(style);
         }
+    }
+
+    private static boolean areLocationPermissionsGranted(Activity activity) {
+        return PermissionsManager.areLocationPermissionsGranted(activity);
+    }
+
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationLayer(@NonNull Style loadedMapStyle) {
+        if (mapboxMap == null)
+            return;
+
+        //Setup location plugin to display the user location on a map.
+        // NOTE: map camera won't follow location updates by default here.
+        setupLocationComponent(loadedMapStyle);
+
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+
+        // Enable the location layer on the map
+        if (areLocationPermissionsGranted(activity) && !locationComponent.isLocationComponentEnabled())
+            locationComponent.setLocationComponentEnabled(true);
     }
 
 
     @SuppressWarnings({"MissingPermission"})
-    private void enableLocationComponent(@NonNull Style loadedMapStyle) {
+    private void setupLocationComponent(@NonNull Style loadedMapStyle) {
         // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(activity)) {
 
@@ -333,7 +359,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
     }
 
     void locateUser(Style loadedMapStyle) {
-        enableLocationComponent(loadedMapStyle);
+        setupLocationComponent(loadedMapStyle);
 
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
@@ -371,19 +397,30 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         }
     }
 
+    private Location tryGetLastKnownLocation() {
+        if (mapboxMap == null)
+            return null;
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+        if (!locationComponent.isLocationComponentEnabled())
+            return null;
+
+        Location loc = null;
+        try {
+            if (PermissionsManager.areLocationPermissionsGranted(activity))
+                loc = locationComponent.getLastKnownLocation();
+        } catch (SecurityException ex) {
+        }
+        return loc;
+    }
+
     @SuppressWarnings({"MissingPermission"})
     private void moveCameraToLastKnownLocation() {
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
-        try {
-            if (PermissionsManager.areLocationPermissionsGranted(activity)) {
-                Location lastLoc = mapboxMap.getLocationComponent().getLastKnownLocation();
-                if (lastLoc != null)
-                    moveCameraPositionTo = new LatLng(lastLoc);
-            }
-        } catch (Exception ex) {
-        }
+        Location lastLoc = tryGetLastKnownLocation();
+        if (lastLoc != null)
+            moveCameraPositionTo = new LatLng(lastLoc);
 
         if (moveCameraPositionTo != null) {
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
