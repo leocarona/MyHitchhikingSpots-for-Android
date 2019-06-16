@@ -573,7 +573,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(this) && !((LocationComponent) locationComponent).isLocationComponentEnabled())
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
     }
 
@@ -585,9 +585,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         // directly initialize and enable the location plugin if such permission was already granted. 
         enableLocationLayer();
 
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-            LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+
+        if (locationComponent.isLocationComponentActivated()) {
             // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
             locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
 
@@ -698,10 +699,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     Crashlytics.logException(exception);
                 }
 
-                boolean mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
-
                 enableLocationLayer();
 
+                boolean mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
 
                 //Set listeners only after requested camera position is reached
                 if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad) {
@@ -759,13 +759,12 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private Location tryGetLastKnownLocation() {
         if (mapboxMap == null)
             return null;
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-        if (!locationComponent.isLocationComponentEnabled())
-            return null;
 
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
         Location loc = null;
         try {
-            if (PermissionsManager.areLocationPermissionsGranted(this))
+            //Make sure location component has been activated, otherwise using any method of it will throw an exception.
+            if (locationComponent.isLocationComponentActivated())
                 loc = locationComponent.getLastKnownLocation();
         } catch (SecurityException ex) {
         }
@@ -989,6 +988,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableLocationLayer();
                 moveMapCameraToUserLocation();
             }
         }
@@ -1001,11 +1001,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     @Override
     public void onPermissionResult(boolean granted) {
-        if (granted) {
-            enableLocationLayer();
-        } else {
-            Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
-        }
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -1299,11 +1294,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-        //Map camera should stop following gps updates
-        locationComponent.setCameraMode(CameraMode.NONE);
+        //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+        if (locationComponent.isLocationComponentActivated()) {
+            //Map camera should stop following gps updates
+            locationComponent.setCameraMode(CameraMode.NONE);
 
-        //Stop showing an arrow considering the compass of the device.
-        locationComponent.setRenderMode(RenderMode.NORMAL);
+            //Stop showing an arrow considering the compass of the device.
+            locationComponent.setRenderMode(RenderMode.NORMAL);
+        }
 
         updateSaveButtonState();
         updateSelectedTab();
@@ -1571,12 +1569,15 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-        //Map camera should stop following gps updates here,
-        // so if user clicks on Basic tab again he'll see the last location that he saw when he left.
-        locationComponent.setCameraMode(CameraMode.NONE);
+        //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+        if (locationComponent.isLocationComponentActivated()) {
+            //Map camera should stop following gps updates here,
+            // so if user clicks on Basic tab again he'll see the last location that he saw when he left.
+            locationComponent.setCameraMode(CameraMode.NONE);
 
-        //Stop showing an arrow considering the compass of the device.
-        locationComponent.setRenderMode(RenderMode.NORMAL);
+            //Stop showing an arrow considering the compass of the device.
+            locationComponent.setRenderMode(RenderMode.NORMAL);
+        }
 
         // updateUI() will call setSelectedItemId(lastSelectedTab).
         updateUI();

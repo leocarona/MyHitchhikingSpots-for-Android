@@ -225,6 +225,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableLocationLayer(style);
                 locateUser(style);
             }
         }
@@ -237,9 +238,6 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
     @Override
     public void onPermissionResult(boolean granted) {
-        if (granted) {
-            setupLocationComponent(style);
-        }
     }
 
     private static boolean areLocationPermissionsGranted(Activity activity) {
@@ -258,7 +256,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (areLocationPermissionsGranted(activity) && !locationComponent.isLocationComponentEnabled())
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
     }
 
@@ -274,9 +272,6 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
             // Activate with options
             locationComponent.activateLocationComponent(
                     LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
-
-            // Enable to make component visible
-            locationComponent.setLocationComponentEnabled(true);
 
             // Set the component's camera mode
             locationComponent.setCameraMode(CameraMode.TRACKING_GPS);
@@ -307,11 +302,13 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                 } catch (RuntimeException exception) {
                     Crashlytics.logException(exception);
                 }
+
+                enableLocationLayer(style);
+
+                moveCameraToLastKnownLocation();
+
+                locateUser(style);
             }
-
-            moveCameraToLastKnownLocation();
-
-            locateUser(style);
         });
     }
 
@@ -358,13 +355,12 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         mapView.onLowMemory();
     }
 
+    @SuppressWarnings({"MissingPermission"})
     void locateUser(Style loadedMapStyle) {
-        setupLocationComponent(loadedMapStyle);
-
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(activity) && !locationComponent.isLocationComponentEnabled())
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
     }
 
@@ -400,13 +396,12 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
     private Location tryGetLastKnownLocation() {
         if (mapboxMap == null)
             return null;
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-        if (!locationComponent.isLocationComponentEnabled())
-            return null;
 
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
         Location loc = null;
         try {
-            if (PermissionsManager.areLocationPermissionsGranted(activity))
+            //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+            if (locationComponent.isLocationComponentActivated())
                 loc = locationComponent.getLastKnownLocation();
         } catch (SecurityException ex) {
         }

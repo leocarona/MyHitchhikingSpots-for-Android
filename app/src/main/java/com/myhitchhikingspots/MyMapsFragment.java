@@ -383,7 +383,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(activity) && !locationComponent.isLocationComponentEnabled())
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
     }
 
@@ -392,9 +392,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         // directly initialize and enable the location plugin if such permission was already granted.
         enableLocationLayer(loadedMapStyle);
 
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        if (PermissionsManager.areLocationPermissionsGranted(activity))
-            mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
+            locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     void showSpotSavedSnackbar() {
@@ -524,6 +525,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && isLocationRequestedByUser) {
+                enableLocationLayer(style);
                 moveMapCameraToUserLocation(style);
                 isLocationRequestedByUser = false;
             }
@@ -537,11 +539,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     @Override
     public void onPermissionResult(boolean granted) {
-        if (granted) {
-            enableLocationLayer(style);
-        } else {
-            Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
-        }
     }
 
 
@@ -1188,13 +1185,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private Location tryGetLastKnownLocation() {
         if (mapboxMap == null)
             return null;
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-        if (!locationComponent.isLocationComponentEnabled())
-            return null;
 
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
         Location loc = null;
         try {
-            if (PermissionsManager.areLocationPermissionsGranted(activity))
+            //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+            if (locationComponent.isLocationComponentActivated())
                 loc = locationComponent.getLastKnownLocation();
         } catch (SecurityException ex) {
         }

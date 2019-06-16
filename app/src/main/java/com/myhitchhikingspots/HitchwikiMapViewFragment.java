@@ -82,9 +82,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -256,7 +254,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (areLocationPermissionsGranted(activity) && !locationComponent.isLocationComponentEnabled())
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
     }
 
@@ -265,9 +263,11 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         // directly initialize and enable the location plugin if such permission was already granted.
         enableLocationLayer();
 
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+
         // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        if (areLocationPermissionsGranted(activity))
-            mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+        if (locationComponent.isLocationComponentActivated())
+            locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     private void loadMarkerIcons() {
@@ -294,8 +294,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         switch (requestCode) {
             case PERMISSIONS_LOCATION:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && isLocationRequestedByUser) {
-                    moveMapCameraToUserLocation();
                     enableLocationLayer();
+                    moveMapCameraToUserLocation();
                     isLocationRequestedByUser = false;
                 } else {
                     Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
@@ -1113,13 +1113,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private Location tryGetLastKnownLocation() {
         if (mapboxMap == null)
             return null;
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-        if (!locationComponent.isLocationComponentEnabled())
-            return null;
 
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
         Location loc = null;
         try {
-            if (PermissionsManager.areLocationPermissionsGranted(activity))
+            //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+            if (locationComponent.isLocationComponentActivated())
                 loc = locationComponent.getLastKnownLocation();
         } catch (SecurityException ex) {
         }
