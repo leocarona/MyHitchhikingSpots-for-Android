@@ -300,8 +300,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         if (getArguments() != null) {
             if (getArguments().containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
-                Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-                this.spotList = Arrays.asList(bundleSpotList);
+                Object o = getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
+                if (o instanceof Spot[]) {
+                    Spot[] bundleSpotList = (Spot[]) o;
+                    this.spotList = Arrays.asList(bundleSpotList);
+                }
             }
 
             if (getArguments().containsKey(MainActivity.ARG_CURRENTSPOT_KEY)) {
