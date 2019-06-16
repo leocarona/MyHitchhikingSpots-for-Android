@@ -796,7 +796,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     void drawAnnotations() {
-        if (mapboxMap != null) {
+        if (mapboxMap != null && style != null && style.isFullyLoaded()) {
             showProgressDialog("Drawing routes..");
             Spot[] spotArray = new Spot[spotList.size()];
             this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
