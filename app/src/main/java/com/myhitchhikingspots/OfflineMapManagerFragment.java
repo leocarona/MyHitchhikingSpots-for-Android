@@ -542,7 +542,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
                     if (status.isComplete()) {
                         // Download complete
-                        endProgress(getString(R.string.end_progress_success));
+                        endProgress(R.string.end_progress_success);
                         return;
                     } else if (status.isRequiredResourceCountPrecise()) {
                         // Switch to determinate state
@@ -586,7 +586,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
              */
             @Override
             public void mapboxTileCountLimitExceeded(long limit) {
-                endProgress(getString(R.string.tile_count_limit_exceed_error_message));
+                endProgress(R.string.tile_count_limit_exceed_error_message);
                 Crashlytics.logException(new Exception("Mapbox tile count limit exceeded: " + limit + ". And error message should have been shown to the user saying '" + getString(R.string.tile_count_limit_exceed_error_message) + "'"));
             }
         });
@@ -669,12 +669,12 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                                     public void onDelete() {
                                         // Once the region is deleted, remove the
                                         // progressBar and display a toast
-                                        endProgress(getString(R.string.toast_region_deleted));
+                                        endProgress(R.string.toast_region_deleted);
                                     }
 
                                     @Override
                                     public void onError(String error) {
-                                        endProgress(getString(R.string.general_error_dialog_title));
+                                        endProgress(R.string.general_error_dialog_title);
                                         Crashlytics.logException(new Exception("Error: " + error));
                                     }
                                 });
@@ -746,11 +746,13 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         progressBar.setProgress(percentage);
     }
 
-    private void endProgress(final String message) {
+    private void endProgress(int messageStringResourceId) {
         // Don't notify more than once
         if (!isInProgress || activity == null || activity.isFinishing()) {
             return;
         }
+
+        String message = activity.getString(messageStringResourceId);
 
         // Stop and hide the progress bar
         isInProgress = false;

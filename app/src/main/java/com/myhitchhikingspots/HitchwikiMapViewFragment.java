@@ -298,7 +298,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     moveMapCameraToUserLocation();
                     isLocationRequestedByUser = false;
                 } else {
-                    Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
                 }
 
                 //Ask for storage permission if necessary, load spots list and finally draw annotations.
@@ -735,6 +735,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     void showCountriesListDialog() {
+        if (activity == null || activity.isFinishing())
+            return;
+
         PairParcelable[] lst = new PairParcelable[countriesContainer.length];
         for (int i = 0; i < countriesContainer.length; i++) {
             CountryInfoBasic country = countriesContainer[i];
@@ -902,7 +905,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         args.putParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY, result);
         args.putString(Constants.DIALOG_TYPE_BUNDLE_KEY, dialogType);
 
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        FragmentManager fragmentManager = activity.getSupportFragmentManager();
         DownloadHWSpotsDialog dialog = new DownloadHWSpotsDialog(downloadHWSpotsDialogListener);
         //dialog.setTargetFragment(this, 0);
         dialog.setArguments(args);
