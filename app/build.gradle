@@ -46,9 +46,9 @@ android {
         manifestPlaceholders = [fabricApiKey: otherPrivateProperties['fabricApiKey']]
         applicationId 'com.myhitchhikingspots'
         minSdkVersion minSdk
-        targetSdkVersion 26
-        versionCode 31
-        versionName "2.2.9.1"
+        targetSdkVersion 28
+        versionCode 33
+        versionName "2.2.3"
         // Stops the Gradle plugin’s automatic rasterization of vectors
         generatedDensities = []
         // Enabling multidex support.
