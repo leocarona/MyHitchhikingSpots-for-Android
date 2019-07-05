@@ -1064,6 +1064,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     void showAllRoutesOnMap() {
+        if (spotsCollection == null) {
+                Toast.makeText(activity, "Spots list hasn't been loaded", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         //Update all features setting PROPERTY_SHOULDHIDE to false
         for (Feature f : spotsCollection.features())
             f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
