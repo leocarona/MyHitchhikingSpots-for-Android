@@ -206,10 +206,9 @@ public class SpotListFragment extends Fragment {
             //Clear selectedSpotsList
             mAdapter.setSelectedSpotsList(new ArrayList<Integer>());
 
-            //Replace spotList with the list not containing the removed spots
-            spotList = remainingSpots;
+            //Replace spotList with the list not containing the removed spots, and call updateUI
+            setValues(remainingSpots);
 
-            mAdapter.setSpotList(spotList);
             setIsEditMode(false);
             mAdapter.notifyDataSetChanged();
         } catch (Exception ex) {
