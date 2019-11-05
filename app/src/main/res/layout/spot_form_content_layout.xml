@@ -599,15 +599,4 @@
             android:text="see comments" />
     </LinearLayout>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="@color/ic_standard_fab_color"
-        android:fitsSystemWindows="true"
-        app:itemBackground="@color/ic_standard_fab_color"
-        app:itemIconTint="@color/menu_bottom_selector"
-        app:itemTextColor="@color/menu_bottom_selector"
-        app:menu="@menu/menu_spot_form_bottom" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
