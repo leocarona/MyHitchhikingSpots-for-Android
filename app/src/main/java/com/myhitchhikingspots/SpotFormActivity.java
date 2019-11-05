@@ -31,7 +31,6 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.core.widget.NestedScrollView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -952,33 +951,28 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START))
-            drawer.closeDrawer(GravityCompat.START);
-        else {
-            if (saveMenuItem != null && saveMenuItem.isVisible() && saveMenuItem.isEnabled()) {
-                new AlertDialog.Builder(this)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
-                        .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
-                        .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
-                                //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-                                setResult(RESULT_CANCELED);
-                                finish();
-                            }
+        if (saveMenuItem != null && saveMenuItem.isVisible() && saveMenuItem.isEnabled()) {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
+                    .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
+                    .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
+                            //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+                            setResult(RESULT_CANCELED);
+                            finish();
+                        }
 
-                        })
-                        .setNegativeButton(getResources().getString(R.string.general_no_option), null)
-                        .show();
-            } else {
-                //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
-                //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-                setResult(RESULT_CANCELED);
-                finish();
-            }
+                    })
+                    .setNegativeButton(getResources().getString(R.string.general_no_option), null)
+                    .show();
+        } else {
+            //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
+            //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+            setResult(RESULT_CANCELED);
+            finish();
         }
     }
 
