@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Address;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -382,6 +383,19 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         mapView.getMapAsync(this);
 
         updateMapVisibility();
+
+
+        ((FloatingActionButton) findViewById(R.id.fab_open_external_map_app)).setOnClickListener(view -> {
+            if (mapboxMap == null || style == null || !style.isFullyLoaded())
+                return;
+
+            LatLng selectedLocation = mapboxMap.getCameraPosition().target;
+
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("geo:" + selectedLocation.getLatitude() + "," + selectedLocation.getLongitude() + "?q=" + selectedLocation.getLatitude() + "," + selectedLocation.getLongitude()));
+            startActivity(intent);
+        });
+
 
         fabLocateUser = (FloatingActionButton) findViewById(R.id.fab_locate_user);
         fabLocateUser.setOnClickListener(new View.OnClickListener() {

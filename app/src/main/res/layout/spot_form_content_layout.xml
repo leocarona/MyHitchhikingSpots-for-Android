@@ -54,6 +54,21 @@
                 </LinearLayout>
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab_open_external_map_app"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="130dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_gravity="end|right"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:fabSize="mini"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
+                    app:useCompatPadding="true"
+                    mapbox:srcCompat="@drawable/ic_zoom_out_map_white_24dp"
+                    tools:ignore="VectorDrawableCompat" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab_locate_user"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
