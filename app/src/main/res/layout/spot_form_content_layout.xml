@@ -14,7 +14,6 @@
         android:id="@+id/save_spot_form_basic"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FFF"
         android:orientation="vertical">
 
         <LinearLayout
@@ -31,7 +30,7 @@
                 <com.mapbox.mapboxsdk.maps.MapView
                     android:id="@+id/mapview2"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp" />
+                    android:layout_height="238dp"/>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -57,10 +56,10 @@
                     android:id="@+id/fab_open_external_map_app"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="130dp"
+                    android:layout_marginTop="162dp"
                     android:layout_marginEnd="10dp"
                     android:layout_marginRight="10dp"
-                    android:layout_gravity="end|right"
+                    android:layout_gravity="end"
                     app:backgroundTint="@color/ic_standard_fab_color"
                     app:fabSize="mini"
                     app:rippleColor="@color/ic_standard_fab_color_lighter"
@@ -118,13 +117,19 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#FFF"
-            android:paddingBottom="120dp"
+            android:paddingBottom="60dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
+                <View
+                    android:id="@+id/divider7"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/ic_standard_fab_color" />
 
                 <LinearLayout
                     android:id="@+id/panel_buttons"
@@ -386,18 +391,15 @@
                 </LinearLayout>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <LinearLayout
         android:id="@+id/save_spot_form_evaluate"
 
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:background="#FFF"
-        android:orientation="vertical"
-        android:paddingBottom="120dp"
-        android:visibility="gone">
-
+        android:layout_height="match_parent">
         <LinearLayout
             android:id="@+id/save_spot_form_hitchability_options"
             android:layout_width="match_parent"
