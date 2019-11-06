@@ -394,164 +394,171 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <LinearLayout
+    <ScrollView
         android:id="@+id/save_spot_form_evaluate"
-
         android:layout_width="match_parent"
-        android:background="#FFF"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:visibility="gone">
         <LinearLayout
-            android:id="@+id/save_spot_form_hitchability_options"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:background="#FFF"
+            android:orientation="vertical"
+            android:paddingBottom="120dp">
+
+            <LinearLayout
+                android:id="@+id/save_spot_form_hitchability_options"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="@dimen/text_margin"
+                        android:layout_weight="1"
+                        android:text="@string/spot_form_hitchability_label" />
+
+                    <TextView
+                        android:id="@+id/spot_form_hitchability_selectedvalue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="right"
+                        android:paddingRight="10dp"
+                        android:text="TextView"
+                        android:textStyle="normal|bold" />
+                </LinearLayout>
+
+                <RatingBar
+                    android:id="@+id/spot_form_hitchability_ratingbar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:progressTint="@color/ic_standard_fab_color" />
+
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
+                android:layout_height="120dp"
+                android:layout_marginTop="20dp"
                 android:orientation="horizontal">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/text_margin"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:text="@string/spot_form_hitchability_label" />
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:weightSum="1">
 
-                <TextView
-                    android:id="@+id/spot_form_hitchability_selectedvalue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/got_a_ride_button"
+                        android:layout_width="92dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.79"
+                        android:background="@drawable/got_a_ride_button"
+                        android:gravity="center_horizontal"
+                        mapbox:srcCompat="@drawable/ic_got_a_ride_spot_icon" />
+
+
+                    <TextView
+                        android:id="@+id/textView5"
+                        android:layout_width="92dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:labelFor="@+id/got_a_ride_button"
+                        android:lines="2"
+                        android:text="@string/got_a_ride_button_text"
+                        android:textAllCaps="true"
+                        android:textStyle="normal|bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:gravity="right"
-                    android:paddingRight="10dp"
-                    android:text="TextView"
-                    android:textStyle="normal|bold" />
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:weightSum="1">
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/break_button"
+                        android:layout_width="92dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.79"
+                        android:background="@drawable/break_button"
+                        android:gravity="center_horizontal"
+                        mapbox:srcCompat="@drawable/ic_break_spot_icon" />
+
+
+                    <TextView
+                        android:id="@+id/textView6"
+                        android:layout_width="92dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:labelFor="@+id/break_button"
+                        android:lines="2"
+                        android:text="@string/break_button_text"
+                        android:textAllCaps="true"
+                        android:textStyle="normal|bold" />
+                </LinearLayout>
             </LinearLayout>
 
-            <RatingBar
-                android:id="@+id/spot_form_hitchability_ratingbar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:progressTint="@color/ic_standard_fab_color" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:weightSum="1">
-
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:id="@+id/got_a_ride_button"
-                    android:layout_width="92dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.79"
-                    android:background="@drawable/got_a_ride_button"
-                    android:gravity="center_horizontal"
-                    mapbox:srcCompat="@drawable/ic_got_a_ride_spot_icon" />
-
-
-                <TextView
-                    android:id="@+id/textView5"
-                    android:layout_width="92dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:labelFor="@+id/got_a_ride_button"
-                    android:lines="2"
-                    android:text="@string/got_a_ride_button_text"
-                    android:textAllCaps="true"
-                    android:textStyle="normal|bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:weightSum="1">
-
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:id="@+id/break_button"
-                    android:layout_width="92dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.79"
-                    android:background="@drawable/break_button"
-                    android:gravity="center_horizontal"
-                    mapbox:srcCompat="@drawable/ic_break_spot_icon" />
-
-
-                <TextView
-                    android:id="@+id/textView6"
-                    android:layout_width="92dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:labelFor="@+id/break_button"
-                    android:lines="2"
-                    android:text="@string/break_button_text"
-                    android:textAllCaps="true"
-                    android:textStyle="normal|bold" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <com.google.android.material.textfield.TextInputLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/spot_form_waiting_time_edittext"
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/spot_form_waiting_time_edittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:ems="10"
+                        android:focusableInTouchMode="true"
+                        android:hint="@string/spot_form_waiting_time_label"
+                        android:inputType="number" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/spot_form_waiting_time_refresh_button"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:ems="10"
-                    android:focusableInTouchMode="true"
-                    android:hint="@string/spot_form_waiting_time_label"
-                    android:inputType="number" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center_vertical"
+                    android:onClick="calculateWaitingTime"
+                    app:backgroundTint="@color/ic_standard_fab_color"
+                    app:fabSize="mini"
+                    app:rippleColor="@color/ic_standard_fab_color_lighter"
+                    app:useCompatPadding="true"
+                    mapbox:srcCompat="@drawable/ic_autorenew_black_24dp"
+                    tools:ignore="VectorDrawableCompat" />
 
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/spot_form_waiting_time_refresh_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_gravity="center_vertical"
-                android:gravity="center_vertical"
-                android:onClick="calculateWaitingTime"
-                app:backgroundTint="@color/ic_standard_fab_color"
-                app:fabSize="mini"
-                app:rippleColor="@color/ic_standard_fab_color_lighter"
-                app:useCompatPadding="true"
-                mapbox:srcCompat="@drawable/ic_autorenew_black_24dp"
-                tools:ignore="VectorDrawableCompat" />
-
-        </RelativeLayout>
-    </LinearLayout>
+            </RelativeLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
         android:layout_gravity="bottom"
-        android:paddingBottom="80dp"
-        android:orientation="horizontal">
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingBottom="60dp">
 
         <Button
             android:id="@+id/save_button"

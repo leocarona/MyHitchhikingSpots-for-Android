@@ -61,6 +61,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -144,7 +145,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private Spot mCurrentSpot;
     private CheckBox is_part_of_a_route_check_box, is_destination_check_box, is_hitchhiking_spot_check_box, is_not_hitchhiked_from_here_check_box;
     private TextView hitchabilityLabel, selected_date;
-    private LinearLayout spot_form_evaluate, spot_form_more_options, hitchability_options;
+    private ScrollView spot_form_evaluate;
+    private LinearLayout spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
     private BottomNavigationView menu_bottom;
     SharedPreferences prefs;
@@ -332,7 +334,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         selected_date = (TextView) findViewById(R.id.spot_form_selected_date);
 
         spot_form_basic = (CoordinatorLayout) findViewById(R.id.save_spot_form_basic);
-        spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
+        spot_form_evaluate = (ScrollView) findViewById(R.id.save_spot_form_evaluate);
         panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
         panel_info = (LinearLayout) findViewById(R.id.panel_info);
         panel_map_not_displayed = (TextView) findViewById(R.id.save_spot_map_not_displayed);
