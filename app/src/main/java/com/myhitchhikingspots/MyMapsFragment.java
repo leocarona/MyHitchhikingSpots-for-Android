@@ -17,7 +17,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -102,7 +102,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private boolean spotListWasChanged = false;
     private boolean isHandlingRequestToOpenSpotForm = false;
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
-    CoordinatorLayout coordinatorLayout;
+    ConstraintLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
     Boolean shouldDisplayOldRoutes = true;
     boolean wasSnackbarShown;
@@ -198,7 +198,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
-        coordinatorLayout = view.findViewById(R.id.coordinatiorLayout);
+        coordinatorLayout = view.findViewById(R.id.constraintLayout);
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
