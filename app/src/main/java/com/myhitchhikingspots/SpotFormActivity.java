@@ -75,6 +75,8 @@ import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoComplete;
 import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
+import uk.co.deanwild.materialshowcaseview.IShowcaseListener;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
@@ -537,7 +539,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 //execute new asyncTask that will retrieve marker details for clickedMarker
                 taskThatRetrievesCompleteDetails = new retrievePlaceDetailsAsyncTask().execute(mCurrentSpot.getId().toString());
             }
-        }
+        } else
+            highlightCheckboxes();
     }
 
     private void expandBottomSheet() {
@@ -1273,6 +1276,48 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         Toast.makeText(this, getResources().getString(R.string.spot_form_waiting_time_label) + ": " + Utils.getWaitingTimeAsString(minutes, this), Toast.LENGTH_LONG).show();
     }
 
+
+    void highlightCommentsButton() {
+        new MaterialShowcaseView.Builder(this)
+                .setTarget(placeButtonComments)
+                .setDelay(1000) // a second between each showcase view
+                .setDismissText(getString(R.string.general_showCase_button))
+                .setContentText(getString(R.string.spot_form_read_comments_showCase))
+                //.setDelay(withDelay) // optional but starting animations immediately in onCreate can make them choppy
+                .singleUse("spotFormCommentsShowcase") // provide a unique ID used to ensure it is only shown once
+                .setDismissOnTouch(true)
+                .show();
+    }
+
+    void highlightCheckboxes() {
+        //Highlight checkboxes
+        new MaterialShowcaseView.Builder(this)
+                .setTarget(findViewById(R.id.save_spot_form_checkboxes))
+                .withOvalShape()
+                .setDelay(1500) // a second between each showcase view
+                .setDismissText(getString(R.string.general_showCase_button))
+                .setContentText(getString(R.string.spot_form_extra_options_showCase))
+                .setListener(new ShowcaseListener())
+                .singleUse("spotFormCheckboxesShowcase") // provide a unique ID used to ensure it is only shown once
+                .setDismissOnTouch(true)
+                .show();
+    }
+
+    public class ShowcaseListener implements IShowcaseListener {
+        @Override
+        public void onShowcaseDisplayed(MaterialShowcaseView showcaseView) {
+            //Get buttons out of the way
+            mSaveButton.setVisibility(View.GONE);
+            mDeleteButton.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onShowcaseDismissed(MaterialShowcaseView showcaseView) {
+            //Get buttons back to their place
+            mSaveButton.setVisibility(View.VISIBLE);
+            mDeleteButton.setVisibility(View.VISIBLE);
+        }
+    }
 
     public void locationAddressButtonHandler(View v) {
         String strToCopy = "";
@@ -2283,8 +2328,12 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
             if (!errMsgToShow.isEmpty())
                 showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), errMsgToShow));
-            else
-                Toast.makeText(context, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
+            else {
+                if (!placeWithCompleteDetails.getComments_count().contentEquals("0"))
+                    highlightCommentsButton();
+                else
+                    Toast.makeText(context, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
+            }
         }
 
     }
