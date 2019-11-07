@@ -47,6 +47,54 @@
                     android:paddingRight="@dimen/activity_horizontal_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:gravity="center_horizontal"
+                        android:text="@string/tools_warning" />
+
+
+                    <LinearLayout
+                        android:id="@+id/item_description_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tools_tips_header_text"
+                            style="?android:attr/listSeparatorTextViewStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.9"
+                            android:gravity="center_vertical"
+                            android:text="@string/tools_tips_title"/>
+
+                        <ImageView
+                            android:id="@+id/tools_tips_header_img"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.1"
+                            android:layout_gravity="center_vertical|end"
+                            app:srcCompat="@drawable/ic_expand_more_black_24dp"/>
+
+                    </LinearLayout>
+
+
+                    <TextView
+                        android:id="@+id/tools_tips_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="16dp"
+                        android:gravity="center_vertical"
+                        android:textColor="#000"
+                        android:visibility="gone"
+                        android:justificationMode="inter_word"
+                        android:text="@string/tools_tips_description" />
+
                     <Button
                         android:id="@+id/btnPickFile"
                         android:layout_width="wrap_content"
@@ -59,6 +107,7 @@
                         style="?android:attr/listSeparatorTextViewStyle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
                         android:text="@string/settings_export_section_title" />
 
                     <Button

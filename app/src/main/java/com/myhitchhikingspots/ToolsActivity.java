@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -20,6 +21,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -113,6 +116,10 @@ public class ToolsActivity extends AppCompatActivity {
         findViewById(R.id.btnPickFile).setOnClickListener(this::pickFileButtonHandler);
 
         coordinatorLayout = findViewById(R.id.coordinatiorLayout);
+
+        findViewById(R.id.item_description_layout).setOnClickListener((v) -> {
+            collapseExpandTextView();
+        });
     }
 
     //persmission method.
@@ -241,6 +248,23 @@ public class ToolsActivity extends AppCompatActivity {
             });
             dialog.openDialog(this, this);
         }
+    }
+
+    void collapseExpandTextView() {
+        TextView tools_tips_description = findViewById(R.id.tools_tips_description);
+        ImageView tools_tips_header_img = findViewById(R.id.tools_tips_header_img);
+        if (tools_tips_description.getVisibility() == View.GONE) {
+            // it's collapsed - expand it
+            tools_tips_description.setVisibility(View.VISIBLE);
+            tools_tips_header_img.setImageResource(R.drawable.ic_expand_less_black_24dp);
+        } else {
+            // it's expanded - collapse it
+            tools_tips_description.setVisibility(View.GONE);
+            tools_tips_header_img.setImageResource(R.drawable.ic_expand_more_black_24dp);
+        }
+
+        ObjectAnimator animation = ObjectAnimator.ofInt(tools_tips_description, "maxLines", tools_tips_description.getMaxLines());
+        animation.setDuration(200).start();
     }
 
     boolean shouldFixStartDates = false;

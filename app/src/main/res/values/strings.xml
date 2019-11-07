@@ -291,6 +291,10 @@ The Hitchwiki team.
     <string name="about_us_how_to_contribute_title">How You Can Contribute</string>
     <string name="about_us_how_to_contribute_text">There are at least two ways you can contribute. No money needed for now, you know we\'ve been really good at finding amazing supporters out there. But you can rate My Hitchhiking Spots app on the Google Play Store, or share screenshots of your hitchhiking routes tagging us with #myhitchhikingspots. We read your words to know what\'s good and what can be improved on the app, and we like seen your screenshots as well as they show us your own way of using the app. That\'s all, and thank you for your interest in reading this. :-)</string>
 
+    <string name="tools_tips_description" translatable="false">If you want to share your saved spots to your friends or if you just want to have your spots backed up we strongly recommend using our \'Export database\' option. Exporting your database will save a light copy of your spots data on your phone\'s storage, and you can then share it with friends, or even save it somewhere safer, like on your e-mail or favorite cloud service. To restore a exported database, use our \'Import database\' option down above.</string>
+    <string name="tools_tips_title" translatable="false">TIPS</string>
+    <string name="tools_warning" translatable="false">Welcome to our Tools! Please note that we stil do not synchronize your data to anywhere. Meanwhile here are some tools you can get around with for now.</string>
+
     <string name="general_showCase_button" translatable="false">GOT IT!</string>
     <string name="spot_form_read_comments_showCase" translatable="false">Click here to read what other hitchhikers have commented about this spot.</string>
     <string name="spot_form_extra_options_showCase" translatable="false">Is this not a hitchhiking spot?\nDon\'t forget to have a look on these powerful extra options here! :-)</string>
