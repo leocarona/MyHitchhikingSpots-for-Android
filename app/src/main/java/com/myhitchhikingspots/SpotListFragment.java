@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.location.Address;
 import android.os.Bundle;
 
@@ -128,7 +129,9 @@ public class SpotListFragment extends Fragment {
                         if (mCurrentWaitingSpot.getId().equals(spot.getId()))
                             spot.setAttemptResult(null);
                         else {
-                            Toast.makeText(getContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
+                            Resources res = getResources();
+                            String actionRequiredText = res.getString(R.string.evaluate_running_spot_required, res.getString(R.string.got_a_ride_button_text), res.getString(R.string.break_button_text));
+                            Toast.makeText(getContext(), actionRequiredText, Toast.LENGTH_LONG).show();
                             return;
                         }
                     }

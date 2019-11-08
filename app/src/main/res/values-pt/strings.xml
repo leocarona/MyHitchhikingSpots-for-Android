@@ -25,7 +25,7 @@
     <string name="got_a_ride_button_text">Peguei carona</string>
     <string name="arrived_button_text">Cheguei ao destino</string>
     <string name="break_button_text">Fazer uma pausa</string>
-    <string name="evaluate_running_spot_required">Você deve selecionar \'Peguei carona\' ou \'Fazer uma pausa\' antes de criar/editar outro local.</string>
+    <string name="evaluate_running_spot_required">Você deve selecionar \"%1$s\" ou \"%2$s\" antes de criar/editar outro local.</string>
 
     <string name="location_updated_message">Localização atualizada</string>
     <string name="update_location_switch">Atualizar minha localização</string>
@@ -68,6 +68,10 @@
     <string name="menu_about_us">@string/about_us_first_title</string>
 
     <string name="tools_title">Ferramentas</string>
+    <string name="tools_tips_description">Se você deseja enviar seus locais de carona salvos para seus amigos ou se você deseja fazer um backup deles, nós recomendamos fortemente a utilização da opção \"%1$s\". Exportando seu banco de dados um arquivo leve será salvo na memória do seu celular, permitindo que você a compartilhe com seus amigos, ou que você o copie para algum lugar mais seguro, como no seu e-mail ou em algum armazenamento em nuvem. Para restaurar um banco de dados exportado, use a opção \"%2$s\".</string>
+    <string name="tools_tips_title">DICAS</string>
+    <string name="tools_warning">Bem-vindx às nossas Ferramentas! Tenha em mente que nós ainda não sincronizamos seus locais salvos em nenhum lugar. Enquanto isso, aqui estão algumas ferramentas que você pode usar para se virar enquanto isso.</string>
+
     <string name="settings_importdb_button_label">Importar banco de dados</string>
     <string name="settings_exportdb_button_label">Exportar banco de dados</string>
     <string name="settings_exporting_db_message">Sua lista de locais será salva em seu celular como um arquivo de excel (CSV)..</string>
@@ -95,8 +99,8 @@
     <string name="hwmaps_spotslist_cleared_title">Hitchwiki Maps vazio</string>
     <string name="hwmaps_spotslist_cleared_message">Todos os locais previamente baixados do Hitchwiki Maps foram excluídos do seu dispositivo. Para baixar locais, selecione um ou mais países.</string>
 
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="navigation_drawer_open">Abrir menu de navegação</string>
+    <string name="navigation_drawer_close">Fechar menu de navegação</string>
 
     <string name="title_activity_scrolling">@string/save_spot_button_text</string>
 
@@ -111,6 +115,11 @@
     <string name="spot_form_more_options_edit_label">(editar)</string>
     <string name="spot_form_comments_title">Comentários de outros caroneiros</string>
     <string name="spot_form_comments_empty_list">Ninguém fez comentários sobre este local até o momento</string>
+    <string name="spot_form_unable_to_download_details">Você pode clicar na aba \"%s\" para ver mais detalhes sobre este local, porém não será possível baixar as informaçōes completas enquanto você estiver sem uma conexão com a internet.</string>
+    <string name="spot_form_user_location_permission_not_granted">Sua localização não foi obtida.</string>
+    <string name="spot_form_not_allowed_to_edit">Não é possível editar um local enquanto você espera por uma carona.</string>
+    <string name="spot_form_read_comments_showCase">Clique aqui para ver o que outros caroneiros comentaram sobre este local.</string>
+    <string name="spot_form_extra_options_showCase">Quer adicionar um local diferente à sua rota?\nNão se esqueça que você pode deslizar a tela para cima para encontrar mais opçōes! :-)</string>
 
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo</string>
@@ -189,6 +198,7 @@
     <string name="general_one_or_more_errors_occured">Um ou alguns erros aconteceram:</string>
     <string name="general_loading_dialog_title">Carregando&#8230;</string>
     <string name="general_loading_dialog_message">Aguarde</string>
+    <string name="general_spots_list_not_loaded">Lista de locais salvos não carregada</string>
 
     <string name="general_internet_unavailable_title">Internet indisponível</string>
     <string name="general_offline_mode_label">Modo offline</string>
@@ -199,6 +209,8 @@
     <string name="general_import_finished_successful_message">Importado com sucesso!</string>
     <string name="general_import_finished_failed_message">Falha na importação</string>
     <string name="general_enable_button_label">ativar</string>
+    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
+    <string name="general_showCase_button">Entendi!</string>
 
     <string name="empty_list_dialog_message">Para visualizar locais adicionados por outros caroneiros ao Hitchwiki Maps, acesse o menu %s.</string>
 
@@ -252,7 +264,6 @@
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutos já passaram desde que você abriu esta janela pela primeira vez. Você gostaria de atualizar a data e hora deste novo local? A atualização será feita de %2$s para %3$s.</string>
     <string name="settings_export_section_title">Export</string>
     <string name="settings_import_section_title">Import</string>
-    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="spot_form_locate_button_tooltip_text">Mover para sua localização</string>
 
     <string name="offline_map">Mapa Offline</string>

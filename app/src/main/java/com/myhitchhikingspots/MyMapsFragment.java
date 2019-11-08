@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -636,7 +637,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (mCurrentWaitingSpot.getId() == spot.getId())
                     spot.setAttemptResult(null);
                 else {
-                    Toast.makeText(activity.getBaseContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
+                    Resources res = getResources();
+                    String actionRequiredText = res.getString(R.string.evaluate_running_spot_required, res.getString(R.string.got_a_ride_button_text), res.getString(R.string.break_button_text));
+                    Toast.makeText(activity.getBaseContext(), actionRequiredText, Toast.LENGTH_LONG).show();
                     return;
                 }
             }
@@ -1065,7 +1068,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     void showAllRoutesOnMap() {
         if (spotsCollection == null) {
-                Toast.makeText(activity, "Spots list hasn't been loaded", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, getString(R.string.general_spots_list_not_loaded), Toast.LENGTH_SHORT).show();
             return;
         }
 

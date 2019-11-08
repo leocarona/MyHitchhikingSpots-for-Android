@@ -312,8 +312,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             if (s != null &&
                     s.getIsWaitingForARide() != null && s.getIsWaitingForARide() &&
                     s.getId().equals(mCurrentSpot.getId())) {
+                String actionRequiredText = getString(R.string.evaluate_running_spot_required, getString(R.string.got_a_ride_button_text), getString(R.string.break_button_text));
                 showErrorAlert(getString(R.string.general_error_dialog_title),
-                        getString(R.string.spot_form_not_allowed_to_edit) + "\n" + getString(R.string.evaluate_running_spot_required));
+                        getString(R.string.spot_form_not_allowed_to_edit) + "\n" + actionRequiredText);
                 return;
             }
         }
@@ -524,7 +525,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             if (!Utils.isNetworkAvailable(this)) {
                 //panel_buttons.setVisibility(View.GONE);
                 //panel_info.setVisibility(View.GONE);
-                showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.spot_form_unable_to_download_details));
+                showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.spot_form_unable_to_download_details, getString(R.string.spot_form_bottommenu_evaluate_tile)));
             } else {
                 //we use getSnippet() for id because original hitchwiki id is stored as snippet in our markers
                 //this avoids extending Marker class to add additional parameter for point id

@@ -25,7 +25,7 @@
     <string name="got_a_ride_button_text">Mitfahrgelegenheit gefunden</string>
     <string name="arrived_button_text">Ziel erreicht</string>
     <string name="break_button_text">Pause</string>
-    <string name="evaluate_running_spot_required">Wähle \'Mitfahrgelegenheit gefunden\' oder \'Pause\' bevor du einen anderen Standort erstellen / bearbeiten kannst.</string>
+    <string name="evaluate_running_spot_required">Wähle \"%1$s\" oder \"%2$s\" bevor du einen anderen Standort erstellen / bearbeiten kannst.</string>
 
     <string name="location_updated_message">Standort wurde aktualisiert</string>
     <string name="update_location_switch">Standort aktualisieren</string>
@@ -61,6 +61,10 @@
     </string-array>
 
     <string name="tools_title">Werkzeuge</string>
+    <string name="tools_tips_description">If you want to share your saved spots to your friends or if you just want to have your spots backed up we strongly recommend using our \"%1$s\" option. Exporting your database will save a light copy of your spots data on your phone\'s storage, and you can then share it with friends, or even save it somewhere safer, like on your e-mail or favorite cloud service. To restore a exported database, use our \"%2$s\" option.</string>
+    <string name="tools_tips_title">TIPS</string>
+    <string name="tools_warning">Welcome to our Tools! Please note that we stil do not synchronize your data to anywhere. Meanwhile here are some tools you can get around with for now.</string>
+
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export database</string>
     <string name="settings_exporting_db_message">Your spots list will be saved on your phone as CSV file..</string>
@@ -104,6 +108,11 @@
     <string name="spot_form_more_options_edit_label">(bearbeiten)</string>
     <string name="spot_form_comments_title">Kommentare von anderen Trampern</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
+    <string name="spot_form_unable_to_download_details">You may click on \"%s\" tab to see more details about this spot, but we\'re unable to download further information while your device doesn\'t have a internet connection.</string>
+    <string name="spot_form_user_location_permission_not_granted">Your location is unknown.</string>
+    <string name="spot_form_not_allowed_to_edit">Unable to edit this spot. It seems like you\'re waiting for a ride at another spot.</string>
+    <string name="spot_form_read_comments_showCase">Click here to read what other hitchhikers have commented about this spot.</string>
+    <string name="spot_form_extra_options_showCase">Want to add a different spot on your route?\nDon\'t forget you may swipe up and find some extra options here! :-)</string>
 
     <string name="menu_dashboard">Dashboard</string>
     <string name="menu_my_maps">Meine Karten</string>
@@ -190,6 +199,7 @@
     <string name="general_one_or_more_errors_occured">One or more error occured:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
+    <string name="general_spots_list_not_loaded">Spots list hasn\'t been loaded</string>
 
     <string name="general_internet_unavailable_title">Internet nicht verfügbar</string>
     <string name="general_offline_mode_label">Offline mode</string>
@@ -200,6 +210,8 @@
     <string name="general_import_finished_successful_message">Imported successfully!</string>
     <string name="general_import_finished_failed_message">Import failed</string>
     <string name="general_enable_button_label">enable</string>
+    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
+    <string name="general_showCase_button">GOT IT!</string>
 
     <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 
@@ -253,7 +265,6 @@
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
     <string name="settings_export_section_title">Export</string>
     <string name="settings_import_section_title">Import</string>
-    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="spot_form_locate_button_tooltip_text">Move to your location</string>
 
     <string name="offline_map">Offline Maps</string>

@@ -120,6 +120,9 @@ public class ToolsActivity extends AppCompatActivity {
         findViewById(R.id.item_description_layout).setOnClickListener((v) -> {
             collapseExpandTextView();
         });
+
+        ((TextView) findViewById(R.id.tools_tips_description))
+                .setText(getString(R.string.tools_tips_description, getString(R.string.settings_exportdb_button_label), getString(R.string.settings_importdb_button_label)));
     }
 
     //persmission method.
