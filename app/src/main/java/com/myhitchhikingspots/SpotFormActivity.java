@@ -31,6 +31,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -1652,11 +1653,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             locateUserTooltip.closeNow();
 
         //If showcase is still being shown, hide it
-        if (lastShowCaseDisplayed != null)
+        if (lastShowCaseDisplayed != null && ViewCompat.isAttachedToWindow(lastShowCaseDisplayed))
             lastShowCaseDisplayed.hide();
 
         //If toast is being shown, hide it
-        if (msgResult != null)
+        if (msgResult != null && ViewCompat.isAttachedToWindow(msgResult.getView()))
             msgResult.cancel();
 
         collapseBottomSheet();
