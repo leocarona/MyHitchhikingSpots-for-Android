@@ -586,8 +586,9 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
              */
             @Override
             public void mapboxTileCountLimitExceeded(long limit) {
+                Crashlytics.setLong("limit", limit);
                 endProgress(R.string.tile_count_limit_exceed_error_message);
-                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded: " + limit + ". And error message should have been shown to the user saying '" + getString(R.string.tile_count_limit_exceed_error_message) + "'"));
+                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded."));
             }
         });
 
@@ -761,6 +762,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
         // Show a toast
         Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
+        Crashlytics.log("A toast was shown to the user containing the following message: " + message);
 
 
         // Enable map until download finishes
