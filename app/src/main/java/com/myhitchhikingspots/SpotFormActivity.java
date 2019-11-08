@@ -2244,7 +2244,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
             // Reset. Enable the Fetch Address button and stop showing the progress bar.
             mAddressRequested = false;
-            if (lastShowCaseDisplayed != null && !lastShowCaseDisplayed.isShown())
+            if (lastShowCaseDisplayed == null)
                 showToast(strResult);
             updateLocationWidgets();
         }
