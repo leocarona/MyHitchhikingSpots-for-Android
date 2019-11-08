@@ -76,6 +76,7 @@ import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoComplete;
 import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
 import uk.co.deanwild.materialshowcaseview.IShowcaseListener;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
 import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 import com.crashlytics.android.answers.Answers;
@@ -1278,8 +1279,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
 
+    MaterialShowcaseView lastShowCaseDisplayed;
+
+    /**
+     * Display showcase highlighting the Comment button.
+     * The showcase will never be displayed again after the first time this method is called, unless .resetSingleUse() is purposely called.
+     **/
     void highlightCommentsButton() {
-        new MaterialShowcaseView.Builder(this)
+        lastShowCaseDisplayed = new MaterialShowcaseView.Builder(this)
                 .setTarget(placeButtonComments)
                 .setDelay(1000) // a second between each showcase view
                 .setDismissText(getString(R.string.general_showCase_button))
@@ -1290,6 +1297,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 .show();
     }
 
+    /**
+     * Display showcase highlighting checkboxes.
+     * The showcase will never be displayed again after the first time this method is called, unless .resetSingleUse() is purposely called.
+     **/
     void highlightCheckboxes() {
         String showCaseID = "spotFormCheckboxesShowcase";
         ShowcaseListener showCaseListener = new ShowcaseListener();
@@ -1302,7 +1313,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
 
         //Highlight checkboxes
-        new MaterialShowcaseView.Builder(this)
+        lastShowCaseDisplayed = new MaterialShowcaseView.Builder(this)
                 .setTarget(findViewById(R.id.save_spot_form_checkboxes))
                 .withOvalShape()
                 .setDelay(1500) // a second between each showcase view
@@ -1636,6 +1647,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (locateUserTooltip != null && locateUserTooltip.isShown())
             locateUserTooltip.closeNow();
 
+        //If showcase is still being shown, hide it
+        if (lastShowCaseDisplayed != null)
+            lastShowCaseDisplayed.hide();
         collapseBottomSheet();
         hideKeyboard();
 
