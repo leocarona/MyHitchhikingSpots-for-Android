@@ -738,16 +738,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     boolean mapCameraWasMoved = false;
 
-    void highlightLocateButton() {
-        locateUserTooltip = ViewTooltip
-                .on(fabLocateUser)
-                .autoHide(true, 7000)
-                .corner(30)
-                .position(ViewTooltip.Position.RIGHT)
-                .text(getString(R.string.spot_form_locate_button_tooltip_text))
-                .show();
-    }
-
     /**
      * Move the map camera to the given position with zoom Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT
      *
@@ -1343,9 +1333,19 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             mSaveButton.setVisibility(View.VISIBLE);
             mDeleteButton.setVisibility(View.VISIBLE);
 
-            if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad)
+            if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad && mFormType == FormType.Create)
                 highlightLocateButton();
         }
+    }
+
+    void highlightLocateButton() {
+        locateUserTooltip = ViewTooltip
+                .on(fabLocateUser)
+                .autoHide(true, 7000)
+                .corner(30)
+                .position(ViewTooltip.Position.RIGHT)
+                .text(getString(R.string.spot_form_locate_button_tooltip_text))
+                .show();
     }
 
     public void locationAddressButtonHandler(View v) {
@@ -1643,13 +1643,18 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         refreshDatetimeAlertDialogWasShown = false;
 
-        //If tooltip is still shown, hide it
-        if (locateUserTooltip != null && locateUserTooltip.isShown())
+        //If tooltip is still being shown, hide it
+        if (locateUserTooltip != null)
             locateUserTooltip.closeNow();
 
         //If showcase is still being shown, hide it
         if (lastShowCaseDisplayed != null)
             lastShowCaseDisplayed.hide();
+
+        //If toast is being shown, hide it
+        if (msgResult != null)
+            msgResult.cancel();
+
         collapseBottomSheet();
         hideKeyboard();
 
@@ -2234,7 +2239,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
             // Reset. Enable the Fetch Address button and stop showing the progress bar.
             mAddressRequested = false;
-            showToast(strResult);
+            if (lastShowCaseDisplayed != null && !lastShowCaseDisplayed.isShown())
+                showToast(strResult);
             updateLocationWidgets();
         }
     }
