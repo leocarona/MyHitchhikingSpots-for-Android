@@ -1649,7 +1649,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         refreshDatetimeAlertDialogWasShown = false;
 
         //If tooltip is still being shown, hide it
-        if (locateUserTooltip != null)
+        if (locateUserTooltip != null && ViewCompat.isAttachedToWindow(locateUserTooltip))
             locateUserTooltip.closeNow();
 
         //If showcase is still being shown, hide it
