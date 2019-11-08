@@ -1632,6 +1632,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         refreshDatetimeAlertDialogWasShown = false;
 
+        //If tooltip is still shown, hide it
+        if (locateUserTooltip != null && locateUserTooltip.isShown())
+            locateUserTooltip.closeNow();
+
         collapseBottomSheet();
         hideKeyboard();
 
