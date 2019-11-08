@@ -728,7 +728,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     moveMapCameraToUserLocation();
                 }
 
-                if (!shouldRetrieveDetailsFromHW && mFormType == FormType.Create)
+                if (!shouldRetrieveDetailsFromHW && mFormType == FormType.Create && !shouldShowButtonsPanel)
                     highlightCheckboxes();
 
                 addPinToCenter();
@@ -1392,6 +1392,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         //Automatically resolve gps
         fetchAddressButtonHandler(null);
+
+        //Display showcase highlighting the checkboxes, if this wasn't done yet.
+        highlightCheckboxes();
     }
 
     public void viewMapButtonHandler(View view) {
