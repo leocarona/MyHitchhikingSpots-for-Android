@@ -539,8 +539,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 //execute new asyncTask that will retrieve marker details for clickedMarker
                 taskThatRetrievesCompleteDetails = new retrievePlaceDetailsAsyncTask().execute(mCurrentSpot.getId().toString());
             }
-        } else
-            highlightCheckboxes();
+        }
     }
 
     private void expandBottomSheet() {
@@ -719,22 +718,24 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
                 enableLocationLayer();
 
-                boolean mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
+                mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
 
                 //Set listeners only after requested camera position is reached
-                if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad) {
-                    if (mFormType == FormType.Create)
-                        highlightLocateButton();
-                } else {
+                if (!(mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad)) {
                     shouldMoveMapCameraToUserLocationOnMapLoad = false;
                     //No request to position the map camera was made, so apply listeners directly
                     moveMapCameraToUserLocation();
                 }
 
+                if (!shouldRetrieveDetailsFromHW && mFormType == FormType.Create)
+                    highlightCheckboxes();
+
                 addPinToCenter();
             }
         });
     }
+
+    boolean mapCameraWasMoved = false;
 
     void highlightLocateButton() {
         locateUserTooltip = ViewTooltip
@@ -1290,6 +1291,16 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     void highlightCheckboxes() {
+        String showCaseID = "spotFormCheckboxesShowcase";
+        ShowcaseListener showCaseListener = new ShowcaseListener();
+        MaterialShowcaseSequence p = new MaterialShowcaseSequence(this, showCaseID);
+
+        //If showCase has been already displayed, only onShowcaseDismissed needs to be called
+        if (p.hasFired()) {
+            showCaseListener.onShowcaseDismissed();
+            return;
+        }
+
         //Highlight checkboxes
         new MaterialShowcaseView.Builder(this)
                 .setTarget(findViewById(R.id.save_spot_form_checkboxes))
@@ -1297,8 +1308,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 .setDelay(1500) // a second between each showcase view
                 .setDismissText(getString(R.string.general_showCase_button))
                 .setContentText(getString(R.string.spot_form_extra_options_showCase))
-                .setListener(new ShowcaseListener())
-                .singleUse("spotFormCheckboxesShowcase") // provide a unique ID used to ensure it is only shown once
+                .setListener(showCaseListener)
+                .singleUse(showCaseID) // provide a unique ID used to ensure it is only shown once
                 .setDismissOnTouch(true)
                 .show();
     }
@@ -1313,9 +1324,16 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         @Override
         public void onShowcaseDismissed(MaterialShowcaseView showcaseView) {
+            onShowcaseDismissed();
+        }
+
+        public void onShowcaseDismissed() {
             //Get buttons back to their place
             mSaveButton.setVisibility(View.VISIBLE);
             mDeleteButton.setVisibility(View.VISIBLE);
+
+            if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad)
+                highlightLocateButton();
         }
     }
 
