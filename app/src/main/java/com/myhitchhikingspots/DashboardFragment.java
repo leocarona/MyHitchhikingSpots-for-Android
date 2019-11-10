@@ -170,11 +170,19 @@ public class DashboardFragment extends Fragment implements MainActivity.OnSpotsL
             }
         }
 
+        String shortestWaitingTimeStr, longestWaitingTimeStr;
+        shortestWaitingTimeStr = longestWaitingTimeStr = "- -";
+
+        if (numOfRides > 2) {
+            shortestWaitingTimeStr = Utils.getWaitingTimeAsString(shortestWaitingTime, activity.getBaseContext());
+            longestWaitingTimeStr = Utils.getWaitingTimeAsString(longestWaitingTime, activity.getBaseContext());
+        }
+
         Integer numHWSpotsDownloaded = prefs.getInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, 0);
 
         txtNumSpotsSaved.setText(String.format(getString(R.string.dashboard_number_of_rides), numOfRides));
         txtNumHWSpotsDownloaded.setText(String.format(getString(R.string.dashboard_number_of_hw_spots_downloaded), numHWSpotsDownloaded));
-        txtShortestWaitingTime.setText(Utils.getWaitingTimeAsString(shortestWaitingTime, activity.getBaseContext()));
-        txtLongestWaitingTime.setText(Utils.getWaitingTimeAsString(longestWaitingTime, activity.getBaseContext()));
+        txtShortestWaitingTime.setText(shortestWaitingTimeStr);
+        txtLongestWaitingTime.setText(longestWaitingTimeStr);
     }
 }
