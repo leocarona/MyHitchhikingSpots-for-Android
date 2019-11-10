@@ -65,6 +65,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     int defaultFragmentResourceId = R.id.nav_my_map;
 
     public interface OnSpotsListChanged {
+        /**
+         * Method called always that spotList is loaded or reloaded from the database.
+         **/
         void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot);
 
         void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults);
@@ -323,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
+                .replace(R.id.fragment_container, fragment, fragment.getClass().getName())
                 //Adding a transaction to the back stack through addToBackStack guarantees that when user clicks on the Back button
                 // they're sent back to the fragment they're come from.
                 .addToBackStack(fragment.getClass().getName());
@@ -340,32 +343,48 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             Crashlytics.log("The drawer was closed and nothing more will happen.");
             mDrawer.closeDrawer(GravityCompat.START);
         } else {
-            int backStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
-            Crashlytics.setInt("backStackEntryCount", backStackEntryCount);
-
-            int currentFragmentIndex = backStackEntryCount - 1;
-            if (currentFragmentIndex == 0)
+            //If there's nowhere to navigate back to, then close the app.
+            if (getSupportFragmentManager().getBackStackEntryCount() <= 1) {
                 finish();
-
-            int lastOpenedFragmentIndex = currentFragmentIndex - 1;
-            Crashlytics.setInt("lastOpenedFragmentIndex", lastOpenedFragmentIndex);
-
-            try {
-                String lastOpenedFragmentTag = getSupportFragmentManager().getBackStackEntryAt(lastOpenedFragmentIndex).getName();
-                Crashlytics.setString("lastOpenedFragmentTag", lastOpenedFragmentTag);
-
-                int lastOpenedMenuItemResourceId = getMenuItemIdFromClassName(lastOpenedFragmentTag);
-                Crashlytics.setInt("lastOpenedMenuItemResourceId", lastOpenedMenuItemResourceId);
-
-                int menuItemIndex = getMenuItemIndex(lastOpenedMenuItemResourceId);
-                Crashlytics.setInt("menuItemIndex", menuItemIndex);
-
-                restoreLastCheckedMenuItem(menuItemIndex);
-            } catch (Exception ex) {
-                Crashlytics.logException(ex);
+                return;
             }
 
+            //Call onBackPressed for it should remove the active fragment from the last position of the back stack, and then display the previous fragment to the user.
+            //Warning: onBackPressed MUST be called before restoreUIFor().
             super.onBackPressed();
+
+            //After onBackPressed is called, the back stack should now have at its last position the fragment entry which the user is navigating back to.
+            //Let's restore the UI for this fragment.
+            restoreUIFor(getSupportFragmentManager().getBackStackEntryCount() - 1);
+        }
+    }
+
+    /**
+     * Updates appbar title and the selected menu item so that they correspond to the fragment at the given back stack index.
+     * Also updates the fragment itself passing the most recent data to it.
+     **/
+    public void restoreUIFor(int backStackEntryIndex) {
+        try {
+            String currentFragmentTag = getSupportFragmentManager().getBackStackEntryAt(backStackEntryIndex).getName();
+
+            if (currentFragmentTag != null && !currentFragmentTag.isEmpty()) {
+                int menuItemResourceId = getMenuItemIdFromClassName(currentFragmentTag);
+                int menuItemIndex = getMenuItemIndex(menuItemResourceId);
+
+                //Update the appbar title and apply selection style to the menu item that correspond to the fragment.
+                restoreLastCheckedMenuItem(menuItemIndex);
+
+                //Note: The fragment tag here is the same that we've defined earlier when we called fragmentManager.beginTransaction().replace(param1,param2,tagName).
+                Fragment currentFragment = getSupportFragmentManager().findFragmentByTag(currentFragmentTag);
+                if (currentFragment instanceof OnSpotsListChanged) {
+                    //Set the active fragment.
+                    activeFragmentListening = ((OnSpotsListChanged) currentFragment);
+                    //Update the active fragment so that it has the most recent data.
+                    activeFragmentListening.updateSpotList(spotList, mCurrentWaitingSpot);
+                }
+            }
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
         }
     }
 
@@ -529,14 +548,13 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        //If user is navigating back after spotList has been changed (meaning that one or more spots have been created, edited or deleted),
-        // let's reload the spotList from the database.
-        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) ||
-                (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED))
-            loadSpotList(-1);
-
-        if (activeFragmentListening != null)
+        if (activeFragmentListening != null) {
             activeFragmentListening.onActivityResult(requestCode, resultCode, data);
+
+            //If user is navigating back to Dashboard or My Maps, reload spot list
+            if (activeFragmentListening instanceof DashboardFragment || activeFragmentListening instanceof MyMapsFragment)
+                loadSpotList(-1);
+        }
     }
 
     private ProgressDialog loadingDialog;

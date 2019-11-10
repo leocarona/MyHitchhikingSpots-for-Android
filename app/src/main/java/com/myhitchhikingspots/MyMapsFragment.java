@@ -694,6 +694,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         Feature feature = spotsCollection.features().get(index);
 
+        //If spotList has been changed, we want to remove any balloon that might have been generated for this feature and then regenerate it below with updated data.
+        //TODO: Looks like it would make more sense to call removeImage removing all balloons already generated always that spotList is updated. Consider moving it into setupAnnotations(). All the other features are already been removed and re-added within that method.
         if (spotListWasChanged)
             style.removeImage(feature.id());
 
@@ -757,8 +759,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return new LatLng(symbolPoint.latitude(), symbolPoint.longitude());
     }
 
+    /**
+     * Method called always that spotList is loaded or reloaded from the database.
+     **/
     @Override
     public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
+        //If this.spotList is empty OR the updated spotList is empty, we want the make sure that the map camera also updated.
+        //This will make sure that we adjust the map camera always when it's the first time that the fragment is loaded or when spotList has been cleared by the user.
+        if ((this.spotList == null || this.spotList.isEmpty()) || (spotList == null || spotList.isEmpty()))
+            this.shouldZoomToFitAllMarkers = true;
+
         this.spotList = spotList;
         this.mCurrentWaitingSpot = mCurrentWaitingSpot;
         this.spotListWasChanged = true;
@@ -836,7 +846,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                         moveMapCameraToUserLocation(style);
                     } else
                         zoomOutToFitMostRecentRoute();
-                    shouldZoomToFitAllMarkers = false;
                 }
 
             } catch (Exception ex) {
@@ -917,12 +926,25 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED) {
             showSpotSavedSnackbar();
-            spotListWasChanged = true;
         }
 
         if (resultCode == Constants.RESULT_OBJECT_DELETED) {
             showSpotDeletedSnackbar();
+        }
+
+        //We should get PREFS_MYSPOTLIST_WAS_CHANGED equals to true always that resultCode is RESULT_OBJECT_ADDED, RESULT_OBJECT_EDITED or RESULT_OBJECT_DELETED,
+        // so the other verifications together with it below should actually never be reached.
+        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) ||
+                resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED) {
             spotListWasChanged = true;
+
+            //We want the map camera to be adjusted when one or more spots have been added, edited or deleted.
+            // Please note: we do not want it to be adjusted always that spotList is reloaded, that's why shouldZoomToFitAllMarkers is been set here and not on updateSpotList().
+            //TODO: Consider zooming out to fit all markers always when user navigates back AND there's no features within the viewport.
+            shouldZoomToFitAllMarkers = true;
+        } else {
+            //We don't want the map camera to be moved if the user navigates back without doing any change to the spot list.
+            shouldZoomToFitAllMarkers = false;
         }
     }
 
