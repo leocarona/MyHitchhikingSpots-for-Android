@@ -240,6 +240,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             oldFolder.renameTo(newFolder);
             prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
         }
+
+        //Let's try to guarantee that we always zoom out to fit all markers, except when user navigates back from spot form.
+        shouldZoomToFitAllMarkers = true;
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -631,7 +634,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                         moveMapCameraToUserLocation();
                     } else
                         zoomOutToFitAllMarkers();
-                    shouldZoomToFitAllMarkers = false;
                 }
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
