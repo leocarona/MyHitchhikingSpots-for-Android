@@ -11,11 +11,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class ToolsActivityUnitTests {
     @Test
-    public void shouldAutomaticallyFixStartDateTimes_fileNameContainingDateBeforeVersion27_ReturnsTrue() {
+    public void shouldFixStartDateTimes_fileNameContainingDateBeforeVersion27_ReturnsTrue() {
         DateTimeZone saoPauloTZ = DateTimeZone.forID("America/Sao_Paulo");
         String fileNameOfFileExportedBeforeReleaseOfVersion27 = "2018_01_01_0000-my_hitchhiking_spots.csv";
 
-        assertThat(ToolsActivity.shouldAutomaticallyFixStartDateTimes(fileNameOfFileExportedBeforeReleaseOfVersion27)).isEqualTo(true);
+        assertThat(ToolsActivity.shouldFixStartDateTimes(fileNameOfFileExportedBeforeReleaseOfVersion27)).isEqualTo(true);
 
         //The code below isn't really a Unit Test since it depends on other methods such as Utils.getNewExportFileName (which is already being tested by UtilsUnitTest).
         // But let's keep the code below anyways as it might help on figuring out what might be causing some other issue.
@@ -23,22 +23,22 @@ public class ToolsActivityUnitTests {
         DateTime dateTimeBeforeReleaseOfVersion27 = version27_releasedOn.withDurationAdded(Duration.millis(1), -1);
         String fileName = Utils.getNewExportFileName(dateTimeBeforeReleaseOfVersion27, saoPauloTZ);
 
-        assertThat(ToolsActivity.shouldAutomaticallyFixStartDateTimes(fileName)).isEqualTo(true);
+        assertThat(ToolsActivity.shouldFixStartDateTimes(fileName)).isEqualTo(true);
     }
 
-    @Test
-    public void shouldAutomaticallyFixStartDateTimes_fileNameContainingNoDate_ReturnsFalse() {
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFixStartDateTimes_fileNameContainingNoDate_ReturnsFalse() throws IllegalArgumentException {
         String fileName = "file-has-been-rename-to-anything-else.csv";
 
-        assertThat(ToolsActivity.shouldAutomaticallyFixStartDateTimes(fileName)).isEqualTo(false);
+        ToolsActivity.shouldFixStartDateTimes(fileName);
     }
 
     @Test
-    public void shouldAutomaticallyFixStartDateTimes_fileNameContainingDateAfterVersion27_ReturnsFalse() {
+    public void shouldFixStartDateTimes_fileNameContainingDateAfterVersion27_ReturnsFalse() {
         DateTimeZone saoPauloTZ = DateTimeZone.forID("America/Sao_Paulo");
         String fileNameOfFileExportedAfterReleaseOfVersion27 = "2020_01_01_0000+0000#my_hitchhiking_spots.csv";
 
-        assertThat(ToolsActivity.shouldAutomaticallyFixStartDateTimes(fileNameOfFileExportedAfterReleaseOfVersion27)).isEqualTo(false);
+        assertThat(ToolsActivity.shouldFixStartDateTimes(fileNameOfFileExportedAfterReleaseOfVersion27)).isEqualTo(false);
 
         //The code below isn't really a Unit Test since it depends on other methods such as Utils.getNewExportFileName (which is already being tested by UtilsUnitTest).
         // But let's keep the code below anyways as it might help on figuring out what might be causing some other issue.
@@ -46,7 +46,7 @@ public class ToolsActivityUnitTests {
         DateTime dateTimeAfterReleaseOfVersion27 = version27_releasedOn.withDurationAdded(Duration.millis(1), 1);
         String fileName = Utils.getNewExportFileName(dateTimeAfterReleaseOfVersion27, saoPauloTZ);
 
-        assertThat(ToolsActivity.shouldAutomaticallyFixStartDateTimes(fileName)).isEqualTo(false);
+        assertThat(ToolsActivity.shouldFixStartDateTimes(fileName)).isEqualTo(false);
     }
 }
 
