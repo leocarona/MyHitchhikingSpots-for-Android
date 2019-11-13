@@ -394,9 +394,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         enableLocationLayer(loadedMapStyle);
 
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
-        // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
-            locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
+
+        //Move map camera to user location. Please note that we do not want the map camera to follow location updates here.
+        if (locationComponent.isLocationComponentActivated())
+            moveCameraToLastKnownLocation();
     }
 
     void showSpotSavedSnackbar() {
