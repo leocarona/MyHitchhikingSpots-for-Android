@@ -109,7 +109,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             dialog.dismiss();
 
         if (onFinished != null)
-            onFinished.notifyTaskFinished(errorMessage.isEmpty(), msgRes);
+            onFinished.notifyTaskFinished(errorMessage.isEmpty(), msgRes, "");
     }
 
     public void addListener(AsyncTaskListener<ArrayList<String>> doWhenFinished) {

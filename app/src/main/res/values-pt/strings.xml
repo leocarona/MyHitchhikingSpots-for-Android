@@ -73,7 +73,7 @@
     <string name="tools_warning">Bem-vindx às nossas Ferramentas! Tenha em mente que nós ainda não sincronizamos seus locais salvos em nenhum lugar. Enquanto isso, aqui estão algumas ferramentas que você pode usar para se virar enquanto isso.</string>
 
     <string name="settings_importdb_button_label">Importar banco de dados</string>
-    <string name="settings_exportdb_button_label">Exportar banco de dados</string>
+    <string name="settings_exportdb_button_label">Exportar e compartilhar</string>
     <string name="settings_exporting_db_message">Sua lista de locais será salva em seu celular como um arquivo de excel (CSV)..</string>
     <string name="settings_exportdb_finish_successfull_message">Exportado para:\n%s</string>
     <string name="settings_last_export_message">Última vez que sua lista de locais foi exportada foi há %s atrás.</string>

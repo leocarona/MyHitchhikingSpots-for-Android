@@ -27,7 +27,7 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
     private Context context;
     private AsyncTaskListener<String> onFinished;
     private final String TAG = "database-exporter";
-    private String result = "";
+    private String result = "", destinationFilePath = "";
 
     public DatabaseExporter(Context context) {
         this.context = context;
@@ -76,8 +76,10 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
             csvWrite.close();
             curCSV.close();
 
+            destinationFilePath = destinationFile.getPath();
+
             //Build "Copied to" string so that the user knows where the exported database file was copied to
-            result = String.format(context.getString(R.string.settings_exportdb_finish_successfull_message), destinationFile.getPath());
+            result = String.format(context.getString(R.string.settings_exportdb_finish_successfull_message), destinationFilePath);
 
             return true;
         } catch (IOException e) {
@@ -97,7 +99,7 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
         Crashlytics.setString("doInBackground result", result);
 
         if (onFinished != null)
-            onFinished.notifyTaskFinished(success, result);
+            onFinished.notifyTaskFinished(success, result, destinationFilePath);
     }
 
     public void addListener(AsyncTaskListener<String> doWhenFinished) {

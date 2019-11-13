@@ -131,6 +131,16 @@
                         android:text="@string/settings_importdb_button_label"
                         android:textAllCaps="true" />
 
+                    <Button
+                        android:id="@+id/btnShare"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/settings_sharedb_button_label"
+                        android:onClick="shareDB"
+                        android:textAllCaps="true"
+                        android:visibility="gone" />
+
                     <TextView
                         style="?android:attr/listSeparatorTextViewStyle"
                         android:layout_width="match_parent"

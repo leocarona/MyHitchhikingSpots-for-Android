@@ -5,5 +5,5 @@ package com.myhitchhikingspots.interfaces;
  */
 
 public interface AsyncTaskListener<T> {
-    void notifyTaskFinished(Boolean success, T message);
+    void notifyTaskFinished(Boolean success, T message, String filePath);
 }
