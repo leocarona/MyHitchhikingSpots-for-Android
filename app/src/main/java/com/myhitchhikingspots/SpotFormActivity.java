@@ -171,6 +171,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     private Button placeButtonComments;
 
+    Toast waiting_GPS_update;
+
     /**
      * Tracks whether the user has requested an address. Becomes true when the user requests an
      * address and false when the address (or an error message) is delivered.
@@ -417,12 +419,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     }
 
                     moveCameraToLastKnownLocation();
-
-                    if (waiting_GPS_update == null)
-                        waiting_GPS_update = Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
-                    waiting_GPS_update.show();
-
-                    moveMapCameraToUserLocation();
                 }
             }
         });
@@ -579,8 +575,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 .show();
     }
 
-    Toast waiting_GPS_update;
-
     @SuppressWarnings({"MissingPermission"})
     private void enableLocationLayer() {
         if (mapboxMap == null)
@@ -597,15 +591,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             locationComponent.setLocationComponentEnabled(true);
     }
 
-    void moveMapCameraToUserLocation() {
-        if (mapboxMap == null)
-            return;
-
-        //Request permission of access to GPS updates or
-        // directly initialize and enable the location plugin if such permission was already granted. 
-        enableLocationLayer();
-
-
+    void makeMapCameraFollowGPSUpdates(@RenderMode.Mode int compassRenderMode) {
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         if (locationComponent.isLocationComponentActivated()) {
@@ -613,7 +599,20 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
 
             //Show an arrow considering the compass of the device.
-            locationComponent.setRenderMode(RenderMode.COMPASS);
+            locationComponent.setRenderMode(compassRenderMode);
+        }
+    }
+
+    void makeMapCameraStopFollowGPSUpdates(@RenderMode.Mode int compassRenderMode) {
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+
+        //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+        if (locationComponent.isLocationComponentActivated()) {
+            //Map camera should stop following gps updates
+            locationComponent.setCameraMode(CameraMode.NONE);
+
+            //Stop showing an arrow considering the compass of the device.
+            locationComponent.setRenderMode(compassRenderMode);
         }
     }
 
@@ -726,8 +725,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 //Set listeners only after requested camera position is reached
                 if (!(mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad)) {
                     shouldMoveMapCameraToUserLocationOnMapLoad = false;
-                    //No request to position the map camera was made, so apply listeners directly
-                    moveMapCameraToUserLocation();
+                    moveCameraToLastKnownLocation();
                 }
 
                 if (!shouldRetrieveDetailsFromHW && mFormType == FormType.Create && !shouldShowButtonsPanel)
@@ -996,7 +994,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (requestCode == PERMISSIONS_LOCATION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 enableLocationLayer();
-                moveMapCameraToUserLocation();
+                moveCameraToLastKnownLocation();
             }
         }
     }
@@ -1026,11 +1024,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             locationComponent.activateLocationComponent(
                     LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
 
-            // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
-            locationComponent.setCameraMode(CameraMode.NONE);
-
-            //Show as an arrow considering the compass of the device.
-            locationComponent.setRenderMode(RenderMode.COMPASS);
+            makeMapCameraStopFollowGPSUpdates(RenderMode.COMPASS);
 
             locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
                 @Override
@@ -1378,16 +1372,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         panel_buttons.setVisibility(View.GONE);
         panel_info.setVisibility(View.VISIBLE);
 
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-        //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
-        if (locationComponent.isLocationComponentActivated()) {
-            //Map camera should stop following gps updates
-            locationComponent.setCameraMode(CameraMode.NONE);
-
-            //Stop showing an arrow considering the compass of the device.
-            locationComponent.setRenderMode(RenderMode.NORMAL);
-        }
+        makeMapCameraStopFollowGPSUpdates(RenderMode.NORMAL);
 
         updateSaveButtonState();
         updateSelectedTab();
@@ -1589,7 +1574,15 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 is_part_of_a_route_check_box.isChecked() &&
                 !is_destination_check_box.isChecked()) {
             showSaveNewOrViewMapPanel();
-            moveMapCameraToUserLocation();
+
+            if (mapboxMap != null) {
+                //Request permission of access to GPS updates or
+                // directly initialize and enable the location plugin if such permission was already granted.
+                enableLocationLayer();
+
+                //Make map camera follow GPS. When user clicks on "save spot" button the map camera will stop following GPS updates so that user can adjust location.
+                makeMapCameraFollowGPSUpdates(RenderMode.COMPASS);
+            }
             return;
         }
 
@@ -1669,17 +1662,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         lastSelectedTab = R.id.action_evaluate;
 
         if (mapboxMap != null) {
-            LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-            //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
-            if (locationComponent.isLocationComponentActivated()) {
-                //Map camera should stop following gps updates here,
-                // so if user clicks on Basic tab again he'll see the last location that he saw when he left.
-                locationComponent.setCameraMode(CameraMode.NONE);
-
-                //Stop showing an arrow considering the compass of the device.
-                locationComponent.setRenderMode(RenderMode.NORMAL);
-            }
+            makeMapCameraStopFollowGPSUpdates(RenderMode.NORMAL);
         }
 
         // updateUI() will call setSelectedItemId(lastSelectedTab).
@@ -2386,7 +2369,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
 
     }
-
 
 //----END: Part related to reverse geocoding
 

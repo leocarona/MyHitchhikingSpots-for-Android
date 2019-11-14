@@ -172,12 +172,6 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                         }
 
                         moveCameraToLastKnownLocation();
-
-                        if (waiting_GPS_update == null)
-                            waiting_GPS_update = Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
-                        waiting_GPS_update.show();
-
-                        locateUser(style);
                     }
                 }
             }
@@ -274,7 +268,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                     LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
 
             // Set the component's camera mode
-            locationComponent.setCameraMode(CameraMode.TRACKING_GPS);
+            locationComponent.setCameraMode(CameraMode.NONE);
 
             // Set the component's render mode
             //locationComponent.setRenderMode(RenderMode.COMPASS);

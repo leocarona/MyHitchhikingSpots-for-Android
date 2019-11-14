@@ -122,6 +122,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     private PermissionsManager permissionsManager;
 
+    Toast waiting_GPS_update;
+
     Boolean shouldZoomToFitAllMarkers = true;
 
     protected static final String TAG = "hitchwikimap-view-activity";
@@ -133,7 +135,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     // Permissions variables
     private static final int PERMISSIONS_LOCATION = 0;
     private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
-    Toast waiting_GPS_update;
 
     private static final String MARKER_SOURCE_ID = "markers-source";
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
@@ -194,13 +195,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
                     moveCameraToLastKnownLocation();
 
-                    if (waiting_GPS_update == null)
-                        waiting_GPS_update = Toast.makeText(activity.getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
-                    waiting_GPS_update.show();
-
                     isLocationRequestedByUser = true;
-
-                    moveMapCameraToUserLocation();
                 }
             }
         });
@@ -261,18 +256,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             locationComponent.setLocationComponentEnabled(true);
     }
 
-    void moveMapCameraToUserLocation() {
-        //Request permission of access to GPS updates or
-        // directly initialize and enable the location plugin if such permission was already granted.
-        enableLocationLayer();
-
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-        //Move map camera to user location. Please note that we do not want the map camera to follow location updates here.
-        if (locationComponent.isLocationComponentActivated())
-            moveCameraToLastKnownLocation();
-    }
-
     private void loadMarkerIcons() {
         ic_single_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, -1);
 
@@ -298,7 +281,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             case PERMISSIONS_LOCATION:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && isLocationRequestedByUser) {
                     enableLocationLayer();
-                    moveMapCameraToUserLocation();
+                    moveCameraToLastKnownLocation();
                     isLocationRequestedByUser = false;
                 } else {
                     Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
@@ -340,10 +323,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             locationComponent.activateLocationComponent(
                     LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
 
-            // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
+            //Map camera should stop following gps updates
             locationComponent.setCameraMode(CameraMode.NONE);
 
-            //Show as an arrow considering the compass of the device.
+            //Stop showing an arrow considering the compass of the device.
             locationComponent.setRenderMode(RenderMode.COMPASS);
 
             locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
@@ -630,8 +613,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
                 if (shouldZoomToFitAllMarkers) {
                     if (spotList.size() == 0) {
-                        //If there's no spot to show, make map camera follow the GPS updates.
-                        moveMapCameraToUserLocation();
+                        //Request permission of access to GPS updates or
+                        // directly initialize and enable the location plugin if such permission was already granted.
+                        enableLocationLayer();
+
+                        //Move map camera to user location. Please note that we do not want the map camera to follow location updates here.
+                        moveCameraToLastKnownLocation();
                     } else
                         zoomOutToFitAllMarkers();
                 }

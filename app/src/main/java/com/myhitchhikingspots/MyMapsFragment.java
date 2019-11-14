@@ -122,14 +122,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private PermissionsManager permissionsManager;
 
+    Toast waiting_GPS_update;
+
+
     private static final String SPOTS_SOURCE_ID = "spots-source";
     private static final String ROUTES_SPOTS_STYLE_LAYER_ID = "spots-style-layer";
     private static final String SUB_ROUTE_SOURCE_ID = "sub-routes-source";
     private static final String LINES_STYLE_LAYER_ID = "lines-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
     private static final int PERMISSIONS_LOCATION = 0;
-
-    Toast waiting_GPS_update;
 
     Snackbar snackbar;
 
@@ -227,13 +228,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                     moveCameraToLastKnownLocation();
 
-                    if (waiting_GPS_update == null)
-                        waiting_GPS_update = Toast.makeText(activity.getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
-                    waiting_GPS_update.show();
-
                     isLocationRequestedByUser = true;
-
-                    moveMapCameraToUserLocation(style);
                 }
             }
         });
@@ -393,11 +388,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         // directly initialize and enable the location plugin if such permission was already granted.
         enableLocationLayer(loadedMapStyle);
 
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
         //Move map camera to user location. Please note that we do not want the map camera to follow location updates here.
-        if (locationComponent.isLocationComponentActivated())
-            moveCameraToLastKnownLocation();
+        moveCameraToLastKnownLocation();
     }
 
     void showSpotSavedSnackbar() {
@@ -560,10 +552,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             locationComponent.activateLocationComponent(
                     LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
 
-            // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
+            //Map camera should stop following gps updates
             locationComponent.setCameraMode(CameraMode.NONE);
 
-            //Show as an arrow considering the compass of the device.
+            //Stop showing an arrow considering the compass of the device.
             locationComponent.setRenderMode(RenderMode.COMPASS);
 
             locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
