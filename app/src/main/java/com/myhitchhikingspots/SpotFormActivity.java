@@ -709,6 +709,21 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             this.mapboxMap.getUiSettings().setAttributionEnabled(false);
             this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
 
+            this.mapboxMap.addOnCameraIdleListener(() -> {
+                collapseBottomSheet();
+                hideKeyboard();
+
+                //As the map camera was moved, we should clear the previous address data
+                mAddressOutput = null;
+                displayAddressOutput();
+
+                if (Utils.isNetworkAvailable(this))
+                    fetchAddressButtonHandler(null);
+
+                //Stop showing an arrow considering the compass of the device.
+                mapboxMap.getLocationComponent().setRenderMode(RenderMode.NORMAL);
+            });
+
             if (style.isFullyLoaded()) {
                 LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
 
@@ -1025,28 +1040,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
 
             makeMapCameraStopFollowGPSUpdates(RenderMode.COMPASS);
-
-            locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
-                @Override
-                public void onCameraTrackingDismissed() {
-                    // Tracking has been dismissed
-
-                    collapseBottomSheet();
-                    hideKeyboard();
-
-                    //As the map camera was moved, we should clear the previous address data
-                    mAddressOutput = null;
-                    displayAddressOutput();
-
-                    //Stop showing an arrow considering the compass of the device.
-                    mapboxMap.getLocationComponent().setRenderMode(RenderMode.NORMAL);
-                }
-
-                @Override
-                public void onCameraTrackingChanged(int currentMode) {
-                    // CameraMode has been updated
-                }
-            });
         } else {
             permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(this);
