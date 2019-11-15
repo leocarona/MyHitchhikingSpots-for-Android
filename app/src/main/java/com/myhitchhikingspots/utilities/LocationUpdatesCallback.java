@@ -36,6 +36,9 @@ public class LocationUpdatesCallback
             // Pass the new location to the Maps SDK's LocationComponent
             if (frag.getMapboxMap() != null) {
                 LocationComponent lc = frag.getMapboxMap().getLocationComponent();
+                if (!lc.isLocationComponentActivated())
+                    return;
+
                 previousCameraMode = lc.getCameraMode();
                 isWaitingForNextLocation = true;
 

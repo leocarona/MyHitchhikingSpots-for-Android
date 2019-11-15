@@ -337,6 +337,8 @@ public class OfflineMapManagerFragment extends Fragment implements
                     Crashlytics.logException(exception);
                 }
 
+                enableLocationLayer(this.style);
+
                 callback.moveMapCameraToNextLocationReceived();
             }
         });
