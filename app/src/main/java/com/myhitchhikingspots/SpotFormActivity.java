@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -83,6 +84,9 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.github.florent37.viewtooltip.ViewTooltip;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
@@ -103,10 +107,12 @@ import java.util.List;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.myhitchhikingspots.adapters.CommentsListViewAdapter;
+import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.MyLocation;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
+import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
@@ -119,6 +125,8 @@ import java.util.ArrayList;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.ResultReceiver;
+
+import static android.os.Looper.getMainLooper;
 
 /*
       A spot is just a coordinate and some extra data. Currently we allow 6 types of spots (listed below).
@@ -138,7 +146,7 @@ import android.os.ResultReceiver;
           is NOT a hitchhiking spot = is other type of spot
 */
 public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback,
-        View.OnClickListener, CompoundButton.OnCheckedChangeListener, PermissionsListener {
+        View.OnClickListener, CompoundButton.OnCheckedChangeListener, PermissionsListener, FirstLocationUpdateListener {
 
 
     private Button mSaveButton, mDeleteButton;
@@ -212,7 +220,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private MapView mapView;
     protected MapboxMap mapboxMap;
     private Style style;
-    //private LocationSource locationEngine;
     private static final int PERMISSIONS_LOCATION = 0;
     private ImageView dropPinView;
 
@@ -236,7 +243,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     Boolean shouldMoveMapCameraToUserLocationOnMapLoad = false;
     double cameraZoomFromBundle = -1;
 
-    private PermissionsManager permissionsManager;
+    // Variables needed to add the location engine
+    private LocationEngine locationEngine;
+    private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
+    private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+    // Variables needed to listen to location updates
+    private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
+
+    private PermissionsManager locationPermissionsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -379,12 +393,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
         hitchability_ratingbar.setStepSize(1);
         hitchability_ratingbar.setOnRatingBarChangeListener(this);
-        //hitchabilityLabel.setText("");
-        //mLocationAddressTextView.setText("");
-
-        // Get the location engine object for later use.
-        //locationEngine = (LocationSource) LocationSource.getLocationEngine(this);
-        //locationEngine.activate();
 
         mapView = (MapView) findViewById(R.id.mapview2);
         mapView.onCreate(savedInstanceState);
@@ -413,12 +421,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     if (locateUserTooltip != null && locateUserTooltip.isShown())
                         locateUserTooltip.closeNow();
 
-                    if (!PermissionsManager.areLocationPermissionsGranted(getBaseContext())) {
-                        enableLocationLayer();
-                        return;
-                    }
+                    enableLocationLayer();
 
-                    moveCameraToLastKnownLocation();
+                    callback.moveMapCameraToNextLocationReceived();
                 }
             }
         });
@@ -740,7 +745,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 //Set listeners only after requested camera position is reached
                 if (!(mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad)) {
                     shouldMoveMapCameraToUserLocationOnMapLoad = false;
-                    moveCameraToLastKnownLocation();
+                    callback.moveMapCameraToNextLocationReceived();
                 }
 
                 if (!shouldRetrieveDetailsFromHW && mFormType == FormType.Create && !shouldShowButtonsPanel)
@@ -801,7 +806,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
      * we'll try to move the map camera to the location of the last saved spot.
      */
     @SuppressWarnings({"MissingPermission"})
-    private void moveCameraToLastKnownLocation() {
+    @Override
+    public void moveCameraToLastKnownLocation() {
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
@@ -1004,23 +1010,27 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSIONS_LOCATION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableLocationLayer();
-                moveCameraToLastKnownLocation();
-            }
-        }
-    }
-
-    @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
         Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onPermissionResult(boolean granted) {
+        //As we request at least two different permissions (location and storage) for the users,
+        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSIONS_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableLocationLayer();
+                callback.moveMapCameraToNextLocationReceived();
+            } else {
+                Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -1035,15 +1045,50 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-            // Activate with options
-            locationComponent.activateLocationComponent(
-                    LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
+            // Set the LocationComponent activation options
+            LocationComponentActivationOptions locationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
 
-            makeMapCameraStopFollowGPSUpdates(RenderMode.COMPASS);
+            // Activate with the LocationComponentActivationOptions object
+            locationComponent.activateLocationComponent(locationComponentActivationOptions);
+
+            //Stop showing an arrow considering the compass of the device.
+            locationComponent.setRenderMode(RenderMode.COMPASS);
+
+            initLocationEngine();
+
         } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(this);
+            if (locationPermissionsManager == null)
+                locationPermissionsManager = new PermissionsManager(this);
+            locationPermissionsManager.requestLocationPermissions(this);
         }
+    }
+
+    /**
+     * Set up the LocationEngine and the parameters for querying the device's location
+     */
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(this);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build();
+
+        locationEngine.requestLocationUpdates(request, callback, getMainLooper());
+        locationEngine.getLastLocation(callback);
+    }
+
+    @Override
+    public MapboxMap getMapboxMap() {
+        return mapboxMap;
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
     }
 
     private void collapseBottomSheet() {

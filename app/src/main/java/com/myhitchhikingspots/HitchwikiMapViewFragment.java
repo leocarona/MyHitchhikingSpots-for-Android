@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -45,6 +46,9 @@ import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
@@ -68,12 +72,14 @@ import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.DownloadHWSpotsDialog;
 import com.myhitchhikingspots.utilities.DownloadPlacesAsyncTask;
 import com.myhitchhikingspots.utilities.DownloadCountriesListAsyncTask;
 import com.myhitchhikingspots.utilities.DownloadCountriesListAsyncTask.onPlacesDownloadedListener;
 import com.myhitchhikingspots.utilities.IconUtils;
+import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -92,6 +98,7 @@ import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
+import static android.os.Looper.getMainLooper;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
@@ -100,14 +107,11 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute, MainActivity.OnSpotsListChanged {
+        MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
-    //private LocationEngine locationEngine;
-    //private LocationEngineListener locationEngineListener;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
-    //private TextView mWaitingToGetCurrentLocationTextView;
     CoordinatorLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
 
@@ -120,7 +124,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     static String locationSeparator = ", ";
 
-    private PermissionsManager permissionsManager;
+    private PermissionsManager locationPermissionsManager;
 
     Toast waiting_GPS_update;
 
@@ -142,11 +146,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     AsyncTask loadTask;
 
-    /**
-     * Represents a geographical location.
-     */
-    boolean wasFirstLocationReceived = false;
-
     Icon ic_single_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     Icon ic_hitchability_unknown, ic_hitchability_very_good, ic_hitchability_good, ic_hitchability_average, ic_hitchability_bad, ic_hitchability_senseless;
 
@@ -155,6 +154,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     FeatureCollection featureCollection;
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
+
+    // Variables needed to add the location engine
+    private LocationEngine locationEngine;
+    private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
+    private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+    // Variables needed to listen to location updates
+    private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
 
     public static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
 
@@ -188,13 +194,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null && style != null && style.isFullyLoaded()) {
-                    if (!PermissionsManager.areLocationPermissionsGranted(activity)) {
-                        enableLocationLayer();
-                        return;
-                    }
-
-                    moveCameraToLastKnownLocation();
-
+                    callback.moveMapCameraToNextLocationReceived();
                     isLocationRequestedByUser = true;
                 }
             }
@@ -272,17 +272,27 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (permissionsManager == null)
-            permissionsManager = new PermissionsManager(this);
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    public void onExplanationNeeded(List<String> permissionsToExplain) {
+        Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+    }
 
+    @Override
+    public void onPermissionResult(boolean granted) {
+        //As we request at least two different permissions (location and storage) for the users,
+        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSIONS_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && isLocationRequestedByUser) {
-                    enableLocationLayer();
-                    moveCameraToLastKnownLocation();
-                    isLocationRequestedByUser = false;
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (isLocationRequestedByUser) {
+                        enableLocationLayer();
+                        callback.moveMapCameraToNextLocationReceived();
+                        isLocationRequestedByUser = false;
+                    }
                 } else {
                     Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
                 }
@@ -298,15 +308,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     }
 
-    @Override
-    public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onPermissionResult(boolean granted) {
-    }
-
     @SuppressWarnings({"MissingPermission"})
     /**
      * Setup location component to display the user location on a map.
@@ -319,9 +320,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-            // Activate with options
-            locationComponent.activateLocationComponent(
-                    LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
+            // Set the LocationComponent activation options
+            LocationComponentActivationOptions locationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(activity, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
+
+            // Activate with the LocationComponentActivationOptions object
+            locationComponent.activateLocationComponent(locationComponentActivationOptions);
 
             //Map camera should stop following gps updates
             locationComponent.setCameraMode(CameraMode.NONE);
@@ -329,25 +335,31 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             //Stop showing an arrow considering the compass of the device.
             locationComponent.setRenderMode(RenderMode.COMPASS);
 
-            locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
-                @Override
-                public void onCameraTrackingDismissed() {
-                    // Tracking has been dismissed
-                }
-
-                @Override
-                public void onCameraTrackingChanged(int currentMode) {
-                    // CameraMode has been updated
-                    if (!wasFirstLocationReceived) {
-                        wasFirstLocationReceived = true;
-                    }
-                }
-            });
+            initLocationEngine();
         } else {
             requestLocationsPermissions(activity);
         }
     }
 
+    /**
+     * Set up the LocationEngine and the parameters for querying the device's location
+     */
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build();
+
+        locationEngine.requestLocationUpdates(request, callback, getMainLooper());
+        locationEngine.getLastLocation(callback);
+    }
+
+    @Override
+    public MapboxMap getMapboxMap() {
+        return mapboxMap;
+    }
 
     //onMapReady is called after onResume()
     @Override
@@ -613,12 +625,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
                 if (shouldZoomToFitAllMarkers) {
                     if (spotList.size() == 0) {
-                        //Request permission of access to GPS updates or
-                        // directly initialize and enable the location plugin if such permission was already granted.
-                        enableLocationLayer();
-
-                        //Move map camera to user location. Please note that we do not want the map camera to follow location updates here.
-                        moveCameraToLastKnownLocation();
+                        callback.moveMapCameraToNextLocationReceived();
                     } else
                         zoomOutToFitAllMarkers();
                 }
@@ -759,8 +766,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void requestLocationsPermissions(Activity activity) {
-        permissionsManager = new PermissionsManager(this);
-        permissionsManager.requestLocationPermissions(activity);
+        if (locationPermissionsManager == null)
+            locationPermissionsManager = new PermissionsManager(this);
+        locationPermissionsManager.requestLocationPermissions(activity);
     }
 
     private static boolean areStoragePermissionsGranted(Activity activity) {
@@ -1189,7 +1197,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * we'll try to move the map camera to the location of the last saved spot.
      */
     @SuppressWarnings({"MissingPermission"})
-    private void moveCameraToLastKnownLocation() {
+    @Override
+    public void moveCameraToLastKnownLocation() {
+        //Request permission of access to GPS updates or
+        // directly initialize and enable the location plugin if such permission was already granted.
+        enableLocationLayer();
+
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there

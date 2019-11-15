@@ -25,7 +25,6 @@ import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
@@ -57,14 +56,14 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     SharedPreferences prefs;
 
-    OnSpotsListChanged activeFragmentListening;
+    OnMainActivityUpdated activeFragmentListening;
 
     int fragmentIdToBeOpenedOnSpotsListLoaded = -1;
 
     //Default fragment that will open on the app startup
     int defaultFragmentResourceId = R.id.nav_my_map;
 
-    public interface OnSpotsListChanged {
+    public interface OnMainActivityUpdated {
         /**
          * Method called always that spotList is loaded or reloaded from the database.
          **/
@@ -310,14 +309,14 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     private void replaceFragmentContainerWith(Fragment fragment) {
         Bundle bundle = new Bundle();
 
-        //Classes that implement OnSpotsListChanged expect spotList and mCurrentWaitingSpot when it's created and when these variables are updated.
-        if (fragment instanceof OnSpotsListChanged) {
+        //Classes that should be updated when MainActivity is updated should implement OnMainActivityUpdated interface.
+        if (fragment instanceof OnMainActivityUpdated) {
             Spot[] spotArray = new Spot[spotList.size()];
             bundle.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
             bundle.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
 
-            //Keep the fragment so that we can fire the event listeners when spotList is updated.
-            activeFragmentListening = (OnSpotsListChanged) fragment;
+            //Keep the fragment so that we can fire the event listeners later.
+            activeFragmentListening = (OnMainActivityUpdated) fragment;
         } else
             activeFragmentListening = null;
 
@@ -376,9 +375,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
                 //Note: The fragment tag here is the same that we've defined earlier when we called fragmentManager.beginTransaction().replace(param1,param2,tagName).
                 Fragment currentFragment = getSupportFragmentManager().findFragmentByTag(currentFragmentTag);
-                if (currentFragment instanceof OnSpotsListChanged) {
+                if (currentFragment instanceof OnMainActivityUpdated) {
                     //Set the active fragment.
-                    activeFragmentListening = ((OnSpotsListChanged) currentFragment);
+                    activeFragmentListening = ((OnMainActivityUpdated) currentFragment);
                     //Update the active fragment so that it has the most recent data.
                     activeFragmentListening.updateSpotList(spotList, mCurrentWaitingSpot);
                 }
@@ -420,7 +419,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         //Restore the fragment's instance
         if (savedInstanceState.containsKey(ARG_FRAGMENT_KEY)) {
-            activeFragmentListening = (OnSpotsListChanged) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
+            activeFragmentListening = (OnMainActivityUpdated) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
         }
 
         fragmentIdToBeOpenedOnSpotsListLoaded = -1;
@@ -451,7 +450,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (activeFragmentListening != null)
             activeFragmentListening.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }

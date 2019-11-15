@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -41,6 +42,9 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.gson.JsonObject;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
@@ -68,14 +72,17 @@ import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
+import static android.os.Looper.getMainLooper;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.rgb;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
 
+import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SubRoute;
+import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -86,14 +93,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class MyMapsFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener, MainActivity.OnSpotsListChanged {
+        MapboxMap.OnMapClickListener, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
@@ -109,18 +115,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     boolean wasSnackbarShown;
 
     /**
-     * True if the map camera should follow the GPS updates once the user grants the necessary permission.
-     * This flag is necessary because when the app starts up we automatically request permission to access the user location,
-     * and in this case we don't want the map camera to follow the GPS updates ({@link #zoomOutToFitMostRecentRoute()} will be called instead).
-     **/
-    boolean isLocationRequestedByUser = false;
-
-    /**
      * Maximum number of spots to fit within the map camera when {@link #zoomOutToFitMostRecentRoute()} is called.
      **/
     int NUMBER_OF_SPOTS_TO_FIT = 10;
 
-    private PermissionsManager permissionsManager;
+    private PermissionsManager locationPermissionsManager;
 
     Toast waiting_GPS_update;
 
@@ -135,11 +134,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     Snackbar snackbar;
 
     AsyncTask loadTask;
-
-    /**
-     * Represents a geographical location.
-     */
-    boolean wasFirstLocationReceived = false;
 
     SharedPreferences prefs;
 
@@ -159,6 +153,13 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     FeatureCollection subRoutesCollection;
     GeoJsonSource spotSource;
     GeoJsonSource subRoutesSource;
+
+    // Variables needed to add the location engine
+    private LocationEngine locationEngine;
+    private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
+    private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+    // Variables needed to listen to location updates
+    private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
 
     Spot mCurrentWaitingSpot;
 
@@ -221,14 +222,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             @Override
             public void onClick(View view) {
                 if (mapboxMap != null && style != null && style.isFullyLoaded()) {
-                    if (!PermissionsManager.areLocationPermissionsGranted(activity)) {
-                        enableLocationLayer(style);
-                        return;
-                    }
-
-                    moveCameraToLastKnownLocation();
-
-                    isLocationRequestedByUser = true;
+                    callback.moveMapCameraToNextLocationReceived();
                 }
             }
         });
@@ -383,15 +377,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             locationComponent.setLocationComponentEnabled(true);
     }
 
-    void moveMapCameraToUserLocation(@NonNull Style loadedMapStyle) {
-        //Request permission of access to GPS updates or
-        // directly initialize and enable the location plugin if such permission was already granted.
-        enableLocationLayer(loadedMapStyle);
-
-        //Move map camera to user location. Please note that we do not want the map camera to follow location updates here.
-        moveCameraToLastKnownLocation();
-    }
-
     void showSpotSavedSnackbar() {
         showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
                 null, null);
@@ -494,36 +479,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     protected void updateUISaveButtons() {
         //If it's not waiting for a ride
         if (!isWaitingForARide()) {
-            /*if (!locationEngine.areLocationPermissionsGranted() || locationEngine.getLastLocation() == null
-                    || !mRequestingLocationUpdates) {
-                currentPage = pageType.NOT_FETCHING_LOCATION;
-            } else {*/
             if (isFirstSpotOfARoute())
                 currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
             else {
                 currentPage = pageType.WILL_BE_REGULAR_SPOT;
             }
-            //}
-
         } else {
             currentPage = pageType.WAITING_FOR_A_RIDE;
         }
 
         configureBottomFABButtons();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (permissionsManager == null)
-            permissionsManager = new PermissionsManager(this);
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSIONS_LOCATION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && isLocationRequestedByUser) {
-                enableLocationLayer(style);
-                moveMapCameraToUserLocation(style);
-                isLocationRequestedByUser = false;
-            }
-        }
     }
 
     @Override
@@ -533,6 +498,20 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     @Override
     public void onPermissionResult(boolean granted) {
+        //As we request at least two different permissions (location and storage) for the users,
+        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSIONS_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableLocationLayer(style);
+                callback.moveMapCameraToNextLocationReceived();
+            } else
+                Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+        }
     }
 
 
@@ -548,9 +527,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-            // Activate with options
-            locationComponent.activateLocationComponent(
-                    LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
+            // Set the LocationComponent activation options
+            LocationComponentActivationOptions locationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(activity, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
+
+            // Activate with the LocationComponentActivationOptions object
+            locationComponent.activateLocationComponent(locationComponentActivationOptions);
 
             //Map camera should stop following gps updates
             locationComponent.setCameraMode(CameraMode.NONE);
@@ -558,25 +542,32 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             //Stop showing an arrow considering the compass of the device.
             locationComponent.setRenderMode(RenderMode.COMPASS);
 
-            locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
-                @Override
-                public void onCameraTrackingDismissed() {
-                    // Tracking has been dismissed
-                }
-
-                @Override
-                public void onCameraTrackingChanged(int currentMode) {
-                    // CameraMode has been updated
-                    if (!wasFirstLocationReceived) {
-                        updateUISaveButtons();
-                        wasFirstLocationReceived = true;
-                    }
-                }
-            });
+            initLocationEngine();
         } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(activity);
+            if (locationPermissionsManager == null)
+                locationPermissionsManager = new PermissionsManager(this);
+            locationPermissionsManager.requestLocationPermissions(activity);
         }
+    }
+
+    /**
+     * Set up the LocationEngine and the parameters for querying the device's location
+     */
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build();
+
+        locationEngine.requestLocationUpdates(request, callback, getMainLooper());
+        locationEngine.getLastLocation(callback);
+    }
+
+    @Override
+    public MapboxMap getMapboxMap() {
+        return mapboxMap;
     }
 
     @Override
@@ -836,7 +827,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (shouldZoomToFitAllMarkers) {
                     if (spotList.size() == 0) {
                         //If there's no spot to show, make map camera follow the GPS updates.
-                        moveMapCameraToUserLocation(style);
+                        callback.moveMapCameraToNextLocationReceived();
                     } else
                         zoomOutToFitMostRecentRoute();
                 }
@@ -1029,7 +1020,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                                     //User opted to not download any HW spot, there's nothing to show but his/her current location.
                                     if (spotList == null || spotList.size() == 0) {
                                         //If there's no spot to show, move the map camera to the current GPS location.
-                                        moveMapCameraToUserLocation(style);
+                                        callback.moveMapCameraToNextLocationReceived();
                                     }
                                 }
                             }).show();
@@ -1225,7 +1216,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * we'll try to move the map camera to the location of the last saved spot.
      */
     @SuppressWarnings({"MissingPermission"})
-    protected void moveCameraToLastKnownLocation() {
+    @Override
+    public void moveCameraToLastKnownLocation() {
+        //Request permission of access to GPS updates or
+        // directly initialize and enable the location plugin if such permission was already granted.
+        enableLocationLayer(style);
+
         //Zoom close to current position or to the last saved position
         LatLng cameraPositionTo = null;
         int zoomLevel = Constants.KEEP_ZOOM_LEVEL;

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DashboardFragment extends Fragment implements MainActivity.OnSpotsListChanged {
+public class DashboardFragment extends Fragment implements MainActivity.OnMainActivityUpdated {
 
     MainActivity activity;
     List<Spot> spotList = new ArrayList();
