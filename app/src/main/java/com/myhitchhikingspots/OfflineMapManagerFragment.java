@@ -458,7 +458,7 @@ public class OfflineMapManagerFragment extends Fragment implements
 
         //If current zoom level is default (world level)
         if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
-            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+            zoomLevel = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
 
         if (moveCameraPositionTo != null)
             moveCamera(moveCameraPositionTo, zoomLevel);
