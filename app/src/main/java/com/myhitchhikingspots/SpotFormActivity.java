@@ -25,13 +25,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationItemView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.appcompat.app.AlertDialog;
@@ -223,7 +220,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private static final int PERMISSIONS_LOCATION = 0;
     private ImageView dropPinView;
 
-    private CoordinatorLayout coordinatorLayout, spot_form_basic;
+    private View coordinatorLayout, spot_form_basic;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
 
     private NestedScrollView scrollView;
@@ -264,7 +261,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         context = this;
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        coordinatorLayout = (View) findViewById(R.id.coordinatorLayout);
 
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
@@ -354,7 +351,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         hitchabilityLabel = (TextView) findViewById(R.id.spot_form_hitchability_selectedvalue);
         selected_date = (TextView) findViewById(R.id.spot_form_selected_date);
 
-        spot_form_basic = (CoordinatorLayout) findViewById(R.id.save_spot_form_basic);
+        spot_form_basic = (View) findViewById(R.id.save_spot_form_basic);
         spot_form_evaluate = (ScrollView) findViewById(R.id.save_spot_form_evaluate);
         panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
         panel_info = (LinearLayout) findViewById(R.id.panel_info);
