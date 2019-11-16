@@ -827,6 +827,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (shouldZoomToFitAllMarkers) {
                     if (spotList.size() == 0) {
                         //If there's no spot to show, make map camera follow the GPS updates.
+                        //Because it might take some time til Location Engine gets started and the first location update is received,
+                        //let's display a "waiting for GPS" message.
+                        Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                         callback.moveMapCameraToNextLocationReceived();
                     } else
                         zoomOutToFitMostRecentRoute();

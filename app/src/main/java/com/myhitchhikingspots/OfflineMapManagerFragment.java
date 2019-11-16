@@ -339,6 +339,9 @@ public class OfflineMapManagerFragment extends Fragment implements
 
                 enableLocationLayer(this.style);
 
+                //Because it might take some time til Location Engine gets started and the first location update is received,
+                //let's display a "waiting for GPS" message.
+                Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                 callback.moveMapCameraToNextLocationReceived();
             }
         });

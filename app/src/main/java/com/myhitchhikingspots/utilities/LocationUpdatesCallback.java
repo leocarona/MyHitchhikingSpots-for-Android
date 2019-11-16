@@ -17,8 +17,16 @@ import java.lang.ref.WeakReference;
 
 import timber.log.Timber;
 
+/**
+ * Listens to LocationEngine's updates.
+ * If moveMapCameraToNextLocationReceived() is requested then
+ * frag.moveCameraToLastKnownLocation() will be called regardless if the LocationEngine succeeds to fetch the current GPS location or not.
+ * Class inspired by https://docs.mapbox.com/help/tutorials/android-location-listening/#enable-the-locationcomponent
+ **/
 public class LocationUpdatesCallback
         implements LocationEngineCallback<LocationEngineResult> {
+    boolean isWaitingForNextLocation = false;
+    int previousCameraMode = CameraMode.NONE;
 
     private final WeakReference<FirstLocationUpdateListener> fragmentWeakReference;
 
@@ -26,9 +34,10 @@ public class LocationUpdatesCallback
         this.fragmentWeakReference = new WeakReference<>(frag);
     }
 
-    boolean isWaitingForNextLocation = false;
-    int previousCameraMode = CameraMode.NONE;
-
+    /**
+     * Makes map camera move to the next GPS location received,
+     * and calls frag.moveCameraToLastKnownLocation() regardless if LocationEngine succeeds or not.
+     **/
     public void moveMapCameraToNextLocationReceived() {
         FirstLocationUpdateListener frag = fragmentWeakReference.get();
 
@@ -64,11 +73,6 @@ public class LocationUpdatesCallback
                 return;
             }
 
-            /*// Create a Toast which displays the new location's coordinates
-            Toast.makeText(frag.getContext(), "String.format(activity.getString(R.string.new_location)," +
-                            "String.valueOf(result.getLastLocation().getLatitude()), String.valueOf(result.getLastLocation().getLongitude()))",
-                    Toast.LENGTH_SHORT).show();*/
-
             // Pass the new location to the Maps SDK's LocationComponent
             if (frag.getMapboxMap() != null && result.getLastLocation() != null) {
                 frag.getMapboxMap().getLocationComponent().forceLocationUpdate(result.getLastLocation());
@@ -79,6 +83,7 @@ public class LocationUpdatesCallback
                     //Reset values
                     previousCameraMode = CameraMode.NONE;
                     isWaitingForNextLocation = false;
+                    frag.moveCameraToLastKnownLocation();
                 }
             }
         }
