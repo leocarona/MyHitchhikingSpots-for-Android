@@ -434,9 +434,21 @@ public class OfflineMapManagerFragment extends Fragment implements
         return loc;
     }
 
-    @SuppressWarnings({"MissingPermission"})
+    int FAVORITE_ZOOM_LEVEL_NOT_INFORMED = -1;
+
     @Override
     public void moveCameraToLastKnownLocation() {
+        moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED);
+    }
+
+    /**
+     * Move map camera to the last GPS location OR if it's not available,
+     * we'll try to move the map camera to the location of the last saved spot.
+     *
+     * @param zoomLevel The zoom level that should be used or FAVORITE_ZOOM_LEVEL_NOT_INFORMED if we should use what we think could be the best zoom level.
+     */
+    @SuppressWarnings({"MissingPermission"})
+    public void moveCameraToLastKnownLocation(int zoomLevel) {
         //Request permission of access to GPS updates or
         // directly initialize and enable the location plugin if such permission was already granted.
         enableLocationLayer(style);
@@ -459,14 +471,14 @@ public class OfflineMapManagerFragment extends Fragment implements
             }
         }
 
-        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+        int bestZoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
         //If current zoom level is default (world level)
         if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
-            zoomLevel = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+            bestZoomLevel = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
 
         if (moveCameraPositionTo != null)
-            moveCamera(moveCameraPositionTo, zoomLevel);
+            moveCamera(moveCameraPositionTo, bestZoomLevel);
     }
 
     private void downloadRegionDialog() {

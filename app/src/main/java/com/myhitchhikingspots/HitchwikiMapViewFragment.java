@@ -398,7 +398,20 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     requestLocationsPermissions(activity);
                 else {
                     enableLocationLayer();
-                    onFirstLoad();
+
+                    //Move map camera to last known location so that if we call zoomOutToFitAllMarkers()
+                    // the map will get nicely zoomed closer once spots list is loaded.
+                    moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
+                        @Override
+                        public void onCancel() {
+                            onFirstLoad();
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            onFirstLoad();
+                        }
+                    });
                 }
             }
         });
@@ -1164,7 +1177,37 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     //The change that should be applied to the camera.
                     final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, bestPadding);
 
-                    mapboxMap.easeCamera(cameraUpdate, 5000);
+                    MapboxMap.CancelableCallback callback = new MapboxMap.CancelableCallback() {
+                        @Override
+                        public void onCancel() {
+                            mapboxMap.easeCamera(cameraUpdate, 5000);
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            mapboxMap.easeCamera(cameraUpdate, 5000);
+                        }
+                    };
+
+                    /*
+                     * We want to animate the map to nicely display the points added to the bounds.
+                     * We've chosen to do it by calling moveCamera first and then easeCamera.
+                     * Here's the reason:
+                     * Mapbox.easeCamera animates the map camera by first moving it towards a point in the middle of the map,
+                     * and then finally moving it on a way to display all the points added to the bounds.
+                     * Example: If zoom level is at the minimum (so the entire world map is being displayed) and user has only saved spots
+                     * at one extreme of the world (let's say, northern Canada or southern Argentina) then what Mapbox.easeCamera does is-
+                     * firstly it zooms towards a point at the middle of the map (he was seeing the world map, then now the camera zooms to a point in the middle
+                     * of the world, very far from where the saved spots are) and secondly it "flies" towards where the points added to the bounds actually are.
+                     * Which means that during a few seconds the user watched the map flying over random regions where spots haven't been saved.
+                     * To see how it would look like (if you feel the need to it) you can test by saving spots as in this example's scenario and then
+                     * removing the following line (containing Mapbox.moveCamera) and calling mapboxMap.easeCamera directly.
+                     * Here's how the chosen solution works:
+                     * By doing these two steps (calling moveCamera then easeCamera) we start by immediately placing the map camera
+                     * in a way that all points added to the bounds are already visible to the user though in a more distant level (we do that using a longer padding);
+                     * and then we call easeCamera to add the animation which will zoom closer to the bounds (using a smaller padding).
+                     */
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 500), callback);
                 }
             }
 
@@ -1198,13 +1241,21 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
 
+    int FAVORITE_ZOOM_LEVEL_NOT_INFORMED = -1;
+
+    @Override
+    public void moveCameraToLastKnownLocation() {
+        moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED, null);
+    }
+
     /**
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
+     *
+     * @param zoomLevel The zoom level that should be used or FAVORITE_ZOOM_LEVEL_NOT_INFORMED if we should use what we think could be the best zoom level.
      */
     @SuppressWarnings({"MissingPermission"})
-    @Override
-    public void moveCameraToLastKnownLocation() {
+    public void moveCameraToLastKnownLocation(int zoomLevel, @Nullable MapboxMap.CancelableCallback callback) {
         //Request permission of access to GPS updates or
         // directly initialize and enable the location plugin if such permission was already granted.
         enableLocationLayer();
@@ -1227,14 +1278,20 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             }
         }
 
-        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+        int bestZoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
-        //If current zoom level is default (world level)
-        if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
-            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+        //If a zoomLevel has been informed, use it
+        if (zoomLevel != FAVORITE_ZOOM_LEVEL_NOT_INFORMED)
+            bestZoomLevel = zoomLevel;
+        else {
+            //If current zoom level is default (world level)
+            if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
+                bestZoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+        }
 
         if (moveCameraPositionTo != null)
-            moveCamera(moveCameraPositionTo, zoomLevel);
+            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(moveCameraPositionTo, bestZoomLevel), callback);
+
     }
 
     private ProgressDialog loadingDialog;

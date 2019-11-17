@@ -798,13 +798,21 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         return loc;
     }
 
+    int FAVORITE_ZOOM_LEVEL_NOT_INFORMED = -1;
+
+    @Override
+    public void moveCameraToLastKnownLocation() {
+        moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED);
+    }
+
     /**
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
+     *
+     * @param zoomLevel The zoom level that should be used or FAVORITE_ZOOM_LEVEL_NOT_INFORMED if we should use what we think could be the best zoom level.
      */
     @SuppressWarnings({"MissingPermission"})
-    @Override
-    public void moveCameraToLastKnownLocation() {
+    public void moveCameraToLastKnownLocation(int zoomLevel) {
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
@@ -823,14 +831,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             }
         }
 
-        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+        int bestZoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
         //If current zoom level is default (world level)
         if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
-            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+            bestZoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
 
         if (moveCameraPositionTo != null)
-            moveCamera(moveCameraPositionTo, zoomLevel);
+            moveCamera(moveCameraPositionTo, bestZoomLevel);
     }
 
     /**

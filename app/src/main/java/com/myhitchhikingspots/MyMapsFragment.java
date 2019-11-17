@@ -339,12 +339,25 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 setupIconImages(style);
 
                 enableLocationLayer(style);
+
+                //Move map camera to last known location so that if we call zoomOutToFitMostRecentRoute()
+                // the map will get nicely zoomed closer once spots list is loaded.
+                moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
+                    @Override
+                    public void onCancel() {
+                        drawAnnotations();
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        drawAnnotations();
+                    }
+                });
             }
 
             if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
                 showInternetUnavailableAlertDialog();
-            else
-                drawAnnotations();
+
         });
     }
 
@@ -1180,7 +1193,37 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     //The change that should be applied to the camera.
                     final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, bestPadding);
 
-                    mapboxMap.easeCamera(cameraUpdate, 5000);
+                    MapboxMap.CancelableCallback callback = new MapboxMap.CancelableCallback() {
+                        @Override
+                        public void onCancel() {
+                            mapboxMap.easeCamera(cameraUpdate, 5000);
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            mapboxMap.easeCamera(cameraUpdate, 5000);
+                        }
+                    };
+
+                    /*
+                     * We want to animate the map to nicely display the points added to the bounds.
+                     * We've chosen to do it by calling moveCamera first and then easeCamera.
+                     * Here's the reason:
+                     * Mapbox.easeCamera animates the map camera by first moving it towards a point in the middle of the map,
+                     * and then finally moving it on a way to display all the points added to the bounds.
+                     * Example: If zoom level is at the minimum (so the entire world map is being displayed) and user has only saved spots
+                     * at one extreme of the world (let's say, northern Canada or southern Argentina) then what Mapbox.easeCamera does is-
+                     * firstly it zooms towards a point at the middle of the map (he was seeing the world map, then now the camera zooms to a point in the middle
+                     * of the world, very far from where the saved spots are) and secondly it "flies" towards where the points added to the bounds actually are.
+                     * Which means that during a few seconds the user watched the map flying over random regions where spots haven't been saved.
+                     * To see how it would look like (if you feel the need to it) you can test by saving spots as in this example's scenario and then
+                     * removing the following line (containing Mapbox.moveCamera) and calling mapboxMap.easeCamera directly.
+                     * Here's how the chosen solution works:
+                     * By doing these two steps (calling moveCamera then easeCamera) we start by immediately placing the map camera
+                     * in a way that all points added to the bounds are already visible to the user though in a more distant level (we do that using a longer padding);
+                     * and then we call easeCamera to add the animation which will zoom closer to the bounds (using a smaller padding).
+                     */
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 500), callback);
                 }
             }
 
@@ -1219,23 +1262,31 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return loc;
     }
 
+    int FAVORITE_ZOOM_LEVEL_NOT_INFORMED = -1;
+
+    @Override
+    public void moveCameraToLastKnownLocation() {
+        moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED, null);
+    }
+
     /**
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
+     *
+     * @param zoomLevel The zoom level that should be used or FAVORITE_ZOOM_LEVEL_NOT_INFORMED if we should use what we think could be the best zoom level.
      */
     @SuppressWarnings({"MissingPermission"})
-    @Override
-    public void moveCameraToLastKnownLocation() {
+    public void moveCameraToLastKnownLocation(int zoomLevel, @Nullable MapboxMap.CancelableCallback callback) {
         //Request permission of access to GPS updates or
         // directly initialize and enable the location plugin if such permission was already granted.
         enableLocationLayer(style);
 
         //Zoom close to current position or to the last saved position
         LatLng cameraPositionTo = null;
-        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+        int bestZoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
-        if (!isCameraZoomChangedByUser())
-            zoomLevel = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
+        if (zoomLevel == FAVORITE_ZOOM_LEVEL_NOT_INFORMED && !isCameraZoomChangedByUser())
+            bestZoomLevel = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
 
         Location loc = tryGetLastKnownLocation();
 
@@ -1250,13 +1301,19 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                 //If at the last added spot the user has gotten a ride, then he might be far from that spot.
                 // Let's zoom farther away from it.
-                if (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE)
-                    zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+                if (zoomLevel == FAVORITE_ZOOM_LEVEL_NOT_INFORMED &&
+                        (lastAddedSpot.getAttemptResult() != null && lastAddedSpot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE))
+                    bestZoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
             }
         }
 
+        //If a zoomLevel has been informed, use it
+        if (zoomLevel != FAVORITE_ZOOM_LEVEL_NOT_INFORMED)
+            bestZoomLevel = zoomLevel;
+
         if (cameraPositionTo != null)
-            moveCamera(cameraPositionTo, zoomLevel);
+            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(cameraPositionTo, bestZoomLevel), callback);
+//  moveCamera(cameraPositionTo, bestZoomLevel);
     }
 
     boolean isCameraZoomChangedByUser() {
