@@ -55,6 +55,7 @@ import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.camera.CameraUpdate;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -1154,11 +1155,16 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     builder.includes(lst);
                     LatLngBounds bounds = builder.build();
 
-                    //If there's only 2 points in the list and the currentlocation is known, that means only one of them is a saved spot
+                    int bestPadding = 120;
+
+                    //If there's only 2 points in the list and the current location is known (which means only one of them is a saved spot) we want a longer padding.
                     if (mCurrentLocation != null && lst.size() == 2)
-                        mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150), 5000);
-                    else
-                        mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120), 5000);
+                        bestPadding = 150;
+
+                    //The change that should be applied to the camera.
+                    final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, bestPadding);
+
+                    mapboxMap.easeCamera(cameraUpdate, 5000);
                 }
             }
 
