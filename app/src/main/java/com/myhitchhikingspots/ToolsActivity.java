@@ -292,7 +292,7 @@ public class ToolsActivity extends AppCompatActivity {
         }
 
         //If startDateTime of the spots should get fixed AND we haven't asked whether the user wants to fix it now or not, then display dialog.
-        if (!shouldFixStartDates && !userAlreadyAnswered) {
+        if (shouldFixStartDates && !userAlreadyAnswered) {
             //Ask user whether they want to get the start datetimes of the spots being imported fixed
             showFixSpotsDatetimeDialog(fileToImport);
             return;
