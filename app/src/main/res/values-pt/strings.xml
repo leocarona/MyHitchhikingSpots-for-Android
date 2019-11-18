@@ -74,6 +74,8 @@
 
     <string name="settings_importdb_button_label">Importar banco de dados</string>
     <string name="settings_exportdb_button_label">Exportar e compartilhar</string>
+    <string name="settings_sharedb_button_label">Share database</string>
+    <string name="settings_exportdb_share_dialog_message">We\'d highly recommend you to also save your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
     <string name="settings_exporting_db_message">Sua lista de locais será salva em seu celular como um arquivo de excel (CSV)..</string>
     <string name="settings_exportdb_finish_successfull_message">Exportado para:\n%s</string>
     <string name="settings_last_export_message">Última vez que sua lista de locais foi exportada foi há %s atrás.</string>
@@ -225,7 +227,7 @@
 
     <string name="shortcut_save_button_failed">Nāo foi possível atualizar seu local através do atalho :(</string>
 
-    <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
+    <string name="map_error_alert_map_not_loaded_alternative_message">É possível que não consigamos obter sua localização enquanto você não possuir acesso à internet. Você ainda pode tentar salvar novos locais de carona sem a utilização de mapa.</string>
     <string name="save_spot_error_map_not_loaded">Parece que o mapa não carregou.\nVocê precisará se conectar à internet para salvar esta alteração.</string>
     <string name="save_spot_error_coordinate_not_informed_error_message">Não conseguimos obter as coordenadas geográficas do local que você está tentando salvar.\nVocê deverá precisa se conectar à internet pra salvar esta alteração.</string>
     <string name="save_spot_error_general">Houve uma falha :(\n%s</string>

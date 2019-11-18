@@ -62,8 +62,8 @@ The Hitchwiki team.
 
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export and share</string>
-    <string name="settings_sharedb_button_label" translatable="false">Share database</string>
-    <string name="settings_exportdb_share_dialog_message" translatable="false">We\'d highly recommend you to also save your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
+    <string name="settings_sharedb_button_label">Share database</string>
+    <string name="settings_exportdb_share_dialog_message">We\'d highly recommend you to also save your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
     <string name="settings_exporting_db_message">Your spots list will be saved on your phone as CSV file..</string>
     <string name="settings_exportdb_finish_successfull_message">Copied to:\n%s</string>
     <string name="settings_last_export_message">Last export was done %s ago.</string>
