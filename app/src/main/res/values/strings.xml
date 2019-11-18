@@ -168,6 +168,7 @@ The Hitchwiki team.
     <string name="general_hours_label">%02dh</string>
     <string name="general_minutes_label">%02dmin</string>
     <string name="general_seconds_label">a few secs</string>
+    <string name="general_date_at_time">%1$s at %2$s</string>
 
     <string name="general_edit_list">Edit list</string>
     <string name="general_hide_icons_label">Hide buttons</string>

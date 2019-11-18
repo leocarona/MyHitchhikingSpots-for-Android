@@ -529,27 +529,34 @@ public class Utils {
 
     @NonNull
     public static String dateTimeToString(DateTime dt) {
-        return dateTimeToString(dt, ", ");
+        return dateTimeToString(dt, getDateTimeFormat(dt, ", "));
     }
 
     @NonNull
-    public static String dateTimeToString(DateTime dt, String separator) {
-        if (dt != null) {
-            String dateFormat = "dd/MMM";
+    public static String dateTimeToString(DateTime dt, String dateFormat) {
+        try {
+            if (dt != null)
+                return DateTimeFormat.forPattern(dateFormat).print(dt.toInstant());
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+        }
 
-            //Check whether displayer the year would be useful
+        return "";
+    }
+
+    public static String getDateTimeFormat(DateTime dt, String separator) {
+        if (dt != null) {
+            String dateFormat = "dd";
+
+            //Check whether displaying the year would be useful.
+            // If so, month should be number, if not, number should be such as "jan.", "ago.", etc
             if (dt.getYearOfEra() != DateTime.now(DateTimeZone.UTC).getYearOfEra())
-                dateFormat += "/yyyy";
+                dateFormat += "/MM/yyyy";
+            else
+                dateFormat += "/MMM";
 
             dateFormat += "'" + separator + "'HH:mm";
-
-            try {
-                return DateTimeFormat.forPattern(dateFormat).print(dt.toInstant());
-            } catch (Exception ex) {
-                Crashlytics.setString("date", dt.toString());
-                Crashlytics.log(Log.WARN, "dateTimeToString", "Err msg: " + ex.getMessage());
-                Crashlytics.logException(ex);
-            }
+            return dateFormat;
         }
         return "";
     }

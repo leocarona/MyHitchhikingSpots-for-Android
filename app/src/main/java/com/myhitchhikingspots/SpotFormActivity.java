@@ -88,7 +88,6 @@ import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
-import com.mapbox.mapboxsdk.location.OnCameraTrackingChangedListener;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -122,8 +121,6 @@ import java.util.ArrayList;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.ResultReceiver;
-
-import static android.os.Looper.getMainLooper;
 
 /*
       A spot is just a coordinate and some extra data. Currently we allow 6 types of spots (listed below).
@@ -1919,7 +1916,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     public void SetDateTime(DatePicker datePicker, TimePicker timePicker, DateTime date) {
-        selected_date.setText(Utils.dateTimeToString(date));
+        SetSelectedDateTimeString(date);
 
         DateTime dateTime = new DateTime(date);
 
@@ -1929,7 +1926,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(Utils.dateTimeToString(selectedDateTime));
+                SetSelectedDateTimeString(selectedDateTime);
             }
         });
 
@@ -1946,11 +1943,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onTimeChanged(TimePicker var1, int var2, int var3) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(Utils.dateTimeToString(selectedDateTime));
+                SetSelectedDateTimeString(selectedDateTime);
             }
         });
     }
-
 
     public DateTime GetDateTime(DatePicker datePicker, TimePicker timePicker) {
         Integer hour, minute;
@@ -1966,6 +1962,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         DateTime dateTime = new DateTime(datePicker.getYear(), datePicker.getMonth() + 1, datePicker.getDayOfMonth(),
                 hour, minute, DateTimeZone.UTC); // Must always add 1 to datePickers getMounth returned value, as it is 0 based
         return dateTime;
+    }
+
+    public void SetSelectedDateTimeString(DateTime dateTime) {
+        String dateTimeFormat = Utils.getDateTimeFormat(dateTime, " 'EEEE', ");
+        selected_date.setText(Utils.dateTimeToString(dateTime, dateTimeFormat));
     }
 
     /**

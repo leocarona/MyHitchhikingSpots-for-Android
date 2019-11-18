@@ -87,6 +87,8 @@ import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.Utils;
 
+import org.joda.time.DateTime;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1421,8 +1423,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 snippet += firstSeparator;
 
             //Add date time if it is set
-            if (spot.getStartDateTime() != null)
-                snippet += Utils.dateTimeToString(spot.getStartDateTime());
+            if (spot.getStartDateTime() != null) {
+                DateTime startDateTime = spot.getStartDateTime();
+                String separator = activity.getString(R.string.general_date_at_time, " 'EEE'", "");
+                String dateTimeFormat = Utils.getDateTimeFormat(startDateTime, separator);
+                snippet += Utils.dateTimeToString(startDateTime, dateTimeFormat);
+            }
 
             //Add waiting time
             if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&

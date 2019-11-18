@@ -391,8 +391,11 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 waitingTimeText.setText(waitingTimeStr);
 
                 //Set the date and time
-                if (spot.getStartDateTime() != null)
-                    dateTime.setText(Utils.dateTimeToString(spot.getStartDateTime(), ",\n"));
+                if (spot.getStartDateTime() != null) {
+                    DateTime startDateTime = spot.getStartDateTime();
+                    String dateTimeFormat = Utils.getDateTimeFormat(startDateTime, ",\n");
+                    dateTime.setText(Utils.dateTimeToString(startDateTime, dateTimeFormat));
+                }
 
                 //Set the address or coordinates
                 String spotLoc = getString(spot);
