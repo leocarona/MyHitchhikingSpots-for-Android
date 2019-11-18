@@ -3,10 +3,12 @@ package com.myhitchhikingspots;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -380,7 +382,13 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 Integer waitingTime = 0;
                 if (spot.getWaitingTime() != null)
                     waitingTime = spot.getWaitingTime();
-                waitingTimeText.setText(Utils.getWaitingTimeAsString(waitingTime, context));
+
+                //Replace "a few secs" for "<01min" to shorten the space taken
+                String waitingTimeStr = Utils.getWaitingTimeAsString(waitingTime, context);
+                if (waitingTimeStr.equals(context.getString(R.string.general_seconds_label)))
+                    waitingTimeStr = "<" + context.getString(R.string.general_minutes_label, 1);
+
+                waitingTimeText.setText(waitingTimeStr);
 
                 //Set the date and time
                 if (spot.getStartDateTime() != null)
