@@ -486,6 +486,10 @@ public class ToolsActivity extends AppCompatActivity {
             Toast.makeText(this, "Attachment Error", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        //Record usage of share option
+        Answers.getInstance().logCustom(new CustomEvent("Database shared"));
+
         Uri uri = getPathUri(file);
         intent.putExtra(Intent.EXTRA_STREAM, uri);
         startActivity(Intent.createChooser(intent, getString(R.string.general_share_label)));
