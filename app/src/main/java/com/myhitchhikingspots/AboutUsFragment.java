@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
@@ -41,6 +43,7 @@ public class AboutUsFragment extends Fragment {
         view.findViewById(R.id.btnFDroid).setOnClickListener(view1 -> startFDroid());
         view.findViewById(R.id.btnPlayStore).setOnClickListener(view1 -> startPlayStore());
 
+        ((TextView) view.findViewById(R.id.textView15)).setText(activity.getString(R.string.about_us_how_to_contribute_text, activity.getString(R.string.app_name)));
     }
 
 
