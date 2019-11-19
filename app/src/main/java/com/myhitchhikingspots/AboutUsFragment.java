@@ -20,7 +20,6 @@ import com.crashlytics.android.answers.CustomEvent;
 public class AboutUsFragment extends Fragment {
 
     MainActivity activity;
-    ImageButton btnInstagram, btnGitHub, btnFDroid, btnPlayStore;
 
     @Override
     public void onAttach(Context context) {
@@ -37,15 +36,11 @@ public class AboutUsFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        btnInstagram = view.findViewById(R.id.btnInstagram);
-        btnGitHub = view.findViewById(R.id.btnGitHub);
-        btnFDroid = view.findViewById(R.id.btnFDroid);
-        btnPlayStore = view.findViewById(R.id.btnPlayStore);
+        view.findViewById(R.id.btnInstagram).setOnClickListener(view1 -> startInstagram());
+        view.findViewById(R.id.btnGitHub).setOnClickListener(view1 -> startGitHub());
+        view.findViewById(R.id.btnFDroid).setOnClickListener(view1 -> startFDroid());
+        view.findViewById(R.id.btnPlayStore).setOnClickListener(view1 -> startPlayStore());
 
-        btnInstagram.setOnClickListener(view1 -> startInstagram());
-        btnGitHub.setOnClickListener(view1 -> startGitHub());
-        btnFDroid.setOnClickListener(view1 -> startFDroid());
-        btnPlayStore.setOnClickListener(view1 -> startPlayStore());
     }
 
 
