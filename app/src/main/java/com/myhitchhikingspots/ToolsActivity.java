@@ -389,7 +389,6 @@ public class ToolsActivity extends AppCompatActivity {
                 .setMessage(getString(R.string.settings_exportdb_share_dialog_message, getString(R.string.general_share_label)))
                 .setPositiveButton(getString(R.string.general_share_label), (dialog, which) -> {
                     shareCSV();
-                    findViewById(R.id.btnShare).setVisibility(View.VISIBLE);
                 })
                 .setNegativeButton(getString(R.string.general_cancel_option), (dialog, which) -> {
                     findViewById(R.id.btnShare).setVisibility(View.VISIBLE);
