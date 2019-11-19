@@ -67,8 +67,8 @@
 
     <string name="settings_importdb_button_label">Datenbank importieren</string>
     <string name="settings_exportdb_button_label">Exportieren und teilen</string>
-    <string name="settings_sharedb_button_label">Share database</string>
     <string name="settings_exportdb_share_dialog_message">We\'d highly recommend you to also save your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
+    <string name="settings_sharedb_button_label">Datenbank teilen</string>
     <string name="settings_exporting_db_message">Your spots list will be saved on your phone as CSV file..</string>
     <string name="settings_exportdb_finish_successfull_message">Copied to:\n%s</string>
     <string name="settings_last_export_message">Last export was done %s ago.</string>
@@ -267,8 +267,8 @@
 
     <string name="refresh_datetime_dialog_title">Update date and time?</string>
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
-    <string name="settings_export_section_title">Export</string>
-    <string name="settings_import_section_title">Import</string>
+    <string name="settings_export_section_title">Teilen</string>
+    <string name="settings_import_section_title">Importieren</string>
     <string name="spot_form_locate_button_tooltip_text">Move to your location</string>
 
     <string name="offline_map">Offline Maps</string>

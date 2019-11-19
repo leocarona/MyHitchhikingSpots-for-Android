@@ -193,7 +193,7 @@
     <string name="general_all">Todo</string>
     <string name="general_not_enough_permission">Lo sentimos, parece ser que no tienes los permisos necesarios para realizar esta acción.</string>
     <string name="general_selected_file_type_not_supported">No soporta el archivo seleccionado.</string>
-    <string name="general_zoom_to_fit_all">Ver todos los lugars</string>
+    <string name="general_zoom_to_fit_all">Ver todos los lugares</string>
 
     <string name="general_author_label">por %s</string>
     <string name="general_download_option">Descargar</string>
@@ -217,9 +217,9 @@
     <string name="general_share_label">Compartír</string>
     <string name="general_last_sync_date">Última sincronización en %s.</string>
     <string name="general_import_finished_successful_message">Importación satisfactoria!</string>
-    <string name="general_import_finished_failed_message">Importación  fallida</string>
+    <string name="general_import_finished_failed_message">Importación fallida</string>
     <string name="general_enable_button_label">habilitar</string>
-    <string name="general_showCase_button">ENTENDÍ!</string>
+    <string name="general_showCase_button">ENTENDIDO!</string>
 
     <string name="empty_list_dialog_message">Para ver lugares añadidos por otros usuarios a  Hitchwiki Maps, vete a  %s.</string>
 
