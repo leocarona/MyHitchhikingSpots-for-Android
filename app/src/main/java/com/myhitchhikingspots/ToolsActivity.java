@@ -386,8 +386,8 @@ public class ToolsActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle("Done!")
-                .setMessage(getString(R.string.settings_exportdb_share_dialog_message, getString(R.string.settings_sharedb_button_label)))
-                .setPositiveButton(getString(R.string.settings_sharedb_button_label), (dialog, which) -> {
+                .setMessage(getString(R.string.settings_exportdb_share_dialog_message, getString(R.string.general_share_label)))
+                .setPositiveButton(getString(R.string.general_share_label), (dialog, which) -> {
                     shareCSV();
                     findViewById(R.id.btnShare).setVisibility(View.VISIBLE);
                 })
@@ -489,7 +489,7 @@ public class ToolsActivity extends AppCompatActivity {
         }
         Uri uri = getPathUri(file);
         intent.putExtra(Intent.EXTRA_STREAM, uri);
-        startActivity(Intent.createChooser(intent, "Send email..."));
+        startActivity(Intent.createChooser(intent, getString(R.string.general_share_label)));
     }
 
     Uri getPathUri(File file) {
