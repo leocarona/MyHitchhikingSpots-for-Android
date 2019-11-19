@@ -302,4 +302,8 @@
     <string name="about_us_our_supporters_text">Algumas pessoas incríveis ajudaram nossos desenvolvedores para que esse aplicativo pudesse chegar até você. Amigos ou pessoas desconhecidas que hospedaram os desenvolvedores deste aplicativo, que compartilharam comida com eles, que pagaram suas contas de eletricidade e internet, porque você sabe que precisamos de computadores e coisas do tipo para criarmos um aplicativo. Nossos apoiadores são de grande importância para este projeto, para nossos desenvolvedores nômades e para você que usa esta ferramenta útil ao explorar o mundo.</string>
     <string name="about_us_how_to_contribute_title">Como Você Pode Contribuir</string>
     <string name="about_us_how_to_contribute_text">Há pelo menos duas formas através das quais você pode contribuir com este projeto. Não é necessário dinheiro por enquanto, nós já te contamos que temos sido muito bons em encontrar apoiadores incríveis por aí. Porém, você pode avaliar o aplicativo Meus Locais de Carona na Google Play ou compartilhar capturas de tela das suas rotas de carona marcando a gente com #myhitchhikingspots. Nós te ouviremos para saber o que é bom e o que pode melhorar no aplicativo, e gostaríamos de ver suas capturas de tela para através delas podermos conhecer sua maneira pessoal de usar o aplicativo. É só isso mesmo, e obrigado pelo seu interesse em ler até aqui. :-)</string>
+    <string name="about_us_github_label">Contribua com nosso código no GitHub</string>
+    <string name="about_us_fdroid_label">Encontre-nos no F-droid</string>
+    <string name="about_us_instagram_label">Veja o que outros compartilharam no Instagram</string>
+    <string name="about_us_googleplay_label">Encontre-nos no Google Play</string>
 </resources>
