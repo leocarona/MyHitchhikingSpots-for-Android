@@ -205,6 +205,7 @@ The Hitchwiki team.
     <string name="general_network_unavailable_message">Your device doesn\'t seem to have an internet connection at the moment.</string>
     <string name="general_export_finished_successfull_message">Exported successfully!</string>
     <string name="general_export_finished_failed_message">Export failed</string>
+    <string name="general_share_label">Share</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>
     <string name="general_import_finished_successful_message">Imported successfully!</string>
     <string name="general_import_finished_failed_message">Import failed</string>
@@ -238,7 +239,7 @@ The Hitchwiki team.
     <string name="map_infoview_spot_type_break">(BREAK)</string>
 
     <string name="map_error_alert_map_not_loaded_alternative_message">To fetch your location we need the map which was not loaded. You can still try to save a new spot by using the feature that doesn\'t use maps.</string>
-    <string name="map_error_alert_map_not_loaded_message">Hey. :-) Your device seems to be disconnected from the internet at the moment. You can still save your locations, but the maps might not load as expected. You may try the app without map.</string>
+    <string name="map_error_alert_map_not_loaded_message">You can still save your locations, but the maps might not load as expected. You may try the app without map.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Try without map</string>
     <string name="action_button_label">View %s</string>
 

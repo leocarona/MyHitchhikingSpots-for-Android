@@ -179,6 +179,7 @@
     <string name="general_network_unavailable_message">Your device doesn\'t seem to have an internet connection at the moment.</string>
     <string name="general_export_finished_successfull_message">Exported successfully!</string>
     <string name="general_export_finished_failed_message">Export failed</string>
+    <string name="general_share_label">Del</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>
     <string name="general_import_finished_successful_message">Imported successfully!</string>
     <string name="general_import_finished_failed_message">Import failed</string>
@@ -212,7 +213,7 @@
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
     <string name="map_infoview_spot_type_break">(PAUSE)</string>
 
-    <string name="map_error_alert_map_not_loaded_message">Hej! Din enhed virker til at være afkoblet en internetforbindelse i øjeblikket. Du kan stadig gemme dine positioner, men kortet bliver måske ikke hentet som forventet. Prøv at bruge appen uden kort.</string>
+    <string name="map_error_alert_map_not_loaded_message">Du kan stadig gemme dine positioner, men kortet bliver måske ikke hentet som forventet. Prøv at bruge appen uden kort.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Prøv uden kort</string>
     <string name="action_button_label">Vis %s</string>
 

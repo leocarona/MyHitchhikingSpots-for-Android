@@ -208,6 +208,7 @@
     <string name="general_network_unavailable_message">Seu dispositivo não parece ter uma conexão com a internet neste momento.</string>
     <string name="general_export_finished_successfull_message">Exportado com sucesso!</string>
     <string name="general_export_finished_failed_message">Falha na exportação</string>
+    <string name="general_share_label">Compartilhar</string>
     <string name="general_last_sync_date">Última sincronização realizada em %s.</string>
     <string name="general_import_finished_successful_message">Importado com sucesso!</string>
     <string name="general_import_finished_failed_message">Falha na importação</string>
@@ -241,7 +242,7 @@
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
     <string name="map_infoview_spot_type_break">(PAUSA)</string>
 
-    <string name="map_error_alert_map_not_loaded_message">Olá. :-) Seu celular parece estar desconectado da internet no momento. Ainda assim você pode salvar novos locais, porém talvez o mapa não carregue como esperado. Você pode experimentar usar sem mapa.</string>
+    <string name="map_error_alert_map_not_loaded_message">Ainda assim você pode salvar novos locais, porém talvez o mapa não carregue como esperado. Você pode experimentar usar sem mapa.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Usar sem mapa</string>
     <string name="action_button_label">Ver %s</string>
 

@@ -209,6 +209,7 @@
     <string name="general_network_unavailable_message">Your device doesn\'t seem to have an internet connection at the moment.</string>
     <string name="general_export_finished_successfull_message">Exported successfully!</string>
     <string name="general_export_finished_failed_message">Export failed</string>
+    <string name="general_share_label">Delen</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>
     <string name="general_import_finished_successful_message">Imported successfully!</string>
     <string name="general_import_finished_failed_message">Import failed</string>
@@ -242,7 +243,7 @@
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
     <string name="map_infoview_spot_type_break">(PAUSE)</string>
 
-    <string name="map_error_alert_map_not_loaded_message">Griaß di. :-) Dein Gerät scheint im Moment nicht mit dem Internet verbunden zu sein. Du kannst deinen Standort speichern, aber die Karte wird möglicherweise nicht geladen. Probiere die App ohne Karte aus.</string>
+    <string name="map_error_alert_map_not_loaded_message">Du kannst deinen Standort speichern, aber die Karte wird möglicherweise nicht geladen. Probiere die App ohne Karte aus.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Probiere ohne Karte</string>
     <string name="action_button_label">%s anzeigen</string>
 

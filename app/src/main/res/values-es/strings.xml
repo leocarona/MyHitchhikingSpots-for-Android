@@ -214,6 +214,7 @@
     <string name="general_network_unavailable_message">Parece que tu aparato no tiene conexión a internet.</string>
     <string name="general_export_finished_successfull_message">Exportación satisfactoria!</string>
     <string name="general_export_finished_failed_message">Exportación fallida</string>
+    <string name="general_share_label">Compartír</string>
     <string name="general_last_sync_date">Última sincronización en %s.</string>
     <string name="general_import_finished_successful_message">Importación satisfactoria!</string>
     <string name="general_import_finished_failed_message">Importación  fallida</string>
@@ -246,7 +247,7 @@
     <string name="map_infoview_spot_type_break">(DESCANSO)</string>
 
     <string name="map_error_alert_map_not_loaded_alternative_message">Para obtener tu localización se necesita el mapa que no ha sido cargado. Puedes intentar un nuevo lugar utilizando la función que no usa el mapa..</string>
-    <string name="map_error_alert_map_not_loaded_message">Hey. :-) Parece que tu aparato no esta conectado a Internet en este momento. Aun así, puedes guardar tus localizaciones, pero puede que los mapas no se carguen bien. Puedes intentar usar la app sin mapa.</string>
+    <string name="map_error_alert_map_not_loaded_message">Aun así, puedes guardar tus localizaciones, pero puede que los mapas no se carguen bien. Puedes intentar usar la app sin mapa.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Prueba a hacerlo sin mapas</string>
     <string name="action_button_label">Ver %s</string>
 
