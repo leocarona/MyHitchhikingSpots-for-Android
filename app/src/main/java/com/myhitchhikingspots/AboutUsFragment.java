@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
@@ -20,7 +22,6 @@ import com.crashlytics.android.answers.CustomEvent;
 public class AboutUsFragment extends Fragment {
 
     MainActivity activity;
-    ImageButton btnInstagram, btnGitHub, btnFDroid, btnPlayStore;
 
     @Override
     public void onAttach(Context context) {
@@ -37,15 +38,12 @@ public class AboutUsFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        btnInstagram = view.findViewById(R.id.btnInstagram);
-        btnGitHub = view.findViewById(R.id.btnGitHub);
-        btnFDroid = view.findViewById(R.id.btnFDroid);
-        btnPlayStore = view.findViewById(R.id.btnPlayStore);
+        view.findViewById(R.id.btnInstagram).setOnClickListener(view1 -> startInstagram());
+        view.findViewById(R.id.btnGitHub).setOnClickListener(view1 -> startGitHub());
+        view.findViewById(R.id.btnFDroid).setOnClickListener(view1 -> startFDroid());
+        view.findViewById(R.id.btnPlayStore).setOnClickListener(view1 -> startPlayStore());
 
-        btnInstagram.setOnClickListener(view1 -> startInstagram());
-        btnGitHub.setOnClickListener(view1 -> startGitHub());
-        btnFDroid.setOnClickListener(view1 -> startFDroid());
-        btnPlayStore.setOnClickListener(view1 -> startPlayStore());
+        ((TextView) view.findViewById(R.id.textView15)).setText(activity.getString(R.string.about_us_how_to_contribute_text, activity.getString(R.string.app_name)));
     }
 
 

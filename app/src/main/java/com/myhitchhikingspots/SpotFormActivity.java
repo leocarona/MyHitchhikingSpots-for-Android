@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -13,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Address;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,14 +25,11 @@ import com.google.android.material.bottomnavigation.BottomNavigationItemView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.core.view.ViewCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -61,6 +60,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -74,15 +74,20 @@ import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoComplete;
 import hitchwikiMapsSDK.entities.PlaceInfoCompleteComment;
+import uk.co.deanwild.materialshowcaseview.IShowcaseListener;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseSequence;
+import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.github.florent37.viewtooltip.ViewTooltip;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
-import com.mapbox.mapboxsdk.location.OnCameraTrackingChangedListener;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -98,10 +103,12 @@ import java.util.List;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.myhitchhikingspots.adapters.CommentsListViewAdapter;
+import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.MyLocation;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
+import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
@@ -133,7 +140,7 @@ import android.os.ResultReceiver;
           is NOT a hitchhiking spot = is other type of spot
 */
 public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback,
-        View.OnClickListener, CompoundButton.OnCheckedChangeListener, PermissionsListener {
+        View.OnClickListener, CompoundButton.OnCheckedChangeListener, PermissionsListener, FirstLocationUpdateListener {
 
 
     private Button mSaveButton, mDeleteButton;
@@ -144,7 +151,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private Spot mCurrentSpot;
     private CheckBox is_part_of_a_route_check_box, is_destination_check_box, is_hitchhiking_spot_check_box, is_not_hitchhiked_from_here_check_box;
     private TextView hitchabilityLabel, selected_date;
-    private LinearLayout spot_form_evaluate, spot_form_more_options, hitchability_options;
+    private ScrollView spot_form_evaluate;
+    private LinearLayout spot_form_more_options, hitchability_options;
     private RatingBar hitchability_ratingbar;
     private BottomNavigationView menu_bottom;
     SharedPreferences prefs;
@@ -164,6 +172,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     protected static final String REFRESH_DATETIME_ALERT_SHOWN_KEY = "PREF_REFRESH_DATETIME_ALERT_SHOWN_KEY";
 
     private Button placeButtonComments;
+
+    Toast waiting_GPS_update;
 
     /**
      * Tracks whether the user has requested an address. Becomes true when the user requests an
@@ -204,11 +214,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     private MapView mapView;
     protected MapboxMap mapboxMap;
     private Style style;
-    //private LocationSource locationEngine;
     private static final int PERMISSIONS_LOCATION = 0;
     private ImageView dropPinView;
 
-    private CoordinatorLayout coordinatorLayout, spot_form_basic;
+    private View coordinatorLayout, spot_form_basic;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
 
     private NestedScrollView scrollView;
@@ -228,7 +237,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     Boolean shouldMoveMapCameraToUserLocationOnMapLoad = false;
     double cameraZoomFromBundle = -1;
 
-    private PermissionsManager permissionsManager;
+    // Variables needed to add the location engine
+    private LocationEngine locationEngine;
+    private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
+    private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+    // Variables needed to listen to location updates
+    private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
+
+    private PermissionsManager locationPermissionsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -242,7 +258,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         context = this;
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+        coordinatorLayout = (View) findViewById(R.id.coordinatorLayout);
 
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
@@ -307,8 +323,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             if (s != null &&
                     s.getIsWaitingForARide() != null && s.getIsWaitingForARide() &&
                     s.getId().equals(mCurrentSpot.getId())) {
+                String actionRequiredText = getString(R.string.evaluate_running_spot_required, getString(R.string.got_a_ride_button_text), getString(R.string.break_button_text));
                 showErrorAlert(getString(R.string.general_error_dialog_title),
-                        getString(R.string.spot_form_not_allowed_to_edit) + "\n" + getString(R.string.evaluate_running_spot_required));
+                        getString(R.string.spot_form_not_allowed_to_edit) + "\n" + actionRequiredText);
                 return;
             }
         }
@@ -331,8 +348,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         hitchabilityLabel = (TextView) findViewById(R.id.spot_form_hitchability_selectedvalue);
         selected_date = (TextView) findViewById(R.id.spot_form_selected_date);
 
-        spot_form_basic = (CoordinatorLayout) findViewById(R.id.save_spot_form_basic);
-        spot_form_evaluate = (LinearLayout) findViewById(R.id.save_spot_form_evaluate);
+        spot_form_basic = (View) findViewById(R.id.save_spot_form_basic);
+        spot_form_evaluate = (ScrollView) findViewById(R.id.save_spot_form_evaluate);
         panel_buttons = (LinearLayout) findViewById(R.id.panel_buttons);
         panel_info = (LinearLayout) findViewById(R.id.panel_info);
         panel_map_not_displayed = (TextView) findViewById(R.id.save_spot_map_not_displayed);
@@ -370,12 +387,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         hitchability_ratingbar.setNumStars(Constants.hitchabilityNumOfOptions);
         hitchability_ratingbar.setStepSize(1);
         hitchability_ratingbar.setOnRatingBarChangeListener(this);
-        //hitchabilityLabel.setText("");
-        //mLocationAddressTextView.setText("");
-
-        // Get the location engine object for later use.
-        //locationEngine = (LocationSource) LocationSource.getLocationEngine(this);
-        //locationEngine.activate();
 
         mapView = (MapView) findViewById(R.id.mapview2);
         mapView.onCreate(savedInstanceState);
@@ -383,21 +394,30 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         updateMapVisibility();
 
+
+        ((FloatingActionButton) findViewById(R.id.fab_open_external_map_app)).setOnClickListener(view -> {
+            if (mapboxMap == null || style == null || !style.isFullyLoaded())
+                return;
+
+            LatLng selectedLocation = mapboxMap.getCameraPosition().target;
+
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("geo:" + selectedLocation.getLatitude() + "," + selectedLocation.getLongitude() + "?q=" + selectedLocation.getLatitude() + "," + selectedLocation.getLongitude()));
+            startActivity(intent);
+        });
+
+
         fabLocateUser = (FloatingActionButton) findViewById(R.id.fab_locate_user);
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mapboxMap != null) {
+                if (mapboxMap != null && style != null && style.isFullyLoaded()) {
                     if (locateUserTooltip != null && locateUserTooltip.isShown())
                         locateUserTooltip.closeNow();
 
-                    moveCameraToLastKnownLocation();
+                    enableLocationLayer();
 
-                    if (waiting_GPS_update == null)
-                        waiting_GPS_update = Toast.makeText(getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
-                    waiting_GPS_update.show();
-
-                    moveMapCameraToUserLocation();
+                    callback.moveMapCameraToNextLocationReceived();
                 }
             }
         });
@@ -501,7 +521,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             if (!Utils.isNetworkAvailable(this)) {
                 //panel_buttons.setVisibility(View.GONE);
                 //panel_info.setVisibility(View.GONE);
-                showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.spot_form_unable_to_download_details));
+                showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.spot_form_unable_to_download_details, getString(R.string.spot_form_bottommenu_evaluate_tile)));
             } else {
                 //we use getSnippet() for id because original hitchwiki id is stored as snippet in our markers
                 //this avoids extending Marker class to add additional parameter for point id
@@ -554,9 +574,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 .show();
     }
 
-    Toast waiting_GPS_update;
-
-    void enableLocationLayer() {
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationLayer() {
         if (mapboxMap == null)
             return;
 
@@ -567,26 +586,32 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(this) && !((LocationComponent) locationComponent).isLocationComponentEnabled())
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
     }
 
-    void moveMapCameraToUserLocation() {
-        if (mapboxMap == null)
-            return;
+    void makeMapCameraFollowGPSUpdates(@RenderMode.Mode int compassRenderMode) {
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-        //Request permission of access to GPS updates or
-        // directly initialize and enable the location plugin if such permission was already granted. 
-        enableLocationLayer();
-
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
-            LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
+        if (locationComponent.isLocationComponentActivated()) {
             // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
             locationComponent.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
 
             //Show an arrow considering the compass of the device.
-            locationComponent.setRenderMode(RenderMode.COMPASS);
+            locationComponent.setRenderMode(compassRenderMode);
+        }
+    }
+
+    void makeMapCameraStopFollowGPSUpdates(@RenderMode.Mode int compassRenderMode) {
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+
+        //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+        if (locationComponent.isLocationComponentActivated()) {
+            //Map camera should stop following gps updates
+            locationComponent.setCameraMode(CameraMode.NONE);
+
+            //Stop showing an arrow considering the compass of the device.
+            locationComponent.setRenderMode(compassRenderMode);
         }
     }
 
@@ -683,6 +708,21 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             this.mapboxMap.getUiSettings().setAttributionEnabled(false);
             this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
 
+            this.mapboxMap.addOnCameraIdleListener(() -> {
+                collapseBottomSheet();
+                hideKeyboard();
+
+                //As the map camera was moved, we should clear the previous address data
+                mAddressOutput = null;
+                displayAddressOutput();
+
+                if (Utils.isNetworkAvailable(this))
+                    fetchAddressButtonHandler(null);
+
+                //Stop showing an arrow considering the compass of the device.
+                mapboxMap.getLocationComponent().setRenderMode(RenderMode.NORMAL);
+            });
+
             if (style.isFullyLoaded()) {
                 LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
 
@@ -692,35 +732,25 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     Crashlytics.logException(exception);
                 }
 
-                boolean mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
-
                 enableLocationLayer();
 
+                mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
 
                 //Set listeners only after requested camera position is reached
-                if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad) {
-                    if (mFormType == FormType.Create)
-                        highlightLocateButton();
-                } else {
+                if (!(mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad)) {
                     shouldMoveMapCameraToUserLocationOnMapLoad = false;
-                    //No request to position the map camera was made, so apply listeners directly
-                    moveMapCameraToUserLocation();
+                    callback.moveMapCameraToNextLocationReceived();
                 }
+
+                if (!shouldRetrieveDetailsFromHW && mFormType == FormType.Create && !shouldShowButtonsPanel)
+                    highlightCheckboxes();
 
                 addPinToCenter();
             }
         });
     }
 
-    void highlightLocateButton() {
-        locateUserTooltip = ViewTooltip
-                .on(fabLocateUser)
-                .autoHide(true, 7000)
-                .corner(30)
-                .position(ViewTooltip.Position.RIGHT)
-                .text(getString(R.string.spot_form_locate_button_tooltip_text))
-                .show();
-    }
+    boolean mapCameraWasMoved = false;
 
     /**
      * Move the map camera to the given position with zoom Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT
@@ -750,23 +780,42 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
     }
 
+    private Location tryGetLastKnownLocation() {
+        if (mapboxMap == null)
+            return null;
+
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+        Location loc = null;
+        try {
+            //Make sure location component has been activated, otherwise using any method of it will throw an exception.
+            if (locationComponent.isLocationComponentActivated())
+                loc = locationComponent.getLastKnownLocation();
+        } catch (SecurityException ex) {
+        }
+        return loc;
+    }
+
+    int FAVORITE_ZOOM_LEVEL_NOT_INFORMED = -1;
+
+    @Override
+    public void moveCameraToLastKnownLocation() {
+        moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED);
+    }
+
     /**
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
+     *
+     * @param zoomLevel The zoom level that should be used or FAVORITE_ZOOM_LEVEL_NOT_INFORMED if we should use what we think could be the best zoom level.
      */
     @SuppressWarnings({"MissingPermission"})
-    private void moveCameraToLastKnownLocation() {
+    public void moveCameraToLastKnownLocation(int zoomLevel) {
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
-        try {
-            if (PermissionsManager.areLocationPermissionsGranted(this)) {
-                Location lastLoc = mapboxMap.getLocationComponent().getLastKnownLocation();
-                if (lastLoc != null)
-                    moveCameraPositionTo = new LatLng(lastLoc);
-            }
-        } catch (SecurityException ex) {
-        }
+        Location lastLoc = tryGetLastKnownLocation();
+        if (lastLoc != null)
+            moveCameraPositionTo = new LatLng(lastLoc);
 
         if (moveCameraPositionTo != null) {
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
@@ -779,14 +828,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             }
         }
 
-        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+        int bestZoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
         //If current zoom level is default (world level)
         if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
-            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+            bestZoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
 
         if (moveCameraPositionTo != null)
-            moveCamera(moveCameraPositionTo, zoomLevel);
+            moveCamera(moveCameraPositionTo, bestZoomLevel);
     }
 
     /**
@@ -811,12 +860,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             else
                 cameraZoomTo = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
         } else {
-            Location loc = null;
-            try {
-                if (PermissionsManager.areLocationPermissionsGranted(this))
-                    loc = mapboxMap.getLocationComponent().getLastKnownLocation();
-            } catch (Exception ex) {
-            }
+            Location loc = tryGetLastKnownLocation();
 
             if (loc != null) {
                 cameraPositionTo = new LatLng(loc);
@@ -927,33 +971,28 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START))
-            drawer.closeDrawer(GravityCompat.START);
-        else {
-            if (saveMenuItem != null && saveMenuItem.isVisible() && saveMenuItem.isEnabled()) {
-                new AlertDialog.Builder(this)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
-                        .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
-                        .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
-                                //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-                                setResult(RESULT_CANCELED);
-                                finish();
-                            }
+        if (saveMenuItem != null && saveMenuItem.isVisible() && saveMenuItem.isEnabled()) {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getResources().getString(R.string.confirm_back_button_click_dialog_title))
+                    .setMessage(getResources().getString(R.string.confirm_back_button_click_dialog_message))
+                    .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
+                            //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+                            setResult(RESULT_CANCELED);
+                            finish();
+                        }
 
-                        })
-                        .setNegativeButton(getResources().getString(R.string.general_no_option), null)
-                        .show();
-            } else {
-                //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
-                //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-                setResult(RESULT_CANCELED);
-                finish();
-            }
+                    })
+                    .setNegativeButton(getResources().getString(R.string.general_no_option), null)
+                    .show();
+        } else {
+            //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
+            //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
+            setResult(RESULT_CANCELED);
+            finish();
         }
     }
 
@@ -973,26 +1012,26 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSIONS_LOCATION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                moveMapCameraToUserLocation();
-            }
-        }
-    }
-
-    @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
         Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onPermissionResult(boolean granted) {
-        if (granted) {
-            enableLocationLayer();
-        } else {
-            Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+        //As we request at least two different permissions (location and storage) for the users,
+        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSIONS_LOCATION) {
+            locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableLocationLayer();
+                callback.moveMapCameraToNextLocationReceived();
+            } else {
+                Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -1008,41 +1047,50 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-            // Activate with options
-            locationComponent.activateLocationComponent(
-                    LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
+            // Set the LocationComponent activation options
+            LocationComponentActivationOptions locationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
 
-            // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
-            locationComponent.setCameraMode(CameraMode.NONE);
+            // Activate with the LocationComponentActivationOptions object
+            locationComponent.activateLocationComponent(locationComponentActivationOptions);
 
-            //Show as an arrow considering the compass of the device.
+            //Stop showing an arrow considering the compass of the device.
             locationComponent.setRenderMode(RenderMode.COMPASS);
 
-            locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
-                @Override
-                public void onCameraTrackingDismissed() {
-                    // Tracking has been dismissed
+            initLocationEngine();
 
-                    collapseBottomSheet();
-                    hideKeyboard();
-
-                    //As the map camera was moved, we should clear the previous address data
-                    mAddressOutput = null;
-                    displayAddressOutput();
-
-                    //Stop showing an arrow considering the compass of the device.
-                    mapboxMap.getLocationComponent().setRenderMode(RenderMode.NORMAL);
-                }
-
-                @Override
-                public void onCameraTrackingChanged(int currentMode) {
-                    // CameraMode has been updated
-                }
-            });
         } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(this);
+            if (locationPermissionsManager == null)
+                locationPermissionsManager = new PermissionsManager(this);
+            locationPermissionsManager.requestLocationPermissions(this);
         }
+    }
+
+    /**
+     * Set up the LocationEngine and the parameters for querying the device's location
+     */
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(this);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build();
+
+        locationEngine.requestLocationUpdates(request, callback, getMainLooper());
+        locationEngine.getLastLocation(callback);
+    }
+
+    @Override
+    public MapboxMap getMapboxMap() {
+        return mapboxMap;
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
     }
 
     private void collapseBottomSheet() {
@@ -1257,6 +1305,85 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
 
+    MaterialShowcaseView lastShowCaseDisplayed;
+
+    /**
+     * Display showcase highlighting the Comment button.
+     * The showcase will never be displayed again after the first time this method is called, unless .resetSingleUse() is purposely called.
+     **/
+    void highlightCommentsButton() {
+        lastShowCaseDisplayed = new MaterialShowcaseView.Builder(this)
+                .setTarget(placeButtonComments)
+                .setDelay(1000) // a second between each showcase view
+                .setDismissText(getString(R.string.general_showCase_button))
+                .setContentText(getString(R.string.spot_form_read_comments_showCase))
+                //.setDelay(withDelay) // optional but starting animations immediately in onCreate can make them choppy
+                .singleUse("spotFormCommentsShowcase") // provide a unique ID used to ensure it is only shown once
+                .setDismissOnTouch(true)
+                .show();
+    }
+
+    /**
+     * Display showcase highlighting checkboxes.
+     * The showcase will never be displayed again after the first time this method is called, unless .resetSingleUse() is purposely called.
+     **/
+    void highlightCheckboxes() {
+        String showCaseID = "spotFormCheckboxesShowcase";
+        ShowcaseListener showCaseListener = new ShowcaseListener();
+        MaterialShowcaseSequence p = new MaterialShowcaseSequence(this, showCaseID);
+
+        //If showCase has been already displayed, only onShowcaseDismissed needs to be called
+        if (p.hasFired()) {
+            showCaseListener.onShowcaseDismissed();
+            return;
+        }
+
+        //Highlight checkboxes
+        lastShowCaseDisplayed = new MaterialShowcaseView.Builder(this)
+                .setTarget(findViewById(R.id.save_spot_form_checkboxes))
+                .withOvalShape()
+                .setDelay(1500) // a second between each showcase view
+                .setDismissText(getString(R.string.general_showCase_button))
+                .setContentText(getString(R.string.spot_form_extra_options_showCase))
+                .setListener(showCaseListener)
+                .singleUse(showCaseID) // provide a unique ID used to ensure it is only shown once
+                .setDismissOnTouch(true)
+                .show();
+    }
+
+    public class ShowcaseListener implements IShowcaseListener {
+        @Override
+        public void onShowcaseDisplayed(MaterialShowcaseView showcaseView) {
+            //Get buttons out of the way
+            mSaveButton.setVisibility(View.GONE);
+            mDeleteButton.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onShowcaseDismissed(MaterialShowcaseView showcaseView) {
+            onShowcaseDismissed();
+        }
+
+        public void onShowcaseDismissed() {
+            //Get buttons back to their place
+            mSaveButton.setVisibility(View.VISIBLE);
+            mDeleteButton.setVisibility(View.VISIBLE);
+
+            if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad && mFormType == FormType.Create)
+                highlightLocateButton();
+        }
+    }
+
+    void highlightLocateButton() {
+        locateUserTooltip = ViewTooltip
+                .on(fabLocateUser)
+                .autoHide(true, 7000)
+                .corner(30)
+                .position(ViewTooltip.Position.RIGHT)
+                .text(getString(R.string.spot_form_locate_button_tooltip_text))
+                .show();
+    }
+
     public void locationAddressButtonHandler(View v) {
         String strToCopy = "";
 
@@ -1285,19 +1412,16 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         panel_buttons.setVisibility(View.GONE);
         panel_info.setVisibility(View.VISIBLE);
 
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-        //Map camera should stop following gps updates
-        locationComponent.setCameraMode(CameraMode.NONE);
-
-        //Stop showing an arrow considering the compass of the device.
-        locationComponent.setRenderMode(RenderMode.NORMAL);
+        makeMapCameraStopFollowGPSUpdates(RenderMode.NORMAL);
 
         updateSaveButtonState();
         updateSelectedTab();
 
         //Automatically resolve gps
         fetchAddressButtonHandler(null);
+
+        //Display showcase highlighting the checkboxes, if this wasn't done yet.
+        highlightCheckboxes();
     }
 
     public void viewMapButtonHandler(View view) {
@@ -1490,7 +1614,15 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 is_part_of_a_route_check_box.isChecked() &&
                 !is_destination_check_box.isChecked()) {
             showSaveNewOrViewMapPanel();
-            moveMapCameraToUserLocation();
+
+            if (mapboxMap != null) {
+                //Request permission of access to GPS updates or
+                // directly initialize and enable the location plugin if such permission was already granted.
+                enableLocationLayer();
+
+                //Make map camera follow GPS. When user clicks on "save spot" button the map camera will stop following GPS updates so that user can adjust location.
+                makeMapCameraFollowGPSUpdates(RenderMode.COMPASS);
+            }
             return;
         }
 
@@ -1549,6 +1681,18 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         refreshDatetimeAlertDialogWasShown = false;
 
+        //If tooltip is still being shown, hide it
+        if (locateUserTooltip != null && ViewCompat.isAttachedToWindow(locateUserTooltip))
+            locateUserTooltip.closeNow();
+
+        //If showcase is still being shown, hide it
+        if (lastShowCaseDisplayed != null && ViewCompat.isAttachedToWindow(lastShowCaseDisplayed))
+            lastShowCaseDisplayed.hide();
+
+        //If toast is being shown, hide it
+        if (msgResult != null && ViewCompat.isAttachedToWindow(msgResult.getView()))
+            msgResult.cancel();
+
         collapseBottomSheet();
         hideKeyboard();
 
@@ -1557,14 +1701,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         //We want to show the Evaluate tab.
         lastSelectedTab = R.id.action_evaluate;
 
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-        //Map camera should stop following gps updates here,
-        // so if user clicks on Basic tab again he'll see the last location that he saw when he left.
-        locationComponent.setCameraMode(CameraMode.NONE);
-
-        //Stop showing an arrow considering the compass of the device.
-        locationComponent.setRenderMode(RenderMode.NORMAL);
+        if (mapboxMap != null) {
+            makeMapCameraStopFollowGPSUpdates(RenderMode.NORMAL);
+        }
 
         // updateUI() will call setSelectedItemId(lastSelectedTab).
         updateUI();
@@ -1777,7 +1916,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     public void SetDateTime(DatePicker datePicker, TimePicker timePicker, DateTime date) {
-        selected_date.setText(Utils.dateTimeToString(date));
+        SetSelectedDateTimeString(date);
 
         DateTime dateTime = new DateTime(date);
 
@@ -1787,7 +1926,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(Utils.dateTimeToString(selectedDateTime));
+                SetSelectedDateTimeString(selectedDateTime);
             }
         });
 
@@ -1804,11 +1943,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             @Override
             public void onTimeChanged(TimePicker var1, int var2, int var3) {
                 DateTime selectedDateTime = GetDateTime(date_datepicker, time_timepicker);
-                selected_date.setText(Utils.dateTimeToString(selectedDateTime));
+                SetSelectedDateTimeString(selectedDateTime);
             }
         });
     }
-
 
     public DateTime GetDateTime(DatePicker datePicker, TimePicker timePicker) {
         Integer hour, minute;
@@ -1824,6 +1962,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         DateTime dateTime = new DateTime(datePicker.getYear(), datePicker.getMonth() + 1, datePicker.getDayOfMonth(),
                 hour, minute, DateTimeZone.UTC); // Must always add 1 to datePickers getMounth returned value, as it is 0 based
         return dateTime;
+    }
+
+    public void SetSelectedDateTimeString(DateTime dateTime) {
+        String dateTimeFormat = Utils.getDateTimeFormat(dateTime, " 'EEEE', ");
+        selected_date.setText(Utils.dateTimeToString(dateTime, dateTimeFormat));
     }
 
     /**
@@ -2130,7 +2273,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
             // Reset. Enable the Fetch Address button and stop showing the progress bar.
             mAddressRequested = false;
-            showToast(strResult);
+            if (lastShowCaseDisplayed == null)
+                showToast(strResult);
             updateLocationWidgets();
         }
     }
@@ -2260,12 +2404,15 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
             if (!errMsgToShow.isEmpty())
                 showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), errMsgToShow));
-            else
-                Toast.makeText(context, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
+            else {
+                if (!placeWithCompleteDetails.getComments_count().contentEquals("0"))
+                    highlightCommentsButton();
+                else
+                    Toast.makeText(context, getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_SHORT).show();
+            }
         }
 
     }
-
 
 //----END: Part related to reverse geocoding
 

@@ -11,7 +11,9 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Environment;
-import android.util.Log;
+
+import com.crashlytics.android.Crashlytics;
+import com.myhitchhikingspots.R;
 
 public class FileDialog {
     private static final String PARENT_DIR = "..";
@@ -46,7 +48,13 @@ public class FileDialog {
         }
 
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
-        loadFileList(path);
+
+        try {
+            loadFileList(path);
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            showErrorAlert(activity.getString(R.string.general_error_dialog_title), ex.getMessage());
+        }
     }
 
     /**
@@ -58,9 +66,9 @@ public class FileDialog {
 
         builder.setTitle(currentPath.getPath());
         if (selectDirectoryOption) {
-            builder.setPositiveButton("Select directory", new OnClickListener() {
+            builder.setPositiveButton(activity.getString(R.string.tools_file_dialog_select_directory_title), new OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    Log.d(TAG, currentPath.getPath());
+                    Crashlytics.setString("currentPath", currentPath.getPath());
                     fireDirectorySelectedEvent(currentPath);
                 }
             });
@@ -71,10 +79,15 @@ public class FileDialog {
                 String fileChosen = fileList[which];
                 File chosenFile = getChosenFile(fileChosen);
                 if (chosenFile.isDirectory()) {
-                    loadFileList(chosenFile);
-                    dialog.cancel();
-                    dialog.dismiss();
-                    showDialog();
+                    try {
+                        loadFileList(chosenFile);
+                        dialog.cancel();
+                        dialog.dismiss();
+                        showDialog();
+                    } catch (Exception ex) {
+                        Crashlytics.logException(ex);
+                        showErrorAlert(activity.getString(R.string.general_error_dialog_title), ex.getMessage());
+                    }
                 } else fireFileSelectedEvent(chosenFile);
             }
         });
@@ -127,7 +140,9 @@ public class FileDialog {
         });
     }
 
-    private void loadFileList(File path) {
+    private void loadFileList(File path) throws Exception {
+        Crashlytics.log("loadFileList was called.");
+        Crashlytics.setString("currentPath", path.getPath());
         this.currentPath = path;
         List<String> r = new ArrayList<String>();
         if (path.exists()) {
@@ -150,7 +165,11 @@ public class FileDialog {
                     }
                 }
             };
+            //Get an array of abstract path names denoting the files and directories in the given directory (path) that satisfy the specified filter.
             String[] fileList1 = path.list(filter);
+            // The method returns null if the abstract path does not denote a directory, or if an I/O error occurs.
+            if (fileList1 == null)
+                throw new Exception(activity.getString(R.string.tools_file_dialog_invalid_directory_message));
             for (String file : fileList1) {
                 r.add(file);
             }
@@ -161,8 +180,15 @@ public class FileDialog {
     private File getChosenFile(String fileChosen) {
         if (fileChosen.equals(PARENT_DIR)) return currentPath.getParentFile();
         else return new File(currentPath, fileChosen);
+    }
 
-
+    protected void showErrorAlert(String title, String msg) {
+        new androidx.appcompat.app.AlertDialog.Builder(activity)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(activity.getString(R.string.general_ok_option), null)
+                .show();
     }
 }
 

@@ -2,6 +2,7 @@ package com.myhitchhikingspots;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.location.Address;
 import android.os.Bundle;
 
@@ -96,72 +97,7 @@ public class SpotListFragment extends Fragment {
                                 new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        String errorMessage = "";
-                                        try {
-                                            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
-                                            Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
-                                                    mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
-                                            ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
-
-                                            for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++) {
-                                                Integer selectedSpotId = mAdapter.getSelectedSpots().get(i);
-
-                                                //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-                                                if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
-                                                    ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).setCurrentSpot(null);
-
-                                                //Concatenate Id in a list as "Id.columnName = x"
-                                                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
-                                            }
-
-                                            //Get a DB session
-                                            Database db = DaoMaster.newDevSession(getContext(), Constants.INTERNAL_DB_FILE_NAME).getDatabase();
-
-                                            //Delete selected spots from DB
-                                            db.execSQL(String.format(sqlDeleteStatement,
-                                                    SpotDao.TABLENAME,
-                                                    TextUtils.join(" OR ", spotsToBeDeleted_idList)));
-
-                                            List<Spot> remainingSpots = new ArrayList<>();
-
-                                            //Go through all the spots in the list
-                                            for (int i = 0; i < spotList.size(); i++) {
-                                                //Check if this spot was in the list to be deleted
-                                                if (!mAdapter.getSelectedSpots().contains(spotList.get(i).getId().intValue())) {
-                                                    //Add spot to remaining list if it was not selected to be deleted
-                                                    remainingSpots.add(spotList.get(i));
-                                                } else {
-                                                    //Create recordd to track usage of Delete button for each spot deleted
-                                                    Answers.getInstance().logCustom(new CustomEvent("Spot deleted"));
-                                                }
-                                            }
-
-                                            //Clear selectedSpotsList
-                                            mAdapter.setSelectedSpotsList(new ArrayList<Integer>());
-
-                                            //Replace spotList with the list not containing the removed spots
-                                            spotList = remainingSpots;
-
-                                            mAdapter.setSpotList(spotList);
-                                            setIsEditMode(false);
-                                            mAdapter.notifyDataSetChanged();
-                                        } catch (Exception ex) {
-                                            Crashlytics.logException(ex);
-                                            errorMessage = "An error occurred: " + ex.getMessage();
-                                        }
-
-                                        if (!errorMessage.isEmpty()) {
-                                            //if(!errorMessage.isEmpty()) {
-                                            new AlertDialog.Builder(getContext())
-                                                    .setIcon(android.R.drawable.ic_dialog_alert)
-                                                    .setTitle(getString(R.string.general_error_dialog_title))
-                                                    .setMessage(errorMessage)
-                                                    .setNeutralButton(getResources().getString(R.string.general_ok_option), null)
-                                                    .show();
-                                        } else
-                                            //Let parent activity handle this
-                                            if (onOneOrMoreSpotsDeleted != null)
-                                                onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged();
+                                        deleteSelectedSpots();
                                     }
                                 })
                         .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
@@ -193,7 +129,9 @@ public class SpotListFragment extends Fragment {
                         if (mCurrentWaitingSpot.getId().equals(spot.getId()))
                             spot.setAttemptResult(null);
                         else {
-                            Toast.makeText(getContext(), getResources().getString(R.string.evaluate_running_spot_required), Toast.LENGTH_LONG).show();
+                            Resources res = getResources();
+                            String actionRequiredText = res.getString(R.string.evaluate_running_spot_required, res.getString(R.string.got_a_ride_button_text), res.getString(R.string.break_button_text));
+                            Toast.makeText(getContext(), actionRequiredText, Toast.LENGTH_LONG).show();
                             return;
                         }
                     }
@@ -225,6 +163,74 @@ public class SpotListFragment extends Fragment {
         recyclerView.setAdapter(mAdapter);
 
         return rootView;
+    }
+
+    private void deleteSelectedSpots() {
+        String errorMessage = "";
+        try {
+            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
+            Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
+                    mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
+            ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
+
+            for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++) {
+                Integer selectedSpotId = mAdapter.getSelectedSpots().get(i);
+
+                //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+                if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
+                    ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).setCurrentSpot(null);
+
+                //Concatenate Id in a list as "Id.columnName = x"
+                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
+            }
+
+            //Get a DB session
+            Database db = DaoMaster.newDevSession(getContext(), Constants.INTERNAL_DB_FILE_NAME).getDatabase();
+
+            //Delete selected spots from DB
+            db.execSQL(String.format(sqlDeleteStatement,
+                    SpotDao.TABLENAME,
+                    TextUtils.join(" OR ", spotsToBeDeleted_idList)));
+
+            List<Spot> remainingSpots = new ArrayList<>();
+
+            //Go through all the spots in the list
+            for (int i = 0; i < spotList.size(); i++) {
+                //Check if this spot was in the list to be deleted
+                if (!mAdapter.getSelectedSpots().contains(spotList.get(i).getId().intValue())) {
+                    //Add spot to remaining list if it was not selected to be deleted
+                    remainingSpots.add(spotList.get(i));
+                } else {
+                    //Create recordd to track usage of Delete button for each spot deleted
+                    Answers.getInstance().logCustom(new CustomEvent("Spot deleted"));
+                }
+            }
+
+            //Clear selectedSpotsList
+            mAdapter.setSelectedSpotsList(new ArrayList<Integer>());
+
+            //Replace spotList with the list not containing the removed spots, and call updateUI
+            setValues(remainingSpots);
+
+            setIsEditMode(false);
+            mAdapter.notifyDataSetChanged();
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            errorMessage = "An error occurred: " + ex.getMessage();
+        }
+
+        if (!errorMessage.isEmpty()) {
+            //if(!errorMessage.isEmpty()) {
+            new AlertDialog.Builder(getContext())
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getString(R.string.general_error_dialog_title))
+                    .setMessage(errorMessage)
+                    .setNeutralButton(getResources().getString(R.string.general_ok_option), null)
+                    .show();
+        } else
+            //Let parent activity handle this
+            if (onOneOrMoreSpotsDeleted != null)
+                onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged();
     }
 
     ListListener onOneOrMoreSpotsDeleted;

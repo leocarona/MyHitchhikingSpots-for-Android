@@ -19,7 +19,7 @@ public class FilePickerDialog {
             @Override
             public void fileSelected(File file) {
                 if (onFilePicked != null)
-                    onFilePicked.notifyTaskFinished(file != null, file);
+                    onFilePicked.notifyTaskFinished(file != null, file, file.getPath());
             }
         });
         fileDialog.showDialog();

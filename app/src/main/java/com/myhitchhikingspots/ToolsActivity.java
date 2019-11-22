@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -9,17 +10,21 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.core.widget.TextViewCompat;
 
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,6 +67,13 @@ public class ToolsActivity extends AppCompatActivity {
     final static int PICK_DB_REQUEST = 1;
     final static String DBBackupSubdirectory = "/backup";
     final static String TAG = "settings-activity";
+
+    /**
+     * Path to the exported file on the local storage.
+     * Please note that at the moment when this variable is set we know that the file exists because it has been just generated.
+     * Therefore we should avoid using this path in the future unless we guarantee that we check if it still exists before using it for anything (like for sharing).
+     **/
+    public String destinationFilePath = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +125,13 @@ public class ToolsActivity extends AppCompatActivity {
         findViewById(R.id.btnPickFile).setOnClickListener(this::pickFileButtonHandler);
 
         coordinatorLayout = findViewById(R.id.coordinatiorLayout);
+
+        findViewById(R.id.item_description_layout).setOnClickListener((v) -> {
+            collapseExpandTextView();
+        });
+
+        ((TextView) findViewById(R.id.tools_tips_description))
+                .setText(getString(R.string.tools_tips_description, getString(R.string.settings_exportdb_button_label), getString(R.string.settings_importdb_button_label)));
     }
 
     //persmission method.
@@ -234,7 +253,7 @@ public class ToolsActivity extends AppCompatActivity {
             //Add listener to be called when task finished
             dialog.addListener(new AsyncTaskListener<File>() {
                 @Override
-                public void notifyTaskFinished(Boolean success, File file) {
+                public void notifyTaskFinished(Boolean success, File file, String filePath) {
                     //Start import task
                     importPickedFile(file);
                 }
@@ -243,37 +262,39 @@ public class ToolsActivity extends AppCompatActivity {
         }
     }
 
+    void collapseExpandTextView() {
+        TextView tools_tips_description = findViewById(R.id.tools_tips_description);
+        ImageView tools_tips_header_img = findViewById(R.id.tools_tips_header_img);
+        if (tools_tips_description.getVisibility() == View.GONE) {
+            // it's collapsed - expand it
+            tools_tips_description.setVisibility(View.VISIBLE);
+            tools_tips_header_img.setImageResource(R.drawable.ic_expand_less_black_24dp);
+        } else {
+            // it's expanded - collapse it
+            tools_tips_description.setVisibility(View.GONE);
+            tools_tips_header_img.setImageResource(R.drawable.ic_expand_more_black_24dp);
+        }
+
+        ObjectAnimator animation = ObjectAnimator.ofInt(tools_tips_description, "maxLines", TextViewCompat.getMaxLines(tools_tips_description));
+        animation.setDuration(200).start();
+    }
+
     boolean shouldFixStartDates = false;
     boolean userAlreadyAnswered = false;
 
     void importPickedFile(File fileToImport) {
 
-        if (shouldAutomaticallyFixStartDateTimes(fileToImport.getName())) {
-            //if positive answer from user
-            shouldFixStartDates = true;
-        } else if (!userAlreadyAnswered) {
+        try {
+            shouldFixStartDates = shouldFixStartDateTimes(fileToImport.getName());
+        } catch (Exception ex) {
+            //The file has probably been renamed, so we were not able to extract the datetime when it was generated.
+            shouldFixStartDates = false;
+        }
 
-            //Ask user if he'd like to fix the StartDateTime of all spots being imported and only continue after he chooses an option.
-            new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setTitle(getString(R.string.settings_automatically_fix_spots_datetime_title))
-                    .setMessage(getString(R.string.settings_automatically_fix_spots_datetime_message))
-                    .setPositiveButton(getResources().getString(R.string.general_yes_option), (dialog, which) -> {
-                        userAlreadyAnswered = true;
-                        //if positive answer from user
-                        shouldFixStartDates = true;
-                        //regardless of user's answer, call this method again
-                        importPickedFile(fileToImport);
-                    })
-                    .setNegativeButton(getString(R.string.general_no_option), (dialog, which) -> {
-                        userAlreadyAnswered = true;
-                        //if negative answer from user
-                        shouldFixStartDates = false;
-                        //regardless of user's answer, call this method again
-                        importPickedFile(fileToImport);
-                    })
-                    .show();
-
+        //If startDateTime of the spots should get fixed AND we haven't asked whether the user wants to fix it now or not, then display dialog.
+        if (shouldFixStartDates && !userAlreadyAnswered) {
+            //Ask user whether they want to get the start datetimes of the spots being imported fixed
+            showFixSpotsDatetimeDialog(fileToImport);
             return;
         }
 
@@ -282,7 +303,7 @@ public class ToolsActivity extends AppCompatActivity {
         //Add listener to be called when task finished
         t.addListener(new AsyncTaskListener<ArrayList<String>>() {
             @Override
-            public void notifyTaskFinished(Boolean success, ArrayList<String> messages) {
+            public void notifyTaskFinished(Boolean success, ArrayList<String> messages, String filePath) {
                 String title = "";
 
                 //Show toast
@@ -322,34 +343,85 @@ public class ToolsActivity extends AppCompatActivity {
     }
 
     /**
-     * Check whether we should automatically fix all StartDateTime of the spots being imported.
-     *
-     * @return True if we were able to guess that the file might have been generated by the app before version 26.
-     * False if the file has been exported before version 27 - what means that the spots StartDateTime do not need to be fixed.
+     * Ask user if he/she would like us to fix the StartDateTime of all spots being imported.
      **/
-    public static boolean shouldAutomaticallyFixStartDateTimes(String fileName) {
-        boolean shouldAutomaticallyFixStartDateTimes;
-        try {
-            DateTime version27_releasedOn = DateTime.parse(Constants.APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME);
-
-            //NOTE:
-            // Version 27 has automatically fixed all StartDateTime of spots that have been saved before its release.
-            // Databases exported before version 27 were named with the format Constants.OLD_EXPORT_CSV_FILENAME_FORMAT.
-
-            // If fileName doesn't follow any naming format (which means it has been renamed and its name doesn't contain a datetime in any expected format), an exception will be thrown.
-            DateTime file_exportedOn = Utils.extractDateTimeFromFileName(fileName, DateTimeZone.getDefault());
-
-            //Check if fileName tells us that the database has been exported before version 27.
-            shouldAutomaticallyFixStartDateTimes = file_exportedOn.isBefore(version27_releasedOn);
-        } catch (Exception ex) {
-            //The file has probably been renamed, so we were not able to extract the datetime when it was generated.
-            shouldAutomaticallyFixStartDateTimes = false;
-        }
-        return shouldAutomaticallyFixStartDateTimes;
+    void showFixSpotsDatetimeDialog(File fileToImport) {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getString(R.string.settings_automatically_fix_spots_datetime_title))
+                .setMessage(getString(R.string.settings_automatically_fix_spots_datetime_message))
+                .setPositiveButton(getString(R.string.general_yes_option), (dialog, which) -> {
+                    userAlreadyAnswered = true;
+                    //if positive answer from user
+                    shouldFixStartDates = true;
+                    //regardless of user's answer, call this method again
+                    importPickedFile(fileToImport);
+                })
+                .setNegativeButton(getString(R.string.general_no_option), (dialog, which) -> {
+                    userAlreadyAnswered = true;
+                    //if negative answer from user
+                    shouldFixStartDates = false;
+                    //regardless of user's answer, call this method again
+                    importPickedFile(fileToImport);
+                })
+                .show();
     }
 
+    void showShouldDatabaseBeCopiedLocallyDialog() {
+        /*new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getString(R.string.settings_exportdb_button_label))
+                .setMessage("Would like to also save a copy of your database to your SD card?")
+                .setPositiveButton(getString(R.string.general_yes_option), (dialog, which) -> {
+                    exportDBNow(true);
+                })
+                .setNegativeButton(getString(R.string.general_no_option), (dialog, which) -> {
+                    exportDBNow(false);
+                })
+                .show();*/
+        exportDBNow();
+    }
+
+    void showShareExportedDatabaseDialog() {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getString(R.string.tools_database_exported_successfully_message))
+                .setMessage(getString(R.string.tools_exportdb_share_dialog_message, getString(R.string.general_share_label)))
+                .setPositiveButton(getString(R.string.general_share_label), (dialog, which) -> {
+                    shareCSV();
+                })
+                .setNegativeButton(getString(R.string.general_cancel_option), (dialog, which) -> {
+                    findViewById(R.id.btnShare).setVisibility(View.VISIBLE);
+                })
+                .show();
+    }
+
+    /**
+     * Check whether the StartDateTime of the spots being imported need to be fixed.
+     * If we can't determine when the file being imported was generated, an exception will be thrown.
+     *
+     * @return True if we were able to check that the file being imported was generated before My Hitchhiking Spots version 26.
+     * False if we were able to check that it has been exported by version 27 or after - what means that the spots StartDateTime do not need to be fixed.
+     **/
+    public static boolean shouldFixStartDateTimes(String fileName) throws IllegalArgumentException {
+        DateTime version27_releasedOn = DateTime.parse(Constants.APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME);
+
+        //NOTE:
+        // Version 27 has automatically fixed all StartDateTime of spots that have been saved before its release.
+        // Databases exported before version 27 were named with the format Constants.OLD_EXPORT_CSV_FILENAME_FORMAT.
+
+        // If fileName doesn't follow any naming format (which means it has been renamed and its name doesn't contain a datetime in any expected format), an exception will be thrown.
+        DateTime file_exportedOn = Utils.extractDateTimeFromFileName(fileName, DateTimeZone.getDefault());
+
+        //Check if fileName tells us that the database has been exported before version 27.
+        return file_exportedOn.isBefore(version27_releasedOn);
+    }
 
     public void exportButtonHandler(View view) {
+        showShouldDatabaseBeCopiedLocallyDialog();
+    }
+
+    void exportDBNow() {
         if (!isStoragePermissionsGranted(this))
             requestStoragePermissions(this);
         else {
@@ -358,7 +430,7 @@ public class ToolsActivity extends AppCompatActivity {
                 //Add listener to be called when task finished
                 t.addListener(new AsyncTaskListener<String>() {
                     @Override
-                    public void notifyTaskFinished(Boolean success, String message) {
+                    public void notifyTaskFinished(Boolean success, String message, String exportedFilePath) {
 
                         if (success) {
                             DateTime now = DateTime.now(DateTimeZone.UTC);
@@ -369,11 +441,13 @@ public class ToolsActivity extends AppCompatActivity {
                             mfeedbacklabel.setText(message);
                             mfeedbacklabel.setVisibility(View.VISIBLE);
 
-                            //Show toast
-                            Toast.makeText(getBaseContext(), getString(R.string.general_export_finished_successfull_message), Toast.LENGTH_SHORT).show();
-
                             //Create a record to track Export Database success
                             Answers.getInstance().logCustom(new CustomEvent("Database export success"));
+
+                            if (!exportedFilePath.equals("")) {
+                                destinationFilePath = exportedFilePath;
+                                showShareExportedDatabaseDialog();
+                            }
                         } else {
                             showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
 
@@ -393,6 +467,44 @@ public class ToolsActivity extends AppCompatActivity {
         }
     }
 
+    public void shareDB(View v) {
+        try {
+            shareCSV();
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+        }
+    }
+
+    void shareCSV() {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/csv");
+        intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name));
+        //intent.putExtra(Intent.EXTRA_TEXT, "body text");
+        //intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"email@example.com"});
+        File file = new File(destinationFilePath);
+        if (!file.exists() || !file.canRead()) {
+            Toast.makeText(this, "Attachment Error", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        //Record usage of share option
+        Answers.getInstance().logCustom(new CustomEvent("Database shared"));
+
+        Uri uri = getPathUri(file);
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        startActivity(Intent.createChooser(intent, getString(R.string.settings_sharedb_button_label)));
+    }
+
+    Uri getPathUri(File file) {
+        Uri uri;
+        //We have to check if it's nougat or not.
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+            uri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID, file);
+        } else {
+            uri = Uri.fromFile(file);
+        }
+        return uri;
+    }
 
     //importing database
     private void importDB() {

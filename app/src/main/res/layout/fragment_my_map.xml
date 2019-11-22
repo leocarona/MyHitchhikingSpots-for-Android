@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/coordinatiorLayout"
+    android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
@@ -11,8 +11,12 @@
 
     <com.mapbox.mapboxsdk.maps.MapView
         android:id="@+id/mapview2"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         mapbox:mapbox_renderTextureMode="true" />
 
 
@@ -20,32 +24,28 @@
         android:id="@+id/fab_locate_user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|left"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="80dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_margin="10dp"
         app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:rippleColor="@color/ic_standard_fab_color_lighter"
         app:srcCompat="@drawable/ic_my_location_24dp"
-        tools:ignore="VectorDrawableCompat"
-        app:useCompatPadding="true"
-        app:fabSize="mini"/>
+        app:useCompatPadding="false"
+        tools:ignore="VectorDrawableCompat" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_zoom_in"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|left"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="65dp"
+        android:layout_margin="10dp"
         android:alpha="0.5"
         app:backgroundTint="@color/ic_standard_fab_color"
         app:fabSize="mini"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fab_locate_user"
         app:rippleColor="@color/ic_standard_fab_color_lighter"
-        app:useCompatPadding="true"
+        app:useCompatPadding="false"
         mapbox:srcCompat="@drawable/ic_zoom_in_white_24dp"
         tools:ignore="VectorDrawableCompat" />
 
@@ -53,56 +53,39 @@
         android:id="@+id/fab_zoom_out"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="120dp"
+        android:layout_margin="10dp"
         android:alpha="0.5"
         app:backgroundTint="@color/ic_standard_fab_color"
         app:fabSize="mini"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fab_zoom_in"
         app:rippleColor="@color/ic_standard_fab_color_lighter"
-        app:useCompatPadding="true"
+        app:useCompatPadding="false"
         mapbox:srcCompat="@drawable/ic_zoom_out_white_24dp"
         tools:ignore="VectorDrawableCompat" />
 
-   <!-- <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_show_all"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|left"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="80dp"
-        android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="65dp"
-        app:backgroundTint="@color/ic_standard_fab_color"
-        app:rippleColor="@color/ic_standard_fab_color_lighter"
-        app:srcCompat="@drawable/ic_zoom_out_map_white_24dp"
-        tools:ignore="VectorDrawableCompat"
-        app:useCompatPadding="true"
-        app:fabSize="mini" /> -->
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_spot_action_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_alignParentBottom="true"
+        android:layout_marginRight="5dp"
         android:layout_marginBottom="10dp"
-        android:layout_alignParentRight="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/fab_spot_action_2"
+        app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@drawable/ic_regular_spot_icon"
-        app:useCompatPadding="true"
-        android:layout_marginLeft="-40dp" />
+        app:layout_constraintHorizontal_chainStyle="packed" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_spot_action_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginLeft="5dp"
         android:layout_marginBottom="10dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        app:srcCompat="@drawable/ic_arrival_icon"
-        app:useCompatPadding="true"
-        android:layout_marginLeft="100dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/fab_spot_action_1"
+        app:srcCompat="@drawable/ic_arrival_icon" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

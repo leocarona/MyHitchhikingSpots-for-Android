@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:openDrawer="start">
+    android:fitsSystemWindows="true">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -35,24 +32,15 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/ic_standard_fab_color"
+        app:itemBackground="@color/ic_standard_fab_color"
+        app:itemIconTint="@color/menu_bottom_selector"
+        app:itemTextColor="@color/menu_bottom_selector"
+        app:menu="@menu/menu_spot_form_bottom" />
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/app_menu_header"
-        app:menu="@menu/app_menu"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="20dp"
-            android:contentDescription="@string/general_hitchwiki_logo_label"
-            android:src="@drawable/wiki_logo" />
-    </com.google.android.material.navigation.NavigationView>
-
-</androidx.drawerlayout.widget.DrawerLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

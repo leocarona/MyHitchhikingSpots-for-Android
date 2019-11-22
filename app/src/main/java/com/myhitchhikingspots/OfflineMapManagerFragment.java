@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,6 +30,9 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -38,6 +42,7 @@ import com.mapbox.mapboxsdk.geometry.LatLngBounds;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
+import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -48,17 +53,22 @@ import com.mapbox.mapboxsdk.offline.OfflineRegionError;
 import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
 import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
+import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.os.Looper.getMainLooper;
+
 /**
  * Download, view, navigate to, and delete an offline region.
  */
-public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCallback, PermissionsListener {
+public class OfflineMapManagerFragment extends Fragment implements
+        OnMapReadyCallback, PermissionsListener, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
 
     // JSON encoding/decoding
     public static final String JSON_CHARSET = "UTF-8";
@@ -82,7 +92,14 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
     private OfflineRegion offlineRegion;
     SharedPreferences prefs;
 
-    private PermissionsManager permissionsManager;
+    // Variables needed to add the location engine
+    private LocationEngine locationEngine;
+    private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
+    private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+    // Variables needed to listen to location updates
+    private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
+
+    private PermissionsManager locationPermissionsManager;
 
     Toast waiting_GPS_update;
 
@@ -164,14 +181,8 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                     //Show a toast to indicate that the download is still in progress
                     showStillInProgressToast();
                 } else {
-                    if (mapboxMap != null) {
-                        moveCameraToLastKnownLocation();
-
-                        if (waiting_GPS_update == null)
-                            waiting_GPS_update = Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
-                        waiting_GPS_update.show();
-
-                        locateUser(style);
+                    if (mapboxMap != null && style != null && style.isFullyLoaded()) {
+                        callback.moveMapCameraToNextLocationReceived();
                     }
                 }
             }
@@ -213,15 +224,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (permissionsManager == null)
-            permissionsManager = new PermissionsManager(this);
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == PERMISSIONS_LOCATION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                locateUser(style);
-            }
-        }
+    public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
     }
 
     @Override
@@ -231,38 +234,90 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
     @Override
     public void onPermissionResult(boolean granted) {
-        if (granted) {
-            enableLocationComponent(style);
+        //As we request at least two different permissions (location and storage) for the users,
+        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSIONS_LOCATION) {
+            locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableLocationLayer(style);
+                callback.moveMapCameraToNextLocationReceived();
+            } else {
+                Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+            }
         }
+    }
+
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationLayer(@NonNull Style loadedMapStyle) {
+        if (mapboxMap == null)
+            return;
+
+        //Setup location plugin to display the user location on a map.
+        // NOTE: map camera won't follow location updates by default here.
+        setupLocationComponent(loadedMapStyle);
+
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+
+        // Enable the location layer on the map
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
+            locationComponent.setLocationComponentEnabled(true);
     }
 
 
     @SuppressWarnings({"MissingPermission"})
-    private void enableLocationComponent(@NonNull Style loadedMapStyle) {
+    private void setupLocationComponent(@NonNull Style loadedMapStyle) {
         // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(activity)) {
 
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-            // Activate with options
-            locationComponent.activateLocationComponent(
-                    LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
+            // Set the LocationComponent activation options
+            LocationComponentActivationOptions locationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(activity, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
 
-            // Enable to make component visible
-            locationComponent.setLocationComponentEnabled(true);
+            // Activate with the LocationComponentActivationOptions object
+            locationComponent.activateLocationComponent(locationComponentActivationOptions);
 
-            // Set the component's camera mode
-            locationComponent.setCameraMode(CameraMode.TRACKING_GPS);
+            //Map camera should stop following gps updates
+            locationComponent.setCameraMode(CameraMode.NONE);
 
-            // Set the component's render mode
+            //Stop showing an arrow considering the compass of the device.
             //locationComponent.setRenderMode(RenderMode.COMPASS);
+
+            initLocationEngine();
         } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(activity);
+            if (locationPermissionsManager == null)
+                locationPermissionsManager = new PermissionsManager(this);
+            locationPermissionsManager.requestLocationPermissions(activity);
         }
     }
 
+    /**
+     * Set up the LocationEngine and the parameters for querying the device's location
+     */
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build();
+
+        locationEngine.requestLocationUpdates(request, callback, getMainLooper());
+        locationEngine.getLastLocation(callback);
+    }
+
+    @Override
+    public MapboxMap getMapboxMap() {
+        return mapboxMap;
+    }
 
     @Override
     public void onMapReady(final MapboxMap mapboxMap) {
@@ -281,11 +336,14 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                 } catch (RuntimeException exception) {
                     Crashlytics.logException(exception);
                 }
+
+                enableLocationLayer(this.style);
+
+                //Because it might take some time til Location Engine gets started and the first location update is received,
+                //let's display a "waiting for GPS" message.
+                Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
+                callback.moveMapCameraToNextLocationReceived();
             }
-
-            moveCameraToLastKnownLocation();
-
-            locateUser(style);
         });
     }
 
@@ -332,16 +390,6 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         mapView.onLowMemory();
     }
 
-    void locateUser(Style loadedMapStyle) {
-        enableLocationComponent(loadedMapStyle);
-
-        LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-        // Enable the location layer on the map
-        if (PermissionsManager.areLocationPermissionsGranted(activity) && !locationComponent.isLocationComponentEnabled())
-            locationComponent.setLocationComponentEnabled(true);
-    }
-
     /**
      * Move the map camera to the given position with zoom Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT
      *
@@ -371,19 +419,46 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         }
     }
 
+    private Location tryGetLastKnownLocation() {
+        if (mapboxMap == null)
+            return null;
+
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+        Location loc = null;
+        try {
+            //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+            if (locationComponent.isLocationComponentActivated())
+                loc = locationComponent.getLastKnownLocation();
+        } catch (SecurityException ex) {
+        }
+        return loc;
+    }
+
+    int FAVORITE_ZOOM_LEVEL_NOT_INFORMED = -1;
+
+    @Override
+    public void moveCameraToLastKnownLocation() {
+        moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED);
+    }
+
+    /**
+     * Move map camera to the last GPS location OR if it's not available,
+     * we'll try to move the map camera to the location of the last saved spot.
+     *
+     * @param zoomLevel The zoom level that should be used or FAVORITE_ZOOM_LEVEL_NOT_INFORMED if we should use what we think could be the best zoom level.
+     */
     @SuppressWarnings({"MissingPermission"})
-    private void moveCameraToLastKnownLocation() {
+    public void moveCameraToLastKnownLocation(int zoomLevel) {
+        //Request permission of access to GPS updates or
+        // directly initialize and enable the location plugin if such permission was already granted.
+        enableLocationLayer(style);
+
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
-        try {
-            if (PermissionsManager.areLocationPermissionsGranted(activity)) {
-                Location lastLoc = mapboxMap.getLocationComponent().getLastKnownLocation();
-                if (lastLoc != null)
-                    moveCameraPositionTo = new LatLng(lastLoc);
-            }
-        } catch (Exception ex) {
-        }
+        Location lastLoc = tryGetLastKnownLocation();
+        if (lastLoc != null)
+            moveCameraPositionTo = new LatLng(lastLoc);
 
         if (moveCameraPositionTo != null) {
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
@@ -396,14 +471,14 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
             }
         }
 
-        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+        int bestZoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
         //If current zoom level is default (world level)
         if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
-            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+            bestZoomLevel = Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT;
 
         if (moveCameraPositionTo != null)
-            moveCamera(moveCameraPositionTo, zoomLevel);
+            moveCamera(moveCameraPositionTo, bestZoomLevel);
     }
 
     private void downloadRegionDialog() {
@@ -510,7 +585,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
                     if (status.isComplete()) {
                         // Download complete
-                        endProgress(getString(R.string.end_progress_success));
+                        endProgress(R.string.end_progress_success);
                         return;
                     } else if (status.isRequiredResourceCountPrecise()) {
                         // Switch to determinate state
@@ -554,8 +629,9 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
              */
             @Override
             public void mapboxTileCountLimitExceeded(long limit) {
-                endProgress(getString(R.string.tile_count_limit_exceed_error_message));
-                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded: " + limit + ". And error message should have been shown to the user saying '" + getString(R.string.tile_count_limit_exceed_error_message) + "'"));
+                Crashlytics.setLong("limit", limit);
+                endProgress(R.string.tile_count_limit_exceed_error_message);
+                Crashlytics.logException(new Exception("Mapbox tile count limit exceeded."));
             }
         });
 
@@ -637,12 +713,12 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
                                     public void onDelete() {
                                         // Once the region is deleted, remove the
                                         // progressBar and display a toast
-                                        endProgress(getString(R.string.toast_region_deleted));
+                                        endProgress(R.string.toast_region_deleted);
                                     }
 
                                     @Override
                                     public void onError(String error) {
-                                        endProgress(getString(R.string.general_error_dialog_title));
+                                        endProgress(R.string.general_error_dialog_title);
                                         Crashlytics.logException(new Exception("Error: " + error));
                                     }
                                 });
@@ -691,6 +767,9 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
     // Progress bar methods
     private void startProgress() {
+        if (activity == null || activity.isFinishing())
+            return;
+
         // Start and show the progress bar
         isInProgress = true;
         progressBar.setIndeterminate(true);
@@ -711,11 +790,13 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
         progressBar.setProgress(percentage);
     }
 
-    private void endProgress(final String message) {
+    private void endProgress(int messageStringResourceId) {
         // Don't notify more than once
-        if (!isInProgress) {
+        if (!isInProgress || activity == null || activity.isFinishing()) {
             return;
         }
+
+        String message = activity.getString(messageStringResourceId);
 
         // Stop and hide the progress bar
         isInProgress = false;
@@ -724,6 +805,7 @@ public class OfflineMapManagerFragment extends Fragment implements OnMapReadyCal
 
         // Show a toast
         Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
+        Crashlytics.log("A toast was shown to the user containing the following message: " + message);
 
 
         // Enable map until download finishes

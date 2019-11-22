@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -45,12 +46,16 @@ import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.camera.CameraUpdate;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -68,12 +73,14 @@ import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.DownloadHWSpotsDialog;
 import com.myhitchhikingspots.utilities.DownloadPlacesAsyncTask;
 import com.myhitchhikingspots.utilities.DownloadCountriesListAsyncTask;
 import com.myhitchhikingspots.utilities.DownloadCountriesListAsyncTask.onPlacesDownloadedListener;
 import com.myhitchhikingspots.utilities.IconUtils;
+import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.PairParcelable;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -82,9 +89,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -94,6 +99,7 @@ import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
+import static android.os.Looper.getMainLooper;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
@@ -102,14 +108,11 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute, MainActivity.OnSpotsListChanged {
+        MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
-    //private LocationEngine locationEngine;
-    //private LocationEngineListener locationEngineListener;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
-    //private TextView mWaitingToGetCurrentLocationTextView;
     CoordinatorLayout coordinatorLayout;
     Boolean shouldDisplayIcons = true;
 
@@ -122,7 +125,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     static String locationSeparator = ", ";
 
-    private PermissionsManager permissionsManager;
+    private PermissionsManager locationPermissionsManager;
+
+    Toast waiting_GPS_update;
 
     Boolean shouldZoomToFitAllMarkers = true;
 
@@ -135,18 +140,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     // Permissions variables
     private static final int PERMISSIONS_LOCATION = 0;
     private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
-    Toast waiting_GPS_update;
 
     private static final String MARKER_SOURCE_ID = "markers-source";
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
 
     AsyncTask loadTask;
-
-    /**
-     * Represents a geographical location.
-     */
-    boolean wasFirstLocationReceived = false;
 
     Icon ic_single_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     Icon ic_hitchability_unknown, ic_hitchability_very_good, ic_hitchability_good, ic_hitchability_average, ic_hitchability_bad, ic_hitchability_senseless;
@@ -156,6 +155,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     FeatureCollection featureCollection;
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
+
+    // Variables needed to add the location engine
+    private LocationEngine locationEngine;
+    private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
+    private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+    // Variables needed to listen to location updates
+    private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
 
     public static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
 
@@ -188,16 +194,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mapboxMap != null) {
-                    moveCameraToLastKnownLocation();
-
-                    if (waiting_GPS_update == null)
-                        waiting_GPS_update = Toast.makeText(activity.getBaseContext(), getString(R.string.waiting_for_gps), Toast.LENGTH_SHORT);
-                    waiting_GPS_update.show();
-
+                if (mapboxMap != null && style != null && style.isFullyLoaded()) {
+                    callback.moveMapCameraToNextLocationReceived();
                     isLocationRequestedByUser = true;
-
-                    moveMapCameraToUserLocation();
                 }
             }
         });
@@ -237,9 +236,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             oldFolder.renameTo(newFolder);
             prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
         }
+
+        //Let's try to guarantee that we always zoom out to fit all markers, except when user navigates back from spot form.
+        shouldZoomToFitAllMarkers = true;
     }
 
-    void enableLocationLayer() {
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationLayer() {
         if (mapboxMap == null)
             return;
 
@@ -250,18 +253,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
         // Enable the location layer on the map
-        if (areLocationPermissionsGranted(activity) && !((LocationComponent) locationComponent).isLocationComponentEnabled())
+        if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
-    }
-
-    void moveMapCameraToUserLocation() {
-        //Request permission of access to GPS updates or
-        // directly initialize and enable the location plugin if such permission was already granted.
-        enableLocationLayer();
-
-        // Make map display the user's location, but the map camera shouldn't be moved to such location yet.
-        if (areLocationPermissionsGranted(activity))
-            mapboxMap.getLocationComponent().setCameraMode(CameraMode.TRACKING_GPS_NORTH);
     }
 
     private void loadMarkerIcons() {
@@ -280,19 +273,29 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (permissionsManager == null)
-            permissionsManager = new PermissionsManager(this);
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    public void onExplanationNeeded(List<String> permissionsToExplain) {
+        Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+    }
 
+    @Override
+    public void onPermissionResult(boolean granted) {
+        //As we request at least two different permissions (location and storage) for the users,
+        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_LOCATION:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && isLocationRequestedByUser) {
-                    moveMapCameraToUserLocation();
-                    enableLocationLayer();
-                    isLocationRequestedByUser = false;
+                locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (isLocationRequestedByUser) {
+                        enableLocationLayer();
+                        callback.moveMapCameraToNextLocationReceived();
+                        isLocationRequestedByUser = false;
+                    }
                 } else {
-                    Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
                 }
 
                 //Ask for storage permission if necessary, load spots list and finally draw annotations.
@@ -304,15 +307,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 }
                 break;
         }
-    }
-
-    @Override
-    public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onPermissionResult(boolean granted) {
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -327,35 +321,46 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
-            // Activate with options
-            locationComponent.activateLocationComponent(
-                    LocationComponentActivationOptions.builder(activity, loadedMapStyle).build());
+            // Set the LocationComponent activation options
+            LocationComponentActivationOptions locationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(activity, loadedMapStyle)
+                            .useDefaultLocationEngine(false)
+                            .build();
 
-            // Make map display the user's location, but the map camera shouldn't be automatially moved when location updates.
+            // Activate with the LocationComponentActivationOptions object
+            locationComponent.activateLocationComponent(locationComponentActivationOptions);
+
+            //Map camera should stop following gps updates
             locationComponent.setCameraMode(CameraMode.NONE);
 
-            //Show as an arrow considering the compass of the device.
+            //Stop showing an arrow considering the compass of the device.
             locationComponent.setRenderMode(RenderMode.COMPASS);
 
-            locationComponent.addOnCameraTrackingChangedListener(new OnCameraTrackingChangedListener() {
-                @Override
-                public void onCameraTrackingDismissed() {
-                    // Tracking has been dismissed
-                }
-
-                @Override
-                public void onCameraTrackingChanged(int currentMode) {
-                    // CameraMode has been updated
-                    if (!wasFirstLocationReceived) {
-                        wasFirstLocationReceived = true;
-                    }
-                }
-            });
+            initLocationEngine();
         } else {
             requestLocationsPermissions(activity);
         }
     }
 
+    /**
+     * Set up the LocationEngine and the parameters for querying the device's location
+     */
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build();
+
+        locationEngine.requestLocationUpdates(request, callback, getMainLooper());
+        locationEngine.getLastLocation(callback);
+    }
+
+    @Override
+    public MapboxMap getMapboxMap() {
+        return mapboxMap;
+    }
 
     //onMapReady is called after onResume()
     @Override
@@ -393,7 +398,20 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     requestLocationsPermissions(activity);
                 else {
                     enableLocationLayer();
-                    onFirstLoad();
+
+                    //Move map camera to last known location so that if we call zoomOutToFitAllMarkers()
+                    // the map will get nicely zoomed closer once spots list is loaded.
+                    moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
+                        @Override
+                        public void onCancel() {
+                            onFirstLoad();
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            onFirstLoad();
+                        }
+                    });
                 }
             }
         });
@@ -595,7 +613,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     void updateAnnotations() {
-        if (mapboxMap != null) {
+        if (mapboxMap != null && style != null && style.isFullyLoaded()) {
             showProgressDialog("Drawing hitchwiki spots..");
             Spot[] spotArray = new Spot[spotList.size()];
             this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
@@ -621,11 +639,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
                 if (shouldZoomToFitAllMarkers) {
                     if (spotList.size() == 0) {
-                        //If there's no spot to show, make map camera follow the GPS updates.
-                        moveMapCameraToUserLocation();
+                        callback.moveMapCameraToNextLocationReceived();
                     } else
                         zoomOutToFitAllMarkers();
-                    shouldZoomToFitAllMarkers = false;
                 }
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
@@ -729,6 +745,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     void showCountriesListDialog() {
+        if (activity == null || activity.isFinishing())
+            return;
+
         PairParcelable[] lst = new PairParcelable[countriesContainer.length];
         for (int i = 0; i < countriesContainer.length; i++) {
             CountryInfoBasic country = countriesContainer[i];
@@ -761,8 +780,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void requestLocationsPermissions(Activity activity) {
-        permissionsManager = new PermissionsManager(this);
-        permissionsManager.requestLocationPermissions(activity);
+        if (locationPermissionsManager == null)
+            locationPermissionsManager = new PermissionsManager(this);
+        locationPermissionsManager.requestLocationPermissions(activity);
     }
 
     private static boolean areStoragePermissionsGranted(Activity activity) {
@@ -896,7 +916,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         args.putParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY, result);
         args.putString(Constants.DIALOG_TYPE_BUNDLE_KEY, dialogType);
 
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        FragmentManager fragmentManager = activity.getSupportFragmentManager();
         DownloadHWSpotsDialog dialog = new DownloadHWSpotsDialog(downloadHWSpotsDialogListener);
         //dialog.setTargetFragment(this, 0);
         dialog.setArguments(args);
@@ -1104,6 +1124,21 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         return super.onOptionsItemSelected(item);
     }
 
+    private Location tryGetLastKnownLocation() {
+        if (mapboxMap == null)
+            return null;
+
+        LocationComponent locationComponent = mapboxMap.getLocationComponent();
+        Location loc = null;
+        try {
+            //Make sure location component has been activated, otherwise using any of its methods will throw an exception.
+            if (locationComponent.isLocationComponentActivated())
+                loc = locationComponent.getLastKnownLocation();
+        } catch (SecurityException ex) {
+        }
+        return loc;
+    }
+
     /**
      * Zoom out to fit all markers AND the user's last known location.
      **/
@@ -1111,13 +1146,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     protected void zoomOutToFitAllMarkers() {
         try {
             if (mapboxMap != null) {
-                Location mCurrentLocation = null;
-                try {
-                    if (areLocationPermissionsGranted(activity))
-                        mCurrentLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
-                } catch (SecurityException ex) {
-                }
-
+                Location mCurrentLocation = tryGetLastKnownLocation();
                 List<LatLng> lst = new ArrayList<>();
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
@@ -1139,11 +1168,46 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     builder.includes(lst);
                     LatLngBounds bounds = builder.build();
 
-                    //If there's only 2 points in the list and the currentlocation is known, that means only one of them is a saved spot
+                    int bestPadding = 120;
+
+                    //If there's only 2 points in the list and the current location is known (which means only one of them is a saved spot) we want a longer padding.
                     if (mCurrentLocation != null && lst.size() == 2)
-                        mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150), 5000);
-                    else
-                        mapboxMap.easeCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120), 5000);
+                        bestPadding = 150;
+
+                    //The change that should be applied to the camera.
+                    final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, bestPadding);
+
+                    MapboxMap.CancelableCallback callback = new MapboxMap.CancelableCallback() {
+                        @Override
+                        public void onCancel() {
+                            mapboxMap.easeCamera(cameraUpdate, 5000);
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            mapboxMap.easeCamera(cameraUpdate, 5000);
+                        }
+                    };
+
+                    /*
+                     * We want to animate the map to nicely display the points added to the bounds.
+                     * We've chosen to do it by calling moveCamera first and then easeCamera.
+                     * Here's the reason:
+                     * Mapbox.easeCamera animates the map camera by first moving it towards a point in the middle of the map,
+                     * and then finally moving it on a way to display all the points added to the bounds.
+                     * Example: If zoom level is at the minimum (so the entire world map is being displayed) and user has only saved spots
+                     * at one extreme of the world (let's say, northern Canada or southern Argentina) then what Mapbox.easeCamera does is-
+                     * firstly it zooms towards a point at the middle of the map (he was seeing the world map, then now the camera zooms to a point in the middle
+                     * of the world, very far from where the saved spots are) and secondly it "flies" towards where the points added to the bounds actually are.
+                     * Which means that during a few seconds the user watched the map flying over random regions where spots haven't been saved.
+                     * To see how it would look like (if you feel the need to it) you can test by saving spots as in this example's scenario and then
+                     * removing the following line (containing Mapbox.moveCamera) and calling mapboxMap.easeCamera directly.
+                     * Here's how the chosen solution works:
+                     * By doing these two steps (calling moveCamera then easeCamera) we start by immediately placing the map camera
+                     * in a way that all points added to the bounds are already visible to the user though in a more distant level (we do that using a longer padding);
+                     * and then we call easeCamera to add the animation which will zoom closer to the bounds (using a smaller padding).
+                     */
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 500), callback);
                 }
             }
 
@@ -1177,23 +1241,31 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         moveCamera(latLng, Constants.ZOOM_TO_SEE_CLOSE_TO_SPOT);
     }
 
+    int FAVORITE_ZOOM_LEVEL_NOT_INFORMED = -1;
+
+    @Override
+    public void moveCameraToLastKnownLocation() {
+        moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED, null);
+    }
+
     /**
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
+     *
+     * @param zoomLevel The zoom level that should be used or FAVORITE_ZOOM_LEVEL_NOT_INFORMED if we should use what we think could be the best zoom level.
      */
     @SuppressWarnings({"MissingPermission"})
-    private void moveCameraToLastKnownLocation() {
+    public void moveCameraToLastKnownLocation(int zoomLevel, @Nullable MapboxMap.CancelableCallback callback) {
+        //Request permission of access to GPS updates or
+        // directly initialize and enable the location plugin if such permission was already granted.
+        enableLocationLayer();
+
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
-        try {
-            if (areLocationPermissionsGranted(activity)) {
-                Location lastLoc = mapboxMap.getLocationComponent().getLastKnownLocation();
-                if (lastLoc != null)
-                    moveCameraPositionTo = new LatLng(lastLoc);
-            }
-        } catch (Exception ex) {
-        }
+        Location lastLoc = tryGetLastKnownLocation();
+        if (lastLoc != null)
+            moveCameraPositionTo = new LatLng(lastLoc);
 
         if (moveCameraPositionTo != null) {
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
@@ -1206,14 +1278,20 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             }
         }
 
-        int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+        int bestZoomLevel = Constants.KEEP_ZOOM_LEVEL;
 
-        //If current zoom level is default (world level)
-        if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
-            zoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+        //If a zoomLevel has been informed, use it
+        if (zoomLevel != FAVORITE_ZOOM_LEVEL_NOT_INFORMED)
+            bestZoomLevel = zoomLevel;
+        else {
+            //If current zoom level is default (world level)
+            if (mapboxMap.getCameraPosition().zoom == mapboxMap.getMinZoomLevel())
+                bestZoomLevel = Constants.ZOOM_TO_SEE_FARTHER_DISTANCE;
+        }
 
         if (moveCameraPositionTo != null)
-            moveCamera(moveCameraPositionTo, zoomLevel);
+            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(moveCameraPositionTo, bestZoomLevel), callback);
+
     }
 
     private ProgressDialog loadingDialog;

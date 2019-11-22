@@ -11,7 +11,7 @@
     <string name="got_a_ride_button_text">Fik et lift</string>
     <string name="arrived_button_text">Ankommet til destination</string>
     <string name="break_button_text">Tag en pause</string>
-    <string name="evaluate_running_spot_required">Du skal vælge ’Fik et lift’ eller ’Tag en pause’ før du opretter/ændrer et nyt sted</string>
+    <string name="evaluate_running_spot_required">Du skal vælge \"%1$s\" eller \"%2$s\" før du opretter/ændrer et nyt sted</string>
 
     <string name="location_updated_message">Position opdateret</string>
     <string name="update_location_switch">Få min nuværende position</string>
@@ -31,8 +31,17 @@
     <string name="attempt_result_gave_up">@string/break_button_text</string>
 
     <string name="tools_title">Værktøjer</string>
+    <string name="tools_tips_title">TIPS</string>
+    <string name="tools_warning">Velkommen til vores Værktøjer! Bemærk, at vi stadig ikke synkroniserer dine liftepladser overalt. I mellemtiden er her nogle værktøjer, du kan komme rundt med lige nu.</string>
+    <string name="tools_tips_description">If you want to share your saved spots to your friends or if you just want to have your spots backed up we strongly recommend using our \"%1$s\" option. Exporting your database will save a light copy of your spots data on your phone\'s storage, and you can then share it with friends, or even save it somewhere safer, like on your e-mail or favorite cloud service. To restore a exported database, use our \"%2$s\" option.</string>
+    <string name="tools_database_exported_successfully_message">Database eksporteret med succes!</string>
+    <string name="tools_exportdb_share_dialog_message">Now we\'d recommend saving this copy of your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
+    <string name="tools_file_dialog_select_directory_title">Select directory</string>
+    <string name="tools_file_dialog_invalid_directory_message">Vi har logget denne fejl, og vi skal se på den. Du kan prøve igen.</string>
+
     <string name="settings_importdb_button_label">Importer database</string>
-    <string name="settings_exportdb_button_label">Eksporter database</string>
+    <string name="settings_exportdb_button_label">Eksporter og del</string>
+    <string name="settings_sharedb_button_label">Share database</string>
     <string name="settings_exporting_db_message">Your spots list will be saved on your phone as CSV file..</string>
     <string name="settings_exportdb_finish_successfull_message">Copied to:\n%s</string>
     <string name="settings_last_export_message">Last export was done %s ago.</string>
@@ -74,6 +83,11 @@
     <string name="spot_form_more_options_edit_label">(ændr)</string>
     <string name="spot_form_comments_title">Kommentarer fra andre blaffere</string>
     <string name="spot_form_comments_empty_list">Nobody made comments about this spot yet</string>
+    <string name="spot_form_unable_to_download_details">You may click on \"%s\" tab to see more details about this spot, but we\'re unable to download further information while your device doesn\'t have a internet connection.</string>
+    <string name="spot_form_user_location_permission_not_granted">Your location is unknown.</string>
+    <string name="spot_form_not_allowed_to_edit">Unable to edit this spot. It seems like you\'re waiting for a ride at another spot.</string>
+    <string name="spot_form_read_comments_showCase">Click here to read what other hitchhikers have commented about this spot.</string>
+    <string name="spot_form_extra_options_showCase">Want to add a different spot on your route?\nDon\'t forget you may swipe up and find some extra options here! :-)</string>
 
     <string name="menu_dashboard">Dashboard</string>
     <string name="menu_my_maps">Min Kort</string>
@@ -132,6 +146,7 @@
     <string name="general_hours_label">%02dt</string>
     <string name="general_minutes_label">%02dmin</string>
     <string name="general_seconds_label">a few secs</string>
+    <string name="general_date_at_time">%1$s kl. %2$s</string>
 
     <string name="general_edit_list">Edit list</string>
     <string name="general_hide_icons_label">Hide buttons</string>
@@ -160,16 +175,19 @@
     <string name="general_one_or_more_errors_occured">One or more error occured:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
+    <string name="general_spots_list_not_loaded">Spots list hasn\'t been loaded</string>
 
     <string name="general_internet_unavailable_title">Internet utilgængeligt</string>
     <string name="general_offline_mode_label">Offline mode</string>
     <string name="general_network_unavailable_message">Your device doesn\'t seem to have an internet connection at the moment.</string>
-    <string name="general_export_finished_successfull_message">Exported successfully!</string>
     <string name="general_export_finished_failed_message">Export failed</string>
+    <string name="general_share_label">Del</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>
     <string name="general_import_finished_successful_message">Imported successfully!</string>
     <string name="general_import_finished_failed_message">Import failed</string>
     <string name="general_enable_button_label">slå til</string>
+    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
+    <string name="general_showCase_button">GOT IT!</string>
 
     <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 
@@ -197,7 +215,7 @@
     <string name="map_infoview_spot_type_regular">(%dmin)</string>
     <string name="map_infoview_spot_type_break">(PAUSE)</string>
 
-    <string name="map_error_alert_map_not_loaded_message">Hej! Din enhed virker til at være afkoblet en internetforbindelse i øjeblikket. Du kan stadig gemme dine positioner, men kortet bliver måske ikke hentet som forventet. Prøv at bruge appen uden kort.</string>
+    <string name="map_error_alert_map_not_loaded_message">Du kan stadig gemme dine positioner, men kortet bliver måske ikke hentet som forventet. Prøv at bruge appen uden kort.</string>
     <string name="map_error_alert_map_not_loaded_positive_button">Prøv uden kort</string>
     <string name="action_button_label">Vis %s</string>
 
@@ -238,7 +256,6 @@
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
     <string name="settings_export_section_title">Export</string>
     <string name="settings_import_section_title">Import</string>
-    <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="spot_form_locate_button_tooltip_text">Move to your location</string>
 
     <string name="offline_map">Offline Maps</string>
@@ -272,5 +289,9 @@
     <string name="about_us_our_supporters_title">Our Supporters</string>
     <string name="about_us_our_supporters_text">We have some amazing people who helped our developers so that this app could get to you. Friends or unknown people who hosted the developers of this app, who shared food with them, who paid their internet and electricity bills, because you know we need computers and all this stuff to build an app. Our supporters are of big importance for this project, for our nomadic developers and for you who use this useful tool as you explore the world.</string>
     <string name="about_us_how_to_contribute_title">How You Can Contribute</string>
-    <string name="about_us_how_to_contribute_text">There are at least two ways you can contribute. No money needed for now, you know we\'ve been really good at finding amazing supporters out there. But you can rate My Hitchhiking Spots app on the Google Play Store, or share screenshots of your hitchhiking routes tagging us with #myhitchhikingspots. We read your words to know what\'s good and what can be improved on the app, and we like seen your screenshots as well as they show us your own way of using the app. That\'s all, and thank you for your interest in reading this. :-)</string>
+    <string name="about_us_how_to_contribute_text">There are at least two ways you can contribute. No money needed for now, you know we\'ve been really good at finding amazing supporters out there. But you can rate %s app on the Google Play Store, or share screenshots of your hitchhiking routes tagging us with #myhitchhikingspots. We read your words to know what\'s good and what can be improved on the app, and we like seen your screenshots as well as they show us your own way of using the app. That\'s all, and thank you for your interest in reading this. :-)</string>
+    <string name="about_us_github_label">Contribute writing our code on GitHub</string>
+    <string name="about_us_fdroid_label">Find us on F-droid store</string>
+    <string name="about_us_instagram_label">See what others have shared on Instagram</string>
+    <string name="about_us_googleplay_label">Find us on Google Play store</string>
 </resources>
