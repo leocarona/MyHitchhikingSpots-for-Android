@@ -63,19 +63,20 @@
     <string name="menu_dashboard">Painel</string>
     <string name="menu_my_maps">Meu Mapa</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
-    <string name="menu_tools">@string/tools_title</string>
+    <string name="menu_tools">@string/toolsatitle</string>
     <string name="menu_offline_maps">@string/offline_map</string>
     <string name="menu_about_us">@string/about_us_first_title</string>
 
     <string name="tools_title">Ferramentas</string>
-    <string name="tools_tips_description">Se você deseja enviar seus locais de carona salvos para seus amigos ou se você deseja fazer um backup deles, nós recomendamos fortemente a utilização da opção \"%1$s\". Exportando seu banco de dados um arquivo leve será salvo na memória do seu celular, permitindo que você a compartilhe com seus amigos, ou que você o copie para algum lugar mais seguro, como no seu e-mail ou em algum armazenamento em nuvem. Para restaurar um banco de dados exportado, use a opção \"%2$s\".</string>
     <string name="tools_tips_title">DICAS</string>
     <string name="tools_warning">Bem-vindx às nossas Ferramentas! Tenha em mente que nós ainda não sincronizamos seus locais salvos em nenhum lugar. Enquanto isso, aqui estão algumas ferramentas que você pode usar para se virar enquanto isso.</string>
+    <string name="tools_tips_description">Se você deseja enviar seus locais de carona salvos para seus amigos ou se você deseja fazer um backup deles, nós recomendamos fortemente a utilização da opção \"%1$s\". Exportando seu banco de dados um arquivo leve será salvo na memória do seu celular, permitindo que você a compartilhe com seus amigos, ou que você o copie para algum lugar mais seguro, como no seu e-mail ou em algum armazenamento em nuvem. Para restaurar um banco de dados exportado, use a opção \"%2$s\".</string>
+    <string name="tools_database_exported_successfully_message">Banco de dados exportado com sucesso!</string>
+    <string name="tools_exportdb_share_dialog_message">Agora nós recomendamos enviar esta cópia do seu banco de dados para algum outro lugar.\Clique em \"%s\" e escolha a opção mais conveniente para você. Talvez você queira salvar seu banco de dados em um serviço de núvem, enviá-lo para você mesmo (ou para um amigo) por e-mail, e por aí vai! :-)</string>
 
     <string name="settings_importdb_button_label">Importar banco de dados</string>
     <string name="settings_exportdb_button_label">Exportar e compartilhar</string>
     <string name="settings_sharedb_button_label">Share database</string>
-    <string name="settings_exportdb_share_dialog_message">We\'d highly recommend you to also save your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
     <string name="settings_exporting_db_message">Sua lista de locais será salva em seu celular como um arquivo de excel (CSV)..</string>
     <string name="settings_exportdb_finish_successfull_message">Exportado para:\n%s</string>
     <string name="settings_last_export_message">Última vez que sua lista de locais foi exportada foi há %s atrás.</string>
@@ -206,7 +207,6 @@
     <string name="general_internet_unavailable_title">Internet indisponível</string>
     <string name="general_offline_mode_label">Modo offline</string>
     <string name="general_network_unavailable_message">Seu dispositivo não parece ter uma conexão com a internet neste momento.</string>
-    <string name="general_export_finished_successfull_message">Exportado com sucesso!</string>
     <string name="general_export_finished_failed_message">Falha na exportação</string>
     <string name="general_share_label">Compartilhar</string>
     <string name="general_last_sync_date">Última sincronização realizada em %s.</string>

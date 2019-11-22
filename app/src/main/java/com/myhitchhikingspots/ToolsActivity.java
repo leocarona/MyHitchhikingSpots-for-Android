@@ -385,8 +385,8 @@ public class ToolsActivity extends AppCompatActivity {
     void showShareExportedDatabaseDialog() {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle("Done!")
-                .setMessage(getString(R.string.settings_exportdb_share_dialog_message, getString(R.string.general_share_label)))
+                .setTitle(getString(R.string.tools_database_exported_successfully_message))
+                .setMessage(getString(R.string.tools_exportdb_share_dialog_message, getString(R.string.general_share_label)))
                 .setPositiveButton(getString(R.string.general_share_label), (dialog, which) -> {
                     shareCSV();
                 })
@@ -492,7 +492,7 @@ public class ToolsActivity extends AppCompatActivity {
 
         Uri uri = getPathUri(file);
         intent.putExtra(Intent.EXTRA_STREAM, uri);
-        startActivity(Intent.createChooser(intent, getString(R.string.general_share_label)));
+        startActivity(Intent.createChooser(intent, getString(R.string.settings_sharedb_button_label)));
     }
 
     Uri getPathUri(File file) {
