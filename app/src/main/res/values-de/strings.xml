@@ -66,6 +66,8 @@
     <string name="tools_tips_description">If you want to share your saved spots to your friends or if you just want to have your spots backed up we strongly recommend using our \"%1$s\" option. Exporting your database will save a light copy of your spots data on your phone\'s storage, and you can then share it with friends, or even save it somewhere safer, like on your e-mail or favorite cloud service. To restore a exported database, use our \"%2$s\" option.</string>
     <string name="tools_database_exported_successfully_message">Datenbank erfolgreich exportiert!</string>
     <string name="tools_exportdb_share_dialog_message">Now we\'d recommend saving this copy of your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
+    <string name="tools_file_dialog_select_directory_title">Select directory</string>
+    <string name="tools_file_dialog_invalid_directory_message">Wir haben diesen Fehler protokolliert und werden ihn uns ansehen. Sie können es erneut versuchen.</string>
 
     <string name="settings_importdb_button_label">Datenbank importieren</string>
     <string name="settings_exportdb_button_label">Exportieren und teilen</string>

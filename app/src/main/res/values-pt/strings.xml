@@ -73,6 +73,8 @@
     <string name="tools_tips_description">Se você deseja enviar seus locais de carona salvos para seus amigos ou se você deseja fazer um backup deles, nós recomendamos fortemente a utilização da opção \"%1$s\". Exportando seu banco de dados um arquivo leve será salvo na memória do seu celular, permitindo que você a compartilhe com seus amigos, ou que você o copie para algum lugar mais seguro, como no seu e-mail ou em algum armazenamento em nuvem. Para restaurar um banco de dados exportado, use a opção \"%2$s\".</string>
     <string name="tools_database_exported_successfully_message">Banco de dados exportado com sucesso!</string>
     <string name="tools_exportdb_share_dialog_message">Agora nós recomendamos enviar esta cópia do seu banco de dados para algum outro lugar.\Clique em \"%s\" e escolha a opção mais conveniente para você. Talvez você queira salvar seu banco de dados em um serviço de núvem, enviá-lo para você mesmo (ou para um amigo) por e-mail, e por aí vai! :-)</string>
+    <string name="tools_file_dialog_select_directory_title">Selecione o diretório</string>
+    <string name="tools_file_dialog_invalid_directory_message">Nós registramos este erro e vamos verificá-lo. Você pode tentar novamente.</string>
 
     <string name="settings_importdb_button_label">Importar banco de dados</string>
     <string name="settings_exportdb_button_label">Exportar e compartilhar</string>
