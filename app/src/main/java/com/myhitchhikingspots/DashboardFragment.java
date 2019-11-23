@@ -128,6 +128,8 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         super.onActivityResult(requestCode, resultCode, data);
 
         isHandlingRequestToOpenSpotForm = false;
+
+        //NOTE: updateSpotList() will be called after DashboardFragment.onActivityResult() by MainActivity.onActivityResult()
     }
 
     @Override

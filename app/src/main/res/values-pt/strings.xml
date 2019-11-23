@@ -191,6 +191,10 @@
     <string name="general_not_enough_permission">Desculpe, infelizmente você não parece ter as permissōes necessárias para executar esta ação.</string>
     <string name="general_selected_file_type_not_supported">O tipo de arquivo selecionado não é suportado.</string>
     <string name="general_zoom_to_fit_all">Ver todos locais</string>
+    <string name="general_zoom_in_button_label">Aproximar</string>
+    <string name="general_zoom_out_button_label">Afastar</string>
+    <string name="general_locate_button_label">Mover para sua localização</string>
+    <string name="general_open_in_another_app">Veja este local em outro aplicativo</string>
 
     <string name="general_author_label">de %s</string>
     <string name="general_download_option">Baixar</string>
@@ -270,7 +274,6 @@
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutos já passaram desde que você abriu esta janela pela primeira vez. Você gostaria de atualizar a data e hora deste novo local? A atualização será feita de %2$s para %3$s.</string>
     <string name="settings_export_section_title">Export</string>
     <string name="settings_import_section_title">Import</string>
-    <string name="spot_form_locate_button_tooltip_text">Mover para sua localização</string>
 
     <string name="offline_map">Mapa Offline</string>
     <string name="download_region_button_text">Baixar esta região</string>

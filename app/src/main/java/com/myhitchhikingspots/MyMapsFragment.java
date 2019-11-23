@@ -59,7 +59,6 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
-import com.mapbox.mapboxsdk.location.OnCameraTrackingChangedListener;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -113,7 +112,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private boolean isHandlingRequestToOpenSpotForm = false;
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     ConstraintLayout coordinatorLayout;
-    Boolean shouldDisplayIcons = true;
+    Boolean mapButtonsAreDisplayed = true;
     Boolean shouldDisplayOldRoutes = true;
     boolean wasSnackbarShown;
 
@@ -304,7 +303,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 this.mCurrentWaitingSpot = (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY);
             }
 
-            updateUISaveButtons();
+            updateUISaveFABs();
 
             //onMapReady will take care of drawing the spots and routes on the map.
         }
@@ -452,7 +451,51 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         ic_got_a_ride_spot4 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
     }
 
-    protected void configureBottomFABButtons() {
+    /**
+     * Setup fabSpotAction1 to be a button that allows saving a new spot.
+     **/
+    private void setupCreateNewSpotFAB() {
+        fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
+        fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_regular_spot_color));
+        fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_regular_spot_color_lighter));
+        fabSpotAction1.setContentDescription(getString(R.string.save_spot_button_text));
+    }
+
+    /**
+     * Setup fabSpotAction1 to be a button that allows updating the current spot to a got a ride type.
+     **/
+    private void setupGotARideFAB() {
+        fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
+        fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_got_a_ride_color));
+        fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_got_a_ride_color_lighter));
+        fabSpotAction1.setContentDescription(getString(R.string.got_a_ride_button_text));
+    }
+
+    /**
+     * Setup fabSpotAction2 to be a button that allows updating the current spot to a break type.
+     **/
+    private void setupTakeABreakFAB() {
+        fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
+        fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_break_color));
+        fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_break_color_lighter));
+        fabSpotAction2.setContentDescription(getString(R.string.break_button_text));
+    }
+
+    /**
+     * Setup fabSpotAction2 to be a button that allows saving a destination spot.
+     **/
+    private void setupDestinationFAB() {
+        fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
+        fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_arrival_color));
+        fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_arrival_color_lighter));
+        fabSpotAction2.setContentDescription(getString(R.string.arrived_button_text));
+    }
+
+    /**
+     * Determines which buttons (save a new hitchhiking spot; save a new destination spot; got a ride; take a break) that should be displayed
+     * and displays them as Floating Action Buttons (FAB).
+     **/
+    private void setupSaveFABs() {
         switch (currentPage) {
             case UNKNOWN:
             default:
@@ -460,31 +503,21 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 fabSpotAction2.hide();
                 break;
             case WILL_BE_FIRST_SPOT_OF_A_ROUTE:
-                fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_regular_spot_color));
-                fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_regular_spot_color_lighter));
+                setupCreateNewSpotFAB();
 
                 fabSpotAction1.show();
                 fabSpotAction2.show();
                 break;
             case WILL_BE_REGULAR_SPOT:
-                fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_regular_spot_color));
-                fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_regular_spot_color_lighter));
-                fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
-                fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_arrival_color));
-                fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_arrival_color_lighter));
+                setupCreateNewSpotFAB();
+                setupDestinationFAB();
 
                 fabSpotAction1.show();
                 fabSpotAction2.show();
                 break;
             case WAITING_FOR_A_RIDE:
-                fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
-                fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_got_a_ride_color));
-                fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_got_a_ride_color_lighter));
-                fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
-                fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_break_color));
-                fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_break_color_lighter));
+                setupGotARideFAB();
+                setupTakeABreakFAB();
 
                 fabSpotAction1.show();
                 fabSpotAction2.show();
@@ -492,7 +525,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    protected void updateUISaveButtons() {
+    /**
+     * Determines what type is the current page type and sets up the save buttons accordinly.
+     **/
+    private void updateUISaveFABs() {
         //If it's not waiting for a ride
         if (!isWaitingForARide()) {
             if (isFirstSpotOfARoute())
@@ -504,7 +540,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             currentPage = pageType.WAITING_FOR_A_RIDE;
         }
 
-        configureBottomFABButtons();
+        setupSaveFABs();
     }
 
     @Override
@@ -773,7 +809,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         this.mCurrentWaitingSpot = mCurrentWaitingSpot;
         this.spotListWasChanged = true;
 
-        updateUISaveButtons();
+        updateUISaveFABs();
 
         if (mapboxMap != null) {
             if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
@@ -943,7 +979,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             //We want the map camera to be adjusted when one or more spots have been added, edited or deleted.
             // Please note: we do not want it to be adjusted always that spotList is reloaded, that's why shouldZoomToFitAllMarkers is been set here and not on updateSpotList().
-            //TODO: Consider zooming out to fit all markers always when user navigates back AND there's no features within the viewport.
+            //TODO: Consider also zooming out to fit all markers always when user navigates back AND there's no features within the viewport.
             shouldZoomToFitAllMarkers = true;
         } else {
             //We don't want the map camera to be moved if the user navigates back without doing any change to the spot list.
@@ -1049,27 +1085,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 break;
 
             case R.id.action_toggle_icons:
-                shouldDisplayIcons = !shouldDisplayIcons;
-                if (shouldDisplayIcons) {
-                    showAllRoutesOnMap();
-
-                    fabLocateUser.show();
-                    //fabShowAll.setVisibility(View.VISIBLE);
-                    fabZoomIn.show();
-                    fabZoomOut.show();
-                    item.setTitle(getString(R.string.general_hide_icons_label));
-
-                    //Call configureBottomFABButtons to show only the buttons that should be shown
-                    configureBottomFABButtons();
-                } else {
-                    fabLocateUser.hide();
-                    //fabShowAll.setVisibility(View.GONE);
-                    fabZoomIn.hide();
-                    fabZoomOut.hide();
-                    fabSpotAction1.hide();
-                    fabSpotAction2.hide();
-                    item.setTitle(getString(R.string.general_show_icons_label));
-                }
+                toggleAllFAB(item);
                 break;
             case R.id.action_toggle_old_routes:
                 shouldDisplayOldRoutes = !shouldDisplayOldRoutes;
@@ -1091,7 +1107,51 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             return super.onOptionsItemSelected(item);
     }
 
-    void showAllRoutesOnMap() {
+    /**
+     * Hides or shows all Floating Action Buttons (FAB) from the view.
+     **/
+    private void toggleAllFAB(MenuItem item) {
+        if (!mapButtonsAreDisplayed) {
+            showAllRoutesOnMap();
+
+            showAllFAB(item);
+        } else {
+            hideAllFAB(item);
+        }
+    }
+
+    /**
+     * Shows all Floating Action Buttons (FAB) from the view.
+     **/
+    private void showAllFAB(MenuItem item) {
+        fabLocateUser.show();
+        fabZoomIn.show();
+        fabZoomOut.show();
+        item.setTitle(getString(R.string.general_hide_icons_label));
+
+        //Call setupSaveFABs to show only the save buttons that should be shown
+        setupSaveFABs();
+
+        mapButtonsAreDisplayed = true;
+    }
+
+    /**
+     * Hides all Floating Action Buttons (FAB) from the view.
+     **/
+    private void hideAllFAB(MenuItem item) {
+        fabLocateUser.hide();
+        fabZoomIn.hide();
+        fabZoomOut.hide();
+        item.setTitle(getString(R.string.general_show_icons_label));
+
+        //Hide save buttons
+        fabSpotAction1.hide();
+        fabSpotAction2.hide();
+
+        mapButtonsAreDisplayed = false;
+    }
+
+    private void showAllRoutesOnMap() {
         if (spotsCollection == null) {
             Toast.makeText(activity, getString(R.string.general_spots_list_not_loaded), Toast.LENGTH_SHORT).show();
             return;
@@ -1113,7 +1173,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Hides old routes, showing on the map only polylines and spots that belong to the most recent route.
      * Spots that don't belong to any route shall be hidden as well.
      * */
-    void hideOldRoutesFromMap() {
+    private void hideOldRoutesFromMap() {
         if (subRoutesCollection == null || subRoutesCollection.features() == null || subRoutesCollection.features().isEmpty())
             return;
 
@@ -1146,7 +1206,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         refreshSubRoutesSource();
     }
 
-    void startMyRoutesActivity() {
+    private void startMyRoutesActivity() {
         Intent intent = new Intent(activity, MyRoutesActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
         startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
@@ -1156,7 +1216,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Zoom out to fit the most recent (@link #NUMBER_OF_SPOTS_TO_FIT) spots saved to the map AND the user's last known location.
      **/
     @SuppressWarnings({"MissingPermission"})
-    protected void zoomOutToFitMostRecentRoute() {
+    private void zoomOutToFitMostRecentRoute() {
         try {
             if (mapboxMap != null) {
                 Location mCurrentLocation = tryGetLastKnownLocation();

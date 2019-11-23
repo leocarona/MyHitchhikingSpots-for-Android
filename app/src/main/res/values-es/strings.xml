@@ -197,6 +197,10 @@
     <string name="general_not_enough_permission">Lo sentimos, parece ser que no tienes los permisos necesarios para realizar esta acción.</string>
     <string name="general_selected_file_type_not_supported">No soporta el archivo seleccionado.</string>
     <string name="general_zoom_to_fit_all">Ver todos los lugares</string>
+    <string name="general_zoom_in_button_label">Zoom in</string>
+    <string name="general_zoom_out_button_label">Zoom out</string>
+    <string name="general_locate_button_label">Mover hasta tu localización</string>
+    <string name="general_open_in_another_app">Ver esta ubicación en otra aplicación</string>
 
     <string name="general_author_label">por %s</string>
     <string name="general_download_option">Descargar</string>
@@ -276,7 +280,6 @@
     <string name="settings_export_section_title">Exportar</string>
     <string name="settings_import_section_title">Importar</string>
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
-    <string name="spot_form_locate_button_tooltip_text">Mover hasta tu localización</string>
 
     <string name="offline_map">Mapas Offline</string>
     <string name="download_region_button_text">Descargar esta región</string>
