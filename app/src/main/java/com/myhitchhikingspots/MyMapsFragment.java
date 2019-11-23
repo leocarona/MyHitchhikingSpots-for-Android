@@ -167,7 +167,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     Spot mCurrentWaitingSpot;
 
     public enum pageType {
-        NOT_FETCHING_LOCATION,
+        UNKNOWN,
         WILL_BE_FIRST_SPOT_OF_A_ROUTE, //user sees "save spot" but doesn't see "arrival" button
         WILL_BE_REGULAR_SPOT, //user sees both "save spot" and "arrival" buttons
         WAITING_FOR_A_RIDE //user sees "got a ride" and "take a break" buttons
@@ -454,7 +454,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     protected void configureBottomFABButtons() {
         switch (currentPage) {
-            case NOT_FETCHING_LOCATION:
+            case UNKNOWN:
             default:
                 fabSpotAction1.hide();
                 fabSpotAction2.hide();
