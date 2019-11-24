@@ -174,8 +174,7 @@ The Hitchwiki team.
     <string name="general_date_at_time">%1$s at %2$s</string>
 
     <string name="general_edit_list">Edit list</string>
-    <string name="general_hide_icons_label">Hide buttons</string>
-    <string name="general_show_icons_label">Show buttons</string>
+    <string name="general_toggle_buttons_label">Toggle buttons</string>
     <string name="general_hide_routes_label">Toggle past routes</string>
     <string name="general_close_editing_mode_label" translatable="false">Close editing mode</string>
     <string name="general_ok_option">OK</string>

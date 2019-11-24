@@ -540,7 +540,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             currentPage = pageType.WAITING_FOR_A_RIDE;
         }
 
-        setupSaveFABs();
+        //Make sure all desired Floating Action Buttons are displayed.
+        showAllFAB();
     }
 
     @Override
@@ -985,6 +986,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             //We don't want the map camera to be moved if the user navigates back without doing any change to the spot list.
             shouldZoomToFitAllMarkers = false;
         }
+
+        //NOTE: updateSpotList() will be called after MyMapsFragment.onActivityResult() by MainActivity.onActivityResult()
     }
 
     @Override
@@ -1085,7 +1088,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 break;
 
             case R.id.action_toggle_icons:
-                toggleAllFAB(item);
+                toggleAllFAB();
                 break;
             case R.id.action_toggle_old_routes:
                 shouldDisplayOldRoutes = !shouldDisplayOldRoutes;
@@ -1110,24 +1113,23 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     /**
      * Hides or shows all Floating Action Buttons (FAB) from the view.
      **/
-    private void toggleAllFAB(MenuItem item) {
+    private void toggleAllFAB() {
         if (!mapButtonsAreDisplayed) {
             showAllRoutesOnMap();
 
-            showAllFAB(item);
+            showAllFAB();
         } else {
-            hideAllFAB(item);
+            hideAllFAB();
         }
     }
 
     /**
      * Shows all Floating Action Buttons (FAB) from the view.
      **/
-    private void showAllFAB(MenuItem item) {
+    private void showAllFAB() {
         fabLocateUser.show();
         fabZoomIn.show();
         fabZoomOut.show();
-        item.setTitle(getString(R.string.general_hide_icons_label));
 
         //Call setupSaveFABs to show only the save buttons that should be shown
         setupSaveFABs();
@@ -1138,11 +1140,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     /**
      * Hides all Floating Action Buttons (FAB) from the view.
      **/
-    private void hideAllFAB(MenuItem item) {
+    private void hideAllFAB() {
         fabLocateUser.hide();
         fabZoomIn.hide();
         fabZoomOut.hide();
-        item.setTitle(getString(R.string.general_show_icons_label));
 
         //Hide save buttons
         fabSpotAction1.hide();

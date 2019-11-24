@@ -61,7 +61,6 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
-import com.mapbox.mapboxsdk.location.OnCameraTrackingChangedListener;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -114,7 +113,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private Style style;
     private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;//, fabShowAll;
     CoordinatorLayout coordinatorLayout;
-    Boolean shouldDisplayIcons = true;
+    Boolean mapButtonsAreDisplayed = true;
 
     /**
      * True if the map camera should follow the GPS updates once the user grants the necessary permission.
@@ -1101,18 +1100,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                     downloadCountriesList();
                 break;
             case R.id.action_toggle_icons:
-                shouldDisplayIcons = !shouldDisplayIcons;
-                if (shouldDisplayIcons) {
-                    fabLocateUser.show();
-                    fabZoomIn.show();
-                    fabZoomOut.show();
-                    item.setTitle(getString(R.string.general_hide_icons_label));
-                } else {
-                    fabLocateUser.hide();
-                    fabZoomIn.hide();
-                    fabZoomOut.hide();
-                    item.setTitle(getString(R.string.general_show_icons_label));
-                }
+                toggleAllFAB();
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null) {
@@ -1122,6 +1110,39 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Hides or shows all Floating Action Buttons (FAB) from the view.
+     **/
+    private void toggleAllFAB() {
+        if (!mapButtonsAreDisplayed) {
+            showAllFAB();
+        } else {
+            hideAllFAB();
+        }
+    }
+
+    /**
+     * Shows all Floating Action Buttons (FAB) from the view.
+     **/
+    private void showAllFAB() {
+        fabLocateUser.show();
+        fabZoomIn.show();
+        fabZoomOut.show();
+
+        mapButtonsAreDisplayed = true;
+    }
+
+    /**
+     * Hides all Floating Action Buttons (FAB) from the view.
+     **/
+    private void hideAllFAB() {
+        fabLocateUser.hide();
+        fabZoomIn.hide();
+        fabZoomOut.hide();
+
+        mapButtonsAreDisplayed = false;
     }
 
     private Location tryGetLastKnownLocation() {
