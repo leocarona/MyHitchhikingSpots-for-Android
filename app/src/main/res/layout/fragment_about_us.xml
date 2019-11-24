@@ -287,7 +287,7 @@
             android:background="?android:attr/listDivider"
             android:paddingTop="20dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnGitHub" />
+            app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
         <!-- instagram, f-droid store, git hub, play store -->
     </androidx.constraintlayout.widget.ConstraintLayout>
