@@ -506,7 +506,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 setupCreateNewSpotFAB();
 
                 fabSpotAction1.show();
-                fabSpotAction2.show();
+                fabSpotAction2.hide();
                 break;
             case WILL_BE_REGULAR_SPOT:
                 setupCreateNewSpotFAB();
