@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     public static String ARG_SPOTLIST_KEY = "spot_list_arg";
     public static String ARG_CURRENTSPOT_KEY = "current_spot_arg";
-    public static String ARG_FRAGMENT_KEY = "my-fragment-arg";
     public static String ARG_REQUEST_TO_OPEN_FRAGMENT = "request-to-open-resource-id";
     public static String ARG_CHECKED_MENU_ITEM_ID_KEY = "my-fragment-title-arg";
     protected static final String TAG = "main-activity";
@@ -55,8 +54,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     private AsyncTask fixSpotsStartDateTimeTask;
 
     SharedPreferences prefs;
-
-    OnMainActivityUpdated activeFragmentListening;
 
     int fragmentIdToBeOpenedOnSpotsListLoaded = -1;
 
@@ -314,11 +311,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             Spot[] spotArray = new Spot[spotList.size()];
             bundle.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
             bundle.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
-
-            //Keep the fragment so that we can fire the event listeners later.
-            activeFragmentListening = (OnMainActivityUpdated) fragment;
-        } else
-            activeFragmentListening = null;
+        }
 
         fragment.setArguments(bundle);
 
@@ -336,7 +329,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     @Override
     public void onBackPressed() {
         Crashlytics.log("User has pressed the back button.");
-        activeFragmentListening = null;
 
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             Crashlytics.log("The drawer was closed and nothing more will happen.");
@@ -374,17 +366,32 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 restoreLastCheckedMenuItem(menuItemIndex);
 
                 //Note: The fragment tag here is the same that we've defined earlier when we called fragmentManager.beginTransaction().replace(param1,param2,tagName).
-                Fragment currentFragment = getSupportFragmentManager().findFragmentByTag(currentFragmentTag);
+                Fragment currentFragment = getCurrentFragment(currentFragmentTag);
                 if (currentFragment instanceof OnMainActivityUpdated) {
                     //Set the active fragment.
-                    activeFragmentListening = ((OnMainActivityUpdated) currentFragment);
+                    OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
                     //Update the active fragment so that it has the most recent data.
-                    activeFragmentListening.updateSpotList(spotList, mCurrentWaitingSpot);
+                    frag.updateSpotList(spotList, mCurrentWaitingSpot);
                 }
             }
         } catch (Exception ex) {
             Crashlytics.logException(ex);
         }
+    }
+
+    Fragment getCurrentFragment() {
+        int currentFragmentIndexOnBackStack = getSupportFragmentManager().getBackStackEntryCount() - 1;
+
+        String currentFragmentTag = getSupportFragmentManager().getBackStackEntryAt(currentFragmentIndexOnBackStack).getName();
+        if (currentFragmentTag == null || currentFragmentTag.isEmpty())
+            return null;
+
+        return getCurrentFragment(currentFragmentTag);
+    }
+
+    Fragment getCurrentFragment(String currentFragmentTag) {
+        //Note: The fragment tag here is the same that we've defined earlier when we called fragmentManager.beginTransaction().replace(param1,param2,tagName).
+        return getSupportFragmentManager().findFragmentByTag(currentFragmentTag);
     }
 
     /*onSaveInstanceState is called before an activity may be killed so that when it comes back some time in the future it can restore its state. */
@@ -398,10 +405,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             MenuItem checkedMenuItem = nvDrawer.getMenu().getItem(checkedMenuItemIndex);
             outState.putInt(MainActivity.ARG_CHECKED_MENU_ITEM_ID_KEY, checkedMenuItem.getItemId());
         }
-
-        //Save the fragment's instance
-        if (activeFragmentListening != null)
-            getSupportFragmentManager().putFragment(outState, ARG_FRAGMENT_KEY, (Fragment) activeFragmentListening);
     }
 
     /*This method is called after onStart() when the activity is being re-initialized from a previously saved state (saved within onSaveInstanceState).
@@ -415,11 +418,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             int lastCheckedMenuItemId = savedInstanceState.getInt(MainActivity.ARG_CHECKED_MENU_ITEM_ID_KEY);
             int lastCheckedMenuItemIndex = getMenuItemIndex(lastCheckedMenuItemId);
             restoreLastCheckedMenuItem(lastCheckedMenuItemIndex);
-        }
-
-        //Restore the fragment's instance
-        if (savedInstanceState.containsKey(ARG_FRAGMENT_KEY)) {
-            activeFragmentListening = (OnMainActivityUpdated) getSupportFragmentManager().getFragment(savedInstanceState, ARG_FRAGMENT_KEY);
         }
 
         fragmentIdToBeOpenedOnSpotsListLoaded = -1;
@@ -451,8 +449,12 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (activeFragmentListening != null)
-            activeFragmentListening.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Fragment currentFragment = getCurrentFragment();
+        if (currentFragment instanceof OnMainActivityUpdated) {
+            //Set the active fragment.
+            OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
+            frag.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 
     @Override
@@ -530,8 +532,12 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     void updateUI() {
         //Update the active fragment's data
-        if (activeFragmentListening != null)// && ((Fragment) activeFragmentListening).isVisible())
-            activeFragmentListening.updateSpotList(spotList, mCurrentWaitingSpot);
+        Fragment currentFragment = getCurrentFragment();
+        if (currentFragment instanceof OnMainActivityUpdated) {
+            //Set the active fragment.
+            OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
+            frag.updateSpotList(spotList, mCurrentWaitingSpot);
+        }
     }
 
     protected void showErrorAlert(String title, String msg) {
@@ -547,11 +553,14 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (activeFragmentListening != null) {
-            activeFragmentListening.onActivityResult(requestCode, resultCode, data);
+        Fragment currentFragment = getCurrentFragment();
+        if (currentFragment instanceof OnMainActivityUpdated) {
+            //Set the active fragment.
+            OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
+            frag.onActivityResult(requestCode, resultCode, data);
 
             //If user is navigating back to Dashboard or My Maps, reload spot list
-            if (activeFragmentListening instanceof DashboardFragment || activeFragmentListening instanceof MyMapsFragment)
+            if (frag instanceof DashboardFragment || frag instanceof MyMapsFragment)
                 loadSpotList(-1);
         }
     }
