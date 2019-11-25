@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         /**
          * Method called always that spotList is loaded or reloaded from the database.
          **/
-        void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot);
+        void onSpotListChanged();
 
         void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults);
 
@@ -304,17 +304,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     }
 
     private void replaceFragmentContainerWith(Fragment fragment) {
-        Bundle bundle = new Bundle();
-
-        //Classes that should be updated when MainActivity is updated should implement OnMainActivityUpdated interface.
-        if (fragment instanceof OnMainActivityUpdated) {
-            Spot[] spotArray = new Spot[spotList.size()];
-            bundle.putSerializable(MainActivity.ARG_SPOTLIST_KEY, spotList.toArray(spotArray));
-            bundle.putSerializable(MainActivity.ARG_CURRENTSPOT_KEY, mCurrentWaitingSpot);
-        }
-
-        fragment.setArguments(bundle);
-
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
@@ -371,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                     //Set the active fragment.
                     OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
                     //Update the active fragment so that it has the most recent data.
-                    frag.updateSpotList(spotList, mCurrentWaitingSpot);
+                    frag.onSpotListChanged();
                 }
             }
         } catch (Exception ex) {
@@ -536,7 +525,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         if (currentFragment instanceof OnMainActivityUpdated) {
             //Set the active fragment.
             OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
-            frag.updateSpotList(spotList, mCurrentWaitingSpot);
+            frag.onSpotListChanged();
         }
     }
 

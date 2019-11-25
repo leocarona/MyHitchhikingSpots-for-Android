@@ -942,7 +942,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     @Override
-    public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
+    public void onSpotListChanged() {
         //spotList here is the one used by My Maps. Nothing needs to be done here.
     }
 
