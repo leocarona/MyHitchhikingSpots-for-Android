@@ -1164,10 +1164,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             }
 
             //Show delete button when the spot is been edited
-            if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                mDeleteButton.setVisibility(View.VISIBLE);
-            else
-                mDeleteButton.setVisibility(View.GONE);
+            updateDeleteButtonState();
 
             if (shouldRetrieveDetailsFromHW)
                 findViewById(R.id.imageView4).setEnabled(false);
@@ -1246,6 +1243,14 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
 
         updateUIFirstCalled = true;
+    }
+
+    private void updateDeleteButtonState() {
+        //Show delete button when the spot is been edited
+        if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
+            mDeleteButton.setVisibility(View.VISIBLE);
+        else
+            mDeleteButton.setVisibility(View.GONE);
     }
 
     private void updateSaveButtonState() {
@@ -1366,8 +1371,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
         public void onShowcaseDismissed() {
             //Get buttons back to their place
-            mSaveButton.setVisibility(View.VISIBLE);
-            mDeleteButton.setVisibility(View.VISIBLE);
+            updateSaveButtonState();
+            updateDeleteButtonState();
 
             if (mapCameraWasMoved && !shouldMoveMapCameraToUserLocationOnMapLoad && mFormType == FormType.Create)
                 highlightLocateButton();
