@@ -71,7 +71,6 @@
     <string name="tools_database_exported_successfully_message">Base de datos exportada con éxito!</string>
     <string name="tools_exportdb_share_dialog_message">Ahora te recomendamos guardar la cópia de tu base de datos en algún otro lugar.\nHaz click en \"%s\" y elige tu opción favorita. Podrás guardar tu base de datos en un servicio de nube, enviarla a tu mismo (o quizás a un amigo) a través de e-mail, y otras opciones más! :-)</string>
     <string name="tools_file_dialog_select_directory_title">Selecciona el directorio</string>
-    <string name="tools_file_dialog_invalid_directory_message">Hemos registrado este error y lo veremos. Puedes intentar de nuevo.</string>
 
     <string name="settings_importdb_button_label">Importar base de datos</string>
     <string name="settings_exportdb_button_label">Exportar base de datos</string>
@@ -210,6 +209,7 @@
     <string name="general_download_finished_successffull_message">Satisfactoriamente descargado</string>
     <string name="general_error_dialog_title">Algo ha ido mal :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message_try_again">Hemos registrado este error y lo veremos. Puedes intentar de nuevo.</string>
     <string name="general_one_or_more_errors_occured">Uno o más errores han ocurrido:</string>
     <string name="general_loading_dialog_title">Cargando datos&#8230;</string>
     <string name="general_loading_dialog_message">Por favor, espera</string>

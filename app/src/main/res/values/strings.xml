@@ -62,7 +62,6 @@ The Hitchwiki team.
     <string name="tools_database_exported_successfully_message">Database exported successfully!</string>
     <string name="tools_exportdb_share_dialog_message">Now we\'d recommend saving this copy of your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
     <string name="tools_file_dialog_select_directory_title">Select directory</string>
-    <string name="tools_file_dialog_invalid_directory_message">We have logged this error and we\'ll have a look at it. You may try again.</string>
 
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export and share</string>
@@ -201,6 +200,7 @@ The Hitchwiki team.
     <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Something went wrong :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message_try_again">We have logged this error and we\'ll have a look at it. You may try again.</string>
     <string name="general_one_or_more_errors_occured">One or more error occurred:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
