@@ -2,6 +2,7 @@ package com.myhitchhikingspots.utilities;
 
 import java.io.File;
 import java.io.FileReader;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import android.app.ProgressDialog;
@@ -24,7 +25,7 @@ import org.greenrobot.greendao.database.Database;
 import org.joda.time.DateTime;
 
 public class DatabaseImporter extends AsyncTask<Void, Void, String> {
-    private Context context;
+    private WeakReference<Context> contextRef;
     private File file = null;
     private ProgressDialog dialog;
     private AsyncTaskListener<ArrayList<String>> onFinished;
@@ -42,13 +43,16 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
 
 
     public DatabaseImporter(Context context, File file, boolean shouldFixDateTime) {
-        this.context = context;
+        this.contextRef = new WeakReference<>(context);
         this.file = file;
         this.shouldFixDateTime = shouldFixDateTime;
     }
 
     @Override
     protected void onPreExecute() {
+        Context context = contextRef.get();
+        if (context == null)
+            return;
         dialog = new ProgressDialog(context);
         dialog.setTitle(context.getString(R.string.general_loading_dialog_message));
         dialog.setMessage(context.getString(R.string.settings_import_happening_message));
@@ -59,6 +63,10 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
 
     @Override
     protected String doInBackground(Void... params) {
+        Context context = contextRef.get();
+        if (context == null || isCancelled())
+            return "Context was null. Activity might have been destroyed.";
+
         Crashlytics.log(Log.INFO, TAG, "DatabaseImporter started executing..");
         Crashlytics.setString("Chosen file", file.toString());
 
@@ -74,6 +82,9 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     }
 
     protected void onPostExecute(String errorMessage) {
+        Context context = contextRef.get();
+        if (context == null || isCancelled())
+            return;
         ArrayList<String> msgRes = new ArrayList<>();
 
         try {
@@ -117,6 +128,9 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     }
 
     private String importCSVFile() {
+        Context context = contextRef.get();
+        if (context == null)
+            return "Context was null. Activity might have been destroyed.";
         String errorMessage = "";
         try {
             ArrayList<String> columnsNameList = new ArrayList<>();
@@ -240,6 +254,9 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     }
 
     private String importDBFile() {
+        Context context = contextRef.get();
+        if (context == null)
+            return "Context was null. Activity might have been destroyed.";
         String errorMessage = "";
         try {
             //Build path to databases directory

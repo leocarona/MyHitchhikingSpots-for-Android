@@ -164,12 +164,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     public static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
 
-    MainActivity activity;
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        activity = (MainActivity) context;
     }
 
     @Nullable
@@ -187,7 +184,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = view.findViewById(R.id.coordinatiorLayout);
 
-        prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+        prefs = getActivity().getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         fabLocateUser = (FloatingActionButton) view.findViewById(R.id.fab_locate_user);
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
@@ -257,23 +254,23 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void loadMarkerIcons() {
-        ic_single_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, -1);
+        ic_single_spot = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, -1);
 
-        ic_took_a_break_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_break_spot_icon, -1);
-        ic_waiting_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
-        ic_arrival_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_arrival_icon, -1);
+        ic_took_a_break_spot = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_break_spot_icon, -1);
+        ic_waiting_spot = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_marker_waiting_for_a_ride_24dp, -1);
+        ic_arrival_spot = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_arrival_icon, -1);
 
-        ic_hitchability_unknown = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(-1));
-        ic_hitchability_very_good = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(1));
-        ic_hitchability_good = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(2));
-        ic_hitchability_average = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
-        ic_hitchability_bad = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
-        ic_hitchability_senseless = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(5));
+        ic_hitchability_unknown = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(-1));
+        ic_hitchability_very_good = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(1));
+        ic_hitchability_good = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(2));
+        ic_hitchability_average = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
+        ic_hitchability_bad = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
+        ic_hitchability_senseless = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(5));
     }
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+        Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -294,7 +291,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                         isLocationRequestedByUser = false;
                     }
                 } else {
-                    Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
                 }
 
                 //Ask for storage permission if necessary, load spots list and finally draw annotations.
@@ -315,14 +312,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      */
     private void setupLocationComponent(@NonNull Style loadedMapStyle) {
         // Check if permissions are enabled and if not request
-        if (areLocationPermissionsGranted(activity)) {
+        if (areLocationPermissionsGranted(getActivity())) {
 
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
             // Set the LocationComponent activation options
             LocationComponentActivationOptions locationComponentActivationOptions =
-                    LocationComponentActivationOptions.builder(activity, loadedMapStyle)
+                    LocationComponentActivationOptions.builder(getActivity(), loadedMapStyle)
                             .useDefaultLocationEngine(false)
                             .build();
 
@@ -337,7 +334,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
             initLocationEngine();
         } else {
-            requestLocationsPermissions(activity);
+            requestLocationsPermissions(getActivity());
         }
     }
 
@@ -346,7 +343,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      */
     @SuppressLint("MissingPermission")
     private void initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
+        locationEngine = LocationEngineProvider.getBestLocationEngine(getActivity());
 
         LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
                 .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -393,8 +390,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
                 //If location permissions were not granted yet, let's request them.
                 // As soon as the user answers the request for location permissions, onFirstLoad() will be called.
-                if (!areLocationPermissionsGranted(activity))
-                    requestLocationsPermissions(activity);
+                if (!areLocationPermissionsGranted(getActivity()))
+                    requestLocationsPermissions(getActivity());
                 else {
                     enableLocationLayer();
 
@@ -420,8 +417,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * Ask for storage permission if necessary, load spots list and finally draw annotations.
      **/
     void onFirstLoad() {
-        if (!areStoragePermissionsGranted(activity)) {
-            requestStoragePermissions(activity);
+        if (!areStoragePermissionsGranted(getActivity())) {
+            requestStoragePermissions(getActivity());
             return;
         }
 
@@ -466,6 +463,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     private void onItemClick(String spotId) {
         Crashlytics.setString("Clicked marker tag", spotId);
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity == null)
+            return;
+
         Spot spot = null;
         for (Spot spot2 :
                 spotList) {
@@ -587,7 +588,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     SharedPreferences prefs;
 
     void loadHWSpotsFromLocalStorage() {
-        showProgressDialog(activity.getResources().getString(R.string.map_loading_dialog));
+        showProgressDialog(getActivity().getResources().getString(R.string.map_loading_dialog));
         //Load spots and display them as markers and polylines on the map
         this.loadTask = new LoadHitchwikiSpotsListTask(this).execute();
     }
@@ -744,6 +745,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     void showCountriesListDialog() {
+        Activity activity = getActivity();
         if (activity == null || activity.isFinishing())
             return;
 
@@ -754,7 +756,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             //Build string to show
             String c2 = country.getName();
             if (country.getPlaces() != null && !country.getPlaces().isEmpty())
-                c2 += " (" + country.getPlaces() + " " + getContext().getString(R.string.main_activity_single_spots_list_tab) + ")";
+                c2 += " (" + country.getPlaces() + " " + activity.getString(R.string.main_activity_single_spots_list_tab) + ")";
 
             PairParcelable item = new PairParcelable(country.getIso(), c2);
             lst[i] = item;
@@ -835,7 +837,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 break;
         }
 
-        if (!Utils.isNetworkAvailable(activity)) {
+        if (!Utils.isNetworkAvailable(getActivity())) {
             showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_network_unavailable_message));
         } else {
             String lstToDownload = "";
@@ -890,7 +892,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             String totalSpotsDownloaded = String.format(getString(R.string.general_items_downloaded_message), placesContainer.size());
             String lastSyncedDate = String.format(getString(R.string.general_last_sync_date), timeStamp);*/
 
-            Toast.makeText(activity.getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity().getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
         } else {
             if (result.contentEquals("nothingToSync")) {
                 //also write into prefs that markers sync has occurred
@@ -915,7 +917,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         args.putParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY, result);
         args.putString(Constants.DIALOG_TYPE_BUNDLE_KEY, dialogType);
 
-        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         DownloadHWSpotsDialog dialog = new DownloadHWSpotsDialog(downloadHWSpotsDialogListener);
         //dialog.setTargetFragment(this, 0);
         dialog.setArguments(args);
@@ -1094,8 +1096,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             case R.id.action_download_hw_spots:
                 if (countriesContainer != null && countriesContainer.length > 0)
                     showCountriesListDialog();
-                else if (!areStoragePermissionsGranted(activity))
-                    requestStoragePermissions(activity);
+                else if (!areStoragePermissionsGranted(getActivity()))
+                    requestStoragePermissions(getActivity());
                 else
                     downloadCountriesList();
                 break;
@@ -1292,7 +1294,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
         } else {
             //The user might still be close to the last spot saved, move the map camera there
-            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getLastAddedRouteSpot();
+            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getActivity().getApplicationContext()).getLastAddedRouteSpot();
             if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                     && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
                 moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
@@ -1323,7 +1325,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     private void showProgressDialog(String message, String title) {
         if (loadingDialog == null) {
-            loadingDialog = new ProgressDialog(activity);
+            loadingDialog = new ProgressDialog(getActivity());
             loadingDialog.setIndeterminate(true);
             loadingDialog.setCancelable(false);
         }
@@ -1392,10 +1394,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         @Override
         protected void onPostExecute(ArrayList<Feature> features) {
             super.onPostExecute(features);
-            if (isCancelled())
-                return;
             HitchwikiMapViewFragment activity = activityRef.get();
-            if (activity == null)
+            if (activity == null || isCancelled())
                 return;
 
             activity.setupAnnotations(features, errMsg);
@@ -1415,13 +1415,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             //Get a hitchability string to set as title
             String title = "";
             if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot())
-                title = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                title = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
 
             //Set hitchability as title
             title = title.toUpperCase();
 
             // Customize map with markers, polylines, etc.
-            String snippet = "(" + spot.getLatitude() + "," + spot.getLongitude() + ")";// getSnippet(activity, spot, "\n ", " ", "\n ");
+            String snippet = "(" + spot.getLatitude() + "," + spot.getLongitude() + ")";// getSnippet(getActivity(), spot, "\n ", " ", "\n ");
 
 
             JsonObject properties = new JsonObject();
@@ -1549,6 +1549,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void showErrorAlert(String title, String msg) {
+        Activity activity = getActivity();
+        if (activity == null)
+            return;
         new AlertDialog.Builder(activity)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(title)

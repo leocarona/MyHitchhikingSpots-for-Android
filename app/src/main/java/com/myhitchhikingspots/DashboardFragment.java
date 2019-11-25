@@ -25,8 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DashboardFragment extends Fragment implements MainActivity.OnMainActivityUpdated {
-
-    MainActivity activity;
     List<Spot> spotList = new ArrayList();
     Spot mCurrentWaitingSpot = null;
 
@@ -37,7 +35,6 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        activity = (MainActivity) context;
     }
 
     @Override
@@ -48,6 +45,10 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity == null)
+            return;
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
@@ -104,6 +105,9 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     }
 
     public void saveSpotButtonHandler(boolean isDestination) {
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity == null)
+            return;
         double cameraZoom = -1;
         Spot spot = null;
         int requestId = -1;
@@ -176,8 +180,8 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         shortestWaitingTimeStr = longestWaitingTimeStr = "- -";
 
         if (numOfRides > 2) {
-            shortestWaitingTimeStr = Utils.getWaitingTimeAsString(shortestWaitingTime, activity.getBaseContext());
-            longestWaitingTimeStr = Utils.getWaitingTimeAsString(longestWaitingTime, activity.getBaseContext());
+            shortestWaitingTimeStr = Utils.getWaitingTimeAsString(shortestWaitingTime, getActivity());
+            longestWaitingTimeStr = Utils.getWaitingTimeAsString(longestWaitingTime, getActivity());
         }
 
         Integer numHWSpotsDownloaded = prefs.getInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, 0);

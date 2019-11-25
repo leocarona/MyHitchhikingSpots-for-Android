@@ -21,12 +21,9 @@ import com.crashlytics.android.answers.CustomEvent;
 
 public class AboutUsFragment extends Fragment {
 
-    MainActivity activity;
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        activity = (MainActivity) context;
     }
 
     @Override
@@ -43,7 +40,7 @@ public class AboutUsFragment extends Fragment {
         view.findViewById(R.id.btnFDroid).setOnClickListener(view1 -> startFDroid());
         view.findViewById(R.id.btnPlayStore).setOnClickListener(view1 -> startPlayStore());
 
-        ((TextView) view.findViewById(R.id.textView15)).setText(activity.getString(R.string.about_us_how_to_contribute_text, activity.getString(R.string.app_name)));
+        ((TextView) view.findViewById(R.id.textView15)).setText(getActivity().getString(R.string.about_us_how_to_contribute_text, getActivity().getString(R.string.app_name)));
     }
 
 

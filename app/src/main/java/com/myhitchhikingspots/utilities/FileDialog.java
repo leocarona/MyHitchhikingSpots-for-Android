@@ -2,12 +2,14 @@ package com.myhitchhikingspots.utilities;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Environment;
@@ -31,7 +33,7 @@ public class FileDialog {
 
     private ListenerList<FileSelectedListener> fileListenerList = new ListenerList<FileDialog.FileSelectedListener>();
     private ListenerList<DirectorySelectedListener> dirListenerList = new ListenerList<FileDialog.DirectorySelectedListener>();
-    private final Activity activity;
+    private WeakReference<Activity> activityRef;
     private boolean selectDirectoryOption;
     private ArrayList<String> fileEndsWith = new ArrayList<>();
 
@@ -40,7 +42,7 @@ public class FileDialog {
      * @param path
      */
     public FileDialog(Activity activity, File path, String... typesOfFilesToShow) {
-        this.activity = activity;
+        this.activityRef = new WeakReference<>(activity);
 
         //Add files extension that should be shown
         for (String type : typesOfFilesToShow) {
@@ -53,6 +55,7 @@ public class FileDialog {
             loadFileList(path);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
+            showErrorAlert(activity, activity.getString(R.string.general_error_dialog_title), activity.getString(R.string.general_error_message_try_again));
         }
     }
 
@@ -60,6 +63,10 @@ public class FileDialog {
      * @return file dialog
      */
     public Dialog createFileDialog() {
+        Activity activity = activityRef.get();
+        if (activity == null)
+            return null;
+
         Dialog dialog = null;
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 

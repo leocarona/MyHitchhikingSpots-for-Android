@@ -21,20 +21,25 @@ import org.joda.time.DateTimeZone;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 
 public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
     private ProgressDialog dialog;
-    private Context context;
+    private WeakReference<Context> contextRef;
     private AsyncTaskListener<String> onFinished;
     private final String TAG = "database-exporter";
     private String result = "", destinationFilePath = "";
 
     public DatabaseExporter(Context context) {
-        this.context = context;
+        this.contextRef = new WeakReference<>(context);
     }
 
     @Override
     protected void onPreExecute() {
+        Context context = contextRef.get();
+        if (context == null || isCancelled())
+            return;
+
         //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
         ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -48,6 +53,10 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
     }
 
     protected Boolean doInBackground(Void... params) {
+        Context context = contextRef.get();
+        if (context == null || isCancelled())
+            return false;
+
         Crashlytics.log(Log.INFO, TAG, "DatabaseExporter started executing..");
         try {
             MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) context.getApplicationContext());
@@ -89,6 +98,9 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
     }
 
     protected void onPostExecute(final Boolean success) {
+        Context context = contextRef.get();
+        if (context == null || isCancelled())
+            return;
 
         //Remove the flag that keeps the screen from sleeping
         ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

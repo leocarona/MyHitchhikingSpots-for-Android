@@ -40,20 +40,20 @@ public class LocationUpdatesCallback
      **/
     public void moveMapCameraToNextLocationReceived() {
         FirstLocationUpdateListener frag = fragmentWeakReference.get();
+        if (frag == null)
+            return;
 
-        if (frag != null) {
-            // Pass the new location to the Maps SDK's LocationComponent
-            if (frag.getMapboxMap() != null) {
-                LocationComponent lc = frag.getMapboxMap().getLocationComponent();
-                if (!lc.isLocationComponentActivated())
-                    return;
+        // Pass the new location to the Maps SDK's LocationComponent
+        if (frag.getMapboxMap() != null) {
+            LocationComponent lc = frag.getMapboxMap().getLocationComponent();
+            if (!lc.isLocationComponentActivated())
+                return;
 
-                previousCameraMode = lc.getCameraMode();
-                isWaitingForNextLocation = true;
+            previousCameraMode = lc.getCameraMode();
+            isWaitingForNextLocation = true;
 
-                //Make map camera move to next location received
-                lc.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
-            }
+            //Make map camera move to next location received
+            lc.setCameraMode(CameraMode.TRACKING_GPS_NORTH);
         }
     }
 
@@ -65,26 +65,26 @@ public class LocationUpdatesCallback
     @Override
     public void onSuccess(LocationEngineResult result) {
         FirstLocationUpdateListener frag = fragmentWeakReference.get();
+        if (frag == null)
+            return;
 
-        if (frag != null) {
-            Location location = result.getLastLocation();
+        Location location = result.getLastLocation();
 
-            if (location == null) {
-                return;
-            }
+        if (location == null) {
+            return;
+        }
 
-            // Pass the new location to the Maps SDK's LocationComponent
-            if (frag.getMapboxMap() != null && result.getLastLocation() != null) {
-                frag.getMapboxMap().getLocationComponent().forceLocationUpdate(result.getLastLocation());
+        // Pass the new location to the Maps SDK's LocationComponent
+        if (frag.getMapboxMap() != null && result.getLastLocation() != null) {
+            frag.getMapboxMap().getLocationComponent().forceLocationUpdate(result.getLastLocation());
 
-                if (isWaitingForNextLocation) {
-                    //Make map camera stop following location updates
-                    frag.getMapboxMap().getLocationComponent().setCameraMode(previousCameraMode);
-                    //Reset values
-                    previousCameraMode = CameraMode.NONE;
-                    isWaitingForNextLocation = false;
-                    frag.moveCameraToLastKnownLocation();
-                }
+            if (isWaitingForNextLocation) {
+                //Make map camera stop following location updates
+                frag.getMapboxMap().getLocationComponent().setCameraMode(previousCameraMode);
+                //Reset values
+                previousCameraMode = CameraMode.NONE;
+                isWaitingForNextLocation = false;
+                frag.moveCameraToLastKnownLocation();
             }
         }
     }
