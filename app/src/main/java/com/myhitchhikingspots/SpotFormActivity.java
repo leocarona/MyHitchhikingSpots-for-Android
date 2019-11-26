@@ -682,6 +682,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
     }
 
+    private boolean isFirstTimeCameraIsIdle = true;
+
     @Override
     public void onMapReady(final MapboxMap mapboxMap) {
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).commit();
@@ -699,6 +701,13 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
 
             this.mapboxMap.addOnCameraIdleListener(() -> {
+                //If spot is being edited and its address has already been fetched (when an address is fetched, GpsResolved is set to true),
+                // then avoid requesting to fetch the address of the same location again by ignoring the first time the camera gets idle.
+                if (mCurrentSpot.getGpsResolved() && isFirstTimeCameraIsIdle) {
+                    isFirstTimeCameraIsIdle = false;
+                    return;
+                }
+
                 collapseBottomSheet();
                 hideKeyboard();
 
