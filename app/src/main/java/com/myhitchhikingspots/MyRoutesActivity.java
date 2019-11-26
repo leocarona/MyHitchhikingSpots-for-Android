@@ -57,7 +57,6 @@ public class MyRoutesActivity extends AppCompatActivity {
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
     ListListener spotsListListener = null;
-    Spot mCurrentWaitingSpot;
     private boolean isHandlingRequestToOpenSpotForm = false;
 
     int indexOfLastOpenTab = 0;
@@ -172,8 +171,6 @@ public class MyRoutesActivity extends AppCompatActivity {
                 null, null);
     }
 
-    List<Spot> mSpotList;
-
     @Override
     public void onResume() {
         super.onResume();
@@ -202,9 +199,7 @@ public class MyRoutesActivity extends AppCompatActivity {
         MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
         DaoSession daoSession = appContext.getDaoSession();
         SpotDao spotDao = daoSession.getSpotDao();
-
-        mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
-        mCurrentWaitingSpot = appContext.getCurrentSpot();
+        List<Spot> mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
 
         //Update fragments
         if (mSectionsPagerAdapter != null) {
@@ -525,6 +520,7 @@ public class MyRoutesActivity extends AppCompatActivity {
 
         } else {
             requestId = Constants.EDIT_SPOT_REQUEST;
+            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
             spot = mCurrentWaitingSpot;
         }
 
@@ -533,6 +529,7 @@ public class MyRoutesActivity extends AppCompatActivity {
     }
 
     private boolean isWaitingForARide() {
+        Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
         return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
                 mCurrentWaitingSpot.getIsWaitingForARide() : false;
     }
