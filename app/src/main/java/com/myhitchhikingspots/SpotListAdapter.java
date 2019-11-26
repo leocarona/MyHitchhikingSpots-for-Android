@@ -3,12 +3,6 @@ package com.myhitchhikingspots;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.widget.AppCompatCheckBox;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,11 +12,16 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.interfaces.CheckboxListener;
+import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.Utils;
-import com.myhitchhikingspots.interfaces.ListListener;
 
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
@@ -108,7 +107,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     }
 
     public boolean getIsAllSpotsSelected() {
-        if(mData.isEmpty())
+        if (mData.isEmpty())
             return false;
         boolean isAllSpotsSelected = true;
         for (Spot spot : mData) {
@@ -294,7 +293,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             viewParent = itemLayoutView.findViewById(R.id.spot_list_item_parent);
             viewParent.setOnClickListener(this);
             viewParent.setOnLongClickListener((v) -> {
-                if(!isEditMode)
+                if (!isEditMode)
                     setIsEditMode(true);
                 setChecked(getIsEditMode());
                 return true;
@@ -304,7 +303,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         }
 
         private void setChecked(boolean value) {
-            if(cbx != null) cbx.setChecked(value);
+            if (cbx != null) cbx.setChecked(value);
             updateCheckboxVisibility();
         }
 
@@ -314,7 +313,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         @Override
         public void onClick(View v) {
-            if(getIsEditMode())
+            if (getIsEditMode())
                 toggleChecked();
             else if (itemListener != null)
                 itemListener.notifySpotClicked(spot);

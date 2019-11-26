@@ -6,14 +6,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.location.Address;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import androidx.fragment.app.Fragment;
-import androidx.appcompat.app.AlertDialog;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,12 +13,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.SpotDao;
 
 import org.greenrobot.greendao.database.Database;
@@ -114,7 +112,7 @@ public class SpotListFragment extends Fragment {
                     //Show or hide delete button. When one or more spot are delete, onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged() is fired
                     updateDeleteButtons();
                     Activity activity = getActivity();
-                    if(activity != null) activity.invalidateOptionsMenu();
+                    if (activity != null) activity.invalidateOptionsMenu();
                     isHandlingRequestToOpenSpotForm = false;
                 }
 
@@ -165,24 +163,24 @@ public class SpotListFragment extends Fragment {
     }
 
     public boolean getIsAllSpotsSelected() {
-        if(mAdapter != null)
+        if (mAdapter != null)
             return mAdapter.getIsAllSpotsSelected();
         return false;
     }
 
     public boolean getIsOneOrMoreSpotsSelected() {
-        if(mAdapter != null)
-           return mAdapter.getIsOneOrMoreSpotsSelected();
+        if (mAdapter != null)
+            return mAdapter.getIsOneOrMoreSpotsSelected();
         return false;
     }
 
     public void selectAllSpots() {
-        if(mAdapter != null)
+        if (mAdapter != null)
             mAdapter.selectAllSpots();
     }
 
     public void deselectAllSpots() {
-        if(mAdapter != null)
+        if (mAdapter != null)
             mAdapter.deselectAllSpots();
     }
 
@@ -266,7 +264,7 @@ public class SpotListFragment extends Fragment {
     }
 
     void updateDeleteButtons() {
-        if(fabDelete == null)
+        if (fabDelete == null)
             return;
 
         if (mAdapter != null && mAdapter.getSelectedSpots().size() > 0 && getIsEditMode())

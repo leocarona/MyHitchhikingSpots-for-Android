@@ -4,36 +4,29 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-
-import androidx.annotation.NonNull;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.tabs.TabLayout;
-
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.core.content.ContextCompat;
-import androidx.viewpager.widget.PagerAdapter;
-
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-
 import android.os.Bundle;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
@@ -61,7 +54,6 @@ public class MyRoutesActivity extends AppCompatActivity {
     private ViewPager mViewPager;
 
     CoordinatorLayout coordinatorLayout;
-    static final String SNACKBAR_SHOWED_KEY = "snackbar-showed-key";
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
     ListListener spotsListListener = null;
@@ -199,9 +191,9 @@ public class MyRoutesActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
-        if(mViewPager != null)
+        if (mViewPager != null)
             mViewPager.clearOnPageChangeListeners();
     }
 
@@ -249,12 +241,12 @@ public class MyRoutesActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.my_routes_menu, menu);
 
-        MenuItem item =  menu.findItem(R.id.action_select_all);
+        MenuItem item = menu.findItem(R.id.action_select_all);
 
         boolean isEditModeOn = mSectionsPagerAdapter.getIsEditMode(mViewPager.getCurrentItem());
         item.setVisible(isEditModeOn);
 
-        if(isEditModeOn) {
+        if (isEditModeOn) {
             String itemTitle = getString(R.string.general_select_all);
             if (mSectionsPagerAdapter.getIsAllSpotsSelected(mViewPager.getCurrentItem()))
                 itemTitle = getString(R.string.general_deselect_all);
@@ -275,7 +267,7 @@ public class MyRoutesActivity extends AppCompatActivity {
                 break;
             case R.id.action_select_all:
                 if (mSectionsPagerAdapter != null) {
-                    if(mSectionsPagerAdapter.getIsAllSpotsSelected(mViewPager.getCurrentItem())) {
+                    if (mSectionsPagerAdapter.getIsAllSpotsSelected(mViewPager.getCurrentItem())) {
                         mSectionsPagerAdapter.deselectAllSpots(mViewPager.getCurrentItem());
                     } else {
                         mSectionsPagerAdapter.selectAllSpots(mViewPager.getCurrentItem());
@@ -286,35 +278,10 @@ public class MyRoutesActivity extends AppCompatActivity {
                 if (mSectionsPagerAdapter != null) {
                     switch (mViewPager.getCurrentItem()) {
                         case SectionsPagerAdapter.TAB_ROUTES_INDEX:
-                            //Toggle isEditMode
                             mSectionsPagerAdapter.toggleRoutesListEditMode();
-
-                          /*Commenting this out because when user changes the selected tab, the isEditMode value is different for the other tab/fragment
-                          //Update string to show "Edit list" or "Close edit mode" depending on isEditMode
-                            if (!mSectionsPagerAdapter.getTabRoutesIsEditMode())
-                                item.setTitle(getString(R.string.general_edit_list));
-                            else
-                                item.setTitle(getString(R.string.general_close_editing_mode_label));*/
-
                             break;
                         case SectionsPagerAdapter.TAB_SPOTS_INDEX:
-                            //Toggle isEditMode
                             mSectionsPagerAdapter.toggleSpotsListEditMode();
-
-                            /*Commenting this out because when user changes the selected tab, the isEditMode value is different for the other tab/fragment
-                            //Update string to show "Edit list" or "Close edit mode" depending on isEditMode
-                            if (!mSectionsPagerAdapter.getTabSpotsIsEditMode())
-                                item.setTitle(getString(R.string.general_edit_list));
-                            else
-                                item.setTitle(getString(R.string.general_close_editing_mode_label));*/
-
-                            break;
-                        default:
-                            Toast.makeText(this,
-                                    String.format("Select tab '%1$s' or '%2$s'",
-                                            getString(R.string.main_activity_list_tab),
-                                            getString(R.string.main_activity_single_spots_list_tab)),
-                                    Toast.LENGTH_LONG).show();
                             break;
                     }
 
@@ -468,10 +435,11 @@ public class MyRoutesActivity extends AppCompatActivity {
 
         /**
          * Selects all spots on the list.
+         *
          * @param tabPosition index of the tab which all list items should be selected.
          **/
         private void selectAllSpots(int tabPosition) {
-            switch(tabPosition) {
+            switch (tabPosition) {
                 case TAB_ROUTES_INDEX:
                     if (tab_route_spots_list != null)
                         tab_route_spots_list.selectAllSpots();
@@ -484,10 +452,10 @@ public class MyRoutesActivity extends AppCompatActivity {
         }
 
         private boolean getIsOneOrMoreSpotsSelected(int tabPosition) {
-            switch(tabPosition) {
+            switch (tabPosition) {
                 case TAB_ROUTES_INDEX:
                     if (tab_route_spots_list != null)
-                      return tab_route_spots_list.getIsOneOrMoreSpotsSelected();
+                        return tab_route_spots_list.getIsOneOrMoreSpotsSelected();
                     break;
                 case TAB_SPOTS_INDEX:
                     if (tab_single_spots_list != null)
@@ -498,7 +466,7 @@ public class MyRoutesActivity extends AppCompatActivity {
         }
 
         private boolean getIsAllSpotsSelected(int tabPosition) {
-            switch(tabPosition) {
+            switch (tabPosition) {
                 case TAB_ROUTES_INDEX:
                     if (tab_route_spots_list != null)
                         return tab_route_spots_list.getIsAllSpotsSelected();
@@ -513,10 +481,11 @@ public class MyRoutesActivity extends AppCompatActivity {
 
         /**
          * Deselects all spots on the list.
+         *
          * @param tabPosition index of the tab which all list items should be deselected.
          **/
         private void deselectAllSpots(int tabPosition) {
-            switch(tabPosition) {
+            switch (tabPosition) {
                 case TAB_ROUTES_INDEX:
                     if (tab_route_spots_list != null)
                         tab_route_spots_list.deselectAllSpots();
@@ -529,14 +498,14 @@ public class MyRoutesActivity extends AppCompatActivity {
         }
 
         private boolean getIsEditMode(int tabPosition) {
-            switch(tabPosition) {
+            switch (tabPosition) {
                 case TAB_ROUTES_INDEX:
                     if (tab_route_spots_list != null)
                         return tab_route_spots_list.getIsEditMode();
                     break;
                 case TAB_SPOTS_INDEX:
                     if (tab_single_spots_list != null)
-                       return tab_single_spots_list.getIsEditMode();
+                        return tab_single_spots_list.getIsEditMode();
                     break;
             }
             return false;
