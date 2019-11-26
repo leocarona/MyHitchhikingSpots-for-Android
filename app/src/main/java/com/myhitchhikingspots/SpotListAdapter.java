@@ -103,6 +103,63 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         }
     }
 
+    public boolean getIsOneOrMoreSpotsSelected() {
+        return !selectedSpots.isEmpty();
+    }
+
+    public boolean getIsAllSpotsSelected() {
+        if(mData.isEmpty())
+            return false;
+        boolean isAllSpotsSelected = true;
+        for (Spot spot : mData) {
+            Integer spotId = spot.getId().intValue();
+            if (!selectedSpots.contains(spotId)) {
+                isAllSpotsSelected = false;
+                break;
+            }
+        }
+        return isAllSpotsSelected;
+    }
+
+    private void selectSpot(Spot spot) {
+        Integer spotId = spot.getId().intValue();
+        if (!selectedSpots.contains(spotId))
+            selectedSpots.add(spotId);
+
+        onListOfSelectedSpotsChanged();
+    }
+
+    private void deselectSpot(Spot spot) {
+        //Find position on the list
+        int index = selectedSpots.indexOf(spot.getId().intValue());
+
+        //Remove it from previouslySelectedSpots
+        if (index > -1)
+            selectedSpots.remove(index);
+
+        onListOfSelectedSpotsChanged();
+    }
+
+    private void selectAllSpots(List<Spot> spotList) {
+        for (Spot spot : spotList) {
+            Integer spotId = spot.getId().intValue();
+            if (!selectedSpots.contains(spotId))
+                selectedSpots.add(spotId);
+        }
+        notifyDataSetChanged();
+        onListOfSelectedSpotsChanged();
+    }
+
+    public void selectAllSpots() {
+        selectAllSpots(mData);
+    }
+
+    public void deselectAllSpots() {
+        selectedSpots.clear();
+        notifyDataSetChanged();
+        onListOfSelectedSpotsChanged();
+    }
+
     @Override
     public SpotListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
@@ -118,22 +175,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
                 //If isChecked add spot id to previouslySelectedSpots
                 if (isChecked)
-                    selectedSpots.add(spot.getId().intValue());
-                else {
-
-                    //Find position on the list
-                    int index = -1;
-                    for (int i = 0; i < selectedSpots.size() && index == -1; i++) {
-                        if (selectedSpots.get(i) == spot.getId().intValue())
-                            index = i;
-                    }
-
-                    //Remove it from previouslySelectedSpots
-                    if (index > -1)
-                        selectedSpots.remove(index);
-                }
-
-                onListOfSelectedSpotsChanged();
+                    selectSpot(spot);
+                else
+                    deselectSpot(spot);
             }
 
             @Override
@@ -143,7 +187,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         };
 
         viewHolder.setSpotCheckedChangedListener(onCheckedChanged);
-        viewHolder.setIsEditMode(isEditMode);
+        viewHolder.updateCheckboxVisibility();
 
         return viewHolder;
     }
@@ -166,7 +210,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         }
 
         viewHolder.setFields(spot, secondLine, index > -1, activity);
-        viewHolder.setIsEditMode(isEditMode);
+        viewHolder.updateCheckboxVisibility();
     }
 
     static String locationSeparator = ", ";
@@ -213,14 +257,18 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             onSelectedSpotsListChangedListener.onSpotClicked(spot);
     }
 
-    Boolean isEditMode = false;
+    private Boolean isEditMode = false;
 
     public void setIsEditMode(Boolean isEditMode) {
         this.isEditMode = isEditMode;
         notifyDataSetChanged();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+    public boolean getIsEditMode() {
+        return this.isEditMode;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
         public TextView dateTime, cityNameText, notesText, waitingTimeText;
         public ImageView waitingIcon, destinationIcon, singleSpotIcon, breakIcon;
@@ -229,7 +277,6 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         public View viewParent;
         public AppCompatCheckBox cbx;
         CheckboxListener itemListener = null;
-        Boolean isEditMode = false;
 
         public ViewHolder(View itemLayoutView, Activity activity) {
             super(itemLayoutView);
@@ -246,13 +293,30 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
             viewParent = itemLayoutView.findViewById(R.id.spot_list_item_parent);
             viewParent.setOnClickListener(this);
+            viewParent.setOnLongClickListener((v) -> {
+                if(!isEditMode)
+                    setIsEditMode(true);
+                setChecked(getIsEditMode());
+                return true;
+            });
 
             cbx = (AppCompatCheckBox) itemLayoutView.findViewById(R.id.spot_delete_checkbox);
         }
 
+        private void setChecked(boolean value) {
+            if(cbx != null) cbx.setChecked(value);
+            updateCheckboxVisibility();
+        }
+
+        private void toggleChecked() {
+            setChecked(!cbx.isChecked());
+        }
+
         @Override
         public void onClick(View v) {
-            if (itemListener != null)
+            if(getIsEditMode())
+                toggleChecked();
+            else if (itemListener != null)
                 itemListener.notifySpotClicked(spot);
         }
 
@@ -274,11 +338,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             this.itemListener = itemListener;
         }
 
-        public void setIsEditMode(Boolean isEditMode) {
-            this.isEditMode = isEditMode;
-
+        public void updateCheckboxVisibility() {
             if (cbx != null) {
-                if (isEditMode)
+                if (getIsEditMode())
                     cbx.setVisibility(View.VISIBLE);
                 else
                     cbx.setVisibility(View.GONE);
@@ -417,9 +479,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         }
 
         @NonNull
-        private static String getString(Spot mCurrentSpot) {
+        private String getString(Spot mCurrentSpot) {
             String spotLoc = spotLocationToString(mCurrentSpot).trim();
-            if (spotLoc != null && !spotLoc.isEmpty())
+            if (!spotLoc.isEmpty())
                 spotLoc = "- " + spotLoc;
             else if (mCurrentSpot.getLatitude() != null && mCurrentSpot.getLongitude() != null)
                 spotLoc = "- (" + mCurrentSpot.getLatitude() + "," + mCurrentSpot.getLongitude() + ")";

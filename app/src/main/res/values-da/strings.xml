@@ -179,6 +179,8 @@
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
     <string name="general_spots_list_not_loaded">Spots list hasn\'t been loaded</string>
+    <string name="general_select_all">Fravælg alle</string>
+    <string name="general_deselect_all">Vælg alle</string>
 
     <string name="general_internet_unavailable_title">Internet utilgængeligt</string>
     <string name="general_offline_mode_label">Offline mode</string>

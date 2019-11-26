@@ -205,6 +205,8 @@ The Hitchwiki team.
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
     <string name="general_spots_list_not_loaded">Spots list hasn\'t been loaded</string>
+    <string name="general_select_all">Select all</string>
+    <string name="general_deselect_all">Deselect all</string>
 
     <string name="general_internet_unavailable_title">Internet unavailable</string>
     <string name="general_offline_mode_label">Offline mode</string>

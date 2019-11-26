@@ -214,6 +214,8 @@
     <string name="general_loading_dialog_title">Cargando datos&#8230;</string>
     <string name="general_loading_dialog_message">Por favor, espera</string>
     <string name="general_spots_list_not_loaded">No se pudo cargar la lista de lugares</string>
+    <string name="general_select_all">Seleccionar todo</string>
+    <string name="general_deselect_all">Deseleccionar todo</string>
 
     <string name="general_internet_unavailable_title">Internet no disponible</string>
     <string name="general_offline_mode_label">Modo offline</string>

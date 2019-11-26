@@ -208,6 +208,8 @@
     <string name="general_loading_dialog_title">Carregando&#8230;</string>
     <string name="general_loading_dialog_message">Aguarde</string>
     <string name="general_spots_list_not_loaded">Lista de locais salvos não carregada</string>
+    <string name="general_select_all">Selecionar todos</string>
+    <string name="general_deselect_all">Deselecionar todos</string>
 
     <string name="general_internet_unavailable_title">Internet indisponível</string>
     <string name="general_offline_mode_label">Modo offline</string>
