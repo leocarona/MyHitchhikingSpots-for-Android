@@ -703,7 +703,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             this.mapboxMap.addOnCameraIdleListener(() -> {
                 //If spot is being edited and its address has already been fetched (when an address is fetched, GpsResolved is set to true),
                 // then avoid requesting to fetch the address of the same location again by ignoring the first time the camera gets idle.
-                if (mCurrentSpot.getGpsResolved() && isFirstTimeCameraIsIdle) {
+                if (mCurrentSpot.getGpsResolved() != null && mCurrentSpot.getGpsResolved() && isFirstTimeCameraIsIdle) {
                     isFirstTimeCameraIsIdle = false;
                     return;
                 }
