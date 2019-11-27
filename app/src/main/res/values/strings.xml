@@ -62,7 +62,6 @@ The Hitchwiki team.
     <string name="tools_database_exported_successfully_message">Database exported successfully!</string>
     <string name="tools_exportdb_share_dialog_message">Now we\'d recommend saving this copy of your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
     <string name="tools_file_dialog_select_directory_title">Select directory</string>
-    <string name="tools_file_dialog_invalid_directory_message">We have logged this error and we\'ll have a look at it. You may try again.</string>
 
     <string name="settings_importdb_button_label">Import database</string>
     <string name="settings_exportdb_button_label">Export and share</string>
@@ -174,8 +173,7 @@ The Hitchwiki team.
     <string name="general_date_at_time">%1$s at %2$s</string>
 
     <string name="general_edit_list">Edit list</string>
-    <string name="general_hide_icons_label">Hide buttons</string>
-    <string name="general_show_icons_label">Show buttons</string>
+    <string name="general_toggle_buttons_label">Toggle buttons</string>
     <string name="general_hide_routes_label">Toggle past routes</string>
     <string name="general_close_editing_mode_label" translatable="false">Close editing mode</string>
     <string name="general_ok_option">OK</string>
@@ -188,6 +186,10 @@ The Hitchwiki team.
     <string name="general_not_enough_permission">Sorry, unfortunately you seem to not have enough permission to execute this action.</string>
     <string name="general_selected_file_type_not_supported">Selected file was not of a supported type.</string>
     <string name="general_zoom_to_fit_all">View all spots</string>
+    <string name="general_zoom_in_button_label">Zoom in</string>
+    <string name="general_zoom_out_button_label">Zoom out</string>
+    <string name="general_locate_button_label">Move to your location</string>
+    <string name="general_open_in_another_app">See this location in another app</string>
 
     <string name="general_author_label">by %s</string>
     <string name="general_download_option">Download</string>
@@ -198,10 +200,13 @@ The Hitchwiki team.
     <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Something went wrong :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message_try_again">We have logged this error and we\'ll have a look at it. You may try again.</string>
     <string name="general_one_or_more_errors_occured">One or more error occurred:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>
     <string name="general_loading_dialog_message">Please wait</string>
     <string name="general_spots_list_not_loaded">Spots list hasn\'t been loaded</string>
+    <string name="general_select_all">Select all</string>
+    <string name="general_deselect_all">Deselect all</string>
 
     <string name="general_internet_unavailable_title">Internet unavailable</string>
     <string name="general_offline_mode_label">Offline mode</string>
@@ -267,7 +272,6 @@ The Hitchwiki team.
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutes have past since you\'ve first opened this screen. Would you like to update the information of your new spot? It\'ll be updated from %2$s to %3$s.</string>
     <string name="settings_export_section_title">Export</string>
     <string name="settings_import_section_title">Import</string>
-    <string name="spot_form_locate_button_tooltip_text">Move to your location</string>
 
     <string name="offline_map">Offline Maps</string>
     <string name="download_region_button_text">Download this region</string>

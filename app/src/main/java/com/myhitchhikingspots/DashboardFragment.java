@@ -1,5 +1,6 @@
 package com.myhitchhikingspots;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,11 +26,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DashboardFragment extends Fragment implements MainActivity.OnMainActivityUpdated {
-
-    MainActivity activity;
-    List<Spot> spotList = new ArrayList();
-    Spot mCurrentWaitingSpot = null;
-
     TextView txtNumSpotsSaved, txtNumHWSpotsDownloaded, txtShortestWaitingTime, txtLongestWaitingTime;
     SharedPreferences prefs;
     private boolean isHandlingRequestToOpenSpotForm = false;
@@ -37,7 +33,6 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        activity = (MainActivity) context;
     }
 
     @Override
@@ -49,6 +44,10 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity == null)
+            return;
+
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         txtNumSpotsSaved = view.findViewById(R.id.txt_number_spots_saved);
@@ -59,18 +58,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         //If 'Go to my map' button is clicked, select My Map menu option
         view.findViewById(R.id.go_to_my_map).setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
 
-        if (getArguments() != null) {
-            if (getArguments().containsKey(MainActivity.ARG_SPOTLIST_KEY)) {
-                Spot[] bundleSpotList = (Spot[]) getArguments().getSerializable(MainActivity.ARG_SPOTLIST_KEY);
-                this.spotList = Arrays.asList(bundleSpotList);
-            }
-
-            if (getArguments().containsKey(MainActivity.ARG_CURRENTSPOT_KEY)) {
-                this.mCurrentWaitingSpot = (Spot) getArguments().getSerializable(MainActivity.ARG_CURRENTSPOT_KEY);
-            }
-
-            updateUI();
-        }
+        updateUI();
     }
 
     @Override
@@ -98,12 +86,35 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         return super.onOptionsItemSelected(item);
     }
 
-    boolean isWaitingForARide() {
+    private List<Spot> getSpotList() {
+        Activity activity = getActivity();
+
+        if (activity instanceof MainActivity)
+            return ((MainActivity) activity).spotList;
+
+        return new ArrayList<>();
+    }
+
+    @Nullable
+    private Spot getCurrentWaitingSpot() {
+        Activity activity = getActivity();
+
+        if (activity instanceof MainActivity)
+            return ((MainActivity) activity).mCurrentWaitingSpot;
+
+        return null;
+    }
+
+    private boolean isWaitingForARide() {
+        Spot mCurrentWaitingSpot = getCurrentWaitingSpot();
         return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
                 mCurrentWaitingSpot.getIsWaitingForARide() : false;
     }
 
     public void saveSpotButtonHandler(boolean isDestination) {
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity == null)
+            return;
         double cameraZoom = -1;
         Spot spot = null;
         int requestId = -1;
@@ -116,7 +127,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
 
         } else {
             requestId = Constants.EDIT_SPOT_REQUEST;
-            spot = mCurrentWaitingSpot;
+            spot = getCurrentWaitingSpot();
         }
 
         isHandlingRequestToOpenSpotForm = true;
@@ -128,19 +139,19 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         super.onActivityResult(requestCode, resultCode, data);
 
         isHandlingRequestToOpenSpotForm = false;
+
+        //NOTE: updateSpotList() will be called after DashboardFragment.onActivityResult() by MainActivity.onActivityResult()
     }
 
     @Override
-    public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
-        this.spotList = spotList;
-        this.mCurrentWaitingSpot = mCurrentWaitingSpot;
-
+    public void onSpotListChanged() {
         updateUI();
     }
 
     void updateUI() {
         Integer longestWaitingTime = 0, shortestWaitingTime = 0, numOfRides = 0;
 
+        List<Spot> spotList = getSpotList();
         if (spotList.size() > 0) {
             Spot spot = spotList.get(0);
             longestWaitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
@@ -174,8 +185,8 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         shortestWaitingTimeStr = longestWaitingTimeStr = "- -";
 
         if (numOfRides > 2) {
-            shortestWaitingTimeStr = Utils.getWaitingTimeAsString(shortestWaitingTime, activity.getBaseContext());
-            longestWaitingTimeStr = Utils.getWaitingTimeAsString(longestWaitingTime, activity.getBaseContext());
+            shortestWaitingTimeStr = Utils.getWaitingTimeAsString(shortestWaitingTime, getActivity());
+            longestWaitingTimeStr = Utils.getWaitingTimeAsString(longestWaitingTime, getActivity());
         }
 
         Integer numHWSpotsDownloaded = prefs.getInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, 0);

@@ -2,12 +2,14 @@ package com.myhitchhikingspots.utilities;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Environment;
@@ -31,7 +33,7 @@ public class FileDialog {
 
     private ListenerList<FileSelectedListener> fileListenerList = new ListenerList<FileDialog.FileSelectedListener>();
     private ListenerList<DirectorySelectedListener> dirListenerList = new ListenerList<FileDialog.DirectorySelectedListener>();
-    private final Activity activity;
+    private WeakReference<Activity> activityRef;
     private boolean selectDirectoryOption;
     private ArrayList<String> fileEndsWith = new ArrayList<>();
 
@@ -40,7 +42,7 @@ public class FileDialog {
      * @param path
      */
     public FileDialog(Activity activity, File path, String... typesOfFilesToShow) {
-        this.activity = activity;
+        this.activityRef = new WeakReference<>(activity);
 
         //Add files extension that should be shown
         for (String type : typesOfFilesToShow) {
@@ -53,7 +55,7 @@ public class FileDialog {
             loadFileList(path);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
-            showErrorAlert(activity.getString(R.string.general_error_dialog_title), ex.getMessage());
+            showErrorAlert(activity, activity.getString(R.string.general_error_dialog_title), activity.getString(R.string.general_error_message_try_again));
         }
     }
 
@@ -61,6 +63,10 @@ public class FileDialog {
      * @return file dialog
      */
     public Dialog createFileDialog() {
+        Activity activity = activityRef.get();
+        if (activity == null)
+            return null;
+
         Dialog dialog = null;
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 
@@ -86,7 +92,7 @@ public class FileDialog {
                         showDialog();
                     } catch (Exception ex) {
                         Crashlytics.logException(ex);
-                        showErrorAlert(activity.getString(R.string.general_error_dialog_title), ex.getMessage());
+                        showErrorAlert(activity, activity.getString(R.string.general_error_dialog_title), activity.getString(R.string.general_error_message_try_again));
                     }
                 } else fireFileSelectedEvent(chosenFile);
             }
@@ -168,8 +174,9 @@ public class FileDialog {
             //Get an array of abstract path names denoting the files and directories in the given directory (path) that satisfy the specified filter.
             String[] fileList1 = path.list(filter);
             // The method returns null if the abstract path does not denote a directory, or if an I/O error occurs.
-            if (fileList1 == null)
-                throw new Exception(activity.getString(R.string.tools_file_dialog_invalid_directory_message));
+            if (fileList1 == null) {
+                throw new Exception("File.list(filter) has returned null.");
+            }
             for (String file : fileList1) {
                 r.add(file);
             }
@@ -182,7 +189,7 @@ public class FileDialog {
         else return new File(currentPath, fileChosen);
     }
 
-    protected void showErrorAlert(String title, String msg) {
+    protected void showErrorAlert(Activity activity, String title, String msg) {
         new androidx.appcompat.app.AlertDialog.Builder(activity)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(title)

@@ -1,18 +1,11 @@
 package com.myhitchhikingspots;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.location.Address;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import androidx.fragment.app.Fragment;
-import androidx.appcompat.app.AlertDialog;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,12 +13,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.SpotDao;
 
 import org.greenrobot.greendao.database.Database;
@@ -38,7 +37,6 @@ public class SpotListFragment extends Fragment {
     List<Spot> spotList = new ArrayList<>();
     FloatingActionButton fabDelete;
     public ArrayList<Integer> previouslySelectedSpots = new ArrayList<>();
-    Boolean isEditMode = null;
     static String SELECTED_SPOTS_KEY = "SELECTED_SPOTS_KEY";
     static String IS_EDIT_MODE_KEY = "IS_EDIT_MODE_KEY";
     static final String TAG = "spot-list-fragment";
@@ -70,7 +68,7 @@ public class SpotListFragment extends Fragment {
         }
 
         if (savedInstanceState != null && savedInstanceState.containsKey(IS_EDIT_MODE_KEY)) {
-            isEditMode = savedInstanceState.getBoolean(IS_EDIT_MODE_KEY);
+            setIsEditMode(savedInstanceState.getBoolean(IS_EDIT_MODE_KEY));
         }
     }
 
@@ -113,6 +111,8 @@ public class SpotListFragment extends Fragment {
                 public void onListOfSelectedSpotsChanged() {
                     //Show or hide delete button. When one or more spot are delete, onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged() is fired
                     updateDeleteButtons();
+                    Activity activity = getActivity();
+                    if (activity != null) activity.invalidateOptionsMenu();
                     isHandlingRequestToOpenSpotForm = false;
                 }
 
@@ -157,12 +157,31 @@ public class SpotListFragment extends Fragment {
         if (previouslySelectedSpots != null)
             mAdapter.setSelectedSpotsList(previouslySelectedSpots);
 
-        if (isEditMode != null)
-            mAdapter.setIsEditMode(isEditMode);
-
         recyclerView.setAdapter(mAdapter);
 
         return rootView;
+    }
+
+    public boolean getIsAllSpotsSelected() {
+        if (mAdapter != null)
+            return mAdapter.getIsAllSpotsSelected();
+        return false;
+    }
+
+    public boolean getIsOneOrMoreSpotsSelected() {
+        if (mAdapter != null)
+            return mAdapter.getIsOneOrMoreSpotsSelected();
+        return false;
+    }
+
+    public void selectAllSpots() {
+        if (mAdapter != null)
+            mAdapter.selectAllSpots();
+    }
+
+    public void deselectAllSpots() {
+        if (mAdapter != null)
+            mAdapter.deselectAllSpots();
     }
 
     private void deleteSelectedSpots() {
@@ -206,13 +225,14 @@ public class SpotListFragment extends Fragment {
                 }
             }
 
-            //Clear selectedSpotsList
-            mAdapter.setSelectedSpotsList(new ArrayList<Integer>());
+            setIsEditMode(false);
 
             //Replace spotList with the list not containing the removed spots, and call updateUI
             setValues(remainingSpots);
 
-            setIsEditMode(false);
+            //Clear selectedSpotsList
+            deselectAllSpots();
+
             mAdapter.notifyDataSetChanged();
         } catch (Exception ex) {
             Crashlytics.logException(ex);
@@ -227,10 +247,7 @@ public class SpotListFragment extends Fragment {
                     .setMessage(errorMessage)
                     .setNeutralButton(getResources().getString(R.string.general_ok_option), null)
                     .show();
-        } else
-            //Let parent activity handle this
-            if (onOneOrMoreSpotsDeleted != null)
-                onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged();
+        }
     }
 
     ListListener onOneOrMoreSpotsDeleted;
@@ -247,7 +264,10 @@ public class SpotListFragment extends Fragment {
     }
 
     void updateDeleteButtons() {
-        if (mAdapter != null && mAdapter.getSelectedSpots().size() > 0)
+        if (fabDelete == null)
+            return;
+
+        if (mAdapter != null && mAdapter.getSelectedSpots().size() > 0 && getIsEditMode())
             fabDelete.show();
         else
             fabDelete.hide();
@@ -256,11 +276,13 @@ public class SpotListFragment extends Fragment {
     public void setIsEditMode(Boolean isEditMode) {
         if (mAdapter != null)
             mAdapter.setIsEditMode(isEditMode);
+
+        updateDeleteButtons();
     }
 
     public Boolean getIsEditMode() {
         if (mAdapter != null)
-            return mAdapter.isEditMode;
+            return mAdapter.getIsEditMode();
         return false;
     }
 

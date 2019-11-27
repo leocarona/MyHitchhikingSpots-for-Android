@@ -71,7 +71,6 @@
     <string name="tools_database_exported_successfully_message">Base de datos exportada con éxito!</string>
     <string name="tools_exportdb_share_dialog_message">Ahora te recomendamos guardar la cópia de tu base de datos en algún otro lugar.\nHaz click en \"%s\" y elige tu opción favorita. Podrás guardar tu base de datos en un servicio de nube, enviarla a tu mismo (o quizás a un amigo) a través de e-mail, y otras opciones más! :-)</string>
     <string name="tools_file_dialog_select_directory_title">Selecciona el directorio</string>
-    <string name="tools_file_dialog_invalid_directory_message">Hemos registrado este error y lo veremos. Puedes intentar de nuevo.</string>
 
     <string name="settings_importdb_button_label">Importar base de datos</string>
     <string name="settings_exportdb_button_label">Exportar base de datos</string>
@@ -183,9 +182,8 @@
     <string name="general_date_at_time">%1$s las %2$s</string>
 
     <string name="general_edit_list">Editar lista</string>
-    <string name="general_hide_icons_label">Ocultar botones</string>
-    <string name="general_show_icons_label">Mostrar botones</string>
-    <string name="general_hide_routes_label">Cambiar de rutas pasadas</string>
+    <string name="general_toggle_buttons_label">Ocultar/mostrar botones</string>
+    <string name="general_hide_routes_label">Ocultar/mostrar rutas pasadas</string>
     <string name="general_close_editing_mode_label" translatable="false">Cerrar modo de edición</string>
     <string name="general_ok_option">OK</string>
     <string name="general_yes_option">Sí</string>
@@ -197,6 +195,10 @@
     <string name="general_not_enough_permission">Lo sentimos, parece ser que no tienes los permisos necesarios para realizar esta acción.</string>
     <string name="general_selected_file_type_not_supported">No soporta el archivo seleccionado.</string>
     <string name="general_zoom_to_fit_all">Ver todos los lugares</string>
+    <string name="general_zoom_in_button_label">Zoom in</string>
+    <string name="general_zoom_out_button_label">Zoom out</string>
+    <string name="general_locate_button_label">Mover hasta tu localización</string>
+    <string name="general_open_in_another_app">Ver esta ubicación en otra aplicación</string>
 
     <string name="general_author_label">por %s</string>
     <string name="general_download_option">Descargar</string>
@@ -207,10 +209,13 @@
     <string name="general_download_finished_successffull_message">Satisfactoriamente descargado</string>
     <string name="general_error_dialog_title">Algo ha ido mal :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message_try_again">Hemos registrado este error y lo veremos. Puedes intentar de nuevo.</string>
     <string name="general_one_or_more_errors_occured">Uno o más errores han ocurrido:</string>
     <string name="general_loading_dialog_title">Cargando datos&#8230;</string>
     <string name="general_loading_dialog_message">Por favor, espera</string>
     <string name="general_spots_list_not_loaded">No se pudo cargar la lista de lugares</string>
+    <string name="general_select_all">Seleccionar todo</string>
+    <string name="general_deselect_all">Deseleccionar todo</string>
 
     <string name="general_internet_unavailable_title">Internet no disponible</string>
     <string name="general_offline_mode_label">Modo offline</string>
@@ -276,7 +281,6 @@
     <string name="settings_export_section_title">Exportar</string>
     <string name="settings_import_section_title">Importar</string>
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
-    <string name="spot_form_locate_button_tooltip_text">Mover hasta tu localización</string>
 
     <string name="offline_map">Mapas Offline</string>
     <string name="download_region_button_text">Descargar esta región</string>

@@ -42,7 +42,6 @@ import com.mapbox.mapboxsdk.geometry.LatLngBounds;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
-import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -224,7 +223,7 @@ public class OfflineMapManagerFragment extends Fragment implements
     }
 
     @Override
-    public void updateSpotList(List<Spot> spotList, Spot mCurrentWaitingSpot) {
+    public void onSpotListChanged() {
     }
 
     @Override

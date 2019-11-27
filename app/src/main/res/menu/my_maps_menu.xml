@@ -16,7 +16,7 @@
         android:orderInCategory="100"
         app:showAsAction="never" />
     <item android:id="@+id/action_toggle_icons"
-        android:title="@string/general_hide_icons_label"
+        android:title="@string/general_toggle_buttons_label"
         android:orderInCategory="100"
         app:showAsAction="never" />
     <item android:id="@+id/action_toggle_old_routes"

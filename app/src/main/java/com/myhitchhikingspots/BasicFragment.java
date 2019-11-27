@@ -16,12 +16,10 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 public class BasicFragment extends Fragment {
 
     MapView mapView;
-    MainActivity activity;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        activity = (MainActivity) context;
     }
 
     @Override

@@ -74,7 +74,6 @@
     <string name="tools_database_exported_successfully_message">Banco de dados exportado com sucesso!</string>
     <string name="tools_exportdb_share_dialog_message">Agora nós recomendamos enviar esta cópia do seu banco de dados para algum outro lugar.\Clique em \"%s\" e escolha a opção mais conveniente para você. Talvez você queira salvar seu banco de dados em um serviço de núvem, enviá-lo para você mesmo (ou para um amigo) por e-mail, e por aí vai! :-)</string>
     <string name="tools_file_dialog_select_directory_title">Selecione o diretório</string>
-    <string name="tools_file_dialog_invalid_directory_message">Nós registramos este erro e vamos verificá-lo. Você pode tentar novamente.</string>
 
     <string name="settings_importdb_button_label">Importar banco de dados</string>
     <string name="settings_exportdb_button_label">Exportar e compartilhar</string>
@@ -178,9 +177,8 @@
     <string name="general_date_at_time">%1$s às %2$s</string>
 
     <string name="general_edit_list">Editar lista</string>
-    <string name="general_hide_icons_label">Esconder botōes</string>
-    <string name="general_show_icons_label">Mostrar botōes</string>
-    <string name="general_hide_routes_label">Toggle past routes</string>
+    <string name="general_toggle_buttons_label">Esconder/mostrar botōes</string>
+    <string name="general_hide_routes_label">Esconder/mostrar rotas passadas</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>
@@ -191,6 +189,10 @@
     <string name="general_not_enough_permission">Desculpe, infelizmente você não parece ter as permissōes necessárias para executar esta ação.</string>
     <string name="general_selected_file_type_not_supported">O tipo de arquivo selecionado não é suportado.</string>
     <string name="general_zoom_to_fit_all">Ver todos locais</string>
+    <string name="general_zoom_in_button_label">Aproximar</string>
+    <string name="general_zoom_out_button_label">Afastar</string>
+    <string name="general_locate_button_label">Mover para sua localização</string>
+    <string name="general_open_in_another_app">Veja este local em outro aplicativo</string>
 
     <string name="general_author_label">de %s</string>
     <string name="general_download_option">Baixar</string>
@@ -201,10 +203,13 @@
     <string name="general_download_finished_successffull_message">Download concluído com sucesso</string>
     <string name="general_error_dialog_title">Houve uma falha :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message_try_again">Nós registramos este erro e vamos verificá-lo. Você pode tentar novamente.</string>
     <string name="general_one_or_more_errors_occured">Um ou alguns erros aconteceram:</string>
     <string name="general_loading_dialog_title">Carregando&#8230;</string>
     <string name="general_loading_dialog_message">Aguarde</string>
     <string name="general_spots_list_not_loaded">Lista de locais salvos não carregada</string>
+    <string name="general_select_all">Selecionar todos</string>
+    <string name="general_deselect_all">Deselecionar todos</string>
 
     <string name="general_internet_unavailable_title">Internet indisponível</string>
     <string name="general_offline_mode_label">Modo offline</string>
@@ -270,7 +275,6 @@
     <string name="refresh_datetime_dialog_message">Hey. :-) %1$d minutos já passaram desde que você abriu esta janela pela primeira vez. Você gostaria de atualizar a data e hora deste novo local? A atualização será feita de %2$s para %3$s.</string>
     <string name="settings_export_section_title">Export</string>
     <string name="settings_import_section_title">Import</string>
-    <string name="spot_form_locate_button_tooltip_text">Mover para sua localização</string>
 
     <string name="offline_map">Mapa Offline</string>
     <string name="download_region_button_text">Baixar esta região</string>
