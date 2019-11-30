@@ -405,7 +405,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     if (locateUserTooltip != null && locateUserTooltip.isShown())
                         locateUserTooltip.closeNow();
 
-                    enableLocationLayer();
+                    enableLocationLayer(style);
 
                     callback.moveMapCameraToNextLocationReceived();
                 }
@@ -565,13 +565,13 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     @SuppressWarnings({"MissingPermission"})
-    private void enableLocationLayer() {
+    private void enableLocationLayer(@NonNull Style loadedMapStyle) {
         if (mapboxMap == null)
             return;
 
         //Setup location plugin to display the user location on a map.
         // NOTE: map camera won't follow location updates by default here.
-        setupLocationComponent(style);
+        setupLocationComponent(loadedMapStyle);
 
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
@@ -703,7 +703,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             this.mapboxMap.addOnCameraIdleListener(() -> {
                 //If spot is being edited and its address has already been fetched (when an address is fetched, GpsResolved is set to true),
                 // then avoid requesting to fetch the address of the same location again by ignoring the first time the camera gets idle.
-                if (mCurrentSpot.getGpsResolved() != null && mCurrentSpot.getGpsResolved() && isFirstTimeCameraIsIdle) {
+                if (mCurrentSpot != null && mCurrentSpot.getGpsResolved() != null && mCurrentSpot.getGpsResolved() && isFirstTimeCameraIsIdle) {
                     isFirstTimeCameraIsIdle = false;
                     return;
                 }
@@ -719,7 +719,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     fetchAddressButtonHandler(null);
 
                 //Stop showing an arrow considering the compass of the device.
-                mapboxMap.getLocationComponent().setRenderMode(RenderMode.NORMAL);
+                if (this.mapboxMap.getLocationComponent().isLocationComponentActivated())
+                    this.mapboxMap.getLocationComponent().setRenderMode(RenderMode.NORMAL);
             });
 
             if (style.isFullyLoaded()) {
@@ -731,7 +732,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     Crashlytics.logException(exception);
                 }
 
-                enableLocationLayer();
+                enableLocationLayer(style);
 
                 mapCameraWasMoved = moveCameraToSpotLocation(mCurrentSpot);
 
@@ -809,6 +810,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
      */
     @SuppressWarnings({"MissingPermission"})
     public void moveCameraToLastKnownLocation(int zoomLevel) {
+        if (!style.isFullyLoaded())
+            return;
+
+        enableLocationLayer(style);
+
         LatLng moveCameraPositionTo = null;
 
         //If we know the current position of the user, move the map camera to there
@@ -1026,8 +1032,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         if (requestCode == PERMISSIONS_LOCATION) {
             locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableLocationLayer();
-                callback.moveMapCameraToNextLocationReceived();
+                if (style.isFullyLoaded()) {
+                    enableLocationLayer(style);
+                    callback.moveMapCameraToNextLocationReceived();
+                }
             } else {
                 Toast.makeText(this, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
             }
@@ -1619,10 +1627,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 !is_destination_check_box.isChecked()) {
             showSaveNewOrViewMapPanel();
 
-            if (mapboxMap != null) {
+            if (mapboxMap != null && style.isFullyLoaded()) {
                 //Request permission of access to GPS updates or
                 // directly initialize and enable the location plugin if such permission was already granted.
-                enableLocationLayer();
+                enableLocationLayer(style);
 
                 //Make map camera follow GPS. When user clicks on "save spot" button the map camera will stop following GPS updates so that user can adjust location.
                 makeMapCameraFollowGPSUpdates(RenderMode.COMPASS);

@@ -235,13 +235,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     @SuppressWarnings({"MissingPermission"})
-    private void enableLocationLayer() {
+    private void enableLocationLayer(@NonNull Style loadedMapStyle) {
         if (mapboxMap == null)
             return;
 
         //Setup location plugin to display the user location on a map.
         // NOTE: map camera won't follow location updates by default here.
-        setupLocationComponent(style);
+        setupLocationComponent(loadedMapStyle);
 
         LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
@@ -283,7 +283,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (isLocationRequestedByUser) {
-                        enableLocationLayer();
+                        enableLocationLayer(style);
                         callback.moveMapCameraToNextLocationReceived();
                         isLocationRequestedByUser = false;
                     }
@@ -390,7 +390,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 if (!areLocationPermissionsGranted(getActivity()))
                     requestLocationsPermissions(getActivity());
                 else {
-                    enableLocationLayer();
+                    enableLocationLayer(style);
 
                     //Move map camera to last known location so that if we call zoomOutToFitAllMarkers()
                     // the map will get nicely zoomed closer once spots list is loaded.
@@ -881,8 +881,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
             prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
 
-
-            Toast.makeText(getActivity().getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
+            Activity activity = getActivity();
+            if (activity != null)
+                Toast.makeText(activity.getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
         } else {
             if (result.contentEquals("nothingToSync")) {
                 //also write into prefs that markers sync has occurred
@@ -1269,9 +1270,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      */
     @SuppressWarnings({"MissingPermission"})
     public void moveCameraToLastKnownLocation(int zoomLevel, @Nullable MapboxMap.CancelableCallback callback) {
+        if(!style.isFullyLoaded())
+            return;
+
         //Request permission of access to GPS updates or
         // directly initialize and enable the location plugin if such permission was already granted.
-        enableLocationLayer();
+        enableLocationLayer(style);
 
         LatLng moveCameraPositionTo = null;
 

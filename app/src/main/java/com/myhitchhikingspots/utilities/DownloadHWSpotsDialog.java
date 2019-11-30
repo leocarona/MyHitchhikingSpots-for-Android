@@ -73,7 +73,11 @@ public class DownloadHWSpotsDialog extends DialogFragment {
         if (!argsWereSet && savedInstanceState != null)
             setValuesFromBundle(savedInstanceState);
 
-        SharedPreferences prefs = getContext().getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+        Context context = getContext();
+        if(context == null)
+            return super.onCreateDialog(savedInstanceState);
+
+        SharedPreferences prefs = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
         switch (dialog_type) {
             case DIALOG_TYPE_CONTINENT:
@@ -91,7 +95,7 @@ public class DownloadHWSpotsDialog extends DialogFragment {
                         || (dialog_type.equalsIgnoreCase(DIALOG_TYPE_COUNTRY) && selectedCodes.contains(countriesContainer[i].getIso())));*/
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
         String title = "";
         if (dialog_type.equals(DIALOG_TYPE_CONTINENT))

@@ -1337,6 +1337,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     @SuppressWarnings({"MissingPermission"})
     public void moveCameraToLastKnownLocation(int zoomLevel,
                                               @Nullable MapboxMap.CancelableCallback callback) {
+        if (!style.isFullyLoaded())
+            return;
+
         //Request permission of access to GPS updates or
         // directly initialize and enable the location plugin if such permission was already granted.
         enableLocationLayer(style);
