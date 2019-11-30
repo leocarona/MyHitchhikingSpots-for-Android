@@ -448,6 +448,9 @@ public class OfflineMapManagerFragment extends Fragment implements
      */
     @SuppressWarnings({"MissingPermission"})
     public void moveCameraToLastKnownLocation(int zoomLevel) {
+        if(!style.isFullyLoaded())
+            return;
+
         //Request permission of access to GPS updates or
         // directly initialize and enable the location plugin if such permission was already granted.
         enableLocationLayer(style);
