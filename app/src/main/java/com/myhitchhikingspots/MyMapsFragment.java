@@ -17,19 +17,6 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.fragment.app.Fragment;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatDelegate;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -41,7 +28,17 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import com.crashlytics.android.Crashlytics;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.JsonObject;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineProvider;
@@ -52,7 +49,6 @@ import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
-
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.camera.CameraUpdate;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -72,31 +68,28 @@ import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
-
-import static android.os.Looper.getMainLooper;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.rgb;
-import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
-
 import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.Route;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SubRoute;
-import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.IconUtils;
+import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import static android.os.Looper.getMainLooper;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.rgb;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;

@@ -16,20 +16,6 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.fragment.app.FragmentManager;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -41,9 +27,20 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mapbox.android.core.location.LocationEngine;
@@ -74,10 +71,10 @@ import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.utilities.DownloadHWSpotsDialog;
-import com.myhitchhikingspots.utilities.DownloadPlacesAsyncTask;
 import com.myhitchhikingspots.utilities.DownloadCountriesListAsyncTask;
 import com.myhitchhikingspots.utilities.DownloadCountriesListAsyncTask.onPlacesDownloadedListener;
+import com.myhitchhikingspots.utilities.DownloadHWSpotsDialog;
+import com.myhitchhikingspots.utilities.DownloadPlacesAsyncTask;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.PairParcelable;
@@ -884,13 +881,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
             prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
 
-           /*//convert millisecondsAtRefresh to some kind of date and time text
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-            Date resultdate = new Date(millisecondsAtRefresh);
-            String timeStamp = sdf.format(resultdate);
-
-            String totalSpotsDownloaded = String.format(getString(R.string.general_items_downloaded_message), placesContainer.size());
-            String lastSyncedDate = String.format(getString(R.string.general_last_sync_date), timeStamp);*/
 
             Toast.makeText(getActivity().getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
         } else {
