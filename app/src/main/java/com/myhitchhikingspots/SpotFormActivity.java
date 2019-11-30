@@ -1627,7 +1627,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 !is_destination_check_box.isChecked()) {
             showSaveNewOrViewMapPanel();
 
-            if (mapboxMap != null && style.isFullyLoaded()) {
+            if (mapboxMap != null && style != null && style.isFullyLoaded()) {
                 //Request permission of access to GPS updates or
                 // directly initialize and enable the location plugin if such permission was already granted.
                 enableLocationLayer(style);
