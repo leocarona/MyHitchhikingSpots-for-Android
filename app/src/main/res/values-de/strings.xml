@@ -40,27 +40,7 @@
     <string name="hitchability_no_answer">Keine Antwort</string>
 
     <string name="attempt_result">Resultat</string>
-    <string name="attempt_result_unknown">@string/hitchability_unknown</string>
-    <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
-    <string name="attempt_result_gave_up">@string/break_button_text</string>
 
-    <string-array name="hitchabilities">
-        <item>@string/hitchability_unknown</item>
-        <item>@string/hitchability_very_good</item>
-        <item>@string/hitchability_good</item>
-        <item>@string/hitchability_average</item>
-        <item>@string/hitchability_bad</item>
-        <item>@string/hitchability_senseless</item>
-        <item>@string/hitchability_no_answer</item>
-    </string-array>
-
-    <string-array name="attempt_results">
-        <item>@string/attempt_result_unknown</item>
-        <item>@string/attempt_result_successful</item>
-        <item>@string/attempt_result_gave_up</item>
-    </string-array>
-
-    <string name="tools_title">Werkzeuge</string>
     <string name="tools_tips_title">TIPS</string>
     <string name="tools_warning">Welcome to our Tools! Please note that we still do not synchronize your hitchhiking spots to anywhere. Meanwhile here are some tools you can get around with for now.</string>
     <string name="tools_tips_description">If you want to share your saved spots to your friends or if you just want to have your spots backed up we strongly recommend using our \"%1$s\" option. Exporting your database will save a light copy of your spots data on your phone\'s storage, and you can then share it with friends, or even save it somewhere safer, like on your e-mail or favorite cloud service. To restore a exported database, use our \"%2$s\" option.</string>
@@ -99,15 +79,11 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="title_activity_scrolling">@string/save_spot_button_text</string>
-
     <string name="spot_form_note_hint">Kommentar</string>
     <string name="spot_form_add_note_hint">Einen Kommentar hinzufügen</string>
-    <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Datum</string>
     <string name="spot_form_time_label">Zeit</string>
     <string name="spot_form_waiting_time_label">Warte Zeit</string>
-    <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Wann</string>
     <string name="spot_form_more_options_edit_label">(bearbeiten)</string>
     <string name="spot_form_comments_title">Kommentare von anderen Trampern</string>
@@ -121,14 +97,13 @@
     <string name="menu_dashboard">Dashboard</string>
     <string name="menu_my_maps">Meine Karten</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Karten</string>
-    <string name="menu_tools">@string/tools_title</string>
-    <string name="menu_offline_maps">@string/offline_map</string>
-    <string name="menu_about_us">@string/about_us_first_title</string>
+    <string name="menu_tools">Werkzeuge</string>
+    <string name="menu_offline_maps">Offline Maps</string>
+    <string name="menu_about_us">Über uns</string>
 
     <string name="action_settings">Einstellungen</string>
     <string name="spot_saved_successfuly">Standort gespeichert</string>
     <string name="spot_deleted_successfuly">Standort gelöscht</string>
-    <string name="title_activity_main">@string/app_name</string>
 
     <string name="confirm_back_button_click_dialog_title">Zurück</string>
     <string name="confirm_back_button_click_dialog_message">Möchtest du diese Seite wirklich ohne Speichern verlassen?</string>
@@ -277,7 +252,6 @@
     <string name="settings_export_section_title">Teilen</string>
     <string name="settings_import_section_title">Importieren</string>
 
-    <string name="offline_map">Offline Maps</string>
     <string name="download_region_button_text">Download this region</string>
     <string name="dialog_title">Name new region</string>
     <string name="dialog_message">Downloads the map region you currently are viewing</string>
@@ -303,7 +277,6 @@
     <string name="dashboard_your_longest_waiting_time">Your longest waiting time</string>
     <string name="dashboard_your_shortest_waiting_time">Your shortest waiting time</string>
 
-    <string name="about_us_first_title">Über uns</string>
     <string name="about_us_first_text">This app is an open source project published by Hitchwiki.org free of charge. Developed by and for hitchhikers. It exists thanks to our supporters, our developers and our users who rate and give us feedback, so we can improve.</string>
     <string name="about_us_our_supporters_title">Our Supporters</string>
     <string name="about_us_our_supporters_text">We have some amazing people who helped our developers so that this app could get to you. Friends or unknown people who hosted the developers of this app, who shared food with them, who paid their internet and electricity bills, because you know we need computers and all this stuff to build an app. Our supporters are of big importance for this project, for our nomadic developers and for you who use this useful tool as you explore the world.</string>

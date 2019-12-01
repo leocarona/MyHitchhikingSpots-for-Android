@@ -29,7 +29,7 @@
         android:gravity="center"
         android:shadowColor="#000"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:text="@string/title_activity_main"
+        android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textStyle="normal|bold"
         android:textColor="#fff"
