@@ -20,7 +20,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
-            android:text="@string/about_us_first_title"
+            android:text="@string/menu_about_us"
             android:textColor="@color/common_google_signin_btn_text_light_focused"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"

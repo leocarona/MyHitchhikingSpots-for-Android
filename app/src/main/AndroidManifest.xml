@@ -42,7 +42,7 @@ limitations under the License.
 
         <activity
             android:name=".SpotFormActivity"
-            android:label="@string/title_activity_scrolling"
+            android:label="@string/save_spot_button_text"
             android:theme="@style/Theme.Base.NoActionBar">
             <!--<meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -54,7 +54,7 @@ limitations under the License.
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".ToolsActivity"
-            android:label="@string/tools_title"
+            android:label="@string/menu_tools"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
             android:name=".MainActivity"

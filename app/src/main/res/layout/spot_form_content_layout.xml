@@ -433,7 +433,7 @@
                         android:layout_height="wrap_content"
                         android:layout_margin="@dimen/text_margin"
                         android:layout_weight="1"
-                        android:text="@string/spot_form_hitchability_label" />
+                        android:text="@string/hitchability" />
 
                     <TextView
                         android:id="@+id/spot_form_hitchability_selectedvalue"
