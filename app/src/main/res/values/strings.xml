@@ -111,7 +111,7 @@ The Hitchwiki team.
     <string name="menu_dashboard">Dashboard</string>
     <string name="menu_my_maps">My Maps</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
-    <string name="menu_tools">TIPS</string>
+    <string name="menu_tools">Tools</string>
     <string name="menu_offline_maps">Offline Maps</string>
     <string name="menu_about_us">About Us</string>
 
