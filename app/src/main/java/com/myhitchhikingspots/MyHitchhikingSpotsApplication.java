@@ -97,7 +97,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
 
     public boolean IsAnySpotMissingAuthor() {
         SpotDao spotDao = daoSession.getSpotDao();
-        return spotDao.queryBuilder().whereOr(SpotDao.Properties.AuthorUserName.isNull(), SpotDao.Properties.AuthorUserName.eq(""))
+        return !spotDao.queryBuilder().whereOr(SpotDao.Properties.AuthorUserName.isNull(), SpotDao.Properties.AuthorUserName.eq(""))
                 .limit(1).list().isEmpty();
     }
 
