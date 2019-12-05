@@ -47,6 +47,7 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         public final static Property IsPartOfARoute = new Property(22, Boolean.class, "IsPartOfARoute", false, "IS_PART_OF_AROUTE");
         public final static Property IsHitchhikingSpot = new Property(23, Boolean.class, "IsHitchhikingSpot", false, "IS_HITCHHIKING_SPOT");
         public final static Property IsNotHitchhikedFromHere = new Property(24, Boolean.class, "IsNotHitchhikedFromHere", false, "IS_GOT_OFF_HERE");
+        public final static Property AuthorUserName = new Property(25, String.class, "AuthorUserName", false, "AUTHOR_USER_NAME");
     }
 
 
@@ -86,7 +87,9 @@ public class SpotDao extends AbstractDao<Spot, Long> {
                 "\"ACCURACY\" REAL," + // 21: Accuracy
                 "\"IS_PART_OF_AROUTE\" INTEGER," + // 22: IsPartOfARoute
                 "\"IS_HITCHHIKING_SPOT\" INTEGER," + // 23: IsHitchhikingSpot
-                "\"IS_GOT_OFF_HERE\" INTEGER);"); // 24: IsNotHitchhikedFromHere
+                "\"IS_GOT_OFF_HERE\" INTEGER," + // 24: IsNotHitchhikedFromHere
+                "\"AUTHOR_USER_NAME\" TEXT" + // 25: AuthorUserName
+                ");");
     }
 
     /** Drops the underlying database table. */
@@ -163,7 +166,7 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         if (Description != null) {
             stmt.bindString(13, Description);
         }
- 
+
         Long StartDateTime = entity.getStartDateTimeMillis();
         if (StartDateTime != null) {
             stmt.bindLong(14, StartDateTime);
@@ -222,6 +225,11 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         Boolean IsNotHitchhikedFromHere = entity.getIsNotHitchhikedFromHere();
         if (IsNotHitchhikedFromHere != null) {
             stmt.bindLong(25, IsNotHitchhikedFromHere ? 1L: 0L);
+        }
+ 
+        String AuthorUserName = entity.getAuthorUserName();
+        if (AuthorUserName != null) {
+            stmt.bindString(26, AuthorUserName);
         }
     }
 
@@ -293,7 +301,7 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         if (Description != null) {
             stmt.bindString(13, Description);
         }
- 
+
         Long StartDateTime = entity.getStartDateTimeMillis();
         if (StartDateTime != null) {
             stmt.bindLong(14, StartDateTime);
@@ -353,6 +361,11 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         if (IsNotHitchhikedFromHere != null) {
             stmt.bindLong(25, IsNotHitchhikedFromHere ? 1L: 0L);
         }
+ 
+        String AuthorUserName = entity.getAuthorUserName();
+        if (AuthorUserName != null) {
+            stmt.bindString(26, AuthorUserName);
+        }
     }
 
     @Override
@@ -387,7 +400,8 @@ public class SpotDao extends AbstractDao<Spot, Long> {
             cursor.isNull(offset + 21) ? null : cursor.getFloat(offset + 21), // Accuracy
             cursor.isNull(offset + 22) ? null : cursor.getShort(offset + 22) != 0, // IsPartOfARoute
             cursor.isNull(offset + 23) ? null : cursor.getShort(offset + 23) != 0, // IsHitchhikingSpot
-            cursor.isNull(offset + 24) ? null : cursor.getShort(offset + 24) != 0 // IsNotHitchhikedFromHere
+            cursor.isNull(offset + 24) ? null : cursor.getShort(offset + 24) != 0, // IsNotHitchhikedFromHere
+            cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25) // AuthorUserName
         );
         return entity;
     }
@@ -419,6 +433,7 @@ public class SpotDao extends AbstractDao<Spot, Long> {
         entity.setIsPartOfARoute(cursor.isNull(offset + 22) ? null : cursor.getShort(offset + 22) != 0);
         entity.setIsHitchhikingSpot(cursor.isNull(offset + 23) ? null : cursor.getShort(offset + 23) != 0);
         entity.setIsNotHitchhikedFromHere(cursor.isNull(offset + 24) ? null : cursor.getShort(offset + 24) != 0);
+        entity.setAuthorUserName(cursor.isNull(offset + 25) ? null : cursor.getString(offset + 25));
      }
     
     @Override

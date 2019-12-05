@@ -38,6 +38,7 @@ public class Spot implements java.io.Serializable {
     private Boolean IsPartOfARoute;
     private Boolean IsHitchhikingSpot;
     private Boolean IsNotHitchhikedFromHere;
+    private String AuthorUserName;
 
     @Generated
     public Spot() {
@@ -48,7 +49,7 @@ public class Spot implements java.io.Serializable {
     }
 
     @Generated
-    public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, Long StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination, String CountryCode, Boolean HasAccuracy, Float Accuracy, Boolean IsPartOfARoute, Boolean IsHitchhikingSpot, Boolean IsNotHitchhikedFromHere) {
+    public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, Long StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination, String CountryCode, Boolean HasAccuracy, Float Accuracy, Boolean IsPartOfARoute, Boolean IsHitchhikingSpot, Boolean IsNotHitchhikedFromHere, String AuthorUserName) {
         this.id = id;
         this.Name = Name;
         this.Street = Street;
@@ -74,6 +75,7 @@ public class Spot implements java.io.Serializable {
         this.IsPartOfARoute = IsPartOfARoute;
         this.IsHitchhikingSpot = IsHitchhikingSpot;
         this.IsNotHitchhikedFromHere = IsNotHitchhikedFromHere;
+        this.AuthorUserName = AuthorUserName;
     }
 
     public Long getId() {
@@ -294,6 +296,14 @@ public class Spot implements java.io.Serializable {
 
     public void setIsNotHitchhikedFromHere(Boolean IsNotHitchhikedFromHere) {
         this.IsNotHitchhikedFromHere = IsNotHitchhikedFromHere;
+    }
+
+    public String getAuthorUserName() {
+        return AuthorUserName;
+    }
+
+    public void setAuthorUserName(String AuthorUserName) {
+        this.AuthorUserName = AuthorUserName;
     }
 
 }
