@@ -622,6 +622,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     final String hw_request_token_api_url = "https://hitchwiki.org/en/api.php?action=query&meta=tokens&type=login&format=json";
     final String hw_clientlogin_api_url = "https://hitchwiki.org/en/api.php?action=clientlogin&format=json&loginreturnurl=http://hitchwiki.org/";
+    final String hw_logout_api_url = "https://hitchwiki.org/en/api.php?action=logout&format=json";
     final String hw_create_account_url = "https://hitchwiki.org/en/index.php?title=Special:CreateAccount&returnto=Main+Page";
 
     void getToken() {
@@ -778,10 +779,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://hitchwiki.org/en/api.php?action=logout&format=json";
 
         StringRequest jsonObjectRequest = new StringRequest
-                (Request.Method.POST, url, response -> {
+                (Request.Method.POST, hw_logout_api_url, response -> {
 
                     try {
                         JSONObject responseObj = new JSONObject(response);

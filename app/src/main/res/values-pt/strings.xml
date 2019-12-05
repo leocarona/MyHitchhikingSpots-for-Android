@@ -248,6 +248,7 @@
 
     <string name="map_loading_dialog">Carregando locais&#8230;</string>
     <string name="map_not_loaded_message">Quando você tiver uma conexão à internet novamente,\num mapa será aparecerá aqui. :-)</string>
+    <string name="map_drawing_progress_text">Carregando mapa..</string>
 
     <string name="spot_form_bottommenu_map_tile">Local</string>
     <string name="spot_form_bottommenu_basic_tile">Local</string>
