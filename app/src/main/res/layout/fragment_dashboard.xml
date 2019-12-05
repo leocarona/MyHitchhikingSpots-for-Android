@@ -199,7 +199,7 @@
             android:layout_marginBottom="8dp"
             android:background="@drawable/arrived_button"
             android:padding="15dp"
-            android:text="View my map"
+            android:text="@string/general_view_map"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />

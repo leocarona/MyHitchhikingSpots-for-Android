@@ -184,6 +184,7 @@
     <string name="general_enable_button_label">slå til</string>
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="general_showCase_button">GOT IT!</string>
+    <string name="general_view_map">Se kort</string>
 
     <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 

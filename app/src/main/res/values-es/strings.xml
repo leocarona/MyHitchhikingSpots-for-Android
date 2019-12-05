@@ -201,6 +201,7 @@
     <string name="general_import_finished_failed_message">Importación fallida</string>
     <string name="general_enable_button_label">habilitar</string>
     <string name="general_showCase_button">ENTENDIDO!</string>
+    <string name="general_view_map">Ver mapas</string>
 
     <string name="empty_list_dialog_message">Para ver lugares añadidos por otros usuarios a  Hitchwiki Maps, vete a  %s.</string>
 
