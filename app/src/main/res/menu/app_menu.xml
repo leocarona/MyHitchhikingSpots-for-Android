@@ -34,6 +34,14 @@
             android:id="@+id/nav_tools"
             android:icon="@drawable/ic_settings_black_24dp"
             android:title="@string/menu_tools" />
+        <item
+            android:id="@+id/nav_login"
+            android:icon="@drawable/ic_account_circle_black_24dp"
+            android:title="@string/general_log_in_label" />
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/ic_account_circle_black_24dp"
+            android:title="@string/general_log_out_label" />
     </group>
 
 </menu>

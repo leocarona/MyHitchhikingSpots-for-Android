@@ -202,6 +202,23 @@
     <string name="general_enable_button_label">habilitar</string>
     <string name="general_showCase_button">ENTENDIDO!</string>
     <string name="general_view_map">Ver mapas</string>
+    <string name="general_done_label">¡Hecho!</string>
+    <string name="general_welcome_user">Bien-venida(o), %s!</string>
+    <string name="general_log_in_label">Log in</string>
+    <string name="general_log_out_label">Salir de mi cuenta</string>
+
+    <string name="login_dialog_title">Login</string>
+    <string name="login_type_credentials_text">Escriba las mismas credenciales que usa en Hitchwiki.org</string>
+    <string name="login_username_field_label">Nombre de usuario:</string>
+    <string name="login_password_field_label">Contraseña:</string>
+    <string name="login_create_an_account">Crea una cuenta</string>
+    <string name="login_error_requesting_token">Se produjo un error al solicitar un token</string>
+    <string name="login_succeeded">Estás conectada(a)</string>
+    <string name="login_failed">Se produjo un error al iniciar sesión</string>
+    <string name="logout_successful">Estás desconectada(o)!</string>
+
+    <string name="assign_spots_dialog_title">Conviértete en el autor de tus lugares guardados</string>
+    <string name="assign_spots_dialog_message">Uno o más puntos en su base de datos no han sido asignados a nadie.\nEsto generalmente sucede cuando guarda un lugar mientras no está conectado(a) a su cuenta de Hitchwiki.\nAhora que ha iniciado sesión, ¿le gustaría que lo(a) asignemos como autor(a) de dichos lugares?</string>
 
     <string name="empty_list_dialog_message">Para ver lugares añadidos por otros usuarios a  Hitchwiki Maps, vete a  %s.</string>
 

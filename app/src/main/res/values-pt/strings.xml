@@ -198,6 +198,23 @@
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="general_showCase_button">Entendi!</string>
     <string name="general_view_map">Ver mapa</string>
+    <string name="general_done_label">Pronto!</string>
+    <string name="general_welcome_user">Bem-vinda(o), %s!</string>
+    <string name="general_log_in_label">Log in</string>
+    <string name="general_log_out_label">Sair da minha conta</string>
+
+    <string name="login_dialog_title">Login</string>
+    <string name="login_type_credentials_text">Digite as mesmas credenciais que você utiliza no Hitchwiki.org</string>
+    <string name="login_username_field_label">Usuário:</string>
+    <string name="login_password_field_label">Senha:</string>
+    <string name="login_create_an_account">Criar conta</string>
+    <string name="login_error_requesting_token">Houve um erro ao requisitar um token</string>
+    <string name="login_succeeded">Você está logada(o)</string>
+    <string name="login_failed">Houve um erro durante o login</string>
+    <string name="logout_successful">Você está deslogada(o)!</string>
+
+    <string name="assign_spots_dialog_title">Torne-se o(a) autor(a) de seus locais salvos</string>
+    <string name="assign_spots_dialog_message">Um ou mais locais não foram atribuídos a ninguém.\nIsto geralmente acontece quando você salva um local sem estar logado(a) à sua conta do Hitchwiki.\nAgora que você está logado(a), gostaria que atribuíssemos você como autor(a) de tais locais?</string>
 
     <string name="empty_list_dialog_message">Para visualizar locais adicionados por outros caroneiros ao Hitchwiki Maps, acesse o menu %s.</string>
 

@@ -185,6 +185,23 @@
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="general_showCase_button">GOT IT!</string>
     <string name="general_view_map">Se kort</string>
+    <string name="general_done_label">Færdig!</string>
+    <string name="general_welcome_user">Velkommen, %s!</string>
+    <string name="general_log_in_label">Log ind</string>
+    <string name="general_log_out_label">Log ud</string>
+
+    <string name="login_dialog_title">Login</string>
+    <string name="login_type_credentials_text">Indtast de samme legitimationsoplysninger, som du bruger på Hitchwiki.org</string>
+    <string name="login_username_field_label">Brugernavn:</string>
+    <string name="login_password_field_label">Adgangskode:</string>
+    <string name="login_create_an_account">Opret en konto</string>
+    <string name="login_error_requesting_token">Der opstod en fejl under anmodning om et token</string>
+    <string name="login_succeeded">Du er logget ind</string>
+    <string name="login_failed">Der opstod en fejl under login</string>
+    <string name="logout_successful">Du er logget ud!</string>
+
+    <string name="assign_spots_dialog_title">Bliv forfatter til dine gemte steder</string>
+    <string name="assign_spots_dialog_message">En eller flere steder i din database er ikke blevet tildelt nogen.\nDette sker normalt, når du gemmer et sted, mens du ikke er logget ind på din Hitchwiki-konto.\nNu, hvor du er logget ind, vil du gerne have, at vi tildeler dig som forfatter til sådanne steder?</string>
 
     <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 

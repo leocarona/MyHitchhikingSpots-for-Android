@@ -214,6 +214,23 @@ The Hitchwiki team.
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="general_showCase_button">GOT IT!</string>
     <string name="general_view_map">View map</string>
+    <string name="general_done_label">Done!</string>
+    <string name="general_welcome_user">Welcome in, %s!</string>
+    <string name="general_log_in_label">Log in</string>
+    <string name="general_log_out_label">Log out</string>
+
+    <string name="login_dialog_title">Login</string>
+    <string name="login_type_credentials_text">Type in the same credentials you use on Hitchwiki.org</string>
+    <string name="login_username_field_label">Username:</string>
+    <string name="login_password_field_label">Password:</string>
+    <string name="login_create_an_account">Create an account</string>
+    <string name="login_error_requesting_token">An error occurred while requesting a token</string>
+    <string name="login_succeeded">You\'re logged in</string>
+    <string name="login_failed">An error occurred while logging in</string>
+    <string name="logout_successful">You\'re logged out!</string>
+
+    <string name="assign_spots_dialog_title">Become the author of your spots</string>
+    <string name="assign_spots_dialog_message">One or more spots on your database haven\'t been assigned to anybody.\nThis usually happens when you save a spot while you\'re not logged in to your Hitchwiki account.\nNow that you\'re logged in, would you like us to assign you as the author of such spots?</string>
 
     <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 

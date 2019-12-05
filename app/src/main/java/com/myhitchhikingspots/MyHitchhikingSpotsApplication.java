@@ -13,6 +13,8 @@ import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.Utils;
 
+import org.greenrobot.greendao.database.Database;
+
 import hitchwikiMapsSDK.classes.APIConstants;
 import io.fabric.sdk.android.Fabric;
 
@@ -91,6 +93,29 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
             Crashlytics.logException(new Exception("Error at: LoadCurrentWaitingSpot. More than 1 spot was found with IsWaitingForARide set to true! This should never happen - Please be aware of this."));
         if (areWaitingForARide.size() >= 1)
             currentSpot = areWaitingForARide.get(0);
+    }
+
+    public boolean IsAnySpotMissingAuthor() {
+        SpotDao spotDao = daoSession.getSpotDao();
+        return spotDao.queryBuilder().whereOr(SpotDao.Properties.AuthorUserName.isNull(), SpotDao.Properties.AuthorUserName.eq(""))
+                .limit(1).list().isEmpty();
+    }
+
+    /**
+     * Assign the given username to all spots missing AuthorUserName.
+     *
+     * @param username The username that the person uses on Hitchwiki.
+     */
+    public void AssignMissingAuthorTo(String username) {
+        String sqlUpdateAuthorStatement = "UPDATE %1$s SET %2$s = '%3$s' WHERE %2$s IS NULL OR %2$s = ''";
+        //Get a DB session
+        Database db = daoSession.getDatabase();
+
+        //Delete selected spots from DB
+        db.execSQL(String.format(sqlUpdateAuthorStatement,
+                SpotDao.TABLENAME,
+                SpotDao.Properties.AuthorUserName.columnName,
+                username));
     }
 
     public DaoSession getDaoSession() {

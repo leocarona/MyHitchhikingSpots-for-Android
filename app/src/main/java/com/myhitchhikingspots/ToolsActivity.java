@@ -15,10 +15,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,11 +27,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.widget.TextViewCompat;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
@@ -45,7 +38,6 @@ import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,15 +46,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.CookieHandler;
-import java.net.CookieManager;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
@@ -308,15 +296,8 @@ public class ToolsActivity extends AppCompatActivity {
         t.addListener(new AsyncTaskListener<ArrayList<String>>() {
             @Override
             public void notifyTaskFinished(Boolean success, ArrayList<String> messages, String filePath) {
-                String title = "";
-
-                //Show toast
                 if (success) {
-                    title = getString(R.string.general_import_finished_successful_message);
-
                     prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-
-                    Toast.makeText(getBaseContext(), title, Toast.LENGTH_SHORT).show();
 
                     String eventName = "Database import success";
                     if (shouldFixStartDates) {
@@ -330,13 +311,12 @@ public class ToolsActivity extends AppCompatActivity {
                     //Create a record to track database import
                     Answers.getInstance().logCustom(new CustomEvent(eventName));
 
+                    MainActivity.showSuccessAndTryAssignAuthorDialog(ToolsActivity.this, getString(R.string.general_import_finished_successful_message), TextUtils.join("\n", messages));
                 } else {
-                    title = getString(R.string.general_import_finished_failed_message);
-
                     Answers.getInstance().logCustom(new CustomEvent("Database import failed"));
-                }
 
-                showErrorAlert(title, TextUtils.join("\n", messages));
+                    showErrorAlert(getString(R.string.general_import_finished_failed_message), TextUtils.join("\n", messages));
+                }
 
                 //Reset this flag so that we verify whether we need to ask the user again if he chooses to import a second file
                 userAlreadyAnswered = false;

@@ -73,6 +73,8 @@ public final class Constants {
     public static final String PREFS_MAPBOX_WAS_EVER_LOADED = "mapBoxWasEverLoaded";
     public static final String PREFS_HITCHWIKI_STORAGE_RENAMED = "hitchwikiStorageRenamed";
     public static final String PREFS_SPOTSSTARTDATETIME_WERE_FIXED = "startDateTimesFixed";
+    public static final String PREFS_LOGIN_TOKEN = "loginToken";
+    public static final String PREFS_USER_CURRENTLY_LOGGED_IN = "userCurrentlyLoggedIn";
 
     public static final String PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD = "PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD";
     public static final String PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD = "PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD";

@@ -23,6 +23,7 @@
         android:layout_weight="0.78" />
 
     <TextView
+        android:id="@+id/app_header_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAlignment="center"

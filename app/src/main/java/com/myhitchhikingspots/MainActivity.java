@@ -5,32 +5,47 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-
-import com.google.android.material.navigation.NavigationView;
-
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
+import com.google.android.material.navigation.NavigationView;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.Utils;
 
+import org.json.JSONObject;
+
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoutesTask.onPostExecute, NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout mDrawer;
@@ -103,6 +118,8 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             if (getIntent().getExtras() != null && getIntent().getExtras().containsKey(ARG_REQUEST_TO_OPEN_FRAGMENT))
                 resourceToOpen = getIntent().getExtras().getInt(ARG_REQUEST_TO_OPEN_FRAGMENT);
         }
+
+        updateLoginOptionVisibility();
 
         loadSpotList(resourceToOpen);
     }
@@ -218,6 +235,10 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
         if (selectedItemId == R.id.nav_tools)
             startToolsActivityForResult();
+        else if (selectedItemId == R.id.nav_login)
+            logIn();
+        else if (selectedItemId == R.id.nav_logout)
+            logOut();
         else {
             CharSequence title = menuItem.getTitle();
             setupSelectedFragment(menuItem, title.toString());
@@ -240,6 +261,22 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public void startToolsActivityForResult() {
         Intent intent = new Intent(getBaseContext(), ToolsActivity.class);
         startActivityForResult(intent, 1);
+    }
+
+    private void updateLoginOptionVisibility() {
+        Menu menu = nvDrawer.getMenu();
+        View header = nvDrawer.getHeaderView(0);
+        AppCompatTextView headerLabel = header.findViewById(R.id.app_header_label);
+        String username = (prefs == null) ? null : prefs.getString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, null);
+        if (username != null) {
+            menu.findItem(R.id.nav_login).setVisible(false);
+            menu.findItem(R.id.nav_logout).setVisible(true);
+            headerLabel.setText(getString(R.string.general_welcome_user, username));
+        } else {
+            menu.findItem(R.id.nav_login).setVisible(true);
+            menu.findItem(R.id.nav_logout).setVisible(false);
+            headerLabel.setText(getString(R.string.app_name));
+        }
     }
 
     /**
@@ -572,5 +609,231 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 loadingDialog.dismiss();
         } catch (Exception e) {
         }
+    }
+
+
+    public void logIn() {
+        getToken();
+    }
+
+    public void logOut() {
+        tryLogout();
+    }
+
+    final String hw_request_token_api_url = "https://hitchwiki.org/en/api.php?action=query&meta=tokens&type=login&format=json";
+    final String hw_clientlogin_api_url = "https://hitchwiki.org/en/api.php?action=clientlogin&format=json&loginreturnurl=http://hitchwiki.org/";
+    final String hw_create_account_url = "https://hitchwiki.org/en/index.php?title=Special:CreateAccount&returnto=Main+Page";
+
+    void getToken() {
+        if (!Utils.isNetworkAvailable(this)) {
+            showErrorAlert(getString(R.string.general_internet_unavailable_title), getString(R.string.general_network_unavailable_message));
+            return;
+        }
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, hw_request_token_api_url, null, response -> {
+                    try {
+                        String logintoken = response.getJSONObject("query").getJSONObject("tokens").getString("logintoken");
+
+                        if (prefs != null)
+                            prefs.edit().putString(Constants.PREFS_LOGIN_TOKEN, logintoken).apply();
+
+                        showLoginDialog(logintoken);
+                    } catch (Exception ex) {
+                        showErrorAlert(getString(R.string.login_error_requesting_token), ex.getLocalizedMessage());
+                        Crashlytics.logException(ex);
+                    }
+                }, error -> {
+                    // TODO: Handle error
+                    showErrorAlert(getString(R.string.login_error_requesting_token), error.getLocalizedMessage());
+                    Crashlytics.logException(new Exception(error.getLocalizedMessage()));
+                });
+
+        //Let's set default cookie manager so that Volley will manage the necessary cookies. Cookies are used in order to login to Hitchwiki/Mediawiki.
+        //More info on CookieManager here: https://stackoverflow.com/questions/16680701/using-cookies-with-android-volley-library
+        CookieManager cookieManager = new CookieManager();
+        CookieHandler.setDefault(cookieManager);
+
+        jsonObjectRequest.setShouldCache(false);
+
+        // Add the request to the RequestQueue.
+        queue.add(jsonObjectRequest);
+    }
+
+
+    public void showLoginDialog(String logintoken) {
+        LayoutInflater inflater = getLayoutInflater();
+        View alertLayout = inflater.inflate(R.layout.dialog_login_layout, null);
+        final EditText etUsername = alertLayout.findViewById(R.id.username);
+        final EditText etPassword = alertLayout.findViewById(R.id.password);
+
+        alertLayout.findViewById(R.id.create_account).setOnClickListener((view) -> {
+            //Open browser with Hitchwiki create account page
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(hw_create_account_url));
+            startActivity(browserIntent);
+        });
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle(getString(R.string.login_dialog_title));
+        // this is set the view from XML inside AlertDialog
+        alert.setView(alertLayout);
+        // disallow cancel of AlertDialog on click of back button and outside touch
+        alert.setCancelable(false);
+        alert.setNegativeButton(getString(R.string.general_cancel_option), (dialog, which) -> Toast.makeText(getBaseContext(), "Cancel clicked", Toast.LENGTH_SHORT).show());
+
+        alert.setPositiveButton(getString(R.string.general_log_in_label), (d, w) -> {
+            String user = etUsername.getText().toString();
+            String pass = etPassword.getText().toString();
+            tryLogin(logintoken, user, pass);
+        });
+
+        AlertDialog dialog = alert.create();
+        dialog.show();
+    }
+
+
+    void tryLogin(String logintoken, String username, String password) {
+        if (!Utils.isNetworkAvailable(this)) {
+            showErrorAlert(getString(R.string.general_internet_unavailable_title), getString(R.string.general_network_unavailable_message));
+            return;
+        }
+        tryLoginOnServerSide(logintoken, username, password);
+    }
+
+    void tryLoginOnServerSide(String logintoken, String username, String password) {
+        if (logintoken == null) return;
+
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        StringRequest jsonObjectRequest = new StringRequest
+                (Request.Method.POST, hw_clientlogin_api_url, response -> {
+                    try {
+                        JSONObject responseObj = new JSONObject(response);
+
+                        if (responseObj.has("error"))
+                            showErrorAlert(getString(R.string.general_error_dialog_title), responseObj.getJSONObject("error").getString("info"));
+                        else if (responseObj.getJSONObject("clientlogin").getString("status").equals("PASS")) {
+
+                            if (prefs != null)
+                                prefs.edit().putString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, username).apply();
+
+                            showSuccessAndTryAssignAuthorDialog(this, getString(R.string.login_succeeded), getString(R.string.general_welcome_user, username));
+
+                            updateLoginOptionVisibility();
+                        }
+                    } catch (Exception ex) {
+                        showErrorAlert(getString(R.string.general_error_dialog_title), ex.getLocalizedMessage());
+                    }
+
+                }, (error) -> {
+                    // TODO: Handle error
+                    showErrorAlert(getString(R.string.login_failed), error.getLocalizedMessage());
+                }) {
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("logintoken", logintoken);
+                params.put("username", username);
+                params.put("password", password);
+                return params;
+            }
+        };
+
+        // Add the request to the RequestQueue.
+        queue.add(jsonObjectRequest);
+    }
+
+    public static void showSuccessAndTryAssignAuthorDialog(Context context, String dialogTitle, String dialogMessage) {
+        new AlertDialog.Builder(context)
+                .setIcon(R.drawable.ic_check_circle_black_24dp)
+                .setTitle(dialogTitle)
+                .setMessage(dialogMessage)
+                .setNeutralButton(context.getResources().getString(R.string.general_ok_option), (d, i) -> {
+                    if (((MyHitchhikingSpotsApplication) context.getApplicationContext()).IsAnySpotMissingAuthor())
+                        tryAssignAuthorToSpots(context);
+                })
+                .show();
+    }
+
+    private void tryLogout() {
+        /*
+        NOTE: Trying to log user out on the server side doesn't seem to work with action=logout when the user has
+        logged in using action=clientlogin. I did not find any action=clientlogout option, and action=login does
+        exist but on their documentation they recommend using action=clientlogin instead. Because action=logout
+        is always giving a "badtoken" error, then we're commenting it out.
+        Perhaps in the future we can consider learning more about how to use action=login and try that way.
+        if (Utils.isNetworkAvailable(this))
+            tryLogoutOnServerSide();*/
+
+        onLogoutFinished();
+    }
+
+    private void tryLogoutOnServerSide() {
+        String logintoken = (prefs == null) ? null : prefs.getString(Constants.PREFS_LOGIN_TOKEN, null);
+        if (logintoken == null) return;
+
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "https://hitchwiki.org/en/api.php?action=logout&format=json";
+
+        StringRequest jsonObjectRequest = new StringRequest
+                (Request.Method.POST, url, response -> {
+
+                    try {
+                        JSONObject responseObj = new JSONObject(response);
+                        if (responseObj.has("error"))
+                            Crashlytics.logException(new Exception(responseObj.getJSONObject("error").getString("info")));
+                    } catch (Exception ex) {
+                        Crashlytics.logException(ex);
+                    }
+
+                }, (error) -> {
+                    Crashlytics.logException(new Exception(error.getLocalizedMessage()));
+                }) {
+
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("token", logintoken);
+                return params;
+            }
+        };
+
+        // Add the request to the RequestQueue.
+        queue.add(jsonObjectRequest);
+    }
+
+    private void onLogoutFinished() {
+        showErrorAlert(getString(R.string.general_done_label), getString(R.string.logout_successful));
+
+        prefs.edit().remove(Constants.PREFS_LOGIN_TOKEN).apply();
+        prefs.edit().remove(Constants.PREFS_USER_CURRENTLY_LOGGED_IN).apply();
+
+        updateLoginOptionVisibility();
+    }
+
+    private static void tryAssignAuthorToSpots(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+        String username = (prefs == null) ? null : prefs.getString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, null);
+        if (username == null)
+            return;
+        showShouldAssignSpotsMissingAuthorToUserDialog(context, username);
+    }
+
+    private static void showShouldAssignSpotsMissingAuthorToUserDialog(Context context, String username) {
+        new AlertDialog.Builder(context)
+                .setIcon(R.drawable.ic_check_circle_black_24dp)
+                .setTitle(context.getString(R.string.assign_spots_dialog_title))
+                .setMessage(context.getString(R.string.assign_spots_dialog_message))
+                .setPositiveButton(context.getString(R.string.general_yes_option), (dialog, which) -> {
+                    ((MyHitchhikingSpotsApplication) context.getApplicationContext()).AssignMissingAuthorTo(username);
+                })
+                .setNegativeButton(context.getString(R.string.general_no_option), (dialog, which) -> {
+                })
+                .show();
     }
 }

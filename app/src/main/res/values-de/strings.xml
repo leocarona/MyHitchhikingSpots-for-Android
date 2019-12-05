@@ -199,6 +199,23 @@
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="general_showCase_button">GOT IT!</string>
     <string name="general_view_map">Karten anzeigen</string>
+    <string name="general_done_label">Getan!</string>
+    <string name="general_welcome_user">Herzlich willkommen, %s!</string>
+    <string name="general_log_in_label">Log in</string>
+    <string name="general_log_out_label">Log out</string>
+
+    <string name="login_dialog_title">Login</string>
+    <string name="login_type_credentials_text">Geben Sie die gleichen Anmeldeinformationen ein, die Sie auf Hitchwiki.org verwenden</string>
+    <string name="login_username_field_label">Nutzername:</string>
+    <string name="login_password_field_label">Passwort:</string>
+    <string name="login_create_an_account">Ein Konto erstellen</string>
+    <string name="login_error_requesting_token">Beim Anfordern eines Tokens ist ein Fehler aufgetreten</string>
+    <string name="login_succeeded">Du bist eingeloggt</string>
+    <string name="login_failed">Beim Anmelden ist ein Fehler aufgetreten</string>
+    <string name="logout_successful">Du bist abgemeldet!</string>
+
+    <string name="assign_spots_dialog_title">Werden Sie der Autor Ihrer gespeicherten Orte</string>
+    <string name="assign_spots_dialog_message">Einer oder mehrere Orte in Ihrer Datenbank wurden niemandem zugewiesen.\nDies geschieht normalerweise, wenn Sie einen Ort speichern, während Sie nicht in Ihrem Hitchwiki-Konto angemeldet sind.\nMöchten Sie, dass wir Sie nach dem Anmelden als Urheber solcher Orte festlegen?</string>
 
     <string name="empty_list_dialog_message">To view spots added by other hitchhikers to Hitchwiki Maps, navigate to %s.</string>
 

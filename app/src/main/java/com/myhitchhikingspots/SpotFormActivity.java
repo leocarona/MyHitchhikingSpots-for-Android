@@ -1531,6 +1531,10 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 return;
             }
 
+            if (prefs != null && mCurrentSpot.getAuthorUserName() == null) {
+                String username = prefs.getString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, null);
+                mCurrentSpot.setAuthorUserName(username);
+            }
         } catch (Exception ex) {
             Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
