@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -15,13 +14,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
-import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -35,9 +31,8 @@ import androidx.core.widget.TextViewCompat;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
@@ -59,11 +54,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
@@ -238,14 +237,6 @@ public class ToolsActivity extends AppCompatActivity {
                 .show();
     }
 
-    public void shareButtonHandler(View view) {
-        //create the send intent
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-
-        //start the chooser for sharing
-        startActivity(Intent.createChooser(shareIntent, "Insert share chooser title here"));
-    }
-
     public void pickFileButtonHandler(View view) {
         if (!isStoragePermissionsGranted(this))
             requestStoragePermissions(this);
@@ -263,16 +254,13 @@ public class ToolsActivity extends AppCompatActivity {
         else {
             FilePickerDialog dialog = new FilePickerDialog();
             //Add listener to be called when task finished
-            dialog.addListener(new AsyncTaskListener<File>() {
-                @Override
-                public void notifyTaskFinished(Boolean success, File file, String filePath) {
-                    //Start import task
-                    importPickedFile(file);
-                }
+            dialog.addListener((success, file, filePath) -> {
+                importPickedFile(file);
             });
             dialog.openDialog(this, this);
         }
     }
+
 
     void collapseExpandTextView() {
         TextView tools_tips_description = findViewById(R.id.tools_tips_description);
@@ -310,6 +298,10 @@ public class ToolsActivity extends AppCompatActivity {
             return;
         }
 
+        startDatabaseImporterAsync(fileToImport);
+    }
+
+    private void startDatabaseImporterAsync(final File fileToImport) {
         DatabaseImporter t = new DatabaseImporter(this, fileToImport, shouldFixStartDates);
 
         //Add listener to be called when task finished
@@ -334,6 +326,7 @@ public class ToolsActivity extends AppCompatActivity {
                         else
                             eventName += "StartDateTime have been automatically fixed";
                     }
+
                     //Create a record to track database import
                     Answers.getInstance().logCustom(new CustomEvent(eventName));
 
@@ -379,24 +372,9 @@ public class ToolsActivity extends AppCompatActivity {
                 .show();
     }
 
-    void showShouldDatabaseBeCopiedLocallyDialog() {
-        /*new AlertDialog.Builder(this)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(getString(R.string.settings_exportdb_button_label))
-                .setMessage("Would like to also save a copy of your database to your SD card?")
-                .setPositiveButton(getString(R.string.general_yes_option), (dialog, which) -> {
-                    exportDBNow(true);
-                })
-                .setNegativeButton(getString(R.string.general_no_option), (dialog, which) -> {
-                    exportDBNow(false);
-                })
-                .show();*/
-        exportDBNow();
-    }
-
     void showShareExportedDatabaseDialog() {
         new AlertDialog.Builder(this)
-                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setIcon(R.drawable.ic_check_circle_black_24dp)
                 .setTitle(getString(R.string.tools_database_exported_successfully_message))
                 .setMessage(getString(R.string.tools_exportdb_share_dialog_message, getString(R.string.general_share_label)))
                 .setPositiveButton(getString(R.string.general_share_label), (dialog, which) -> {
@@ -430,52 +408,51 @@ public class ToolsActivity extends AppCompatActivity {
     }
 
     public void exportButtonHandler(View view) {
-        showShouldDatabaseBeCopiedLocallyDialog();
-    }
-
-    void exportDBNow() {
         if (!isStoragePermissionsGranted(this))
             requestStoragePermissions(this);
-        else {
-            try {
-                DatabaseExporter t = new DatabaseExporter(this);
-                //Add listener to be called when task finished
-                t.addListener(new AsyncTaskListener<String>() {
-                    @Override
-                    public void notifyTaskFinished(Boolean success, String message, String exportedFilePath) {
+        else
+            startDatabaseExporterAsync();
+    }
 
-                        if (success) {
-                            DateTime now = DateTime.now(DateTimeZone.UTC);
-                            //Set date of last time an export (backup) was made
-                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
+    private void startDatabaseExporterAsync() {
+        try {
+            DatabaseExporter t = new DatabaseExporter(this);
+            //Add listener to be called when task finished
+            t.addListener(new AsyncTaskListener<String>() {
+                @Override
+                public void notifyTaskFinished(Boolean success, String message, String exportedFilePath) {
 
-                            //Show result message returned by DatabaseExporter
-                            mfeedbacklabel.setText(message);
-                            mfeedbacklabel.setVisibility(View.VISIBLE);
+                    if (success) {
+                        DateTime now = DateTime.now(DateTimeZone.UTC);
+                        //Set date of last time an export (backup) was made
+                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
 
-                            //Create a record to track Export Database success
-                            Answers.getInstance().logCustom(new CustomEvent("Database export success"));
+                        //Show result message returned by DatabaseExporter
+                        mfeedbacklabel.setText(message);
+                        mfeedbacklabel.setVisibility(View.VISIBLE);
 
-                            if (!exportedFilePath.equals("")) {
-                                destinationFilePath = exportedFilePath;
-                                showShareExportedDatabaseDialog();
-                            }
-                        } else {
-                            showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
+                        //Create a record to track Export Database success
+                        Answers.getInstance().logCustom(new CustomEvent("Database export success"));
 
-                            //Create a record to track Export Database failure
-                            Answers.getInstance().logCustom(new CustomEvent("Database export failed"));
+                        if (!exportedFilePath.equals("")) {
+                            destinationFilePath = exportedFilePath;
+                            showShareExportedDatabaseDialog();
                         }
+                    } else {
+                        showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
+
+                        //Create a record to track Export Database failure
+                        Answers.getInstance().logCustom(new CustomEvent("Database export failed"));
                     }
-                });
-                t.execute();
+                }
+            });
+            t.execute();
 
-                ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
+            ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
-            } catch (Exception e) {
-                Crashlytics.logException(e);
-                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
-            }
+        } catch (Exception e) {
+            Crashlytics.logException(e);
+            showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
         }
     }
 
