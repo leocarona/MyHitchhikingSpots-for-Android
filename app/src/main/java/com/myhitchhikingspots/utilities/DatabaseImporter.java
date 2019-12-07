@@ -1,10 +1,5 @@
 package com.myhitchhikingspots.utilities;
 
-import java.io.File;
-import java.io.FileReader;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.database.Cursor;
@@ -16,13 +11,18 @@ import android.util.Log;
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
-import com.myhitchhikingspots.ToolsActivity;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.SpotDao;
 
 import org.greenrobot.greendao.database.Database;
 import org.joda.time.DateTime;
+
+import java.io.File;
+import java.io.FileReader;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     private WeakReference<Context> contextRef;
