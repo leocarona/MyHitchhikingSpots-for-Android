@@ -134,30 +134,21 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             return "Context was null. Activity might have been destroyed.";
 
         try {
-            ArrayList<String> columnsNameList = new ArrayList<>();
             CSVReader reader = new CSVReader(new FileReader(file));
 
             // Read header (first row)
             String[] csv_header_allvalues = reader.readNext();
 
-            Boolean doesIsPartOfARouteColumnExist = false;
-            Boolean doesIsHitchhikingSpotColumnExist = false;
-            Integer isDestinationColumnIndex = -1;
-            Integer startDateTimeColumnIndex = -1;
+            // Read header
+            ArrayList<String> columnsNameList = new ArrayList<>(Arrays.asList(csv_header_allvalues));
+            int idColumnIndex = columnsNameList.indexOf(SpotDao.Properties.Id.columnName);
+            columnsNameList.remove(idColumnIndex);
 
-            // Ignore first column (ID column)
-            for (int i = 1; i < csv_header_allvalues.length; i++) {
-                columnsNameList.add(csv_header_allvalues[i]);
+            Boolean doesIsPartOfARouteColumnExist = columnsNameList.contains(SpotDao.Properties.IsPartOfARoute.columnName);
+            Boolean doesIsHitchhikingSpotColumnExist = columnsNameList.contains(SpotDao.Properties.IsHitchhikingSpot.columnName);
 
-                if (csv_header_allvalues[i].equals(SpotDao.Properties.IsPartOfARoute.columnName))
-                    doesIsPartOfARouteColumnExist = true;
-                else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsHitchhikingSpot.columnName))
-                    doesIsHitchhikingSpotColumnExist = true;
-                else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsDestination.columnName))
-                    isDestinationColumnIndex = i;
-                else if (csv_header_allvalues[i].equals(SpotDao.Properties.StartDateTime.columnName))
-                    startDateTimeColumnIndex = i;
-            }
+            Integer isDestinationColumnIndex = columnsNameList.indexOf(SpotDao.Properties.IsDestination.columnName);
+            Integer startDateTimeColumnIndex = columnsNameList.indexOf(SpotDao.Properties.StartDateTime.columnName);
 
             //Add a column for missing columns
             if (!doesIsPartOfARouteColumnExist)
@@ -213,31 +204,21 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                         null);
 
                 if (cursor != null) {
-                    ArrayList<String> columnsNameList = new ArrayList<>();
-
                     Crashlytics.log(Log.INFO, TAG, "Will start copying all spots to local database");
 
                     // Read header
                     String[] csv_header_allvalues = cursor.getColumnNames();
 
-                    Boolean doesIsPartOfARouteColumnExist = false;
-                    Boolean doesIsHitchhikingSpotColumnExist = false;
-                    Integer isDestinationColumnIndex = -1;
-                    Integer startDateTimeColumnIndex = -1;
+                    // Read header
+                    ArrayList<String> columnsNameList = new ArrayList<>(Arrays.asList(csv_header_allvalues));
+                    int idColumnIndex = columnsNameList.indexOf(SpotDao.Properties.Id.columnName);
+                    columnsNameList.remove(idColumnIndex);
 
-                    // Ignore first column (ID column)
-                    for (int i = 1; i < csv_header_allvalues.length; i++) {
-                        columnsNameList.add(csv_header_allvalues[i]);
+                    Boolean doesIsPartOfARouteColumnExist = columnsNameList.contains(SpotDao.Properties.IsPartOfARoute.columnName);
+                    Boolean doesIsHitchhikingSpotColumnExist = columnsNameList.contains(SpotDao.Properties.IsHitchhikingSpot.columnName);
 
-                        if (csv_header_allvalues[i].equals(SpotDao.Properties.IsPartOfARoute.columnName))
-                            doesIsPartOfARouteColumnExist = true;
-                        else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsHitchhikingSpot.columnName))
-                            doesIsHitchhikingSpotColumnExist = true;
-                        else if (csv_header_allvalues[i].equals(SpotDao.Properties.IsDestination.columnName))
-                            isDestinationColumnIndex = i;
-                        else if (csv_header_allvalues[i].equals(SpotDao.Properties.StartDateTime.columnName))
-                            startDateTimeColumnIndex = i;
-                    }
+                    Integer isDestinationColumnIndex = columnsNameList.indexOf(SpotDao.Properties.IsDestination.columnName);
+                    Integer startDateTimeColumnIndex = columnsNameList.indexOf(SpotDao.Properties.StartDateTime.columnName);
 
                     //Add a column for missing columns
                     if (!doesIsPartOfARouteColumnExist)
@@ -245,9 +226,8 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     if (!doesIsHitchhikingSpotColumnExist)
                         columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
 
-
                     Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
-                    
+
                     // Read all the rest of the lines
                     while (cursor.moveToNext()) {
                         String[] csv_row_allvalues = readRow(cursor);
