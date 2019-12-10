@@ -281,6 +281,12 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                         DateTime fixedDateTime = Utils.fixDateTime(startDateTimeInMillis);
                         value = DatabaseUtils.sqlEscapeString(String.valueOf(fixedDateTime.getMillis()));
                         comparisonStr += " OR " + csv_header_allvalues[i] + "=" + value;
+                    } else if (csv_header_allvalues[i].equals(SpotDao.Properties.Latitude.columnName) || csv_header_allvalues[i].equals(SpotDao.Properties.Longitude.columnName)) {
+                        //Latitude and Longitude are values of type Double. When exporting these values, it is possible that these
+                        //Double values were converted into type Float. To cover that scenario, we've opted for using the following workaround.
+                        //Ex: If the latitude -43.934732423 was converted into -43.934 while exporting,
+                        // then our condition here will be "latitude BETWEEN -43.934 AND -44.934".
+                        comparisonStr = String.format("%1$s BETWEEN %2$s AND %2$s + 1", csv_header_allvalues[i], rawValue);
                     }
 
                     //Notice: we must use csv_header_allvalues[i] instead of columnsNameList[i] here because i starts from 1 to skip ID column
