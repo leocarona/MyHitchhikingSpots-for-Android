@@ -144,17 +144,25 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
             int idColumnIndex = columnsNameList.indexOf(SpotDao.Properties.Id.columnName);
             columnsNameList.remove(idColumnIndex);
 
+            //NOTE:
+            // For each column that must receive a default value in case such column doesn't exist in the database being imported,
+            //then two steps must be followed:
+            // Step 1) Add the column name to columnsNameList;
+            // Step 2) Before calling copyIfDoesntExist, add the necessary default values to columnsNameList in the same order as column name was added on Step 1.
+
             Boolean doesIsPartOfARouteColumnExist = columnsNameList.contains(SpotDao.Properties.IsPartOfARoute.columnName);
             Boolean doesIsHitchhikingSpotColumnExist = columnsNameList.contains(SpotDao.Properties.IsHitchhikingSpot.columnName);
 
             Integer isDestinationColumnIndex = columnsNameList.indexOf(SpotDao.Properties.IsDestination.columnName);
             Integer startDateTimeColumnIndex = columnsNameList.indexOf(SpotDao.Properties.StartDateTime.columnName);
 
-            //Add a column for missing columns
+            // Step 1) Add the column name to columnsNameList;
             if (!doesIsPartOfARouteColumnExist)
                 columnsNameList.add(SpotDao.Properties.IsPartOfARoute.columnName);
             if (!doesIsHitchhikingSpotColumnExist)
                 columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
+
+            ArrayList<Integer> columnIndexesToSkipComparing = getColumnsToSkip(columnsNameList);
 
             Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
 
@@ -164,7 +172,19 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                 if (null == csv_row_allvalues)
                     break;
 
-                importRow(destinationDB, context, csv_header_allvalues, csv_row_allvalues, columnsNameList, startDateTimeColumnIndex, isDestinationColumnIndex, doesIsPartOfARouteColumnExist, doesIsHitchhikingSpotColumnExist);
+                ArrayList<String> valuesList = new ArrayList<>(Arrays.asList(csv_row_allvalues));
+                valuesList.remove(idColumnIndex);
+
+                Boolean isDestination = valuesList.get(isDestinationColumnIndex).equals("1");
+
+                // Step 2) Before calling copyIfDoesntExist, add the necessary default values to allPropertiesValues.
+                ArrayList<String> defaultValues = getDefaultValuesToBeAdded(
+                        doesIsPartOfARouteColumnExist,
+                        doesIsHitchhikingSpotColumnExist,
+                        isDestination);
+                valuesList.addAll(defaultValues);
+
+                importRow(destinationDB, context, columnsNameList, valuesList, columnIndexesToSkipComparing, startDateTimeColumnIndex);
             }
 
             Crashlytics.log(Log.INFO, TAG, "Successfully finished copying all spots to local database");
@@ -214,24 +234,45 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     int idColumnIndex = columnsNameList.indexOf(SpotDao.Properties.Id.columnName);
                     columnsNameList.remove(idColumnIndex);
 
+                    //NOTE:
+                    // For each column that must receive a default value in case such column doesn't exist in the database being imported,
+                    //then two steps must be followed:
+                    // Step 1) Add the column name to columnsNameList;
+                    // Step 2) Before calling copyIfDoesntExist, add the necessary default values to columnsNameList in the same order as column name was added on Step 1.
+
                     Boolean doesIsPartOfARouteColumnExist = columnsNameList.contains(SpotDao.Properties.IsPartOfARoute.columnName);
                     Boolean doesIsHitchhikingSpotColumnExist = columnsNameList.contains(SpotDao.Properties.IsHitchhikingSpot.columnName);
 
                     Integer isDestinationColumnIndex = columnsNameList.indexOf(SpotDao.Properties.IsDestination.columnName);
                     Integer startDateTimeColumnIndex = columnsNameList.indexOf(SpotDao.Properties.StartDateTime.columnName);
 
-                    //Add a column for missing columns
+                    // Step 1) Add the column name to columnsNameList;
                     if (!doesIsPartOfARouteColumnExist)
                         columnsNameList.add(SpotDao.Properties.IsPartOfARoute.columnName);
                     if (!doesIsHitchhikingSpotColumnExist)
                         columnsNameList.add(SpotDao.Properties.IsHitchhikingSpot.columnName);
+
+                    ArrayList<Integer> columnIndexesToSkipComparing = getColumnsToSkip(columnsNameList);
 
                     Database destinationDB = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
 
                     // Read all the rest of the lines
                     while (cursor.moveToNext()) {
                         String[] csv_row_allvalues = readRow(cursor);
-                        importRow(destinationDB, context, csv_header_allvalues, csv_row_allvalues, columnsNameList, startDateTimeColumnIndex, isDestinationColumnIndex, doesIsPartOfARouteColumnExist, doesIsHitchhikingSpotColumnExist);
+
+                        ArrayList<String> valuesList = new ArrayList<>(Arrays.asList(csv_row_allvalues));
+                        valuesList.remove(idColumnIndex);
+
+                        Boolean isDestination = valuesList.get(isDestinationColumnIndex).equals("1");
+
+                        // Step 2) Before calling copyIfDoesntExist, add the necessary default values to allPropertiesValues.
+                        ArrayList<String> defaultValues = getDefaultValuesToBeAdded(
+                                doesIsPartOfARouteColumnExist,
+                                doesIsHitchhikingSpotColumnExist,
+                                isDestination);
+                        valuesList.addAll(defaultValues);
+
+                        importRow(destinationDB, context, columnsNameList, valuesList, columnIndexesToSkipComparing, startDateTimeColumnIndex);
                     }
 
                     Crashlytics.log(Log.INFO, TAG, "Successfully finished copying all spots to local database");
@@ -253,62 +294,41 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         return errorMessage;
     }
 
-    void importRow(Database destinationDB, Context context, String[] csv_header_allvalues, String[] csv_row_allvalues, ArrayList<String> columnsNameList, int startDateTimeColumnIndex, int isDestinationColumnIndex, boolean doesIsPartOfARouteColumnExist, boolean doesIsHitchhikingSpotColumnExist) {
-        ArrayList<String> valuesList = new ArrayList();
-        ArrayList<String> comparisonsList = new ArrayList<>();
 
+    void importRow(Database destinationDB, Context context, ArrayList<String> columnsNameList, ArrayList<String> valuesList, ArrayList<Integer> columnIndexesToSkipComparing, int startDateTimeColumnIndex) {
         try {
-            Boolean isDestination = false;
+            ArrayList<String> comparisonsList = new ArrayList<>();
 
-            // Read all columns, ignore first column (ID column)
-            for (int i = 1; i < csv_row_allvalues.length; i++) {
-                String rawValue = csv_row_allvalues[i];
+            // Read all columns ignoring the ones that should be skipped
+            for (int i = 0; i < valuesList.size(); i++) {
+                String rawValue = (valuesList.get(i) == null || valuesList.get(i).equalsIgnoreCase("null")) ? "" : valuesList.get(i);
+                String propertyEscapedValue = DatabaseUtils.sqlEscapeString(rawValue);
 
-                //If rawValue is null or empty, we should consider equivalent value any null or empty value
-                if (rawValue == null || rawValue.isEmpty() || rawValue.equalsIgnoreCase("null")) {
-                    comparisonsList.add("(" + csv_header_allvalues[i] + "='null' or " +
-                            csv_header_allvalues[i] + "='' or " +
-                            csv_header_allvalues[i] + " IS NULL)");
+                //Ignore the columns that should be skipped
+                if (!columnIndexesToSkipComparing.contains(i)) {
+                    String propertyName = columnsNameList.get(i);
+                    String comparisonStr = getBasicComparisonString(propertyName, propertyEscapedValue);
 
-                    //Value will be copied into the local database as empty value
-                    valuesList.add("''");
-                } else {
-                    String value = DatabaseUtils.sqlEscapeString(rawValue);
-                    String comparisonStr = csv_header_allvalues[i] + "=" + value;
-
-                    if (startDateTimeColumnIndex == i && shouldFixDateTime) {
-                        long startDateTimeInMillis = Long.valueOf(rawValue);
-                        DateTime fixedDateTime = Utils.fixDateTime(startDateTimeInMillis);
-                        value = DatabaseUtils.sqlEscapeString(String.valueOf(fixedDateTime.getMillis()));
-                        comparisonStr += " OR " + csv_header_allvalues[i] + "=" + value;
-                    } else if (csv_header_allvalues[i].equals(SpotDao.Properties.Latitude.columnName) || csv_header_allvalues[i].equals(SpotDao.Properties.Longitude.columnName)) {
-                        //Latitude and Longitude are values of type Double. When exporting these values, it is possible that these
-                        //Double values were converted into type Float. To cover that scenario, we've opted for using the following workaround.
-                        //Ex: If the latitude -43.934732423 was converted into -43.934 while exporting,
-                        // then our condition here will be "latitude BETWEEN -43.934 AND -44.934".
-                        comparisonStr = String.format("%1$s BETWEEN %2$s AND %2$s + 1", csv_header_allvalues[i], rawValue);
+                    //If should fix date time, then fix it and update the value of propertyEscapedValue
+                    if (!rawValue.isEmpty()) {
+                        if (startDateTimeColumnIndex == i && shouldFixDateTime) {
+                            propertyEscapedValue = getFixedStartDateTime(Long.valueOf(rawValue));
+                            comparisonStr += String.format(" OR %1s = %2$s", propertyName, propertyEscapedValue);
+                        } else if (propertyName.equals(SpotDao.Properties.Latitude.columnName) || propertyName.equals(SpotDao.Properties.Longitude.columnName)) {
+                            //Latitude and Longitude are values of type Double. When exporting these values, it is possible that these
+                            //Double values were converted into type Float. To cover that scenario, we've opted for using the following workaround.
+                            //Ex: If the latitude -43.934732423 was converted into -43.934 while exporting,
+                            // then our condition here will be "latitude BETWEEN -43.934 AND -44.934".
+                            comparisonStr = String.format("%1$s BETWEEN %2$s AND %2$s + 1", propertyName, rawValue);
+                        }
                     }
 
-                    //Notice: we must use csv_header_allvalues[i] instead of columnsNameList[i] here because i starts from 1 to skip ID column
+                    //Add comparison that will help identifying whether this spot should be imported
                     comparisonsList.add(comparisonStr);
-                    valuesList.add(value);
                 }
 
-                if (isDestinationColumnIndex == i && rawValue.equals("1"))
-                    isDestination = true;
-            }
-
-            //Set default values for IsPartOfARoute
-            if (!doesIsPartOfARouteColumnExist)
-                valuesList.add(Constants.ISPARTOFAROUTE_DEFAULT_VALUE);
-
-            //Set default values for IsHitchhikingSpots
-            if (!doesIsHitchhikingSpotColumnExist) {
-                //If the spot is not a destination, then set IsHitchhikingSpot to default value
-                if (!isDestination)
-                    valuesList.add(Constants.ISHITCHHIKINGSPOT_DEFAULT_VALUE);
-                else
-                    valuesList.add("0");
+                //Update the value of the property to be saved if the spot should be imported
+                valuesList.set(i, propertyEscapedValue);
             }
 
             //Copy spot if it doesn't already exist in the local DB. If it exists, skip it so that it doesn't duplicate.
@@ -328,7 +348,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
 
     String[] readRow(Cursor cursor) {
         String[] values = new String[cursor.getColumnCount()];
-        for (int i = 1; i < cursor.getColumnCount(); i++) {
+        for (int i = 0; i < cursor.getColumnCount(); i++) {
             String value = cursor.getString(i);
             values[i] = value;
         }
@@ -338,7 +358,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
     Boolean copyIfDoesntExist(ArrayList<String> comparisonsList, ArrayList<String> columnsNameList, ArrayList<String> valuesList, Database destinationDB) {
         Boolean spotAdded = false;
 
-        //Try to find spots that contain exactly the same data as the current one (ignoring ID, of course)
+        //Try to find spots that contain exactly the same data as the current one
         Cursor duplicatedRecords = destinationDB.rawQuery(
                 String.format(sqlSelectDuplicatedStatement,
                         SpotDao.TABLENAME,
@@ -359,5 +379,61 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
         return spotAdded;
     }
 
+    private static String getBasicComparisonString(String propertyName, String propertyValue) {
+        String comparisonStr = "";
 
+        //If rawValue is null or empty, we should consider equivalent value any null or empty value
+        if (propertyValue.isEmpty() || propertyValue.equals("''") || propertyValue.equalsIgnoreCase("'null'"))
+            comparisonStr = String.format("(%1$s = 'null' or %1$s = '' or %1$s IS NULL)", propertyName);
+        else
+            comparisonStr = String.format("%1$s = %2$s", propertyName, propertyValue);
+
+        return comparisonStr;
+    }
+
+    private static String getFixedStartDateTime(long startDateTimeInMillis) {
+        DateTime fixedDateTime = Utils.fixDateTime(startDateTimeInMillis);
+        return DatabaseUtils.sqlEscapeString(String.valueOf(fixedDateTime.getMillis()));
+    }
+
+    private static ArrayList<String> getDefaultValuesToBeAdded(boolean doesIsPartOfARouteColumnExist, boolean doesIsHitchhikingSpotColumnExist, boolean isDestination) {
+        ArrayList<String> defaultValues = new ArrayList<>();
+        //Set default values for IsPartOfARoute
+        if (!doesIsPartOfARouteColumnExist)
+            defaultValues.add(Constants.ISPARTOFAROUTE_DEFAULT_VALUE);
+
+        //Set default values for IsHitchhikingSpots
+        if (!doesIsHitchhikingSpotColumnExist) {
+            //If the spot is not a destination, then set IsHitchhikingSpot to default value
+            if (!isDestination)
+                defaultValues.add(Constants.ISHITCHHIKINGSPOT_DEFAULT_VALUE);
+            else
+                defaultValues.add("0");
+        }
+        return defaultValues;
+    }
+
+    private static ArrayList<Integer> getColumnsToSkip(ArrayList<String> allPropertiesName) {
+        ArrayList<Integer> skipComparingColumns = new ArrayList<>();
+
+        for (int i = 0; i < allPropertiesName.size(); i++) {
+            String propertyName = allPropertiesName.get(i);
+
+            //We don't want to compare Ids, AuthorUserNames and none of the variables related to the spot's geolocation.
+            if (propertyName.equals(SpotDao.Properties.Id.columnName) ||
+                    propertyName.equals(SpotDao.Properties.Street.columnName) ||
+                    propertyName.equals(SpotDao.Properties.City.columnName) ||
+                    propertyName.equals(SpotDao.Properties.State.columnName) ||
+                    propertyName.equals(SpotDao.Properties.Country.columnName) ||
+                    propertyName.equals(SpotDao.Properties.CountryCode.columnName) ||
+                    propertyName.equals(SpotDao.Properties.GpsResolved.columnName) ||
+                    propertyName.equals(SpotDao.Properties.IsReverseGeocoded.columnName) ||
+                    propertyName.equals(SpotDao.Properties.Zip.columnName) ||
+                    propertyName.equals(SpotDao.Properties.AuthorUserName.columnName)) {
+                //Value will be copied into the local database as empty value
+                skipComparingColumns.add(i);
+            }
+        }
+        return skipComparingColumns;
+    }
 }
