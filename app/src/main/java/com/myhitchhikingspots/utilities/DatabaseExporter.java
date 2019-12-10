@@ -77,8 +77,13 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
             csvWrite.writeNext(curCSV.getColumnNames());
             while (curCSV.moveToNext()) {
                 String[] mySecondStringArray = new String[curCSV.getColumnNames().length];
-                for (int i = 0; i < curCSV.getColumnNames().length; i++) {
-                    mySecondStringArray[i] = curCSV.getString(i);
+                String[] columnNames = curCSV.getColumnNames();
+                for (int i = 0; i < columnNames.length; i++) {
+                    String columnName = columnNames[i];
+                    if (columnName.equals(SpotDao.Properties.Latitude.columnName) || columnName.equals(SpotDao.Properties.Longitude.columnName))
+                        mySecondStringArray[i] = Double.toString(curCSV.getDouble(i));
+                    else
+                        mySecondStringArray[i] = curCSV.getString(i);
                 }
                 csvWrite.writeNext(mySecondStringArray);
             }
