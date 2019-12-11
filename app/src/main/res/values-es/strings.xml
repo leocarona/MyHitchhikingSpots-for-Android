@@ -234,6 +234,7 @@
 
     <string name="map_loading_dialog">Cargando lugares &#8230;</string>
     <string name="map_not_loaded_message">El mapa se verá aquí, cuando vuelvas a tener conexión a Internet. :-)</string>
+    <string name="map_drawing_progress_text">Cargando mapa..</string>
 
     <string name="spot_form_bottommenu_map_tile">Localización</string>
     <string name="spot_form_bottommenu_basic_tile">Lugar</string>

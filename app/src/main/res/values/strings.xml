@@ -246,6 +246,7 @@ The Hitchwiki team.
 
     <string name="map_loading_dialog">Loading spots&#8230;</string>
     <string name="map_not_loaded_message">When you have an internet connection again,\na map will be displayed here. :-)</string>
+    <string name="map_drawing_progress_text">Loading map..</string>
 
     <string name="spot_form_bottommenu_map_tile">Location</string>
     <string name="spot_form_bottommenu_basic_tile">Spot</string>

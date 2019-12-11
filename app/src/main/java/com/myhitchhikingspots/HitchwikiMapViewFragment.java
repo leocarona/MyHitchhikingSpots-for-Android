@@ -617,7 +617,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     void updateAnnotations() {
         if (mapboxMap != null && style != null && style.isFullyLoaded()) {
-            showProgressDialog("Drawing hitchwiki spots..");
+            showProgressDialog(getString(R.string.map_drawing_progress_text));
             Spot[] spotArray = new Spot[spotList.size()];
             this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
         }
