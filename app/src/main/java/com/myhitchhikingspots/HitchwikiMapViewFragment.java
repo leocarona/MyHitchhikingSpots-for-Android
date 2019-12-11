@@ -416,8 +416,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * Ask for storage permission if necessary, load spots list and finally draw annotations.
      **/
     void onFirstLoad() {
-        if (!areStoragePermissionsGranted(getActivity())) {
-            requestStoragePermissions(getActivity());
+        Activity activity = getActivity();
+        if (activity == null)
+            return;
+
+        if (!areStoragePermissionsGranted(activity)) {
+            requestStoragePermissions(activity);
             return;
         }
 
