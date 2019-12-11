@@ -265,16 +265,17 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
 
     private void updateLoginOptionVisibility() {
         Menu menu = nvDrawer.getMenu();
+        MenuItem item_nav_login = menu.findItem(R.id.nav_login), item_nav_logout = menu.findItem(R.id.nav_logout);
         View header = nvDrawer.getHeaderView(0);
         AppCompatTextView headerLabel = header.findViewById(R.id.app_header_label);
         String username = (prefs == null) ? null : prefs.getString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, null);
         if (username != null) {
-            menu.findItem(R.id.nav_login).setVisible(false);
-            menu.findItem(R.id.nav_logout).setVisible(true);
+            if (item_nav_login != null) item_nav_login.setVisible(false);
+            if (item_nav_logout != null) item_nav_logout.setVisible(true);
             headerLabel.setText(getString(R.string.general_welcome_user, username));
         } else {
-            menu.findItem(R.id.nav_login).setVisible(true);
-            menu.findItem(R.id.nav_logout).setVisible(false);
+            if (item_nav_login != null) item_nav_login.setVisible(true);
+            if (item_nav_logout != null) item_nav_logout.setVisible(false);
             headerLabel.setText(getString(R.string.app_name));
         }
     }
