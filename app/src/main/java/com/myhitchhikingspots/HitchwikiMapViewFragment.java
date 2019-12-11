@@ -35,6 +35,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
 import com.crashlytics.android.Crashlytics;
@@ -123,7 +124,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     private PermissionsManager locationPermissionsManager;
 
-    Toast waiting_GPS_update;
+    private ProgressDialog loadingDialog;
+    private DownloadHWSpotsDialog dialog;
 
     Boolean shouldZoomToFitAllMarkers = true;
 
@@ -141,7 +143,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
 
-    AsyncTask loadTask;
+    AsyncTask loadTask, downloadPlacesAsyncTask, downloadCountriesListAsyncTask;
 
     Icon ic_single_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
     Icon ic_hitchability_unknown, ic_hitchability_very_good, ic_hitchability_good, ic_hitchability_average, ic_hitchability_bad, ic_hitchability_senseless;
@@ -414,8 +416,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * Ask for storage permission if necessary, load spots list and finally draw annotations.
      **/
     void onFirstLoad() {
-        if (!areStoragePermissionsGranted(getActivity())) {
-            requestStoragePermissions(getActivity());
+        Activity activity = getActivity();
+        if (activity == null)
+            return;
+
+        if (!areStoragePermissionsGranted(activity)) {
+            requestStoragePermissions(activity);
             return;
         }
 
@@ -426,7 +432,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     void downloadCountriesList() {
-        new DownloadCountriesListAsyncTask(onPlacesDownloadedListener).execute();
+        downloadCountriesListAsyncTask = new DownloadCountriesListAsyncTask(onPlacesDownloadedListener).execute();
     }
 
     @Override
@@ -611,7 +617,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     void updateAnnotations() {
         if (mapboxMap != null && style != null && style.isFullyLoaded()) {
-            showProgressDialog("Drawing hitchwiki spots..");
+            showProgressDialog(getString(R.string.map_drawing_progress_text));
             Spot[] spotArray = new Spot[spotList.size()];
             this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
         }
@@ -865,7 +871,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             //Clear countries container
             countriesContainer = new CountryInfoBasic[0];
 
-            new DownloadPlacesAsyncTask(hitchwikiStorageFolder, dialogType, lstToDownload, getPlacesByArea, this::onDownloadedFinished).execute();
+            downloadPlacesAsyncTask = new DownloadPlacesAsyncTask(hitchwikiStorageFolder, dialogType, lstToDownload, getPlacesByArea, this::onDownloadedFinished).execute();
         }
     }
 
@@ -904,12 +910,16 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void showSelectionDialog(PairParcelable[] result, String dialogType) {
+        FragmentActivity activity = getActivity();
+        if (activity == null)
+            return;
+
         Bundle args = new Bundle();
         args.putParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY, result);
         args.putString(Constants.DIALOG_TYPE_BUNDLE_KEY, dialogType);
 
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        DownloadHWSpotsDialog dialog = new DownloadHWSpotsDialog(downloadHWSpotsDialogListener);
+        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+        dialog = new DownloadHWSpotsDialog(downloadHWSpotsDialogListener);
         //dialog.setTargetFragment(this, 0);
         dialog.setArguments(args);
         dialog.show(fragmentManager, "tagSelection");
@@ -941,12 +951,18 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onStart() {
         super.onStart();
         mapView.onStart();
+        if (dialog != null)
+            dialog.onStart();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         mapView.onStop();
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog.onStop();
+        }
 
         /*
          * The device may have been rotated and the activity is going to be destroyed
@@ -958,6 +974,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             this.loadTask.cancel(false);
             dismissProgressDialog();
         }
+        if (downloadPlacesAsyncTask != null)
+            downloadPlacesAsyncTask.cancel(false);
+        if (downloadCountriesListAsyncTask != null)
+            downloadCountriesListAsyncTask.cancel(false);
     }
 
     @Override
@@ -983,7 +1003,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onPause() {
         super.onPause();
         mapView.onPause();
-
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog.onPause();
+        }
         dismissProgressDialog();
     }
 
@@ -1000,6 +1023,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             mapboxMap.removeOnMapClickListener(this);
         }
         mapView.onDestroy();
+        if (dialog != null)
+            dialog.onDestroy();
     }
 
     @Override
@@ -1270,7 +1295,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      */
     @SuppressWarnings({"MissingPermission"})
     public void moveCameraToLastKnownLocation(int zoomLevel, @Nullable MapboxMap.CancelableCallback callback) {
-        if(!style.isFullyLoaded())
+        if (!style.isFullyLoaded())
             return;
 
         //Request permission of access to GPS updates or
@@ -1310,8 +1335,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(moveCameraPositionTo, bestZoomLevel), callback);
 
     }
-
-    private ProgressDialog loadingDialog;
 
     private void showProgressDialog(String message) {
         showProgressDialog(message, null);

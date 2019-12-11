@@ -40,34 +40,14 @@
     <string name="hitchability_no_answer">N/A</string>
 
     <string name="attempt_result">Resultado da tentativa</string>
-    <string name="attempt_result_unknown">@string/hitchability_unknown</string>
-    <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
-    <string name="attempt_result_gave_up">@string/break_button_text</string>
-
-    <string-array name="hitchabilities">
-        <item>@string/hitchability_unknown</item>
-        <item>@string/hitchability_very_good</item>
-        <item>@string/hitchability_good</item>
-        <item>@string/hitchability_average</item>
-        <item>@string/hitchability_bad</item>
-        <item>@string/hitchability_senseless</item>
-        <item>@string/hitchability_no_answer</item>
-    </string-array>
-
-    <string-array name="attempt_results">
-        <item>@string/attempt_result_unknown</item>
-        <item>@string/attempt_result_successful</item>
-        <item>@string/attempt_result_gave_up</item>
-    </string-array>
 
     <string name="menu_dashboard">Painel</string>
     <string name="menu_my_maps">Meu Mapa</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
-    <string name="menu_tools">@string/toolsatitle</string>
-    <string name="menu_offline_maps">@string/offline_map</string>
-    <string name="menu_about_us">@string/about_us_first_title</string>
+    <string name="menu_tools">Ferramentas</string>
+    <string name="menu_offline_maps">Mapa Offline</string>
+    <string name="menu_about_us">Sobre Nós</string>
 
-    <string name="tools_title">Ferramentas</string>
     <string name="tools_tips_title">DICAS</string>
     <string name="tools_warning">Bem-vindx às nossas Ferramentas! Tenha em mente que nós ainda não sincronizamos seus locais salvos em nenhum lugar. Enquanto isso, aqui estão algumas ferramentas que você pode usar para se virar enquanto isso.</string>
     <string name="tools_tips_description">Se você deseja enviar seus locais de carona salvos para seus amigos ou se você deseja fazer um backup deles, nós recomendamos fortemente a utilização da opção \"%1$s\". Exportando seu banco de dados um arquivo leve será salvo na memória do seu celular, permitindo que você a compartilhe com seus amigos, ou que você o copie para algum lugar mais seguro, como no seu e-mail ou em algum armazenamento em nuvem. Para restaurar um banco de dados exportado, use a opção \"%2$s\".</string>
@@ -106,15 +86,11 @@
     <string name="navigation_drawer_open">Abrir menu de navegação</string>
     <string name="navigation_drawer_close">Fechar menu de navegação</string>
 
-    <string name="title_activity_scrolling">@string/save_spot_button_text</string>
-
     <string name="spot_form_note_hint">Comentário</string>
     <string name="spot_form_add_note_hint">Adicione um comentário</string>
-    <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Data</string>
     <string name="spot_form_time_label">Horário</string>
     <string name="spot_form_waiting_time_label">Tempo de espera</string>
-    <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Quando</string>
     <string name="spot_form_more_options_edit_label">(editar)</string>
     <string name="spot_form_comments_title">Comentários de outros caroneiros</string>
@@ -128,7 +104,6 @@
     <string name="action_settings">Configuraçōes</string>
     <string name="spot_saved_successfuly">Local salvo</string>
     <string name="spot_deleted_successfuly">Local deletado</string>
-    <string name="title_activity_main">@string/app_name</string>
 
     <string name="confirm_back_button_click_dialog_title">Voltar</string>
     <string name="confirm_back_button_click_dialog_message">Tem certeza que deseja sair desta página sem salvar suas alteraçōes?</string>
@@ -255,6 +230,7 @@
 
     <string name="map_loading_dialog">Carregando locais&#8230;</string>
     <string name="map_not_loaded_message">Quando você tiver uma conexão à internet novamente,\num mapa será aparecerá aqui. :-)</string>
+    <string name="map_drawing_progress_text">Carregando mapa..</string>
 
     <string name="spot_form_bottommenu_map_tile">Local</string>
     <string name="spot_form_bottommenu_basic_tile">Local</string>
@@ -276,7 +252,6 @@
     <string name="settings_export_section_title">Export</string>
     <string name="settings_import_section_title">Import</string>
 
-    <string name="offline_map">Mapa Offline</string>
     <string name="download_region_button_text">Baixar esta região</string>
     <string name="dialog_title">Dê um nome para esta região</string>
     <string name="dialog_message">Baixa a região do mapa que você está visualizando atualmente</string>
@@ -302,7 +277,6 @@
     <string name="dashboard_your_longest_waiting_time">Seu maior tempo de espera</string>
     <string name="dashboard_your_shortest_waiting_time">Seu menor tempo de espera</string>
 
-    <string name="about_us_first_title">Sobre Nós</string>
     <string name="about_us_first_text">Este aplicativo é um projeto de código aberto publicado pela Hitchwiki.org gratuitamente. É desenvolvido por e para caroneiros. Existe graças aos nossos apoiadores, nossos desenvolvedores e nossos usuários que avaliam o aplicativo e nos dão feedback, o que nos permite melhorar.</string>
     <string name="about_us_our_supporters_title">Quem Nos Apoia</string>
     <string name="about_us_our_supporters_text">Algumas pessoas incríveis ajudaram nossos desenvolvedores para que esse aplicativo pudesse chegar até você. Amigos ou pessoas desconhecidas que hospedaram os desenvolvedores deste aplicativo, que compartilharam comida com eles, que pagaram suas contas de eletricidade e internet, porque você sabe que precisamos de computadores e coisas do tipo para criarmos um aplicativo. Nossos apoiadores são de grande importância para este projeto, para nossos desenvolvedores nômades e para você que usa esta ferramenta útil ao explorar o mundo.</string>

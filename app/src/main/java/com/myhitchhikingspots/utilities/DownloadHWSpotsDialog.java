@@ -5,11 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import androidx.fragment.app.DialogFragment;
-import androidx.appcompat.app.AlertDialog;
-
 import android.util.Log;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
@@ -36,6 +35,9 @@ public class DownloadHWSpotsDialog extends DialogFragment {
         String getContinentsContainer(int item);
 
         String getCountryContainer(int item);
+    }
+
+    public DownloadHWSpotsDialog() {
     }
 
     public DownloadHWSpotsDialog(DownloadHWSpotsDialogListener callback) {
@@ -74,7 +76,7 @@ public class DownloadHWSpotsDialog extends DialogFragment {
             setValuesFromBundle(savedInstanceState);
 
         Context context = getContext();
-        if(context == null)
+        if (context == null)
             return super.onCreateDialog(savedInstanceState);
 
         SharedPreferences prefs = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);

@@ -43,28 +43,7 @@
     <string name="hitchability_no_answer">Sin respuesta</string>
 
     <string name="attempt_result">Resultado del intento</string>
-    <string name="attempt_result_unknown">@string/hitchability_unknown
-</string>
-    <string name="attempt_result_successful">@string/got_a_ride_button_text</string>
-    <string name="attempt_result_gave_up">@string/break_button_text</string>
 
-    <string-array name="hitchabilities">
-        <item>@string/hitchability_unknown</item>
-        <item>@string/hitchability_very_good</item>
-        <item>@string/hitchability_good</item>
-        <item>@string/hitchability_average</item>
-        <item>@string/hitchability_bad</item>
-        <item>@string/hitchability_senseless</item>
-        <item>@string/hitchability_no_answer</item>
-    </string-array>
-
-    <string-array name="attempt_results">
-        <item>@string/attempt_result_unknown</item>
-        <item>@string/attempt_result_successful</item>
-        <item>@string/attempt_result_gave_up</item>
-    </string-array>
-
-    <string name="tools_title">Herramientas</string>
     <string name="tools_tips_title">TIPS</string>
     <string name="tools_warning">Bien-venida(o) a nuestras Herramientas! Tenga en cuenta que aún no sincronizamos sus datos y lugares de autostop con ningún lugar. Mientras tanto, aquí hay algunas herramientas con las que puede moverse por ahora.</string>
     <string name="tools_tips_description">Si desas compartír tus lugares de autostop con tus amigos o si sólo deseas hacer un backup de tu base de datos, te recomendamos utilizar nuestra opción de \"%1$s\". Cuándo exportes tu base de datos, un pequeño archivo que contiene copia de tus lugares de autostop será guardada en la memória de tu teléfono. Entonces podrás compartirlo con tus amigos, o guardarlo en algún lugar seguro, cómo en tu e-mail o en uno servicio de nube. Si deseas restaurar una base de datos exportada anteriormente, puedes utilizar nuestra opción de \"%2$s\".</string>
@@ -103,15 +82,11 @@
     <string name="navigation_drawer_open">Abrir pantalla de navegación</string>
     <string name="navigation_drawer_close">Cerrar pantalla de navegación</string>
 
-    <string name="title_activity_scrolling">@string/save_spot_button_text</string>
-
     <string name="spot_form_note_hint">Comentario</string>
     <string name="spot_form_add_note_hint">Añadir comentario</string>
-    <string name="spot_form_hitchability_label">@string/hitchability</string>
     <string name="spot_form_date_label">Fecha</string>
     <string name="spot_form_time_label">Hora</string>
     <string name="spot_form_waiting_time_label">Tiempo de espera</string>
-    <string name="spot_form_attempt_result_label">@string/attempt_result</string>
     <string name="spot_form_more_options_label">Cuando</string>
     <string name="spot_form_more_options_edit_label">(edit)</string>
     <string name="spot_form_comments_title">Comentarios de otros usuarios</string>
@@ -125,14 +100,13 @@
     <string name="menu_dashboard">Panel de control</string>
     <string name="menu_my_maps">Mis mapas</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
-    <string name="menu_tools">@string/tools_title</string>
-    <string name="menu_offline_maps">@string/offline_map</string>
-    <string name="menu_about_us">@string/about_us_first_title</string>
+    <string name="menu_tools">Herramientas</string>
+    <string name="menu_offline_maps">Offline Maps</string>
+    <string name="menu_about_us">Sobre nosotros</string>
 
     <string name="action_settings">Settings</string>
     <string name="spot_saved_successfuly">lugar guardado</string>
     <string name="spot_deleted_successfuly">lugar borrado</string>
-    <string name="title_activity_main">@string/app_name</string>
 
     <string name="confirm_back_button_click_dialog_title">Volver</string>
     <string name="confirm_back_button_click_dialog_message">¿Estas seguro de que quieres salir de la página sin guardar los datos?</string>
@@ -260,6 +234,7 @@
 
     <string name="map_loading_dialog">Cargando lugares &#8230;</string>
     <string name="map_not_loaded_message">El mapa se verá aquí, cuando vuelvas a tener conexión a Internet. :-)</string>
+    <string name="map_drawing_progress_text">Cargando mapa..</string>
 
     <string name="spot_form_bottommenu_map_tile">Localización</string>
     <string name="spot_form_bottommenu_basic_tile">Lugar</string>
@@ -311,7 +286,6 @@
     <string name="dashboard_your_longest_waiting_time">Tu mayor tiempo de espera</string>
     <string name="dashboard_your_shortest_waiting_time">Tu menor tiempo de espera</string>
 
-    <string name="about_us_first_title">Sobre nosotros</string>
     <string name="about_us_first_text">Este es un proyecto de código abierto publicado gratis por  Hitchwiki.org. Desarrollado por y para autoestopistas. Gracias a quienes nos apoyan, a nuestros programadores y a nuestros usuarios que nos dan rating y sugerencias para mejorar</string>
     <string name="about_us_our_supporters_title">Quienes nos apoyan</string>
     <string name="about_us_our_supporters_text">Hay gente maravillosa que ha ayudado a nuestros programadores para hacer posible esta app. Amigos o gente desconocida que les ha alojado, que han compartido una comida, que ha pagado las facturas de Internet y electricidad. Como sabéis hacen falta computadores y todo eso para crear una app. Nuestros apoyos son de importancia vital para el proyecto, para nuestros desarrolladores nómadas y para vosotros que utilizáis esta app para descubrir el mundo </string>
