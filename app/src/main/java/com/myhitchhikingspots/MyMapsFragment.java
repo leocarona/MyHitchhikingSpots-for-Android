@@ -74,12 +74,14 @@ import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SubRoute;
 import com.myhitchhikingspots.utilities.IconUtils;
 import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
+import com.myhitchhikingspots.utilities.SpotsListHelper;
 import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -107,7 +109,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     ConstraintLayout coordinatorLayout;
     Boolean mapButtonsAreDisplayed = true;
-    Boolean shouldDisplayOldRoutes = true;
+    Boolean isFilteredByDates;
     boolean wasSnackbarShown;
 
     /**
@@ -167,10 +169,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     Boolean shouldZoomToFitAllMarkers = true;
 
     protected static final String TAG = "map-view-activity";
-    private static final String PROPERTY_ICONIMAGE = "iconImage",
+    public static final String PROPERTY_ICONIMAGE = "iconImage",
             PROPERTY_ROUTEINDEX = "routeIndex", PROPERTY_TAG = "tag", PROPERTY_SPOTTYPE = "spotType",
             PROPERTY_TITLE = "title", PROPERTY_SNIPPET = "snippet",
-            PROPERTY_SHOULDHIDE = "shouldHide", PROPERTY_SELECTED = "selected";
+            PROPERTY_SHOULDHIDE = "shouldHide", PROPERTY_SELECTED = "selected",
+            PROPERTY_STARTDATETIME_IN_MILLISECS = "startDateTime";
 
     MainActivity activity;
 
@@ -793,6 +796,11 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             else
                 drawAnnotations();
         }
+
+        if (dateRangeDialog != null) {
+            dateRangeDialog.dismiss();
+            dateRangeDialog = null;
+        }
     }
 
     void showInternetUnavailableAlertDialog() {
@@ -976,7 +984,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             spotListWasChanged = true;
 
             //We want the map camera to be adjusted when one or more spots have been added, edited or deleted.
-            // Please note: we do not want it to be adjusted always that spotList is reloaded, that's why shouldZoomToFitAllMarkers is been set here and not on updateSpotList().
+            // Please note: we do not want it to be adjusted always that spotList is reloaded, that's why shouldZoomToFitAllMarkers is been set here and not on onSpotListChanged().
             //TODO: Consider also zooming out to fit all markers always when user navigates back AND there's no features within the viewport.
             shouldZoomToFitAllMarkers = true;
         } else {
@@ -984,7 +992,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             shouldZoomToFitAllMarkers = false;
         }
 
-        //NOTE: updateSpotList() will be called after MyMapsFragment.onActivityResult() by MainActivity.onActivityResult()
+        //NOTE: onSpotListChanged() will be called after MyMapsFragment.onActivityResult() by MainActivity.onActivityResult()
     }
 
     @Override
@@ -995,6 +1003,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         dismissSnackbar();
         dismissProgressDialog();
+
+        if (dateRangeDialog != null)
+            dateRangeDialog.dismiss();
     }
 
     @Override
@@ -1086,12 +1097,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             case R.id.action_toggle_icons:
                 toggleAllFAB();
                 break;
-            case R.id.action_toggle_old_routes:
-                shouldDisplayOldRoutes = !shouldDisplayOldRoutes;
-                if (shouldDisplayOldRoutes)
-                    showAllRoutesOnMap();
-                else
-                    hideOldRoutesFromMap();
+            case R.id.action_filter_by_date:
+                if (dateRangeDialog == null)
+                    isFilteredByDates = false;
+                hideSpotsSavedBetweenPeriodOfTimeFromMap(isFilteredByDates);
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null) {
@@ -1178,6 +1187,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Feature lastFeature = subRoutesCollection.features().get(lastFeatureIndex);
         int lastRouteIndex = (int) lastFeature.getNumberProperty(PROPERTY_ROUTEINDEX);
 
+        hideOldRoutesFromMap(lastRouteIndex);
+    }
+
+    private void hideOldRoutesFromMap(int lastRouteIndex) {
         //Remove all spots except the ones belonging to the most recent route.
         // Updates all features defining if they should be hidden or not.
         for (Feature f : spotsCollection.features()) {
@@ -1203,10 +1216,86 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         refreshSubRoutesSource();
     }
 
+    /*
+     * Hides old routes, showing on the map only polylines and spots that belong to the most recent route.
+     * Spots that don't belong to any route shall be hidden as well.
+     * */
+    private void hideSpotsSavedBetweenPeriodOfTimeFromMap(boolean shouldShowClearButton) {
+        if (subRoutesCollection == null || subRoutesCollection.features() == null || subRoutesCollection.features().isEmpty())
+            return;
+
+        openDateRangePickerDialog(SpotsListHelper.getOldestDatesOnEachRoute(spotsCollection.features()),
+                SpotsListHelper.getMostRecentDatesOnEachRoute(spotsCollection.features()), shouldShowClearButton);
+    }
+
+    void onDateRangeWasPicked(DateTime periodBeginsOn, DateTime periodEndsOn) {
+        if (periodBeginsOn.isAfter(periodEndsOn))
+            return;
+
+        List<Integer> routeIndexesWithinPeriodOfTime = SpotsListHelper.getAllRouteIndexesOfFeaturesWithinDates(spotsCollection.features(), periodBeginsOn, periodEndsOn);
+        hideSpotsSavedBetweenPeriodOfTimeFromMap(routeIndexesWithinPeriodOfTime);
+    }
+
+    private void hideSpotsSavedBetweenPeriodOfTimeFromMap(List<Integer> routeIndexesToShow) {
+        for (Feature f : spotsCollection.features()) {
+            int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
+
+            if (routeIndexesToShow.contains(spotRouteIndex))
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+            else
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
+        }
+
+        refreshSpotsSource();
+
+        for (Feature f : subRoutesCollection.features()) {
+            int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
+
+            if (routeIndexesToShow.contains(spotRouteIndex))
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+            else
+                f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
+        }
+
+        refreshSubRoutesSource();
+    }
+
     private void startMyRoutesActivity() {
         Intent intent = new Intent(activity, MyRoutesActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
         startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
+    }
+
+    DateRangePickerDialog dateRangeDialog;
+
+    private void openDateRangePickerDialog(List<DateTime> startDates, List<DateTime> endDates, boolean shouldShowClearButton) {
+        if (dateRangeDialog == null) {
+            ArrayList<Date> startDatesDate = new ArrayList<>();
+            for (DateTime startDate : startDates)
+                startDatesDate.add(startDate.toDate());
+            ArrayList<Date> endDatesDate = new ArrayList<>();
+            for (DateTime endDate : endDates)
+                endDatesDate.add(endDate.toDate());
+
+            dateRangeDialog = new DateRangePickerDialog(getContext());
+            dateRangeDialog.setRangeOptions(startDatesDate, endDatesDate, new DateRangePickerDialog.DateRangeListener() {
+                @Override
+                public void onRangeSelected(List<Date> selectedDates) {
+                    onDateRangeWasPicked(new DateTime(selectedDates.get(0)), new DateTime(selectedDates.get(selectedDates.size() - 1)));
+                    dateRangeDialog.dismiss();
+                    isFilteredByDates = true;
+                }
+
+                @Override
+                public void onRangeCleared() {
+                    showAllRoutesOnMap();
+                    dateRangeDialog.dismiss();
+                    isFilteredByDates = false;
+                }
+            });
+        }
+        dateRangeDialog.setShouldShowClearButton(shouldShowClearButton);
+        dateRangeDialog.show();
     }
 
     /**
@@ -1454,20 +1543,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                 //Convert every SubRoute into a LineString with properties (color, style and routeIndex)
                 for (SubRoute sr : r.subRoutes) {
-                    //Convert point list into LineString
-                    JsonObject properties = new JsonObject();
-                    properties.addProperty(PROPERTY_ROUTEINDEX, i);
-                    properties.addProperty(PROPERTY_SHOULDHIDE, false);
-                    properties.addProperty("isHitchhikingRoute", sr.isHitchhikingRoute);
-                    int lineColorId = -1;
-                    if (sr.isHitchhikingRoute)
-                        lineColorId = getLineColorId(i);
-                    properties.addProperty("lineColor", lineColorId);
-
                     // Create the LineString from the list of coordinates and then make a GeoJSON
                     // FeatureCollection so we can add the line to our map as a layer.
-                    linesForSubRoutes.add(Feature.fromGeometry(
-                            LineString.fromLngLats(sr.points), properties));
+                    linesForSubRoutes.add(getLineFeature(sr, i));
                 }
             }
 
@@ -1536,12 +1614,27 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             properties.addProperty(PROPERTY_TAG, tag);
             properties.addProperty(PROPERTY_SNIPPET, snippet);
             properties.addProperty(PROPERTY_SHOULDHIDE, false);
+            properties.addProperty(PROPERTY_STARTDATETIME_IN_MILLISECS, spot.getStartDateTimeMillis());
 
             setTitleIconAndType(spot, properties, isOrigin, routeIndex, activity);
 
             return Feature.fromGeometry(Point.fromLngLat(pos.getLongitude(), pos.getLatitude()), properties, tag);
         }
 
+
+        static Feature getLineFeature(SubRoute sr, int routeIndex) {
+            JsonObject properties = new JsonObject();
+            properties.addProperty(PROPERTY_ROUTEINDEX, routeIndex);
+            properties.addProperty(PROPERTY_SHOULDHIDE, false);
+            properties.addProperty("isHitchhikingRoute", sr.isHitchhikingRoute);
+
+            int lineColorId = -1;
+            if (sr.isHitchhikingRoute)
+                lineColorId = getLineColorId(routeIndex);
+            properties.addProperty("lineColor", lineColorId);
+
+            return Feature.fromGeometry(LineString.fromLngLats(sr.points), properties);
+        }
 
         static void setTitleIconAndType(Spot spot, JsonObject properties, boolean isOrigin, int routeIndex, MyMapsFragment activity) {
             String markerTitle = "";

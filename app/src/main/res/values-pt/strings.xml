@@ -153,7 +153,9 @@
 
     <string name="general_edit_list">Editar lista</string>
     <string name="general_toggle_buttons_label">Esconder/mostrar botōes</string>
-    <string name="general_hide_routes_label">Esconder/mostrar rotas passadas</string>
+    <string name="general_filter_by_date_label">Filtrar por datas</string>
+    <string name="general_filter_by_selected_dates_label">Filtrar locais desta data</string>
+    <string name="general_clear_selected_dates_label">Limpar</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>

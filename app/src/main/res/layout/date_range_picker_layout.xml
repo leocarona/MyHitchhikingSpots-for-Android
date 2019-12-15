@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/roundButtonTextStyle"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp">
+
+    <com.savvi.rangedatepicker.CalendarPickerView
+        android:id="@+id/calendar_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp"
+        android:scrollbarStyle="outsideOverlay"
+        app:layout_constraintBottom_toTopOf="@+id/select_dates"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tsquare_dividerColor="#00000000"
+        app:tsquare_headerTextColor="@color/ic_standard_fab_color"
+        app:tsquare_orientation_horizontal="false"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <Button
+        android:id="@+id/clear_selected_dates"
+        style="@style/roundButtonTextStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/break_button"
+        android:text="@string/general_clear_selected_dates_label"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/select_dates"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/select_dates"
+        style="@style/roundButtonTextStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/arrived_button"
+        android:text="@string/general_filter_by_selected_dates_label"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/clear_selected_dates" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

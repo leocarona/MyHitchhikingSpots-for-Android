@@ -168,7 +168,9 @@ The Hitchwiki team.
 
     <string name="general_edit_list">Edit list</string>
     <string name="general_toggle_buttons_label">Toggle buttons</string>
-    <string name="general_hide_routes_label">Toggle past routes</string>
+    <string name="general_filter_by_date_label">Filter by date</string>
+    <string name="general_filter_by_selected_dates_label">Filter spots on these dates</string>
+    <string name="general_clear_selected_dates_label">Clear</string>
     <string name="general_close_editing_mode_label" translatable="false">Close editing mode</string>
     <string name="general_ok_option">OK</string>
     <string name="general_yes_option">Yes</string>
