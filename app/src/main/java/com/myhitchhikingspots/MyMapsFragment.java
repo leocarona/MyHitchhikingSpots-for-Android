@@ -1100,7 +1100,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             case R.id.action_filter_by_date:
                 if (dateRangeDialog == null)
                     isFilteredByDates = false;
-                hideSpotsSavedBetweenPeriodOfTimeFromMap(isFilteredByDates);
+                showSpotsSavedBetweenPeriodOfTimeFromMap(isFilteredByDates);
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null) {
@@ -1220,7 +1220,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Hides old routes, showing on the map only polylines and spots that belong to the most recent route.
      * Spots that don't belong to any route shall be hidden as well.
      * */
-    private void hideSpotsSavedBetweenPeriodOfTimeFromMap(boolean shouldShowClearButton) {
+    private void showSpotsSavedBetweenPeriodOfTimeFromMap(boolean shouldShowClearButton) {
         if (subRoutesCollection == null || subRoutesCollection.features() == null || subRoutesCollection.features().isEmpty())
             return;
 
