@@ -109,7 +109,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private FloatingActionButton fabSpotAction1, fabSpotAction2;
     ConstraintLayout coordinatorLayout;
     Boolean mapButtonsAreDisplayed = true;
-    Boolean isFilteredByDates;
     boolean wasSnackbarShown;
     DateRangePickerDialog dateRangeDialog;
 
@@ -1099,9 +1098,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 toggleAllFAB();
                 break;
             case R.id.action_filter_by_date:
-                if (dateRangeDialog == null)
-                    isFilteredByDates = false;
-                showSpotsSavedBetweenPeriodOfTimeFromMap(isFilteredByDates);
+                showSpotsSavedBetweenPeriodOfTimeFromMap();
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null) {
@@ -1221,7 +1218,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Hides old routes, showing on the map only polylines and spots that belong to the most recent route.
      * Spots that don't belong to any route shall be hidden as well.
      * */
-    private void showSpotsSavedBetweenPeriodOfTimeFromMap(boolean shouldShowClearButton) {
+    private void showSpotsSavedBetweenPeriodOfTimeFromMap() {
         if (subRoutesCollection == null || subRoutesCollection.features() == null || subRoutesCollection.features().isEmpty())
             return;
 
@@ -1232,40 +1229,40 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         // Add the StartDateTime of single spots to startDates so that user may choose their dates as well. These dates are also in UTC.
         startDates.addAll(SpotsListHelper.getSingleSpotsDates(spotsCollection.features()));
 
-        openDateRangePickerDialog(startDates, endDates, shouldShowClearButton);
+        openDateRangePickerDialog(startDates, endDates);
     }
 
-    private void openDateRangePickerDialog(List<DateTime> startDates, List<DateTime> endDates, boolean shouldShowClearButton) {
-        if (dateRangeDialog == null) {
-            Context context = getContext();
-            if (context == null)
-                return;
-
-            ArrayList<Date> startDatesDate = new ArrayList<>();
-            for (DateTime startDate : startDates)
-                startDatesDate.add(startDate.toDate());
-            ArrayList<Date> endDatesDate = new ArrayList<>();
-            for (DateTime endDate : endDates)
-                endDatesDate.add(endDate.toDate());
-
-            dateRangeDialog = new DateRangePickerDialog(context);
-            dateRangeDialog.setRangeOptions(startDatesDate, endDatesDate, new DateRangePickerDialog.DateRangeListener() {
-                @Override
-                public void onRangeSelected(List<Date> selectedDates) {
-                    onDateRangeWasPicked(new DateTime(selectedDates.get(0)), new DateTime(selectedDates.get(selectedDates.size() - 1)));
-                    dateRangeDialog.dismiss();
-                    isFilteredByDates = true;
-                }
-
-                @Override
-                public void onRangeCleared() {
-                    showAllRoutesOnMap();
-                    dateRangeDialog.dismiss();
-                    isFilteredByDates = false;
-                }
-            });
+    private void openDateRangePickerDialog(List<DateTime> startDates, List<DateTime> endDates) {
+        if (dateRangeDialog != null) {
+            dateRangeDialog.showAgain();
+            return;
         }
-        dateRangeDialog.setShouldShowClearButton(shouldShowClearButton);
+
+        Context context = getContext();
+        if (context == null)
+            return;
+
+        ArrayList<Date> startDatesDate = new ArrayList<>();
+        for (DateTime startDate : startDates)
+            startDatesDate.add(startDate.toDate());
+        ArrayList<Date> endDatesDate = new ArrayList<>();
+        for (DateTime endDate : endDates)
+            endDatesDate.add(endDate.toDate());
+
+        dateRangeDialog = new DateRangePickerDialog(context);
+        dateRangeDialog.setRangeOptions(startDatesDate, endDatesDate, new DateRangePickerDialog.DateRangeListener() {
+            @Override
+            public void onRangeSelected(List<Date> selectedDates) {
+                onDateRangeWasPicked(new DateTime(selectedDates.get(0)), new DateTime(selectedDates.get(selectedDates.size() - 1)));
+                dateRangeDialog.dismiss();
+            }
+
+            @Override
+            public void onRangeCleared() {
+                showAllRoutesOnMap();
+                dateRangeDialog.dismiss();
+            }
+        });
         dateRangeDialog.show();
     }
 

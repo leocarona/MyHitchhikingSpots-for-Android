@@ -151,6 +151,30 @@ public class DateRangePickerDialog extends Dialog {
             listener.onRangeCleared();
     }
 
+    /**
+     * Reconfigure the calendar dialog as necessary if a date has been previously selected, and show dialog again.
+     **/
+    public void showAgain() {
+        updateClearSelectedDatesButtonState();
+
+        if (calendar.getSelectedDates().size() <= 1)
+            considerNextSelectedDateAsStartDate();
+
+        super.show();
+    }
+
+    private void considerNextSelectedDateAsStartDate() {
+        if (calendar == null)
+            return;
+
+        calendar.activateDates(possibleBeginningDates);
+        calendar.setCellClickInterceptor((date) -> {
+            calendar.clearSelectedDates();
+            calendar.setCellClickInterceptor(null);
+            return false;
+        });
+    }
+
     public interface DateRangeListener {
         void onRangeSelected(List<Date> selectedDates);
 
