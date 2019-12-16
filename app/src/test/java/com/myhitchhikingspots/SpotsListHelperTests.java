@@ -58,10 +58,13 @@ public class SpotsListHelperTests {
     }
 
     @Test
-    public void getAllRouteIndexesOfFeaturesWithinDates_2Routes_ReturnsSecondRouteIndex() {
+    public void getAllRouteIndexesOfFeaturesWithinDates_2Routes_ReturnsBothRouteIndexex() {
         ArrayList<Feature> features = getScenario();
 
-        assertThat(SpotsListHelper.getAllRouteIndexesOfFeaturesWithinDates(features, secondRoute_oldestDate, secondRoute_mostRecentDate).get(0)).isEqualTo(2);
+        // Assert that getAllRouteIndexesOfFeaturesWithinDates returns
+        // the routes that start on secondRoute_oldestDate and the routes that end on this same date.
+
+        assertThat(SpotsListHelper.getAllRouteIndexesOfFeaturesWithinDates(features, secondRoute_oldestDate, secondRoute_mostRecentDate).size()).isEqualTo(2);
     }
 
     @Test
@@ -113,6 +116,7 @@ public class SpotsListHelperTests {
     JsonObject getProperties(int routeIndex, DateTime startDateTime) {
         JsonObject properties = new JsonObject();
         properties.addProperty(MyMapsFragment.PROPERTY_ROUTEINDEX, routeIndex);
+        properties.addProperty(MyMapsFragment.PROPERTY_SPOTTYPE, Constants.SPOT_TYPE_POINT_ON_THE_ROUTE);
         properties.addProperty(MyMapsFragment.PROPERTY_STARTDATETIME_IN_MILLISECS, (long) startDateTime.getMillis());
         return properties;
     }

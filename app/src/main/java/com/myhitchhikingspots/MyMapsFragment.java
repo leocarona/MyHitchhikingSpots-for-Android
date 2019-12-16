@@ -1224,8 +1224,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (subRoutesCollection == null || subRoutesCollection.features() == null || subRoutesCollection.features().isEmpty())
             return;
 
-        openDateRangePickerDialog(SpotsListHelper.getOldestDatesOnEachRoute(spotsCollection.features()),
-                SpotsListHelper.getMostRecentDatesOnEachRoute(spotsCollection.features()), shouldShowClearButton);
+        // Gets all DateTimes in UTC.
+        List<DateTime> startDates = SpotsListHelper.getOldestDatesOnEachRoute(spotsCollection.features()),
+                endDates = SpotsListHelper.getMostRecentDatesOnEachRoute(spotsCollection.features());
+
+        // Add the StartDateTime of single spots to startDates so that user may choose their dates as well. These dates are also in UTC.
+        startDates.addAll(SpotsListHelper.getSingleSpotsDates(spotsCollection.features()));
+
+        openDateRangePickerDialog(startDates, endDates, shouldShowClearButton);
     }
 
     void onDateRangeWasPicked(DateTime periodBeginsOn, DateTime periodEndsOn) {
@@ -1233,28 +1239,35 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             return;
 
         List<Integer> routeIndexesWithinPeriodOfTime = SpotsListHelper.getAllRouteIndexesOfFeaturesWithinDates(spotsCollection.features(), periodBeginsOn, periodEndsOn);
-        hideSpotsSavedBetweenPeriodOfTimeFromMap(routeIndexesWithinPeriodOfTime);
+        showSpotsSavedBetweenPeriodOfTimeFromMap(routeIndexesWithinPeriodOfTime, periodBeginsOn, periodEndsOn);
     }
 
-    private void hideSpotsSavedBetweenPeriodOfTimeFromMap(List<Integer> routeIndexesToShow) {
+    private void showSpotsSavedBetweenPeriodOfTimeFromMap(List<Integer> routeIndexesToShow, DateTime periodStartsOn, DateTime periodEndsOn) {
+        // For each spot drawn on the map as feature
         for (Feature f : spotsCollection.features()) {
-            int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
+            boolean shouldHide;
 
-            if (routeIndexesToShow.contains(spotRouteIndex))
-                f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
-            else
-                f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
+            // If spot is of type single
+            if ((int) f.getNumberProperty(MyMapsFragment.PROPERTY_SPOTTYPE) == Constants.SPOT_TYPE_SINGLE_SPOT) {
+                DateTime dateTime = SpotsListHelper.getStartDateTimeFrom(f);
+                // Show only if it was saved on the given dates or between them.
+                shouldHide = !SpotsListHelper.shouldIncludeSpot(dateTime, periodStartsOn, periodEndsOn);
+            } else {
+                // Spot is not of type single, let's check its route index.
+                int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
+                // Show only if it belongs to any of the routes in routeIndexesToShow.
+                shouldHide = !routeIndexesToShow.contains(spotRouteIndex);
+            }
+            f.properties().addProperty(PROPERTY_SHOULDHIDE, shouldHide);
         }
 
         refreshSpotsSource();
 
+        // For each route line drawn on the map as a feature
         for (Feature f : subRoutesCollection.features()) {
             int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
-
-            if (routeIndexesToShow.contains(spotRouteIndex))
-                f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
-            else
-                f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
+            // Show only if it belongs to any of the routes in routeIndexesToShow.
+            f.properties().addProperty(PROPERTY_SHOULDHIDE, !routeIndexesToShow.contains(spotRouteIndex));
         }
 
         refreshSubRoutesSource();

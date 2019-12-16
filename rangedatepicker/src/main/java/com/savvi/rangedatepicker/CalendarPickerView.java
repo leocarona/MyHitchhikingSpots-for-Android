@@ -990,13 +990,13 @@ public class CalendarPickerView extends RecyclerView {
         return selectedCals.get(selectedCals.size() - 1);
     }
 
-    private static boolean sameDate(Calendar cal, Calendar selectedDate) {
+    public static boolean sameDate(Calendar cal, Calendar selectedDate) {
         return cal.get(MONTH) == selectedDate.get(MONTH)
                 && cal.get(YEAR) == selectedDate.get(YEAR)
                 && cal.get(DAY_OF_MONTH) == selectedDate.get(DAY_OF_MONTH);
     }
 
-    private static boolean betweenDates(Calendar cal, Calendar minCal, Calendar maxCal) {
+    public static boolean betweenDates(Calendar cal, Calendar minCal, Calendar maxCal) {
         final Date date = cal.getTime();
         return betweenDates(date, minCal, maxCal);
     }

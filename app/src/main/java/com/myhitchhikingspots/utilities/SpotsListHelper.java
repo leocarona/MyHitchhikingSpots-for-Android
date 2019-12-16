@@ -8,6 +8,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -64,6 +65,8 @@ public class SpotsListHelper {
         for (Feature currentFeature : features) {
             if ((int) currentFeature.getNumberProperty(MyMapsFragment.PROPERTY_SPOTTYPE) == Constants.SPOT_TYPE_SINGLE_SPOT)
                 continue;
+            if ((int) currentFeature.getNumberProperty(MyMapsFragment.PROPERTY_SPOTTYPE) == Constants.SPOT_TYPE_SINGLE_SPOT)
+                continue;
 
             DateTime currentFeatureStartDateTime = getStartDateTimeFrom(currentFeature);
             int currentFeatureRouteIndex = (int) currentFeature.getNumberProperty(MyMapsFragment.PROPERTY_ROUTEINDEX);
@@ -89,6 +92,12 @@ public class SpotsListHelper {
         return oldestDatesOfEachRoute;
     }
 
+    /**
+     * Get all the route indexes of
+     * - routes that begin on startsOn date;
+     * - routes that end on endsOn date; and
+     * - routes that have been saved within startsOn and endsOn.
+     **/
     public static ArrayList<Integer> getAllRouteIndexesOfFeaturesWithinDates(List<Feature> spotFeatures, DateTime startsOn, DateTime endsOn) {
         if (spotFeatures == null)
             return new ArrayList<>();
@@ -98,15 +107,51 @@ public class SpotsListHelper {
             Integer routeIndex = (Integer) spotFeature.getNumberProperty(MyMapsFragment.PROPERTY_ROUTEINDEX);
             if (lst.contains(routeIndex))
                 continue;
+            if ((int) spotFeature.getNumberProperty(MyMapsFragment.PROPERTY_SPOTTYPE) == Constants.SPOT_TYPE_SINGLE_SPOT)
+                continue;
 
-            DateTime dateTime = getStartDateTimeFrom(spotFeature);
-            if (dateTime.isAfter(startsOn) && dateTime.isBefore(endsOn))
+            // Ignore the time on the dates
+            DateTime date = getStartDateTimeFrom(spotFeature);
+            if (shouldIncludeSpot(date, startsOn, endsOn))
                 lst.add(routeIndex);
         }
         return lst;
     }
 
-    private static DateTime getStartDateTimeFrom(Feature feature) {
+    /**
+     * Get a list with all the dates when single spots have been saved.
+     **/
+    public static ArrayList<DateTime> getSingleSpotsDates(List<Feature> features) {
+        if (features == null)
+            return new ArrayList<>();
+
+        ArrayList<DateTime> singleSpotsDates = new ArrayList<>();
+
+        for (Feature currentFeature : features) {
+            if ((int) currentFeature.getNumberProperty(MyMapsFragment.PROPERTY_SPOTTYPE) == Constants.SPOT_TYPE_SINGLE_SPOT) {
+                DateTime currentFeatureStartDateTime = SpotsListHelper.getStartDateTimeFrom(currentFeature);
+                singleSpotsDates.add(currentFeatureStartDateTime);
+            }
+        }
+
+        Collections.sort(singleSpotsDates);
+
+        return singleSpotsDates;
+    }
+
+    public static DateTime getStartDateTimeFrom(Feature feature) {
         return new DateTime((long) feature.getNumberProperty(MyMapsFragment.PROPERTY_STARTDATETIME_IN_MILLISECS), DateTimeZone.UTC);
+    }
+
+    public static boolean shouldIncludeSpot(DateTime date, DateTime startsOn, DateTime endsOn) {
+        Calendar calDate = Utils.getCalendarAtMidnight(date),
+                calStartsOn = Utils.getCalendarAtMidnight(startsOn),
+                calEndsOn = Utils.getCalendarAtMidnight(endsOn);
+        return shouldIncludeSpot(calDate, calStartsOn, calEndsOn);
+    }
+
+    public static boolean shouldIncludeSpot(Calendar calDate, Calendar calStartsOn, Calendar calEndsOn) {
+        return calDate.equals(calStartsOn) || calDate.equals(calEndsOn) ||
+                (calDate.after(calStartsOn) && calDate.before(calEndsOn));
     }
 }
