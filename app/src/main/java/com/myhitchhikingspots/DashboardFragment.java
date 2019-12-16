@@ -173,7 +173,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
                         longestWaitingTime = waitingTime;
 
                     //Only consider spots where the user has gotten rides
-                    if (spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
+                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
                         if (waitingTime < shortestWaitingTime)
                             shortestWaitingTime = waitingTime;
                     }
