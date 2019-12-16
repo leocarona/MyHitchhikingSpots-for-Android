@@ -1,12 +1,10 @@
 package com.myhitchhikingspots.utilities;
 
 import android.location.Location;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.crashlytics.android.Crashlytics;
 import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineResult;
 import com.mapbox.mapboxsdk.location.LocationComponent;
@@ -76,11 +74,14 @@ public class LocationUpdatesCallback
 
         // Pass the new location to the Maps SDK's LocationComponent
         if (frag.getMapboxMap() != null && result.getLastLocation() != null) {
-            frag.getMapboxMap().getLocationComponent().forceLocationUpdate(result.getLastLocation());
+            LocationComponent locationComponent = frag.getMapboxMap().getLocationComponent();
+            if (!locationComponent.isLocationComponentActivated())
+                return;
+            locationComponent.forceLocationUpdate(result.getLastLocation());
 
             if (isWaitingForNextLocation) {
                 //Make map camera stop following location updates
-                frag.getMapboxMap().getLocationComponent().setCameraMode(previousCameraMode);
+                locationComponent.setCameraMode(previousCameraMode);
                 //Reset values
                 previousCameraMode = CameraMode.NONE;
                 isWaitingForNextLocation = false;
