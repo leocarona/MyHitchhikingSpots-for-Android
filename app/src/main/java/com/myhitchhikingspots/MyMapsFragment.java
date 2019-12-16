@@ -111,6 +111,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     Boolean mapButtonsAreDisplayed = true;
     Boolean isFilteredByDates;
     boolean wasSnackbarShown;
+    DateRangePickerDialog dateRangeDialog;
 
     /**
      * Maximum number of spots to fit within the map camera when {@link #zoomOutToFitMostRecentRoute()} is called.
@@ -1234,6 +1235,36 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         openDateRangePickerDialog(startDates, endDates, shouldShowClearButton);
     }
 
+    private void openDateRangePickerDialog(List<DateTime> startDates, List<DateTime> endDates, boolean shouldShowClearButton) {
+        if (dateRangeDialog == null) {
+            ArrayList<Date> startDatesDate = new ArrayList<>();
+            for (DateTime startDate : startDates)
+                startDatesDate.add(startDate.toDate());
+            ArrayList<Date> endDatesDate = new ArrayList<>();
+            for (DateTime endDate : endDates)
+                endDatesDate.add(endDate.toDate());
+
+            dateRangeDialog = new DateRangePickerDialog(getContext());
+            dateRangeDialog.setRangeOptions(startDatesDate, endDatesDate, new DateRangePickerDialog.DateRangeListener() {
+                @Override
+                public void onRangeSelected(List<Date> selectedDates) {
+                    onDateRangeWasPicked(new DateTime(selectedDates.get(0)), new DateTime(selectedDates.get(selectedDates.size() - 1)));
+                    dateRangeDialog.dismiss();
+                    isFilteredByDates = true;
+                }
+
+                @Override
+                public void onRangeCleared() {
+                    showAllRoutesOnMap();
+                    dateRangeDialog.dismiss();
+                    isFilteredByDates = false;
+                }
+            });
+        }
+        dateRangeDialog.setShouldShowClearButton(shouldShowClearButton);
+        dateRangeDialog.show();
+    }
+
     void onDateRangeWasPicked(DateTime periodBeginsOn, DateTime periodEndsOn) {
         if (periodBeginsOn.isAfter(periodEndsOn))
             return;
@@ -1277,38 +1308,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Intent intent = new Intent(activity, MyRoutesActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
         startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
-    }
-
-    DateRangePickerDialog dateRangeDialog;
-
-    private void openDateRangePickerDialog(List<DateTime> startDates, List<DateTime> endDates, boolean shouldShowClearButton) {
-        if (dateRangeDialog == null) {
-            ArrayList<Date> startDatesDate = new ArrayList<>();
-            for (DateTime startDate : startDates)
-                startDatesDate.add(startDate.toDate());
-            ArrayList<Date> endDatesDate = new ArrayList<>();
-            for (DateTime endDate : endDates)
-                endDatesDate.add(endDate.toDate());
-
-            dateRangeDialog = new DateRangePickerDialog(getContext());
-            dateRangeDialog.setRangeOptions(startDatesDate, endDatesDate, new DateRangePickerDialog.DateRangeListener() {
-                @Override
-                public void onRangeSelected(List<Date> selectedDates) {
-                    onDateRangeWasPicked(new DateTime(selectedDates.get(0)), new DateTime(selectedDates.get(selectedDates.size() - 1)));
-                    dateRangeDialog.dismiss();
-                    isFilteredByDates = true;
-                }
-
-                @Override
-                public void onRangeCleared() {
-                    showAllRoutesOnMap();
-                    dateRangeDialog.dismiss();
-                    isFilteredByDates = false;
-                }
-            });
-        }
-        dateRangeDialog.setShouldShowClearButton(shouldShowClearButton);
-        dateRangeDialog.show();
     }
 
     /**
