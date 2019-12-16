@@ -1237,6 +1237,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private void openDateRangePickerDialog(List<DateTime> startDates, List<DateTime> endDates, boolean shouldShowClearButton) {
         if (dateRangeDialog == null) {
+            Context context = getContext();
+            if (context == null)
+                return;
+
             ArrayList<Date> startDatesDate = new ArrayList<>();
             for (DateTime startDate : startDates)
                 startDatesDate.add(startDate.toDate());
@@ -1244,7 +1248,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             for (DateTime endDate : endDates)
                 endDatesDate.add(endDate.toDate());
 
-            dateRangeDialog = new DateRangePickerDialog(getContext());
+            dateRangeDialog = new DateRangePickerDialog(context);
             dateRangeDialog.setRangeOptions(startDatesDate, endDatesDate, new DateRangePickerDialog.DateRangeListener() {
                 @Override
                 public void onRangeSelected(List<Date> selectedDates) {
