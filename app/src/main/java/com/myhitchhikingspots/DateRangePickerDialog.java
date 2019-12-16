@@ -74,10 +74,10 @@ public class DateRangePickerDialog extends Dialog {
                 if (calendar.getSelectedDates().size() == 1)
                     calendar.replaceActivatedDates(possibleEndingDates);
                 else // If a range has been selected
-                    if (calendar.getSelectedDates().size() > 1) {
-                        // Activate possibleBeginningDates again
-                        //calendar.replaceActivatedDates(possibleBeginningDates);
-                    }
+                    if (calendar.getSelectedDates().size() > 1)
+                        // Remove all activated dates
+                        calendar.replaceActivatedDates(new ArrayList<>());
+
                 updateClearSelectedDatesButtonState();
                 updateSelectDatesButtonState();
             }
