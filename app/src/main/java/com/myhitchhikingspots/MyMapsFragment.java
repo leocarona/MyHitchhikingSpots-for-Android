@@ -693,7 +693,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 }
             }
         } else {
-            deselectAll(false);
+            deselectAll();
             refreshSpotsSource();
             refreshSubRoutesSource();
         }
@@ -710,7 +710,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             recyclerView.setVisibility(View.VISIBLE);
         }*/
 
-        deselectAll(false);
+        deselectAll();
 
         Feature feature = spotsCollection.features().get(index);
 
@@ -744,7 +744,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     /**
      * Deselects the state of all the features
      */
-    private void deselectAll(boolean hideRecycler) {
+    private void deselectAll() {
         if (spotsCollection != null && spotsCollection.features() != null) {
             for (Feature feature : spotsCollection.features()) {
                 feature.properties().addProperty(PROPERTY_SELECTED, false);
@@ -1253,12 +1253,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         dateRangeDialog.setRangeOptions(startDatesDate, endDatesDate, new DateRangePickerDialog.DateRangeListener() {
             @Override
             public void onRangeSelected(List<Date> selectedDates) {
+                // Close balloons if any is open
+                deselectAll();
                 onDateRangeWasPicked(new DateTime(selectedDates.get(0)), new DateTime(selectedDates.get(selectedDates.size() - 1)));
                 dateRangeDialog.dismiss();
             }
 
             @Override
             public void onRangeCleared() {
+                // Close balloons if any is open
+                deselectAll();
                 showAllRoutesOnMap();
                 dateRangeDialog.dismiss();
             }
