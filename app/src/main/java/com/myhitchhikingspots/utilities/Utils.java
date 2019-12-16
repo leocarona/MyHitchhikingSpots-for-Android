@@ -584,12 +584,29 @@ public class Utils {
     }
 
     public static boolean sameDate(DateTime d1, DateTime d2) {
+        return sameDate(d1.toDate(), d2.toDate());
+    }
+
+    public static boolean sameDate(Date d1, Date d2) {
         Calendar cal1 = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
-        cal1.setTime(d1.toDate());
+        cal1.setTime(d1);
         Calendar cal2 = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
-        cal2.setTime(d2.toDate());
+        cal2.setTime(d2);
 
         return CalendarPickerView.sameDate(cal1, cal2);
+    }
+
+    public static boolean containsDate(List<Calendar> selectedCals, Calendar cal) {
+        return CalendarPickerView.containsDate(selectedCals, cal);
+    }
+
+    public static boolean containsDate(List<Date> selectedDates, Date date) {
+        for (Date selectedDate : selectedDates) {
+            if (sameDate(date, selectedDate)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static Calendar getCalendarAtMidnight(DateTime date) {

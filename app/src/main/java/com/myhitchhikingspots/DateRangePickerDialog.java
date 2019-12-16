@@ -8,6 +8,7 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
+import com.myhitchhikingspots.utilities.Utils;
 import com.savvi.rangedatepicker.CalendarPickerView;
 
 import java.text.SimpleDateFormat;
@@ -99,11 +100,10 @@ public class DateRangePickerDialog extends Dialog {
                     updateClearSelectedDatesButtonState();
                 }
 
-                    if (possibleBeginningDates.contains(date))
-                        calendar.selectDate(date);
-                } else
-                    // Deselect all dates
-                    calendar.clearSelectedDates();
+                // If user is seen possible ending dates and she/he clicks on an invalid date, select this date IF it is a possible beginning date.
+                if (calendar.getSelectedDates().size() > 1 && Utils.containsDate(possibleBeginningDates, date))
+                    calendar.selectDate(date);
+
                 updateSelectDatesButtonState();
             }
         });
