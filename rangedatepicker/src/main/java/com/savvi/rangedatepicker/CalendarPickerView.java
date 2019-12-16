@@ -325,9 +325,7 @@ public class CalendarPickerView extends RecyclerView {
             setDateSelectableFilter(new CalendarPickerView.DateSelectableFilter() {
                 @Override
                 public boolean isDateSelectable(Date date) {
-                    Calendar searchCal = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
-                    searchCal.setTime(date);
-                    return containsDate(activatedCals, searchCal);
+                    return containsDate(activatedCals, date);
                 }
             });
 
@@ -770,17 +768,15 @@ public class CalendarPickerView extends RecyclerView {
 
     public void activateDates(Collection<Date> activeDates) {
         for (Date date : activeDates) {
-            validateDate(date);
+            Calendar calAtMidnight = Calendar.getInstance(timeZone, locale);
+            calAtMidnight.setTime(date);
+            // Remove hour, minute, seconds and milliseconds data from the date
+            setMidnight(calAtMidnight);
 
-            MonthCellWithMonthIndex monthCellWithMonthIndex = getMonthCellWithIndexByDate(date);
-            if (monthCellWithMonthIndex != null) {
-                Calendar dateAsCalendar = Calendar.getInstance(timeZone, locale);
-                dateAsCalendar.setTime(date);
-                //MonthCellDescriptor cell = monthCellWithMonthIndex.cell;
+            validateDate(calAtMidnight.getTime());
 
-                //highlightedCells.add(cell);
-                activatedCals.add(dateAsCalendar);
-            }
+            if (!containsDate(activatedCals, calAtMidnight))
+                activatedCals.add(calAtMidnight);
         }
 
         validateAndUpdate();
