@@ -29,7 +29,6 @@ public class DateRangePickerDialog extends Dialog {
     private final ArrayList<Date> possibleBeginningDates = new ArrayList<>();
     private final ArrayList<Date> possibleEndingDates = new ArrayList<>();
     private DateRangeListener listener;
-    private boolean shouldShowClearButton = false;
 
     public DateRangePickerDialog(@NonNull Context context) {
         super(context);
@@ -79,6 +78,7 @@ public class DateRangePickerDialog extends Dialog {
                         // Activate possibleBeginningDates again
                         //calendar.replaceActivatedDates(possibleBeginningDates);
                     }
+                updateClearSelectedDatesButtonState();
                 updateSelectDatesButtonState();
             }
 
@@ -91,12 +91,13 @@ public class DateRangePickerDialog extends Dialog {
         calendar.setOnInvalidDateSelectedListener(new CalendarPickerView.OnInvalidDateSelectedListener() {
             @Override
             public void onInvalidDateSelected(Date date) {
-                // If a range has been selected and a third date was now clicked
-                if (calendar.getSelectedDates().size() > 1) {
+                if (!calendar.getSelectedDates().isEmpty()) {
                     // Deselect all dates
                     calendar.clearSelectedDates();
                     // Activate possibleBeginningDates again
                     calendar.replaceActivatedDates(possibleBeginningDates);
+                    updateClearSelectedDatesButtonState();
+                }
 
                     if (possibleBeginningDates.contains(date))
                         calendar.selectDate(date);
@@ -134,15 +135,10 @@ public class DateRangePickerDialog extends Dialog {
         if (clearSelectedDatesButton == null)
             return;
 
-        if (shouldShowClearButton)
-            clearSelectedDatesButton.setVisibility(View.VISIBLE);
+        if (calendar.getSelectedDates().isEmpty())
+            clearSelectedDatesButton.setVisibility(View.INVISIBLE);
         else
-            clearSelectedDatesButton.setVisibility(View.GONE);
-    }
-
-    public void setShouldShowClearButton(boolean shouldShowClearButton) {
-        this.shouldShowClearButton = shouldShowClearButton;
-        updateClearSelectedDatesButtonState();
+            clearSelectedDatesButton.setVisibility(View.VISIBLE);
     }
 
     private void onDatesSelected(List<Date> selectedDates) {

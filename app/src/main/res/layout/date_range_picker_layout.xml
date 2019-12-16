@@ -35,8 +35,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/select_dates"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        android:visibility="gone" />
+        app:layout_constraintHorizontal_chainStyle="packed" />
 
     <Button
         android:id="@+id/select_dates"
