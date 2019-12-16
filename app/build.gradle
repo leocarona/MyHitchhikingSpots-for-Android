@@ -47,8 +47,8 @@ android {
         applicationId 'com.myhitchhikingspots'
         minSdkVersion minSdk
         targetSdkVersion 28
-        versionCode 37
-        versionName "2.4.3"
+        versionCode 38
+        versionName "2.5"
         // Stops the Gradle plugin’s automatic rasterization of vectors
         generatedDensities = []
         // Enabling multidex support.
