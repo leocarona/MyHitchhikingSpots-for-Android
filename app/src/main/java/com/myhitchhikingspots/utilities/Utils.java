@@ -588,9 +588,9 @@ public class Utils {
     }
 
     public static boolean sameDate(Date d1, Date d2) {
-        Calendar cal1 = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
+        Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         cal1.setTime(d1);
-        Calendar cal2 = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
+        Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         cal2.setTime(d2);
 
         return CalendarPickerView.sameDate(cal1, cal2);
@@ -614,7 +614,7 @@ public class Utils {
     }
 
     public static Calendar getCalendarAtMidnight(Date date) {
-        Calendar cal = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         cal.setTime(date);
         // Remove hour, minute, seconds and milliseconds data from the date
         setMidnight(cal);
