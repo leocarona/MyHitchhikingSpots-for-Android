@@ -1163,9 +1163,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 startRouteAnimation();
                 break;
             case R.id.action_zoom_to_fit_all:
-                if (mapboxMap != null) {
+                if (mapboxMap != null)
                     zoomOutToFitMostRecentRoute();
-                }
                 break;
         }
 
@@ -2217,6 +2216,32 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         runRouteAnimation();
     }
 
+    public void pauseRouteAnimation() {
+        //No more need to keep screen awake
+        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        mapAnimationMode = AnimationMode.IS_PAUSED;
+        updateRouteAnimationFAB();
+    }
+
+    public void continueRouteAnimation() {
+        if (mapAnimationMode == AnimationMode.IS_STOPPED)
+            startRouteAnimation();
+        else
+            runRouteAnimation();
+    }
+
+    public void stopRouteAnimation() {
+        onRouteAnimationStopped();
+
+        showAllFAB();
+        showAllRoutesOnMap();
+    }
+
+    public void pauseRouteAnimationIfNeeded() {
+        if (mapAnimationMode == AnimationMode.IS_ANIMATING)
+            pauseRouteAnimation();
+    }
+
     private void runRouteAnimation() {
         mapAnimationMode = AnimationMode.IS_ANIMATING;
         updateRouteAnimationFAB();
@@ -2272,27 +2297,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         currentAnimatedSubRouteIndex++;
     }
 
-    public void pauseRouteAnimation() {
-        //No more need to keep screen awake
-        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mapAnimationMode = AnimationMode.IS_PAUSED;
-        updateRouteAnimationFAB();
-    }
-
-    public void continueRouteAnimation() {
-        if (mapAnimationMode == AnimationMode.IS_STOPPED)
-            startRouteAnimation();
-        else
-            runRouteAnimation();
-    }
-
-    public void stopRouteAnimation() {
-        onRouteAnimationStopped();
-
-        showAllFAB();
-        showAllRoutesOnMap();
-    }
-
     private void onRouteAnimationStopped() {
         currentAnimatedSubRouteIndex = -1;
         lastAnimatedSubRouteIndex = -1;
@@ -2303,11 +2307,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         //No more need to keep screen awake
         activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    }
-
-    public void pauseRouteAnimationIfNeeded() {
-        if (mapAnimationMode == AnimationMode.IS_ANIMATING)
-            pauseRouteAnimation();
     }
 
     /**
