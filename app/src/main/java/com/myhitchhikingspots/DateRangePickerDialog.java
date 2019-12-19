@@ -30,6 +30,7 @@ public class DateRangePickerDialog extends Dialog {
     private final ArrayList<Date> possibleBeginningDates = new ArrayList<>();
     private final ArrayList<Date> possibleEndingDates = new ArrayList<>();
     private DateRangeListener listener;
+    private boolean selectedDateRangeWasCleared = false;
 
     public DateRangePickerDialog(@NonNull Context context) {
         super(context);
@@ -95,6 +96,7 @@ public class DateRangePickerDialog extends Dialog {
                 if (!calendar.getSelectedDates().isEmpty()) {
                     // Deselect all dates
                     calendar.clearSelectedDates();
+                    selectedDateRangeWasCleared = true;
                     // Activate possibleBeginningDates again
                     calendar.replaceActivatedDates(possibleBeginningDates);
                     updateClearSelectedDatesButtonState();
@@ -121,6 +123,11 @@ public class DateRangePickerDialog extends Dialog {
             onDatesClear();
         });
         updateClearSelectedDatesButtonState();
+
+        setOnDismissListener((s) -> {
+            if (selectedDateRangeWasCleared && calendar.getSelectedDates().isEmpty())
+                onDatesClear();
+        });
 
         if (getWindow() != null)
             getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.MATCH_PARENT);
@@ -159,6 +166,8 @@ public class DateRangePickerDialog extends Dialog {
 
         if (calendar.getSelectedDates().size() <= 1)
             considerNextSelectedDateAsStartDate();
+
+        selectedDateRangeWasCleared = false;
 
         super.show();
     }
