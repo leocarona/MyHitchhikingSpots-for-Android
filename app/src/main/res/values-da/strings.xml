@@ -142,6 +142,7 @@
     <string name="general_toggle_buttons_label">Toggle buttons</string>
     <string name="general_filter_by_date_label">Filtrer efter dato</string>
     <string name="general_filter_by_selected_dates_label">Filtrer steder på disse datoer</string>
+    <string name="general_animate_map_label">Animer kortet</string>
     <string name="general_clear_selected_dates_label">Fjerne</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>

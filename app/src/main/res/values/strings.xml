@@ -170,6 +170,7 @@ The Hitchwiki team.
     <string name="general_toggle_buttons_label">Toggle buttons</string>
     <string name="general_filter_by_date_label">Filter by date</string>
     <string name="general_filter_by_selected_dates_label">Filter spots on these dates</string>
+    <string name="general_animate_map_label">Animate map</string>
     <string name="general_clear_selected_dates_label">Clear</string>
     <string name="general_close_editing_mode_label" translatable="false">Close editing mode</string>
     <string name="general_ok_option">OK</string>

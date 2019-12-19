@@ -159,6 +159,7 @@
     <string name="general_toggle_buttons_label">Ocultar/mostrar botones</string>
     <string name="general_filter_by_date_label">Filtrar por fecha</string>
     <string name="general_filter_by_selected_dates_label">Filtrar locales en estas fechas</string>
+    <string name="general_animate_map_label">Animar el mapa</string>
     <string name="general_clear_selected_dates_label">Limpiar</string>
     <string name="general_close_editing_mode_label" translatable="false">Cerrar modo de edición</string>
     <string name="general_ok_option">OK</string>

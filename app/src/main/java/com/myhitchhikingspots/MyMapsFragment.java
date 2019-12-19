@@ -17,6 +17,7 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -166,6 +168,17 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private pageType currentPage;
 
+    public enum AnimationMode {
+        IS_STOPPED,
+        IS_ANIMATING,
+        IS_PAUSED
+    }
+
+    private AnimationMode mapAnimationMode = AnimationMode.IS_STOPPED;
+    private final List<Feature> subRoutesToAnimate = new ArrayList<>();
+    private int lastAnimatedSubRouteIndex, currentAnimatedSubRouteIndex;
+    private int lastRouteIndexAnimated = -1;
+
     Boolean shouldZoomToFitAllMarkers = true;
 
     protected static final String TAG = "map-view-activity";
@@ -273,6 +286,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     saveDestinationSpotButtonHandler();
             }
         });
+
+        activity.findViewById(R.id.fab_stop_animating).setOnClickListener((v) -> stopRouteAnimation());
+        activity.findViewById(R.id.fab_pause_animating).setOnClickListener((v) -> pauseRouteAnimation());
+        activity.findViewById(R.id.fab_continue_animating).setOnClickListener((v) -> continueRouteAnimation());
 
         fabSpotAction1.hide();
         fabSpotAction2.hide();
@@ -524,6 +541,30 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         //Make sure all desired Floating Action Buttons are displayed.
         showAllFAB();
+    }
+
+    private void updateRouteAnimationFAB() {
+        if (activity == null)
+            return;
+        if (mapboxMap == null || style == null || !style.isFullyLoaded() || mapAnimationMode == AnimationMode.IS_STOPPED)
+            hideAllRouteAnimationFAB();
+        else if (mapAnimationMode == AnimationMode.IS_ANIMATING) {
+            activity.findViewById(R.id.fab_stop_animating).setVisibility(View.VISIBLE);
+            activity.findViewById(R.id.fab_pause_animating).setVisibility(View.VISIBLE);
+            activity.findViewById(R.id.fab_continue_animating).setVisibility(View.GONE);
+        } else if (mapAnimationMode == AnimationMode.IS_PAUSED) {
+            activity.findViewById(R.id.fab_stop_animating).setVisibility(View.VISIBLE);
+            activity.findViewById(R.id.fab_pause_animating).setVisibility(View.GONE);
+            activity.findViewById(R.id.fab_continue_animating).setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideAllRouteAnimationFAB() {
+        if (activity == null)
+            return;
+        activity.findViewById(R.id.fab_stop_animating).setVisibility(View.GONE);
+        activity.findViewById(R.id.fab_pause_animating).setVisibility(View.GONE);
+        activity.findViewById(R.id.fab_continue_animating).setVisibility(View.GONE);
     }
 
     @Override
@@ -801,6 +842,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             dateRangeDialog.dismiss();
             dateRangeDialog = null;
         }
+
+        //Call invalidateOptionsMenu and it'll then call onCreateOptionsMenu and decide whether any option should be hidden because spotList has changed.
+        if (activity != null) activity.invalidateOptionsMenu();
     }
 
     void showInternetUnavailableAlertDialog() {
@@ -992,6 +1036,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             shouldZoomToFitAllMarkers = false;
         }
 
+        mapAnimationMode = AnimationMode.IS_STOPPED;
+
         //NOTE: onSpotListChanged() will be called after MyMapsFragment.onActivityResult() by MainActivity.onActivityResult()
     }
 
@@ -1050,6 +1096,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.my_maps_menu, menu);
+        // Hide Filter by Date button if spotList is empty
+        menu.findItem(R.id.action_filter_by_date).setVisible(!getSpotList().isEmpty());
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -1100,6 +1148,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             case R.id.action_filter_by_date:
                 showSpotsSavedBetweenPeriodOfTimeFromMap();
                 break;
+            case R.id.action_animate_map:
+                startRouteAnimation();
+                break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null) {
                     zoomOutToFitMostRecentRoute();
@@ -1136,6 +1187,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         //Call setupSaveFABs to show only the save buttons that should be shown
         setupSaveFABs();
+        updateRouteAnimationFAB();
 
         mapButtonsAreDisplayed = true;
     }
@@ -2095,5 +2147,124 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return polylineColor;
     }
 
+    private static List<Feature> getVisibleSubRoutes(List<Feature> allSubRoutes) {
+        if (allSubRoutes == null)
+            return new ArrayList<>();
 
+        List<Feature> visibleSubRoutes = new ArrayList<>();
+        for (Feature subRouteFeature : allSubRoutes) {
+            if (!subRouteFeature.getBooleanProperty(PROPERTY_SHOULDHIDE))
+                visibleSubRoutes.add(subRouteFeature);
+        }
+        return visibleSubRoutes;
+    }
+
+    public void startRouteAnimation() {
+        if (activity == null || mapboxMap == null || style == null || !style.isFullyLoaded())
+            return;
+
+        if (mapAnimationMode == AnimationMode.IS_STOPPED) {
+            subRoutesToAnimate.clear();
+            subRoutesToAnimate.addAll(getVisibleSubRoutes(subRoutesCollection.features()));
+
+            if (subRoutesToAnimate.isEmpty()) {
+                mapAnimationMode = AnimationMode.IS_STOPPED;
+                updateRouteAnimationFAB();
+                Toast.makeText(activity, "Nothing to animate", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            hideAllFAB();
+            hideAllRoutesAndSpots(true);
+
+            currentAnimatedSubRouteIndex = 0;
+            lastAnimatedSubRouteIndex = subRoutesToAnimate.size() - 1;
+
+            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+
+        mapAnimationMode = AnimationMode.IS_ANIMATING;
+        updateRouteAnimationFAB();
+        runRouteAnimation();
+    }
+
+    private void runRouteAnimation() {
+        Handler handler = new Handler();
+        int delay = 1000; //milliseconds
+
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                if (currentAnimatedSubRouteIndex < lastAnimatedSubRouteIndex) {
+                    showNextSubRoute();
+                    runRouteAnimation();
+                } else
+                    onRouteAnimationStopped();
+            }
+        }, delay);
+    }
+
+    private void showNextSubRoute() {
+        if (mapAnimationMode != AnimationMode.IS_ANIMATING && currentAnimatedSubRouteIndex <= lastAnimatedSubRouteIndex)
+            return;
+        else if (subRoutesToAnimate.isEmpty()) {
+            mapAnimationMode = AnimationMode.IS_STOPPED;
+            updateRouteAnimationFAB();
+            Toast.makeText(activity, "Nothing to animate", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Feature f = subRoutesToAnimate.get(currentAnimatedSubRouteIndex);
+        f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
+        setupSubRoutesSource(style);
+
+        Point point = LineString.fromJson(f.geometry().toJson()).coordinates().get(0);
+        if ((int) f.getNumberProperty(PROPERTY_ROUTEINDEX) != lastRouteIndexAnimated) {
+            lastRouteIndexAnimated = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
+            LatLng latLng = new LatLng(point.latitude(), point.longitude());
+            int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
+            if (currentAnimatedSubRouteIndex == 0)
+                zoomLevel = 3;
+            moveCamera(latLng, zoomLevel);
+        }
+        currentAnimatedSubRouteIndex++;
+    }
+
+    public void pauseRouteAnimation() {
+        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        mapAnimationMode = AnimationMode.IS_PAUSED;
+        updateRouteAnimationFAB();
+    }
+
+    public void continueRouteAnimation() {
+        mapAnimationMode = AnimationMode.IS_ANIMATING;
+        updateRouteAnimationFAB();
+        showNextSubRoute();
+    }
+
+    public void stopRouteAnimation() {
+        showAllRoutesOnMap();
+        onRouteAnimationStopped();
+        updateRouteAnimationFAB();
+    }
+
+    private void onRouteAnimationStopped() {
+        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        mapAnimationMode = AnimationMode.IS_STOPPED;
+        showAllFAB();
+    }
+
+    /**
+     * Update all features visibility.
+     **/
+    void hideAllRoutesAndSpots(boolean shouldHideAllFeatures) {
+        for (Feature f : spotsCollection.features())
+            f.properties().addProperty(PROPERTY_SHOULDHIDE, shouldHideAllFeatures);
+
+        refreshSpotsSource();
+        for (Feature f : subRoutesCollection.features()) {
+            f.properties().addProperty(PROPERTY_SHOULDHIDE, shouldHideAllFeatures);
+        }
+        setupSubRoutesSource(style);
+    }
 }

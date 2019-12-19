@@ -91,4 +91,57 @@
         app:layout_constraintStart_toEndOf="@+id/fab_spot_action_1"
         app:srcCompat="@drawable/ic_arrival_icon" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_continue_animating"
+        android:contentDescription="Continue route animation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="30dp"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:layout_constraintEnd_toStartOf="@id/fab_pause_animating"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:srcCompat="@drawable/ic_media_play"
+        app:useCompatPadding="false"
+        tools:ignore="VectorDrawableCompat"
+        app:layout_constraintHorizontal_chainStyle="packed" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_pause_animating"
+        android:contentDescription="Pause route animation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="30dp"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        app:layout_constraintEnd_toStartOf="@id/fab_stop_animating"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:srcCompat="@drawable/ic_pause_white_24dp"
+        app:useCompatPadding="false"
+        tools:ignore="VectorDrawableCompat"
+        app:layout_constraintHorizontal_chainStyle="packed" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_stop_animating"
+        android:contentDescription="Stop route animation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="30dp"
+        android:layout_marginRight="30dp"
+        app:backgroundTint="@color/ic_standard_fab_color"
+        app:fabSize="mini"
+        android:alpha="0.5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:rippleColor="@color/ic_standard_fab_color_lighter"
+        app:srcCompat="@drawable/ic_stop_white_24dp"
+        app:useCompatPadding="false"
+        tools:ignore="VectorDrawableCompat" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -156,6 +156,7 @@
     <string name="general_toggle_buttons_label">Toggle buttons</string>
     <string name="general_filter_by_date_label">Nach Datum filtern</string>
     <string name="general_filter_by_selected_dates_label">Filtern Sie Orte an diesen Daten</string>
+    <string name="general_animate_map_label">Animieren Karte</string>
     <string name="general_clear_selected_dates_label">Löschen</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Ja</string>
