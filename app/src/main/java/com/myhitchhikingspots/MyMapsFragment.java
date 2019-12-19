@@ -943,7 +943,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                         Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                         callback.moveMapCameraToNextLocationReceived();
                     } else
-                        zoomOutToFitMostRecentRoute(false, true);
+                        zoomOutToFitMostRecentRoute(false, true, NUMBER_OF_SPOTS_TO_FIT);
                 }
 
             } catch (Exception ex) {
@@ -1164,7 +1164,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null)
-                    zoomOutToFitMostRecentRoute(false, true);
+                    zoomOutToFitMostRecentRoute(false, true, NUMBER_OF_SPOTS_TO_FIT);
                 break;
         }
 
@@ -1342,6 +1342,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         List<Integer> routeIndexesWithinPeriodOfTime = SpotsListHelper.getAllRouteIndexesOfFeaturesWithinDates(spotsCollection.features(), periodBeginsOn, periodEndsOn);
         showSpotsSavedBetweenPeriodOfTimeFromMap(routeIndexesWithinPeriodOfTime, periodBeginsOn, periodEndsOn);
+        zoomOutToFitMostRecentRoute(true, false, -1);
     }
 
     private void showSpotsSavedBetweenPeriodOfTimeFromMap(List<Integer> routeIndexesToShow, DateTime periodStartsOn, DateTime periodEndsOn) {
@@ -1386,6 +1387,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         //Consider the last saved spots
         if (!features.isEmpty()) {
+            if (numOfSpotsToConsider == -1) numOfSpotsToConsider = features.size();
             for (int i = features.size() - 1; i >= 0 && lst.size() < numOfSpotsToConsider; i--) {
                 Feature feature = features.get(i);
                 //Include only features that are actually seen on the map (hidden features are excluded)
@@ -1399,13 +1401,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     /**
-     * Zoom out to fit the most recent (@link #NUMBER_OF_SPOTS_TO_FIT) spots saved to the map AND the user's last known location.
+     * Zoom out to fit the most recent numberOfSpotsToInclude spots saved to the map AND the user's last known location.
+     *
+     * @params numberOfSpotsToInclude The number of spots to be included or -1 if all spots should be included.
      **/
     @SuppressWarnings({"MissingPermission"})
-    private void zoomOutToFitMostRecentRoute(boolean shouldDirectlyEaseCamera, boolean shouldIncludeCurrentLocation) {
+    private void zoomOutToFitMostRecentRoute(boolean shouldDirectlyEaseCamera, boolean shouldIncludeCurrentLocation, int numberOfSpotsToInclude) {
         try {
             if (mapboxMap != null) {
-                List<LatLng> lst = getLatLngOfVisibleFeatures(spotsCollection == null ? new ArrayList<>() : spotsCollection.features(), NUMBER_OF_SPOTS_TO_FIT);
+                List<LatLng> lst = getLatLngOfVisibleFeatures(spotsCollection == null ? new ArrayList<>() : spotsCollection.features(), numberOfSpotsToInclude);
                 Location mCurrentLocation = null;
                 if (shouldIncludeCurrentLocation) mCurrentLocation = tryGetLastKnownLocation();
 
