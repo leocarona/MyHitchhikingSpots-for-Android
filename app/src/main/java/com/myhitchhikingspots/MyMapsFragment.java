@@ -943,7 +943,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                         Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                         callback.moveMapCameraToNextLocationReceived();
                     } else
-                        zoomOutToFitMostRecentRoute();
+                        zoomOutToFitMostRecentRoute(false, true);
                 }
 
             } catch (Exception ex) {
@@ -1164,7 +1164,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null)
-                    zoomOutToFitMostRecentRoute();
+                    zoomOutToFitMostRecentRoute(false, true);
                 break;
         }
 
@@ -1402,14 +1402,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Zoom out to fit the most recent (@link #NUMBER_OF_SPOTS_TO_FIT) spots saved to the map AND the user's last known location.
      **/
     @SuppressWarnings({"MissingPermission"})
-    private void zoomOutToFitMostRecentRoute() {
+    private void zoomOutToFitMostRecentRoute(boolean shouldDirectlyEaseCamera, boolean shouldIncludeCurrentLocation) {
         try {
             if (mapboxMap != null) {
-                Location mCurrentLocation = tryGetLastKnownLocation();
                 List<LatLng> lst = getLatLngOfVisibleFeatures(spotsCollection == null ? new ArrayList<>() : spotsCollection.features(), NUMBER_OF_SPOTS_TO_FIT);
+                Location mCurrentLocation = null;
+                if (shouldIncludeCurrentLocation) mCurrentLocation = tryGetLastKnownLocation();
 
                 //Add current location to camera bounds
-                if (mCurrentLocation != null)
+                if (shouldIncludeCurrentLocation && mCurrentLocation != null)
                     lst.add(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
 
                 if (lst.size() == 1)
@@ -1420,59 +1421,47 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     LatLngBounds bounds = builder.build();
 
                     int bestPadding = 120;
-                    //If there's only 2 points in the list and the current location is known (which means only one of them is a saved spot) we want a longer padding.
-                    if (mCurrentLocation != null && lst.size() == 2)
+                    if (lst.size() == 2)
                         bestPadding = 150;
 
                     //The change that should be applied to the camera.
                     final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, bestPadding);
 
-                    MapboxMap.CancelableCallback onceCameraMoveFinishedCallback = new MapboxMap.CancelableCallback() {
-                        @Override
-                        public void onCancel() {
-                            mapboxMap.easeCamera(cameraUpdate, 5000, onceEaseCameraFinishedCallback);
-                        }
-
-                        @Override
-                        public void onFinish() {
-                            mapboxMap.easeCamera(cameraUpdate, 5000, onceEaseCameraFinishedCallback);
-                        }
-
-                        /**
-                         * Store the zoom level once all the animation is fully completed.
-                         **/
-                        MapboxMap.CancelableCallback onceEaseCameraFinishedCallback = new MapboxMap.CancelableCallback() {
+                    if (shouldDirectlyEaseCamera)
+                        mapboxMap.easeCamera(cameraUpdate, 5000, onceEaseCameraFinishedCallback);
+                    else {
+                        MapboxMap.CancelableCallback onceCameraMoveFinishedCallback = new MapboxMap.CancelableCallback() {
                             @Override
                             public void onCancel() {
-                                zoomLevelAfterZoomOutToFitVisibleRoute = mapboxMap.getCameraPosition().zoom;
+                                mapboxMap.easeCamera(cameraUpdate, 5000, onceEaseCameraFinishedCallback);
                             }
 
                             @Override
                             public void onFinish() {
-                                zoomLevelAfterZoomOutToFitVisibleRoute = mapboxMap.getCameraPosition().zoom;
+                                mapboxMap.easeCamera(cameraUpdate, 5000, onceEaseCameraFinishedCallback);
                             }
                         };
-                    };
 
-                    /*
-                     * We want to animate the map to nicely display the points added to the bounds.
-                     * We've chosen to do it by calling moveCamera first and then easeCamera.
-                     * Here's the reason:
-                     * Mapbox.easeCamera animates the map camera by first moving it towards a point in the middle of the map,
-                     * and then finally moving it on a way to display all the points added to the bounds.
-                     * Example: If zoom level is at the minimum (so the entire world map is being displayed) and user has only saved spots
-                     * at one extreme of the world (let's say, northern Canada or southern Argentina) then what Mapbox.easeCamera does is-
-                     * firstly it zooms towards a point at the middle of the map (he was seeing the world map, then now the camera zooms to a point in the middle
-                     * of the world, very far from where the saved spots are) and secondly it "flies" towards where the points added to the bounds actually are.
-                     * Which means that during a few seconds the user watched the map flying over random regions where spots haven't been saved.
-                     * To see how it would look like (if you feel the need to it) you can test by saving spots as in this example's scenario and then
-                     * removing the following line (containing Mapbox.moveCamera) and calling mapboxMap.easeCamera directly.
-                     * Here's how the chosen solution works:
-                     * By doing these two steps (calling moveCamera then easeCamera) we start by immediately placing the map camera
-                     * in a way that all points added to the bounds are already visible to the user though in a more distant level (we do that using a longer padding);
-                     * and then we call easeCamera to add the animation which will zoom closer to the bounds (using a smaller padding).
-                     */
-                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 500), onceCameraMoveFinishedCallback);
+                        /*
+                         * We want to animate the map to nicely display the points added to the bounds.
+                         * We've chosen to do it by calling moveCamera first and then easeCamera.
+                         * Here's the reason:
+                         * Mapbox.easeCamera animates the map camera by first moving it towards a point in the middle of the map,
+                         * and then finally moving it on a way to display all the points added to the bounds.
+                         * Example: If zoom level is at the minimum (so the entire world map is being displayed) and user has only saved spots
+                         * at one extreme of the world (let's say, northern Canada or southern Argentina) then what Mapbox.easeCamera does is-
+                         * firstly it zooms towards a point at the middle of the map (he was seeing the world map, then now the camera zooms to a point in the middle
+                         * of the world, very far from where the saved spots are) and secondly it "flies" towards where the points added to the bounds actually are.
+                         * Which means that during a few seconds the user watched the map flying over random regions where spots haven't been saved.
+                         * To see how it would look like (if you feel the need to it) you can test by saving spots as in this example's scenario and then
+                         * removing the following line (containing Mapbox.moveCamera) and calling mapboxMap.easeCamera directly.
+                         * Here's how the chosen solution works:
+                         * By doing these two steps (calling moveCamera then easeCamera) we start by immediately placing the map camera
+                         * in a way that all points added to the bounds are already visible to the user though in a more distant level (we do that using a longer padding);
+                         * and then we call easeCamera to add the animation which will zoom closer to the bounds (using a smaller padding).
+                         */
+                        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 500), onceCameraMoveFinishedCallback);
+                    }
                 }
             }
 
@@ -1483,6 +1472,20 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
+    /**
+     * Store the zoom level once all the animation is fully completed.
+     **/
+    final MapboxMap.CancelableCallback onceEaseCameraFinishedCallback = new MapboxMap.CancelableCallback() {
+        @Override
+        public void onCancel() {
+            zoomLevelAfterZoomOutToFitVisibleRoute = mapboxMap.getCameraPosition().zoom;
+        }
+
+        @Override
+        public void onFinish() {
+            zoomLevelAfterZoomOutToFitVisibleRoute = mapboxMap.getCameraPosition().zoom;
+        }
+    };
 
     /**
      * Move the map camera to the given position
