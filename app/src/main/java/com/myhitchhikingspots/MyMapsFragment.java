@@ -176,8 +176,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private AnimationMode mapAnimationMode = AnimationMode.IS_STOPPED;
     private final List<Feature> subRoutesToAnimate = new ArrayList<>();
-    private int lastAnimatedSubRouteIndex, currentAnimatedSubRouteIndex;
-    private int lastRouteIndexAnimated = -1;
+    private int lastAnimatedSubRouteIndex = -1, currentAnimatedSubRouteIndex = -1, lastRouteIndexAnimated = -1;
+    private double zoomLevelAfterZoomOutToFitVisibleRoute = -1.0;
 
     Boolean shouldZoomToFitAllMarkers = true;
 
@@ -229,6 +229,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         fabLocateUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                pauseRouteAnimationIfNeeded();
                 if (mapboxMap != null && style != null && style.isFullyLoaded()) {
                     callback.moveMapCameraToNextLocationReceived();
                 }
@@ -239,6 +240,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         fabZoomIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                pauseRouteAnimationIfNeeded();
                 if (mapboxMap != null)
                     mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
             }
@@ -248,6 +250,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         fabZoomOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                pauseRouteAnimationIfNeeded();
                 if (mapboxMap != null)
                     mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
             }
@@ -262,6 +265,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //Prevent from handling multiple clicks
                 if (isHandlingRequestToOpenSpotForm)
                     return;
+
+                pauseRouteAnimationIfNeeded();
 
                 if (isWaitingForARide())
                     gotARideButtonHandler();
@@ -279,6 +284,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //Prevent from handling multiple clicks
                 if (isHandlingRequestToOpenSpotForm)
                     return;
+
+                pauseRouteAnimationIfNeeded();
 
                 if (isWaitingForARide())
                     tookABreakButtonHandler();
@@ -829,6 +836,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         this.shouldZoomToFitAllMarkers = true;
         this.spotListWasChanged = true;
 
+        mapAnimationMode = AnimationMode.IS_STOPPED;
+
         updateUISaveFABs();
 
         if (mapboxMap != null) {
@@ -988,6 +997,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         super.onStop();
         mapView.onStop();
 
+        pauseRouteAnimationIfNeeded();
+
         /*
          * The device may have been rotated and the activity is going to be destroyed
          * you always should be prepared to cancel your AsnycTasks before the Activity
@@ -1035,8 +1046,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             //We don't want the map camera to be moved if the user navigates back without doing any change to the spot list.
             shouldZoomToFitAllMarkers = false;
         }
-
-        mapAnimationMode = AnimationMode.IS_STOPPED;
 
         //NOTE: onSpotListChanged() will be called after MyMapsFragment.onActivityResult() by MainActivity.onActivityResult()
     }
@@ -1104,6 +1113,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         boolean selectionHandled = false;
+
+        pauseRouteAnimationIfNeeded();
 
         switch (item.getItemId()) {
             case R.id.action_view_list:
@@ -1305,6 +1316,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         dateRangeDialog.setRangeOptions(startDatesDate, endDatesDate, new DateRangePickerDialog.DateRangeListener() {
             @Override
             public void onRangeSelected(List<Date> selectedDates) {
+                mapAnimationMode = AnimationMode.IS_STOPPED;
+
                 // Close balloons if any is open
                 deselectAll();
                 onDateRangeWasPicked(new DateTime(selectedDates.get(0)), new DateTime(selectedDates.get(selectedDates.size() - 1)));
@@ -1313,6 +1326,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             @Override
             public void onRangeCleared() {
+                mapAnimationMode = AnimationMode.IS_STOPPED;
+
                 // Close balloons if any is open
                 deselectAll();
                 showAllRoutesOnMap();
@@ -1367,6 +1382,23 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
     }
 
+    private static List<LatLng> getLatLngOfVisibleFeatures(List<Feature> features, int numOfSpotsToConsider) {
+        List<LatLng> lst = new ArrayList<>();
+
+        //Consider the last saved spots
+        if (!features.isEmpty()) {
+            for (int i = features.size() - 1; i >= 0 && lst.size() < numOfSpotsToConsider; i--) {
+                Feature feature = features.get(i);
+                //Include only features that are actually seen on the map (hidden features are excluded)
+                if (!feature.getBooleanProperty(PROPERTY_SHOULDHIDE)) {
+                    Point p = ((Point) feature.geometry());
+                    lst.add(new LatLng(p.latitude(), p.longitude()));
+                }
+            }
+        }
+        return lst;
+    }
+
     /**
      * Zoom out to fit the most recent (@link #NUMBER_OF_SPOTS_TO_FIT) spots saved to the map AND the user's last known location.
      **/
@@ -1375,22 +1407,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         try {
             if (mapboxMap != null) {
                 Location mCurrentLocation = tryGetLastKnownLocation();
-
-                List<LatLng> lst = new ArrayList<>();
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                List<Feature> features = spotsCollection == null ? new ArrayList<>() : spotsCollection.features();
-
-                //Consider the last saved spots
-                if (!features.isEmpty()) {
-                    for (int i = features.size() - 1; i >= 0 && lst.size() < NUMBER_OF_SPOTS_TO_FIT; i--) {
-                        Feature feature = features.get(i);
-                        //Include only features that are actually seen on the map (hidden features are excluded)
-                        if (!feature.getBooleanProperty(PROPERTY_SHOULDHIDE)) {
-                            Point p = ((Point) feature.geometry());
-                            lst.add(new LatLng(p.latitude(), p.longitude()));
-                        }
-                    }
-                }
+                List<LatLng> lst = getLatLngOfVisibleFeatures(spotsCollection == null ? new ArrayList<>() : spotsCollection.features(), NUMBER_OF_SPOTS_TO_FIT);
 
                 //Add current location to camera bounds
                 if (mCurrentLocation != null)
@@ -1399,6 +1416,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (lst.size() == 1)
                     moveCamera(new LatLng(lst.get(0).getLatitude(), lst.get(0).getLongitude()), Constants.ZOOM_TO_SEE_FARTHER_DISTANCE);
                 else if (lst.size() > 1) {
+                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
                     builder.includes(lst);
                     LatLngBounds bounds = builder.build();
 
@@ -1410,16 +1428,31 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     //The change that should be applied to the camera.
                     final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, bestPadding);
 
-                    MapboxMap.CancelableCallback callback = new MapboxMap.CancelableCallback() {
+                    MapboxMap.CancelableCallback onceCameraMoveFinishedCallback = new MapboxMap.CancelableCallback() {
                         @Override
                         public void onCancel() {
-                            mapboxMap.easeCamera(cameraUpdate, 5000);
+                            mapboxMap.easeCamera(cameraUpdate, 5000, onceEaseCameraFinishedCallback);
                         }
 
                         @Override
                         public void onFinish() {
-                            mapboxMap.easeCamera(cameraUpdate, 5000);
+                            mapboxMap.easeCamera(cameraUpdate, 5000, onceEaseCameraFinishedCallback);
                         }
+
+                        /**
+                         * Store the zoom level once all the animation is fully completed.
+                         **/
+                        MapboxMap.CancelableCallback onceEaseCameraFinishedCallback = new MapboxMap.CancelableCallback() {
+                            @Override
+                            public void onCancel() {
+                                zoomLevelAfterZoomOutToFitVisibleRoute = mapboxMap.getCameraPosition().zoom;
+                            }
+
+                            @Override
+                            public void onFinish() {
+                                zoomLevelAfterZoomOutToFitVisibleRoute = mapboxMap.getCameraPosition().zoom;
+                            }
+                        };
                     };
 
                     /*
@@ -1440,7 +1473,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                      * in a way that all points added to the bounds are already visible to the user though in a more distant level (we do that using a longer padding);
                      * and then we call easeCamera to add the animation which will zoom closer to the bounds (using a smaller padding).
                      */
-                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 500), callback);
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 500), onceCameraMoveFinishedCallback);
                 }
             }
 
@@ -2179,33 +2212,41 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             currentAnimatedSubRouteIndex = 0;
             lastAnimatedSubRouteIndex = subRoutesToAnimate.size() - 1;
-
-            //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
-            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
 
-        mapAnimationMode = AnimationMode.IS_ANIMATING;
-        updateRouteAnimationFAB();
         runRouteAnimation();
     }
 
     private void runRouteAnimation() {
+        mapAnimationMode = AnimationMode.IS_ANIMATING;
+        updateRouteAnimationFAB();
+        showNextSubRoute();
+        //Add flag that requests the screen to stay awake so that we prevent it from sleeping and the app doesn't go to background until we release it
+        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        waitAndShowNextSubRoute();
+    }
+
+    private void waitAndShowNextSubRoute() {
+        if (mapAnimationMode != AnimationMode.IS_ANIMATING)
+            return;
+
         Handler handler = new Handler();
         int delay = 1000; //milliseconds
 
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                if (currentAnimatedSubRouteIndex < lastAnimatedSubRouteIndex) {
-                    showNextSubRoute();
-                    runRouteAnimation();
-                } else
-                    onRouteAnimationStopped();
+        handler.postDelayed(() -> {
+            if (currentAnimatedSubRouteIndex < lastAnimatedSubRouteIndex) {
+                showNextSubRoute();
+                waitAndShowNextSubRoute();
+            } else {
+                Toast.makeText(activity, "Animation finished :-)", Toast.LENGTH_LONG).show();
+                pauseRouteAnimation();
             }
         }, delay);
     }
 
     private void showNextSubRoute() {
-        if (mapAnimationMode != AnimationMode.IS_ANIMATING && currentAnimatedSubRouteIndex <= lastAnimatedSubRouteIndex)
+        if (mapAnimationMode != AnimationMode.IS_ANIMATING && currentAnimatedSubRouteIndex <= lastAnimatedSubRouteIndex ||
+                activity.isFinishing() || !style.isFullyLoaded())
             return;
         else if (subRoutesToAnimate.isEmpty()) {
             mapAnimationMode = AnimationMode.IS_STOPPED;
@@ -2223,35 +2264,50 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             lastRouteIndexAnimated = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
             LatLng latLng = new LatLng(point.latitude(), point.longitude());
             int zoomLevel = Constants.KEEP_ZOOM_LEVEL;
-            if (currentAnimatedSubRouteIndex == 0)
-                zoomLevel = 3;
-            moveCamera(latLng, zoomLevel);
+            if ((currentAnimatedSubRouteIndex == 0 && zoomLevelAfterZoomOutToFitVisibleRoute > -1) ||
+                    mapboxMap.getCameraPosition().zoom > zoomLevelAfterZoomOutToFitVisibleRoute)
+                zoomLevel = (int) Math.round(zoomLevelAfterZoomOutToFitVisibleRoute);
+            mapboxMap.easeCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
         }
         currentAnimatedSubRouteIndex++;
     }
 
     public void pauseRouteAnimation() {
+        //No more need to keep screen awake
         activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mapAnimationMode = AnimationMode.IS_PAUSED;
         updateRouteAnimationFAB();
     }
 
     public void continueRouteAnimation() {
-        mapAnimationMode = AnimationMode.IS_ANIMATING;
-        updateRouteAnimationFAB();
-        showNextSubRoute();
+        if (mapAnimationMode == AnimationMode.IS_STOPPED)
+            startRouteAnimation();
+        else
+            runRouteAnimation();
     }
 
     public void stopRouteAnimation() {
-        showAllRoutesOnMap();
         onRouteAnimationStopped();
-        updateRouteAnimationFAB();
+
+        showAllFAB();
+        showAllRoutesOnMap();
     }
 
     private void onRouteAnimationStopped() {
-        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        currentAnimatedSubRouteIndex = -1;
+        lastAnimatedSubRouteIndex = -1;
+        lastRouteIndexAnimated = -1;
+        subRoutesToAnimate.clear();
+
         mapAnimationMode = AnimationMode.IS_STOPPED;
-        showAllFAB();
+
+        //No more need to keep screen awake
+        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    public void pauseRouteAnimationIfNeeded() {
+        if (mapAnimationMode == AnimationMode.IS_ANIMATING)
+            pauseRouteAnimation();
     }
 
     /**
