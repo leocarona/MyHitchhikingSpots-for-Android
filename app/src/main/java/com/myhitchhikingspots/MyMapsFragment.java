@@ -1164,7 +1164,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 break;
             case R.id.action_zoom_to_fit_all:
                 if (mapboxMap != null)
-                    zoomOutToFitMostRecentRoute(false, true, NUMBER_OF_SPOTS_TO_FIT);
+                    zoomOutToFitMostRecentRoute(false, true, -1);
                 break;
         }
 
