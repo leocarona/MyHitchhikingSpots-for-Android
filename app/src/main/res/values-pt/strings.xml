@@ -278,6 +278,8 @@
     <string name="dashboard_number_of_hw_spots_downloaded">%d locais</string>
     <string name="dashboard_your_longest_waiting_time">Seu maior tempo de espera</string>
     <string name="dashboard_your_shortest_waiting_time">Seu menor tempo de espera</string>
+    <string name="dashboard_your_best_hitching_hours">Seus menores tempos de espera foram entre</string>
+    <string name="dashboard_usual_waiting_times">Geralmente te dão carona entre</string>
 
     <string name="about_us_first_text">Este aplicativo é um projeto de código aberto publicado pela Hitchwiki.org gratuitamente. É desenvolvido por e para caroneiros. Existe graças aos nossos apoiadores, nossos desenvolvedores e nossos usuários que avaliam o aplicativo e nos dão feedback, o que nos permite melhorar.</string>
     <string name="about_us_our_supporters_title">Quem Nos Apoia</string>
