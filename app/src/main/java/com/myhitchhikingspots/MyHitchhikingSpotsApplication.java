@@ -34,6 +34,10 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
 
         // Mapbox access token is configured here. This needs to be called either in your application
         // object or in the same activity which contains the mapview.
+        // If R.string.mapBoxKey is missing, do the following steps:
+        // 1) if you have permissions, navigate open MyHitchhikingSpots-private repository;
+        // 2) Copy the file /res/values/privateValues.xml and paste it on the same path within the current repository;
+        // 3) Make sure that the copied file privateValues.xml is ignored by GitHub so it doesn't mistakenly get comited to the public repo.
         Mapbox.getInstance(this, getResources().getString(R.string.mapBoxKey));
 
         APIConstants.ENDPOINT_PREFIX = getResources().getString(R.string.hitchwikiEndpointPrefix);
