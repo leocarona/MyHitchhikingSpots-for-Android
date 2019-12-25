@@ -195,8 +195,8 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
                 int numberOfOccurrences = occurrence.second == null ? 0 : occurrence.second;
                 if (numberOfOccurrences > 0 && periodOfTime != null) {
                     String numberOfOccurrencesPercent = String.valueOf(numberOfOccurrences * 100 / numOfRides);
-                    String periodBegins = Utils.getWaitingTimeAsString(periodOfTime.first == null ? 0 : periodOfTime.first, context).replace(" ", ""),
-                            periodEnds = Utils.getWaitingTimeAsString(periodOfTime.second == null ? 0 : periodOfTime.second, context).replace(" ", ""),
+                    String periodBegins = Utils.getWaitingTimeAsString(periodOfTime.first == null ? 0 : periodOfTime.first, context),
+                            periodEnds = Utils.getWaitingTimeAsString(periodOfTime.second == null ? 0 : periodOfTime.second, context),
                             formattedStr = "";
 
                     if (numberOfOccurrencesPercent.equals("0"))
@@ -204,10 +204,10 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
 
                     if (periodBegins.equals(context.getString(R.string.general_seconds_label)))
                         formattedStr = String.format(Locale.US,
-                                "(%2$s%%) <%1$s", periodEnds, numberOfOccurrencesPercent);
+                                "(%2$s%%) <%1$s", periodEnds.replace(" ", ""), numberOfOccurrencesPercent);
                     else
                         formattedStr = String.format(Locale.US,
-                                "(%3$s%%) %1$s-%2$s", periodBegins, periodEnds, numberOfOccurrencesPercent);
+                                "(%3$s%%) %1$s-%2$s", periodBegins.replace(" ", ""), periodEnds.replace(" ", ""), numberOfOccurrencesPercent);
 
                     waitingTimeOccurrencesStr.append(formattedStr);
                     waitingTimeOccurrencesStr.append("\n");
