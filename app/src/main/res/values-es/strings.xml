@@ -97,7 +97,7 @@
     <string name="spot_form_read_comments_showCase">Haga clic aquí para leer lo que otros autoestopistas han comentado sobre este lugar.</string>
     <string name="spot_form_extra_options_showCase">¿Quiere agregar un lugar diferente en su ruta?\nNo olvide que puede deslizar la pantalla hacia arriba y encontrar algunas opciones adicionales aquí! :-)</string>
 
-    <string name="menu_dashboard">Panel de control</string>
+    <string name="menu_dashboard">Estadísticas</string>
     <string name="menu_my_maps">Mis mapas</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
     <string name="menu_tools">Herramientas</string>

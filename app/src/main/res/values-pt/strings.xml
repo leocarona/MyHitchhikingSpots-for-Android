@@ -41,7 +41,7 @@
 
     <string name="attempt_result">Resultado da tentativa</string>
 
-    <string name="menu_dashboard">Painel</string>
+    <string name="menu_dashboard">Estatísticas</string>
     <string name="menu_my_maps">Meu Mapa</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
     <string name="menu_tools">Ferramentas</string>

@@ -80,7 +80,7 @@
     <string name="spot_form_read_comments_showCase">Click here to read what other hitchhikers have commented about this spot.</string>
     <string name="spot_form_extra_options_showCase">Want to add a different spot on your route?\nDon\'t forget you may swipe up and find some extra options here! :-)</string>
 
-    <string name="menu_dashboard">Dashboard</string>
+    <string name="menu_dashboard">Statistikker</string>
     <string name="menu_my_maps">Min Kort</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Kort</string>
     <string name="menu_tools">Værktøjer</string>
