@@ -119,9 +119,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private PermissionsManager locationPermissionsManager;
 
-    Toast waiting_GPS_update;
-
-
     private static final String SPOTS_SOURCE_ID = "spots-source";
     private static final String ROUTES_SPOTS_STYLE_LAYER_ID = "spots-style-layer";
     private static final String SUB_ROUTE_SOURCE_ID = "sub-routes-source";
@@ -1101,9 +1098,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 showSpotsSavedBetweenPeriodOfTimeFromMap();
                 break;
             case R.id.action_zoom_to_fit_all:
-                if (mapboxMap != null) {
-                    zoomOutToFitMostRecentRoute();
-                }
+                zoomOutToFitMostRecentRoute();
                 break;
         }
 
@@ -1118,8 +1113,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      **/
     private void toggleAllFAB() {
         if (!mapButtonsAreDisplayed) {
-            showAllRoutesOnMap();
-
             showAllFAB();
         } else {
             hideAllFAB();
