@@ -297,7 +297,7 @@
                             app:fabSize="mini"
                             app:rippleColor="@color/ic_standard_fab_color_lighter"
                             app:useCompatPadding="true"
-                            mapbox:srcCompat="@drawable/ic_date_range_black_24dp"
+                            mapbox:srcCompat="@drawable/ic_date_range_white_24dp"
                             tools:ignore="VectorDrawableCompat" />
 
                     </RelativeLayout>
