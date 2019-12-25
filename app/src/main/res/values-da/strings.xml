@@ -265,6 +265,8 @@
     <string name="dashboard_number_of_hw_spots_downloaded">%d spots</string>
     <string name="dashboard_your_longest_waiting_time">Your longest waiting time</string>
     <string name="dashboard_your_shortest_waiting_time">Your shortest waiting time</string>
+    <string name="dashboard_your_best_hitching_hours">Your shortest waiting times have been between</string>
+    <string name="dashboard_usual_waiting_times">You\'re usually picked up between</string>
 
     <string name="about_us_first_text">This app is an open source project published by Hitchwiki.org free of charge. Developed by and for hitchhikers. It exists thanks to our supporters, our developers and our users who rate and give us feedback, so we can improve.</string>
     <string name="about_us_our_supporters_title">Our Supporters</string>

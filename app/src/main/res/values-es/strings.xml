@@ -287,6 +287,8 @@
     <string name="dashboard_number_of_hw_spots_downloaded">%d lugares</string>
     <string name="dashboard_your_longest_waiting_time">Tu mayor tiempo de espera</string>
     <string name="dashboard_your_shortest_waiting_time">Tu menor tiempo de espera</string>
+    <string name="dashboard_your_best_hitching_hours">Tus menores tiempos de espera han sido entre</string>
+    <string name="dashboard_usual_waiting_times">Por lo general te recogen entre</string>
 
     <string name="about_us_first_text">Este es un proyecto de código abierto publicado gratis por  Hitchwiki.org. Desarrollado por y para autoestopistas. Gracias a quienes nos apoyan, a nuestros programadores y a nuestros usuarios que nos dan rating y sugerencias para mejorar</string>
     <string name="about_us_our_supporters_title">Quienes nos apoyan</string>

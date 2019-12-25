@@ -5,28 +5,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.SpotsListHelper;
 import com.myhitchhikingspots.utilities.Utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class DashboardFragment extends Fragment implements MainActivity.OnMainActivityUpdated {
-    TextView txtNumSpotsSaved, txtNumHWSpotsDownloaded, txtShortestWaitingTime, txtLongestWaitingTime;
+    TextView txtNumSpotsSaved, txtNumHWSpotsDownloaded, txtShortestWaitingTime, txtLongestWaitingTime,
+            txtShortestWaitingTimesAreBetween, txtBestHoursToHitchhike;
     SharedPreferences prefs;
     private boolean isHandlingRequestToOpenSpotForm = false;
 
@@ -54,9 +56,13 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         txtNumHWSpotsDownloaded = view.findViewById(R.id.txt_number_hw_spots_downloaded);
         txtShortestWaitingTime = view.findViewById(R.id.txt_shortest_waiting_time);
         txtLongestWaitingTime = view.findViewById(R.id.txt_longest_waiting_time);
+        txtShortestWaitingTimesAreBetween = view.findViewById(R.id.txt_1);
+        txtBestHoursToHitchhike = view.findViewById(R.id.txt_2);
 
         //If 'Go to my map' button is clicked, select My Map menu option
-        view.findViewById(R.id.go_to_my_map).setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
+        Button seeMyMapsBtn = view.findViewById(R.id.go_to_my_map);
+        seeMyMapsBtn.setText(getString(R.string.action_button_label, getString(R.string.menu_my_maps)));
+        seeMyMapsBtn.setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
 
         updateUI();
     }
@@ -149,51 +155,91 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     }
 
     void updateUI() {
-        Integer longestWaitingTime = 0, shortestWaitingTime = 0, numOfRides = 0;
+        Context context = getContext();
+        if (context == null)
+            return;
 
         List<Spot> spotList = getSpotList();
-        if (spotList.size() > 0) {
-            Spot spot = spotList.get(0);
-            longestWaitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
-            shortestWaitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
-        }
-
-        for (Spot spot : spotList) {
-            Boolean isDestination = spot.getIsDestination() == null ? false : spot.getIsDestination();
-            Boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() == null ? false : spot.getIsHitchhikingSpot();
-            Boolean isGotARide = spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE;
-
-            if (isHitchhikingSpot) {
-                if (isGotARide)
-                    numOfRides++;
-
-                if (!isDestination) {
-                    Integer waitingTime = spot.getWaitingTime() == null ? 0 : spot.getWaitingTime();
-                    if (waitingTime > longestWaitingTime)
-                        longestWaitingTime = waitingTime;
-
-                    //Only consider spots where the user has gotten rides
-                    if (spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE) {
-                        if (waitingTime < shortestWaitingTime)
-                            shortestWaitingTime = waitingTime;
-                    }
-                }
-            }
-        }
+        Integer longestWaitingTime = SpotsListHelper.getLongestWaitingTime(spotList),
+                shortestWaitingTime = SpotsListHelper.getShortestWaitingTime(spotList),
+                numOfRides = SpotsListHelper.getNumberOfRidesGotten(spotList),
+                numHWSpotsDownloaded = prefs.getInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, 0);
+        List<Pair<Integer, Integer>> numberOfOccurrences = SpotsListHelper.getNumberOfOccurrences(spotList);
+        List<Pair<Pair<Integer, Integer>, Integer>> waitingTimeOccurrences = SpotsListHelper.getWaitingTimeOccurrences(spotList);
 
         String shortestWaitingTimeStr, longestWaitingTimeStr;
         shortestWaitingTimeStr = longestWaitingTimeStr = "- -";
 
         if (numOfRides > 2) {
-            shortestWaitingTimeStr = Utils.getWaitingTimeAsString(shortestWaitingTime, getActivity());
-            longestWaitingTimeStr = Utils.getWaitingTimeAsString(longestWaitingTime, getActivity());
+            shortestWaitingTimeStr = Utils.getWaitingTimeAsString(shortestWaitingTime, context);
+            longestWaitingTimeStr = Utils.getWaitingTimeAsString(longestWaitingTime, context);
         }
 
-        Integer numHWSpotsDownloaded = prefs.getInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, 0);
+        String waitingTimeOccurrencesStr = getWaitingTimeOccurrencesStr(context, waitingTimeOccurrences, numOfRides);
+        String txtBestHoursToHitchhikeStr = getBestHoursToHitchhikeStr(numberOfOccurrences, numOfRides);
 
         txtNumSpotsSaved.setText(String.format(getString(R.string.dashboard_number_of_rides), numOfRides));
         txtNumHWSpotsDownloaded.setText(String.format(getString(R.string.dashboard_number_of_hw_spots_downloaded), numHWSpotsDownloaded));
         txtShortestWaitingTime.setText(shortestWaitingTimeStr);
         txtLongestWaitingTime.setText(longestWaitingTimeStr);
+        txtShortestWaitingTimesAreBetween.setText(waitingTimeOccurrencesStr.toString());
+        txtBestHoursToHitchhike.setText(txtBestHoursToHitchhikeStr.toString());
+    }
+
+    private static String getWaitingTimeOccurrencesStr(Context context, List<Pair<Pair<Integer, Integer>, Integer>> waitingTimeOccurences, int numOfRides) {
+        StringBuilder waitingTimeOccurrencesStr = new StringBuilder();
+        for (int i = 0; i < waitingTimeOccurences.size(); i++) {
+            Pair<Pair<Integer, Integer>, Integer> occurrence = waitingTimeOccurences.get(i);
+            if (occurrence != null) {
+                Pair<Integer, Integer> periodOfTime = occurrence.first;
+                int numberOfOccurrences = occurrence.second == null ? 0 : occurrence.second;
+                if (numberOfOccurrences > 0 && periodOfTime != null) {
+                    String numberOfOccurrencesPercent = String.valueOf(numberOfOccurrences * 100 / numOfRides);
+                    String periodBegins = Utils.getWaitingTimeAsString(periodOfTime.first == null ? 0 : periodOfTime.first, context),
+                            periodEnds = Utils.getWaitingTimeAsString(periodOfTime.second == null ? 0 : periodOfTime.second, context),
+                            formattedStr = "";
+
+                    if (numberOfOccurrencesPercent.equals("0"))
+                        numberOfOccurrencesPercent = "<1";
+
+                    if (periodBegins.equals(context.getString(R.string.general_seconds_label)))
+                        formattedStr = String.format(Locale.US,
+                                "(%2$s%%) <%1$s", periodEnds.replace(" ", ""), numberOfOccurrencesPercent);
+                    else
+                        formattedStr = String.format(Locale.US,
+                                "(%3$s%%) %1$s-%2$s", periodBegins.replace(" ", ""), periodEnds.replace(" ", ""), numberOfOccurrencesPercent);
+
+                    waitingTimeOccurrencesStr.append(formattedStr);
+                    waitingTimeOccurrencesStr.append("\n");
+                }
+            }
+        }
+        return waitingTimeOccurrencesStr.toString();
+    }
+
+    private static String getBestHoursToHitchhikeStr(List<Pair<Integer, Integer>> numberOfOccurrences, int numOfRides) {
+        StringBuilder txtBestHoursToHitchhikeStr = new StringBuilder();
+        for (int i = 0; i < numberOfOccurrences.size(); i++) {
+            Pair<Integer, Integer> occurrence = numberOfOccurrences.get(i);
+            if (occurrence != null) {
+                int hour = occurrence.first == null ? 0 : occurrence.first;
+                int numberOfRidesHitched = occurrence.second == null ? 0 : occurrence.second;
+                if (numberOfRidesHitched > 0) {
+                    String numberOfRidesHitchedPercent = String.valueOf(numberOfRidesHitched * 100 / numOfRides);
+
+                    if (numberOfRidesHitchedPercent.equals("0"))
+                        numberOfRidesHitchedPercent = "<1";
+
+                    String hourSuffix = "pm";
+                    if (hour < 12)
+                        hourSuffix = "am";
+
+                    txtBestHoursToHitchhikeStr.append(String.format(Locale.US, "(%4$s%%) %1$02d-%2$02d%3$s",
+                            hour, hour + 1, hourSuffix, numberOfRidesHitchedPercent));
+                    txtBestHoursToHitchhikeStr.append("\n");
+                }
+            }
+        }
+        return txtBestHoursToHitchhikeStr.toString();
     }
 }
