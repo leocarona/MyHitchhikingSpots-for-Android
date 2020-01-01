@@ -48,6 +48,6 @@
 
     <fragment
         android:id="@+id/nav_spot_form"
-        android:name="com.myhitchhikingspots.SpotFormActivity"
-        tools:layout="@layout/spot_form_master_layout" />
+        android:name="com.myhitchhikingspots.SpotFormFragment"
+        tools:layout="@layout/fragment_spot_form" />
 </navigation>

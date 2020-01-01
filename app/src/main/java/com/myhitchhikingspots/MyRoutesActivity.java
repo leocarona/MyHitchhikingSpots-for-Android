@@ -531,7 +531,7 @@ public class MyRoutesActivity extends AppCompatActivity {
         SpotFormViewModel spotFormViewModel = new ViewModelProvider(this).get(SpotFormViewModel.class);
         spotFormViewModel.setCurrentSpot(spot, shouldRetrieveHWDetails);
 
-        Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
+        Intent intent = new Intent(getBaseContext(), SpotFormFragment.class);
         intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
         intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBack);

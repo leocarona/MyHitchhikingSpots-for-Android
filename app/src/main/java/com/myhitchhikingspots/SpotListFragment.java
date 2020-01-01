@@ -129,7 +129,7 @@ public class SpotListFragment extends Fragment {
                     }
 
                     isHandlingRequestToOpenSpotForm = true;
-                    Intent intent = new Intent(getContext(), SpotFormActivity.class);
+                    Intent intent = new Intent(getContext(), SpotFormFragment.class);
                     intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
                     intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
                     startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);

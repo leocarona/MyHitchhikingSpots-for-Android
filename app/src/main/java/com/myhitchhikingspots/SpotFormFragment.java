@@ -133,7 +133,7 @@ import uk.co.deanwild.materialshowcaseview.MaterialShowcaseView;
           is NOT part of a route = is single spot
           is NOT a hitchhiking spot = is other type of spot
 */
-public class SpotFormActivity extends Fragment implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback,
+public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarChangeListener, OnMapReadyCallback,
         View.OnClickListener, CompoundButton.OnCheckedChangeListener, PermissionsListener, FirstLocationUpdateListener {
 
     protected static final String TAG = "spot-form-activity";
@@ -339,7 +339,7 @@ public class SpotFormActivity extends Fragment implements RatingBar.OnRatingBarC
             onCurrentSpotChanged();
         });
 
-        return inflater.inflate(R.layout.spot_form_master_layout, container, false);
+        return inflater.inflate(R.layout.fragment_spot_form, container, false);
     }
 
     private void resetUI() {
@@ -894,7 +894,7 @@ public class SpotFormActivity extends Fragment implements RatingBar.OnRatingBarC
 
         this.mapboxMap.setStyle(Style.MAPBOX_STREETS, style -> {
             // Map is set up and the style has loaded. Now you can add data or make other map adjustments.
-            SpotFormActivity.this.style = style;
+            SpotFormFragment.this.style = style;
 
             if (style.isFullyLoaded()) {
                 panel_map_not_displayed.setVisibility(View.GONE);
@@ -2219,22 +2219,22 @@ public class SpotFormActivity extends Fragment implements RatingBar.OnRatingBarC
 
     //async task to retrieve details about clicked marker (point) on a map
     private static class retrievePlaceDetailsAsyncTask extends AsyncTask<String, Void, String> {
-        private final WeakReference<SpotFormActivity> activityRef;
+        private final WeakReference<SpotFormFragment> activityRef;
 
-        retrievePlaceDetailsAsyncTask(SpotFormActivity activity) {
+        retrievePlaceDetailsAsyncTask(SpotFormFragment activity) {
             this.activityRef = new WeakReference<>(activity);
         }
 
         @Override
         protected void onPreExecute() {
-            SpotFormActivity activity = activityRef.get();
+            SpotFormFragment activity = activityRef.get();
             if (activity != null)
                 activity.showProgressDialog();
         }
 
         @Override
         protected String doInBackground(String... params) {
-            SpotFormActivity activity = activityRef.get();
+            SpotFormFragment activity = activityRef.get();
             if (activity == null || isCancelled()) {
                 return "Canceled";
             }
@@ -2257,7 +2257,7 @@ public class SpotFormActivity extends Fragment implements RatingBar.OnRatingBarC
 
         @Override
         protected void onPostExecute(String result) {
-            SpotFormActivity activity = activityRef.get();
+            SpotFormFragment activity = activityRef.get();
             if (activity == null || activity.getActivity().isFinishing())
                 return;
             //button listeners
