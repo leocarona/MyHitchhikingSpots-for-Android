@@ -126,7 +126,7 @@ public class MyRoutesActivity extends AppCompatActivity {
             }
         };
 
-        viewModel.getSpots(this).observe(this, spots -> {
+        viewModel.getSpots().observe(this, spots -> {
             //Update fragments
             if (mSectionsPagerAdapter != null) {
                 mSectionsPagerAdapter.setValues(spots);
@@ -503,7 +503,11 @@ public class MyRoutesActivity extends AppCompatActivity {
         double cameraZoom = -1;
         Spot spot = null;
         int requestId = -1;
-        if (!isWaitingForARide()) {
+        Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+        boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                mCurrentWaitingSpot.getIsWaitingForARide() : false;
+
+        if (!isWaitingForARide) {
             requestId = Constants.SAVE_SPOT_REQUEST;
             spot = new Spot();
             spot.setIsHitchhikingSpot(!isDestination);
@@ -512,7 +516,6 @@ public class MyRoutesActivity extends AppCompatActivity {
 
         } else {
             requestId = Constants.EDIT_SPOT_REQUEST;
-            Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
             spot = mCurrentWaitingSpot;
         }
 
@@ -520,22 +523,18 @@ public class MyRoutesActivity extends AppCompatActivity {
         startSpotFormActivityForResult(spot, cameraZoom, requestId, true, false);
     }
 
-    private boolean isWaitingForARide() {
-        Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
-        return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
-                mCurrentWaitingSpot.getIsWaitingForARide() : false;
-    }
-
     /**
      * @param shouldGoBack            should be set to true when you want the user to be sent to a new instance of MainActivity once they're done editing/adding a spot.
      * @param shouldRetrieveHWDetails should be set to true when the given spot is a Hitchwiki spot, so that we'll download more data from HW and display them on SpotFormActivity.
      */
     private void startSpotFormActivityForResult(Spot spot, double cameraZoom, int requestId, boolean shouldGoBack, boolean shouldRetrieveHWDetails) {
+        SpotFormViewModel spotFormViewModel = new ViewModelProvider(this).get(SpotFormViewModel.class);
+        spotFormViewModel.setCurrentSpot(spot, shouldRetrieveHWDetails);
+
         Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
         intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
         intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBack);
-        intent.putExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, shouldRetrieveHWDetails);
         startActivityForResult(intent, requestId);
     }
 }

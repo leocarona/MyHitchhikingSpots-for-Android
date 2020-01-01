@@ -19,6 +19,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,6 +36,8 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.crashlytics.android.Crashlytics;
@@ -103,7 +106,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class MyMapsFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
+        MapboxMap.OnMapClickListener, FirstLocationUpdateListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
@@ -180,40 +183,46 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             PROPERTY_SHOULDHIDE = "shouldHide", PROPERTY_SELECTED = "selected",
             PROPERTY_STARTDATETIME_IN_MILLISECS = "startDateTime";
 
-    MainActivity activity;
-
     SpotsListViewModel viewModel;
+    myMapsMediatorLiveData ld;
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        activity = (MainActivity) context;
+        prefs = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+        viewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
+        ld = new myMapsMediatorLiveData(viewModel.getSpots(), viewModel.getWaitingSpot());
+    }
+
+    private static class myMapsMediatorLiveData extends MediatorLiveData<Pair<List<Spot>, Spot>> {
+        public myMapsMediatorLiveData(LiveData<List<Spot>> spots, LiveData<Spot> waitingSpot) {
+            addSource(spots, first -> setValue(Pair.create(first, waitingSpot.getValue())));
+            addSource(waitingSpot, second -> setValue(Pair.create(spots.getValue(), second)));
+        }
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_my_map, container, false);
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = view.findViewById(R.id.constraintLayout);
 
-        prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
-
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
             if (!wasSnackbarShown) {
-                if (activity.getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
+                if (requireActivity().getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
                     showSpotSavedSnackbar();
-                else if (activity.getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
+                else if (requireActivity().getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_DELETED_SNACKBAR_KEY, false))
                     showSpotDeletedSnackbar();
             }
             wasSnackbarShown = true;
@@ -258,10 +267,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (isHandlingRequestToOpenSpotForm)
                     return;
 
-                if (isWaitingForARide())
-                    gotARideButtonHandler();
+                Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+                boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                        mCurrentWaitingSpot.getIsWaitingForARide() : false;
+
+                if (isWaitingForARide)
+                    gotARideButtonHandler(mCurrentWaitingSpot);
                 else
-                    saveRegularSpotButtonHandler();
+                    saveRegularSpotButtonHandler(mCurrentWaitingSpot);
             }
         });
 
@@ -275,10 +288,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (isHandlingRequestToOpenSpotForm)
                     return;
 
-                if (isWaitingForARide())
-                    tookABreakButtonHandler();
+                Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+                boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                        mCurrentWaitingSpot.getIsWaitingForARide() : false;
+
+                if (isWaitingForARide)
+                    tookABreakButtonHandler(mCurrentWaitingSpot);
                 else
-                    saveDestinationSpotButtonHandler();
+                    saveDestinationSpotButtonHandler(mCurrentWaitingSpot);
             }
         });
 
@@ -289,34 +306,34 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
-        loadMarkerIcons();
-
-        updateUISaveFABs(getSpotList());
+        ld.observe(requireActivity(), p -> {
+            updateUI(p.first);
+            updateUISaveFABs(p.first, p.second);
+        });
 
         //onMapReady will take care of drawing the spots and routes on the map.
     }
 
     //onMapReady is called after onResume()
     @Override
-    public void onMapReady(MapboxMap mapboxMap) {
+    public void onMapReady(@NonNull MapboxMap mapboxMap) {
         Crashlytics.log(Log.INFO, TAG, "onMapReady was called");
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
+        loadMarkerIcons(requireActivity());
+
         this.mapboxMap = mapboxMap;
+
+        this.mapboxMap.getUiSettings().setCompassEnabled(true);
+        this.mapboxMap.getUiSettings().setLogoEnabled(false);
+        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
+        this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
+
+        this.mapboxMap.addOnMapClickListener(this);
 
         this.mapboxMap.setStyle(Style.MAPBOX_STREETS, style -> {
             // Map is set up and the style has loaded. Now you can add data or make other map adjustments.
             MyMapsFragment.this.style = style;
-
-            this.mapboxMap.getUiSettings().setCompassEnabled(true);
-            this.mapboxMap.getUiSettings().setLogoEnabled(false);
-            this.mapboxMap.getUiSettings().setAttributionEnabled(false);
-            this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
-
-            this.mapboxMap.addOnMapClickListener(this);
-
-            if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
-                showInternetUnavailableAlertDialog(getSpotList());
 
             if (style.isFullyLoaded()) {
                 LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
@@ -330,9 +347,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 setupIconImages(style);
 
                 enableLocationLayer(style);
-
-                showProgressDialog(getResources().getString(R.string.map_loading_dialog));
-                viewModel.getSpots(getContext()).observe(activity, this::updateUI);
             }
         });
     }
@@ -342,12 +356,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         super.onCreate(savedInstanceState);
         //Important: setHasOptionsMenu must be called so that onOptionsItemSelected works
         setHasOptionsMenu(true);
-    }
-
-    boolean isWaitingForARide() {
-        Spot mCurrentWaitingSpot = getCurrentWaitingSpot();
-        return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
-                mCurrentWaitingSpot.getIsWaitingForARide() : false;
     }
 
     boolean isFirstSpotOfARoute(List<Spot> spotList) {
@@ -397,9 +405,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
         if (textView != null) textView.setTextColor(Color.WHITE);
 
-
         // change snackbar background
-        snackbarView.setBackgroundColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_regular_spot_color));
+        snackbarView.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.ic_regular_spot_color));
 
         snackbar.show();
     }
@@ -412,22 +419,22 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    private void loadMarkerIcons() {
-        ic_single_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, -1);
+    private void loadMarkerIcons(@NonNull Context context) {
+        ic_single_spot = IconUtils.drawableToIcon(context, R.drawable.ic_route_point_black_24dp, -1);
 
-        ic_point_on_the_route_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_point_on_the_route_black_24dp, -1, 0.9, 0.9);
-        ic_took_a_break_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_break_spot_icon, -1, 0.9, 0.9);
-        ic_waiting_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1, 0.9, 0.9);
-        ic_arrival_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_arrival_icon, -1, 0.9, 0.9);
+        ic_point_on_the_route_spot = IconUtils.drawableToIcon(context, R.drawable.ic_point_on_the_route_black_24dp, -1, 0.9, 0.9);
+        ic_took_a_break_spot = IconUtils.drawableToIcon(context, R.drawable.ic_break_spot_icon, -1, 0.9, 0.9);
+        ic_waiting_spot = IconUtils.drawableToIcon(context, R.drawable.ic_marker_waiting_for_a_ride_24dp, -1, 0.9, 0.9);
+        ic_arrival_spot = IconUtils.drawableToIcon(context, R.drawable.ic_arrival_icon, -1, 0.9, 0.9);
 
-        ic_typeunknown_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_edit_location_black_24dp, getIdentifierColorStateList(-1));
-        ic_got_a_ride_spot0 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(0));
-        ic_got_a_ride_spot1 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(1));
-        ic_got_a_ride_spot2 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(2));
-        ic_got_a_ride_spot3 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
-        ic_got_a_ride_spot4 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
+        ic_typeunknown_spot = IconUtils.drawableToIcon(context, R.drawable.ic_edit_location_black_24dp, getIdentifierColorStateList(context, -1));
+        ic_got_a_ride_spot0 = IconUtils.drawableToIcon(context, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(context, 0));
+        ic_got_a_ride_spot1 = IconUtils.drawableToIcon(context, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(context, 1));
+        ic_got_a_ride_spot2 = IconUtils.drawableToIcon(context, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(context, 2));
+        ic_got_a_ride_spot3 = IconUtils.drawableToIcon(context, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(context, 3));
+        ic_got_a_ride_spot4 = IconUtils.drawableToIcon(context, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(context, 4));
 
-        ic_target = IconUtils.drawableToIcon(activity, R.drawable.ic_add, ContextCompat.getColorStateList(activity.getBaseContext(), R.color.mapboxGrayExtraDark));
+        ic_target = IconUtils.drawableToIcon(context, R.drawable.ic_add, ContextCompat.getColorStateList(context, R.color.mapboxGrayExtraDark));
     }
 
     /**
@@ -435,8 +442,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      **/
     private void setupCreateNewSpotFAB() {
         fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
-        fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_regular_spot_color));
-        fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_regular_spot_color_lighter));
+        fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.ic_regular_spot_color));
+        fabSpotAction1.setRippleColor(ContextCompat.getColor(requireContext(), R.color.ic_regular_spot_color_lighter));
         fabSpotAction1.setContentDescription(getString(R.string.save_spot_button_text));
     }
 
@@ -445,8 +452,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      **/
     private void setupGotARideFAB() {
         fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
-        fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_got_a_ride_color));
-        fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_got_a_ride_color_lighter));
+        fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.ic_got_a_ride_color));
+        fabSpotAction1.setRippleColor(ContextCompat.getColor(requireContext(), R.color.ic_got_a_ride_color_lighter));
         fabSpotAction1.setContentDescription(getString(R.string.got_a_ride_button_text));
     }
 
@@ -455,8 +462,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      **/
     private void setupTakeABreakFAB() {
         fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
-        fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_break_color));
-        fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_break_color_lighter));
+        fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.ic_break_color));
+        fabSpotAction2.setRippleColor(ContextCompat.getColor(requireContext(), R.color.ic_break_color_lighter));
         fabSpotAction2.setContentDescription(getString(R.string.break_button_text));
     }
 
@@ -465,8 +472,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      **/
     private void setupDestinationFAB() {
         fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
-        fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_arrival_color));
-        fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_arrival_color_lighter));
+        fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.ic_arrival_color));
+        fabSpotAction2.setRippleColor(ContextCompat.getColor(requireContext(), R.color.ic_arrival_color_lighter));
         fabSpotAction2.setContentDescription(getString(R.string.arrived_button_text));
     }
 
@@ -507,9 +514,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     /**
      * Determines what type is the current page type and sets up the save buttons accordinly.
      **/
-    private void updateUISaveFABs(List<Spot> spotList) {
-        //If it's not waiting for a ride
-        if (!isWaitingForARide()) {
+    private void updateUISaveFABs(List<Spot> spotList, Spot mCurrentWaitingSpot) {
+        boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                mCurrentWaitingSpot.getIsWaitingForARide() : false;
+        if (!isWaitingForARide) {
             if (isFirstSpotOfARoute(spotList))
                 currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
             else {
@@ -525,7 +533,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(activity.getBaseContext(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+        Toast.makeText(requireContext(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -545,7 +553,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 if (callback != null)
                     callback.moveMapCameraToNextLocationReceived();
             } else
-                Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+                Toast.makeText(requireActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -557,14 +565,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      */
     private void setupLocationComponent(@NonNull Style loadedMapStyle) {
         // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(activity)) {
+        if (PermissionsManager.areLocationPermissionsGranted(requireActivity())) {
 
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
             // Set the LocationComponent activation options
             LocationComponentActivationOptions locationComponentActivationOptions =
-                    LocationComponentActivationOptions.builder(activity, loadedMapStyle)
+                    LocationComponentActivationOptions.builder(requireActivity(), loadedMapStyle)
                             .useDefaultLocationEngine(false)
                             .build();
 
@@ -581,7 +589,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         } else {
             if (locationPermissionsManager == null)
                 locationPermissionsManager = new PermissionsManager(this);
-            locationPermissionsManager.requestLocationPermissions(activity);
+            locationPermissionsManager.requestLocationPermissions(requireActivity());
         }
     }
 
@@ -590,7 +598,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      */
     @SuppressLint("MissingPermission")
     private void initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
+        locationEngine = LocationEngineProvider.getBestLocationEngine(requireActivity());
 
         LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
                 .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -654,23 +662,28 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
 
         if (spot != null) {
-            Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
+            Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
 
+            boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                    mCurrentWaitingSpot.getIsWaitingForARide() : false;
             //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-            if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
-                    mCurrentWaitingSpot.getIsWaitingForARide()) {
-                if (mCurrentWaitingSpot.getId() == spot.getId())
+            if (isWaitingForARide) {
+                if (mCurrentWaitingSpot.getId().equals(spot.getId()))
                     spot.setAttemptResult(null);
                 else {
                     Resources res = getResources();
                     String actionRequiredText = res.getString(R.string.evaluate_running_spot_required, res.getString(R.string.got_a_ride_button_text), res.getString(R.string.break_button_text));
-                    Toast.makeText(activity.getBaseContext(), actionRequiredText, Toast.LENGTH_LONG).show();
+                    Toast.makeText(requireContext(), actionRequiredText, Toast.LENGTH_LONG).show();
                     return;
                 }
             }
 
             isHandlingRequestToOpenSpotForm = true;
-            activity.startSpotFormActivityForResult(spot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, false);
+
+            SpotFormViewModel spotFormViewModel = new ViewModelProvider(requireActivity()).get(SpotFormViewModel.class);
+            spotFormViewModel.setCurrentSpot(spot, false);
+
+            ((MainActivity) requireActivity()).startSpotFormActivityForResult(null, Constants.KEEP_ZOOM_LEVEL, true);
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
@@ -785,42 +798,17 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return new LatLng(symbolPoint.latitude(), symbolPoint.longitude());
     }
 
-    /**
-     * Method called always that spotList is loaded or reloaded from the database.
-     **/
-    @Override
-    public void onSpotListChanged() {
-        //Reload spots, once completed, sets the spots list which is being observed and calls updateUI.
-        showProgressDialog(getResources().getString(R.string.map_loading_dialog));
-        viewModel.reloadSpots(getContext());
-    }
-
     public void updateUI(List<Spot> spotList) {
         //We want the map camera also updated.
         this.shouldZoomToFitAllMarkers = true;
         this.spotListWasChanged = true;
 
-        updateUISaveFABs(spotList);
-
-        //Move map camera to last known location so that if we call zoomOutToFitMostRecentRoute()
-        // the map will get nicely zoomed closer once spots list is loaded.
-        moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
-            @Override
-            public void onCancel() {
-                drawAnnotations(getSpotList());
-            }
-
-            @Override
-            public void onFinish() {
-                drawAnnotations(getSpotList());
-            }
-        });
-
-        if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs)) {
+        if (!Utils.isNetworkAvailable(requireActivity()) && !Utils.shouldLoadCurrentView(prefs)) {
+            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
             showInternetUnavailableAlertDialog(spotList);
             dismissProgressDialog();
         } else
-            drawAnnotations(spotList);
+            drawAnnotationsOnFinishLoadingStyle(spotList);
 
         if (dateRangeDialog != null) {
             dateRangeDialog.dismiss();
@@ -829,14 +817,13 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void showInternetUnavailableAlertDialog(List<Spot> spotList) {
-        new AlertDialog.Builder(activity)
+        new AlertDialog.Builder(requireActivity())
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(getResources().getString(R.string.general_network_unavailable_message))
                 .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
                 .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
                         prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
 
                         startMyRoutesActivity();
@@ -845,41 +832,60 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
                         prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
 
-                        drawAnnotations(spotList);
+                        drawAnnotationsOnFinishLoadingStyle(spotList);
                     }
                 }).show();
     }
 
-    private void drawAnnotations(List<Spot> spotList) {
-        if (mapboxMap != null && style != null && style.isFullyLoaded()) {
-            showProgressDialog(getString(R.string.map_drawing_progress_text));
-            Spot[] spotArray = new Spot[spotList.size()];
-            this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
+    private void drawAnnotationsOnFinishLoadingStyle(List<Spot> spotList) {
+        if (mapboxMap == null || style == null || !style.isFullyLoaded()) {
+            //Call drawAnnotations(spotList) again once map style finishes loading.
+            mapView.addOnDidFinishLoadingStyleListener(onDidFinishLoadingStyle);
+            return;
         }
+        drawAnnotations(spotList);
+    }
+
+    private void drawAnnotations(List<Spot> spotList) {
+        showProgressDialog(getString(R.string.map_drawing_progress_text));
+        Spot[] spotArray = new Spot[spotList.size()];
+        this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
+    }
+
+    /**
+     * Listener that should be called once map style finishes loading.
+     **/
+    private MapView.OnDidFinishLoadingStyleListener onDidFinishLoadingStyle = () -> {
+        moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
+            @Override
+            public void onCancel() {
+                removeOnDidFinishLoadingStyleListener();
+                drawAnnotations(getSpotList());
+            }
+
+            @Override
+            public void onFinish() {
+                removeOnDidFinishLoadingStyleListener();
+                drawAnnotations(getSpotList());
+            }
+        });
+    };
+
+    private void removeOnDidFinishLoadingStyleListener() {
+        mapView.removeOnDidFinishLoadingStyleListener(onDidFinishLoadingStyle);
     }
 
     private List<Spot> getSpotList() {
-        Activity activity = getActivity();
+        Activity activity = requireActivity();
 
         if (activity instanceof MainActivity) {
-            List<Spot> lst = viewModel.getSpots(getContext()).getValue();
+            List<Spot> lst = viewModel.getSpots().getValue();
             if (lst != null) return lst;
         }
 
         return new ArrayList<>();
-    }
-
-    @Nullable
-    private Spot getCurrentWaitingSpot() {
-        Activity activity = getActivity();
-
-        if (activity instanceof MainActivity)
-            return viewModel.getCurrentWaitingSpot().getValue();
-
-        return null;
     }
 
     private void setupAnnotations
@@ -913,7 +919,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                         //If there's no spot to show, make map camera follow the GPS updates.
                         //Because it might take some time til Location Engine gets started and the first location update is received,
                         //let's display a "waiting for GPS" message.
-                        Toast.makeText(activity, getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
+                        Toast.makeText(requireActivity(), getString(R.string.waiting_for_gps), Toast.LENGTH_LONG).show();
                         callback.moveMapCameraToNextLocationReceived();
                     } else
                         zoomOutToFitMostRecentRoute();
@@ -990,6 +996,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         super.onResume();
         if (mapView != null)
             mapView.onResume();
+        isHandlingRequestToOpenSpotForm = false;
     }
 
     @Override
@@ -1064,14 +1071,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     @Override
-    public void onDestroy() {
-        Crashlytics.log(Log.INFO, TAG, "onDestroy was called");
-        super.onDestroy();
+    public void onDestroyView() {
+        Crashlytics.log(Log.INFO, TAG, "onDestroyView was called");
+        super.onDestroyView();
         if (mapboxMap != null) {
             mapboxMap.removeOnMapClickListener(this);
         }
         if (mapView != null)
             mapView.onDestroy();
+        ld.removeObservers(requireActivity());
     }
 
     @Override
@@ -1104,7 +1112,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                 //If mapboxMap was not loaded, we can't track the user location using MapBox.
                 if (mapboxMap == null) {
-                    new AlertDialog.Builder(activity)
+                    new AlertDialog.Builder(requireActivity())
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setTitle(getString(R.string.save_spot_button_text))
                             .setMessage(getString(R.string.general_offline_mode_label)
@@ -1188,7 +1196,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private void showAllRoutesOnMap() {
         if (spotsCollection == null) {
-            Toast.makeText(activity, getString(R.string.general_spots_list_not_loaded), Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireActivity(), getString(R.string.general_spots_list_not_loaded), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -1341,7 +1349,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void startMyRoutesActivity() {
-        Intent intent = new Intent(activity, MyRoutesActivity.class);
+        Intent intent = new Intent(requireActivity(), MyRoutesActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
         startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
     }
@@ -1523,7 +1531,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private void showProgressDialog(String message) {
         if (loadingDialog == null) {
-            loadingDialog = new ProgressDialog(activity);
+            loadingDialog = new ProgressDialog(requireActivity());
             loadingDialog.setIndeterminate(true);
             loadingDialog.setCancelable(false);
         }
@@ -1623,7 +1631,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     spot.getWaitingTime() != null) {
                 if (!snippet.isEmpty())
                     snippet += secondSeparator;
-                snippet += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), activity.activity.getBaseContext()) + ")";
+                snippet += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), activity.getContext()) + ")";
             }
 
             //Add note
@@ -1726,7 +1734,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                             case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                                 //The spot is a hitchhiking spot that was already evaluated
                                 icon = activity.getGotARideIconForRoute(routeIndex).getId();
-                                markerTitle = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                                markerTitle = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
                                 break;
                             case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                 //The spot is a hitchhiking spot that was already evaluated
@@ -1762,7 +1770,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     if (spot.getAttemptResult() == null)
                         markerTitle = activity.getString(R.string.map_infoview_spot_type_unknown_attempt_result);
                     else
-                        markerTitle = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                        markerTitle = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
 
                     icon = activity.ic_single_spot.getId();
                     type = Constants.SPOT_TYPE_SINGLE_SPOT;
@@ -1807,7 +1815,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             MyMapsFragment activity = activityRef.get();
             if (activity != null) {
                 HashMap<String, Bitmap> imagesMap = new HashMap<>();
-                LayoutInflater inflater = LayoutInflater.from(activity.activity);
+                LayoutInflater inflater = LayoutInflater.from(activity.getContext());
 
                 View view = inflater.inflate(R.layout.layout_callout, null);
 
@@ -1886,7 +1894,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     protected void showErrorAlert(String title, String msg) {
-        new AlertDialog.Builder(activity)
+        new AlertDialog.Builder(requireActivity())
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(title)
                 .setMessage(msg)
@@ -1992,12 +2000,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             subRoutesSource.setGeoJson(subRoutesCollection);
     }
 
-    public void saveRegularSpotButtonHandler() {
-        saveSpotButtonHandler(false);
+    public void saveRegularSpotButtonHandler(Spot mCurrentWaitingSpot) {
+        saveSpotButtonHandler(mCurrentWaitingSpot, false);
     }
 
-    public void saveDestinationSpotButtonHandler() {
-        saveSpotButtonHandler(true);
+    public void saveDestinationSpotButtonHandler(Spot mCurrentWaitingSpot) {
+        saveSpotButtonHandler(mCurrentWaitingSpot, true);
     }
 
     /**
@@ -2005,58 +2013,64 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * updates have already been requested.
      */
     public void saveSpotButtonHandler(boolean isDestination) {
-        double cameraZoom = -1;
-        Spot spot = null;
-        int requestId = -1;
-        if (!isWaitingForARide()) {
-            requestId = Constants.SAVE_SPOT_REQUEST;
-            spot = new Spot();
-            spot.setIsHitchhikingSpot(!isDestination);
-            spot.setIsNotHitchhikedFromHere(isDestination);
-            spot.setIsDestination(isDestination);
-            spot.setIsPartOfARoute(true);
-            if (mapboxMap != null) {
-                // Keep the same center point of the map.
-                // The user will have a locate button to move the camera to his current position if he wants to do that.
-                if (mapboxMap.getCameraPosition() != null && mapboxMap.getCameraPosition().target != null) {
-                    LatLng selectedLocation = mapboxMap.getCameraPosition().target;
+        //showProgressDialog(getResources().getString(R.string.map_loading_dialog));
+        //viewModel.reloadSpots(requireContext());
+        Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+        saveSpotButtonHandler(mCurrentWaitingSpot, isDestination);
+    }
 
-                    spot.setLatitude(selectedLocation.getLatitude());
-                    spot.setLongitude(selectedLocation.getLongitude());
-                    cameraZoom = mapboxMap.getCameraPosition().zoom;
-                }
+    /**
+     * Handles the Save Spot button and save current location. Does nothing if
+     * updates have already been requested.
+     */
+    public void saveSpotButtonHandler(Spot mCurrentWaitingSpot, boolean isDestination) {
+        double cameraZoom = -1;
+        boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                mCurrentWaitingSpot.getIsWaitingForARide() : false;
+        LatLng selectedLocation = null;
+
+        if (!isWaitingForARide) {
+            // Keep the same center point of the map.
+            // The user will have a locate button to move the camera to his current position if he wants to do that.
+            if (mapboxMap != null && mapboxMap.getCameraPosition().target != null) {
+                selectedLocation = mapboxMap.getCameraPosition().target;
+                cameraZoom = mapboxMap.getCameraPosition().zoom;
             }
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a new spot is being created.");
         } else {
-            requestId = Constants.EDIT_SPOT_REQUEST;
-            spot = getCurrentWaitingSpot();
             Crashlytics.log(Log.INFO, TAG, "Save spot button handler: a spot is being edited.");
         }
 
         isHandlingRequestToOpenSpotForm = true;
-        activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, true, false);
+
+        ((MainActivity) requireActivity()).saveSpotButtonHandler(selectedLocation, cameraZoom, isDestination);
     }
 
-    public void gotARideButtonHandler() {
-        getCurrentWaitingSpot().setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
-        evaluateSpotButtonHandler();
+    public void gotARideButtonHandler(Spot mCurrentWaitingSpot) {
+        if (mCurrentWaitingSpot == null) return;
+        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_GOT_A_RIDE);
+        evaluateSpotButtonHandler(mCurrentWaitingSpot);
     }
 
-    public void tookABreakButtonHandler() {
-        getCurrentWaitingSpot().setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
-        evaluateSpotButtonHandler();
+    public void tookABreakButtonHandler(Spot mCurrentWaitingSpot) {
+        if (mCurrentWaitingSpot == null) return;
+        mCurrentWaitingSpot.setAttemptResult(Constants.ATTEMPT_RESULT_TOOK_A_BREAK);
+        evaluateSpotButtonHandler(mCurrentWaitingSpot);
     }
 
     /**
      * Handles the Got A Ride button, and requests removal of location updates. Does nothing if
      * updates were not previously requested.
      */
-    public void evaluateSpotButtonHandler() {
-        //mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
+    public void evaluateSpotButtonHandler(Spot mCurrentWaitingSpot) {
+        boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                mCurrentWaitingSpot.getIsWaitingForARide() : false;
 
-        if (isWaitingForARide()) {
+        if (isWaitingForARide) {
             isHandlingRequestToOpenSpotForm = true;
-            activity.startSpotFormActivityForResult(getCurrentWaitingSpot(), Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, false);
+            SpotFormViewModel spotFormViewModel = new ViewModelProvider(requireActivity()).get(SpotFormViewModel.class);
+            spotFormViewModel.setCurrentSpot(mCurrentWaitingSpot, false);
+            ((MainActivity) requireActivity()).startSpotFormActivityForResult(null, Constants.KEEP_ZOOM_LEVEL, true);
         }
     }
 
@@ -2090,8 +2104,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return i;
     }
 
-    private ColorStateList getIdentifierColorStateList(int routeIndex) {
-        return ContextCompat.getColorStateList(activity.getBaseContext(), getPolylineColorAsId(routeIndex));
+    private ColorStateList getIdentifierColorStateList(Context context, int routeIndex) {
+        return ContextCompat.getColorStateList(context, getPolylineColorAsId(routeIndex));
     }
 
     private static int getPolylineColorAsId(int routeIndex) {

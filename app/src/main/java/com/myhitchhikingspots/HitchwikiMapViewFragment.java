@@ -15,7 +15,6 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -110,7 +109,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
+        MapboxMap.OnMapClickListener, FirstLocationUpdateListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
@@ -237,8 +236,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             File newFolder = null;
 
             //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                oldFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
-                newFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            oldFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
+            newFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
             /*} else {
                 oldFolder = new File(Constants.SDCARD_STORAGE_PATH + Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
                 newFolder = new File(Constants.SDCARD_STORAGE_PATH + Constants.HITCHWIKI_MAPS_STORAGE_PATH);
@@ -503,8 +502,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         if (spot != null) {
             //Create a record to track of HW spots viewed by the user
             Answers.getInstance().logCustom(new CustomEvent("HW spot viewed"));
-
-            activity.startSpotFormActivityForResult(spot, Constants.KEEP_ZOOM_LEVEL, Constants.EDIT_SPOT_REQUEST, true, true);
+            SpotFormViewModel spotFormViewModel = new ViewModelProvider(requireActivity()).get(SpotFormViewModel.class);
+            spotFormViewModel.setCurrentSpot(spot, true);
+            activity.startSpotFormActivityForResult(null, Constants.KEEP_ZOOM_LEVEL, true);
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
@@ -682,7 +682,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private File getHitchwikiStorageFolder() {
         if (hitchwikiStorageFolder == null) {
             //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                hitchwikiStorageFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            hitchwikiStorageFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
             //else
             //    hitchwikiStorageFolder = new File(Constants.SDCARD_STORAGE_PATH + Constants.HITCHWIKI_MAPS_STORAGE_PATH);
         }
@@ -994,11 +994,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             Crashlytics.logException(ex);
         }
         return "";
-    }
-
-    @Override
-    public void onSpotListChanged() {
-        //spotList here is the one used by My Maps. Nothing needs to be done here.
     }
 
     @Override

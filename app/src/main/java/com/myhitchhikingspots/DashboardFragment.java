@@ -1,6 +1,5 @@
 package com.myhitchhikingspots;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -28,7 +27,7 @@ import com.myhitchhikingspots.utilities.Utils;
 import java.util.List;
 import java.util.Locale;
 
-public class DashboardFragment extends Fragment implements MainActivity.OnMainActivityUpdated {
+public class DashboardFragment extends Fragment {
     TextView txtNumSpotsSaved, txtNumHWSpotsDownloaded, txtShortestWaitingTime, txtLongestWaitingTime,
             txtShortestWaitingTimesAreBetween, txtBestHoursToHitchhike;
     SharedPreferences prefs;
@@ -70,7 +69,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         seeMyMapsBtn.setText(getString(R.string.action_button_label, getString(R.string.menu_my_maps)));
         seeMyMapsBtn.setOnClickListener(view1 -> activity.navigateToDestination(R.id.nav_my_map));
 
-        viewModel.getSpots(getContext()).observe(activity, this::updateUI);
+        viewModel.getSpots().observe(activity, this::updateUI);
     }
 
     @Override
@@ -98,43 +97,13 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         return super.onOptionsItemSelected(item);
     }
 
-    @Nullable
-    private Spot getCurrentWaitingSpot() {
-        Activity activity = getActivity();
-
-        if (activity instanceof MainActivity)
-            return viewModel.getCurrentWaitingSpot().getValue();
-
-        return null;
-    }
-
-    private boolean isWaitingForARide() {
-        Spot mCurrentWaitingSpot = getCurrentWaitingSpot();
-        return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
-                mCurrentWaitingSpot.getIsWaitingForARide() : false;
-    }
-
     public void saveSpotButtonHandler(boolean isDestination) {
         MainActivity activity = (MainActivity) getActivity();
         if (activity == null)
             return;
-        double cameraZoom = -1;
-        Spot spot = null;
-        int requestId = -1;
-        if (!isWaitingForARide()) {
-            requestId = Constants.SAVE_SPOT_REQUEST;
-            spot = new Spot();
-            spot.setIsHitchhikingSpot(!isDestination);
-            spot.setIsDestination(isDestination);
-            spot.setIsPartOfARoute(true);
-
-        } else {
-            requestId = Constants.EDIT_SPOT_REQUEST;
-            spot = getCurrentWaitingSpot();
-        }
 
         isHandlingRequestToOpenSpotForm = true;
-        activity.startSpotFormActivityForResult(spot, cameraZoom, requestId, false, false);
+        ((MainActivity) requireActivity()).saveSpotButtonHandler(null, -1, isDestination);
     }
 
     @Override
@@ -144,16 +113,6 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         isHandlingRequestToOpenSpotForm = false;
 
         //NOTE: updateSpotList() will be called after DashboardFragment.onActivityResult() by MainActivity.onActivityResult()
-    }
-
-    /**
-     * Method called always that spotList is loaded or reloaded from the database.
-     **/
-    @Override
-    public void onSpotListChanged() {
-        //Reload spots, once completed, sets the spots list which is being observed and calls updateUI.
-        showProgressDialog(getResources().getString(R.string.map_loading_dialog));
-        viewModel.reloadSpots(getContext());
     }
 
     private void updateUI(List<Spot> spotList) {

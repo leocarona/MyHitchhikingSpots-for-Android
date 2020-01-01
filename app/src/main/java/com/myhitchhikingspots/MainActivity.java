@@ -2,7 +2,6 @@ package com.myhitchhikingspots;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -10,7 +9,6 @@ import android.view.View;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -22,6 +20,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.myhitchhikingspots.model.Spot;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,25 +31,7 @@ public class MainActivity extends AppCompatActivity {
     public static String ARG_REQUEST_TO_OPEN_FRAGMENT = "request-to-open-resource-id";
     protected static final String TAG = "main-activity";
 
-    // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
-    // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
-    // private ActionBarDrawerToggle drawerToggle;
-
     SharedPreferences prefs;
-
-    //Default fragment that will open on the app startup
-    int defaultFragmentResourceId = R.id.nav_my_map;
-
-    public interface OnMainActivityUpdated {
-        /**
-         * Method called always that spotList is loaded or reloaded from the database.
-         **/
-        void onSpotListChanged();
-
-        void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults);
-
-        void onActivityResult(int requestCode, int resultCode, Intent data);
-    }
 
     SpotsListViewModel viewModel;
 
@@ -102,6 +83,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Navigation.findNavController(this, R.id.nav_host_fragment).navigateUp();
+
+        /*int count = getSupportFragmentManager().getBackStackEntryCount();
+
+        if (count == 0) {
+            super.onBackPressed();
+            //additional code
+        } else {
+            getSupportFragmentManager().popBackStack();
+        }*/
+
     }
 
     DrawerLayout.DrawerListener drawerListener = new DrawerLayout.DrawerListener() {
@@ -135,32 +126,37 @@ public class MainActivity extends AppCompatActivity {
         Navigation.findNavController(this, R.id.nav_host_fragment).navigate(destinationResourceId, args);
     }
 
-    public void startToolsActivityForResult() {
-        navigateToDestination(R.id.nav_tools);
-    }
-
     /**
-     * @param shouldGoBack            should be set to true when you want the user to be sent to a new instance of MainActivity once they're done editing/adding a spot.
-     * @param shouldRetrieveHWDetails should be set to true when the given spot is a Hitchwiki spot, so that we'll download more data from HW and display them on SpotFormActivity.
+     * @param shouldGoBack should be set to true when you want the user to be sent to a new instance of MainActivity once they're done editing/adding a spot.
      */
-    public void startSpotFormActivityForResult(Spot spot, double cameraZoom, int requestId, boolean shouldGoBack, boolean shouldRetrieveHWDetails) {
-        Intent intent = new Intent(getBaseContext(), SpotFormActivity.class);
-        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
-        intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBack);
-        intent.putExtra(Constants.SHOULD_RETRIEVE_HITCHWIKI_DETAILS_KEY, shouldRetrieveHWDetails);
-        startActivityForResult(intent, requestId);
+    public void startSpotFormActivityForResult(@Nullable LatLng selectedLocation, double cameraZoom, boolean shouldGoBack) {
+        Bundle bundle = new Bundle();
+        bundle.putDouble(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
+        bundle.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBack);
+
+        navigateToDestination(R.id.nav_spot_form, bundle);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        /*Fragment currentFragment = getCurrentFragment();
-        if (currentFragment instanceof OnMainActivityUpdated) {
-            //Set the active fragment.
-            OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
-            frag.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }*/
+    public void saveSpotButtonHandler(@Nullable LatLng selectedLocation, double cameraZoom, boolean isDestination) {
+        Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+
+        if (mCurrentWaitingSpot == null) {
+            mCurrentWaitingSpot = new Spot();
+            mCurrentWaitingSpot.setIsHitchhikingSpot(!isDestination);
+            mCurrentWaitingSpot.setIsNotHitchhikedFromHere(isDestination);
+            mCurrentWaitingSpot.setIsDestination(isDestination);
+            mCurrentWaitingSpot.setIsPartOfARoute(true);
+
+            if (selectedLocation != null) {
+                mCurrentWaitingSpot.setLatitude(selectedLocation.getLatitude());
+                mCurrentWaitingSpot.setLongitude(selectedLocation.getLongitude());
+            }
+
+            SpotFormViewModel spotFormViewModel = new ViewModelProvider(this).get(SpotFormViewModel.class);
+            spotFormViewModel.setCurrentSpot(mCurrentWaitingSpot, false);
+        }
+
+        startSpotFormActivityForResult(selectedLocation, cameraZoom, true);
     }
 
     @Override
@@ -177,26 +173,6 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage(msg)
                 .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
                 .show();
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-       /* Fragment currentFragment = getCurrentFragment();
-        if (currentFragment instanceof OnMainActivityUpdated) {
-            //Set the active fragment.
-            OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
-            frag.onActivityResult(requestCode, resultCode, data);
-
-            if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false)) {
-                //If user is navigating back to Dashboard or My Maps, reload spot list
-                if (frag instanceof DashboardFragment || frag instanceof MyMapsFragment) {
-                    notifyFragment(getCurrentFragment());
-                    prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
-                }
-            }
-        }*/
     }
 
     private ProgressDialog loadingDialog;

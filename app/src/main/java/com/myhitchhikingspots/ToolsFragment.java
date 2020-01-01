@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 import static android.app.Activity.RESULT_OK;
 
 
-public class ToolsFragment extends Fragment implements MainActivity.OnMainActivityUpdated {
+public class ToolsFragment extends Fragment {
     TextView mfeedbacklabel;
     View coordinatorLayout;
 
@@ -172,13 +172,6 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
 
         ((TextView) view.findViewById(R.id.tools_tips_description))
                 .setText(getString(R.string.tools_tips_description, getString(R.string.settings_exportdb_button_label), getString(R.string.settings_importdb_button_label)));
-    }
-
-    /**
-     * Method called always that spotList is loaded or reloaded from the database.
-     **/
-    @Override
-    public void onSpotListChanged() {
     }
 
     private static String getFragmentClassNameForSelectedSpinnerItem(int spinnerItemIndex) {
@@ -519,8 +512,6 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
             Cursor curCSV = viewModel.rawQuery(requireActivity(), "select * from " + SpotDao.TABLENAME, null);
 
             t.execute(curCSV);
-
-            viewModel.loadWaitingSpot(requireActivity());
 
         } catch (Exception e) {
             Crashlytics.logException(e);

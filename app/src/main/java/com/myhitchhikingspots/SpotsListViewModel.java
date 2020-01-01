@@ -6,8 +6,8 @@ import android.database.Cursor;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.Spot;
@@ -18,38 +18,33 @@ import org.greenrobot.greendao.database.Database;
 import java.util.List;
 
 public class SpotsListViewModel extends AndroidViewModel {
-    private MutableLiveData<Spot> mCurrentWaitingSpot;
+    private MediatorLiveData<List<Spot>> spotList;
+    private MutableLiveData<Spot> mWaitingSpot;
     private SpotsRepository mRepository;
 
     public SpotsListViewModel(Application context) {
         super(context);
         mRepository = ((MyHitchhikingSpotsApplication) context).getSpotsRepository();
+        spotList = new MediatorLiveData<>();
+        mWaitingSpot = new MutableLiveData<>();
+        spotList.addSource(mRepository.getSpots(context), s -> {
+            spotList.setValue(s);
+            Spot waitingSpot = null;
+            if (s != null)
+                waitingSpot = findWaitingSpot(s);
+            setWaitingSpot(waitingSpot);
+        });
     }
 
-    public LiveData<List<Spot>> getSpots(Context context) {
-        LiveData<List<Spot>> spotList = mRepository.getSpots(context);
-
-        updateWaitingSpot(context);
-
+    public LiveData<List<Spot>> getSpots() {
         return spotList;
-    }
-
-    void updateWaitingSpot(Context context) {
-        LiveData<List<Spot>> spots = mRepository.getSpots(context);
-        if (mCurrentWaitingSpot == null && spots != null && spots.getValue() != null) {
-            mCurrentWaitingSpot = new MutableLiveData<>();
-
-            Spot waitingSpot = getWaitingSpot(spots.getValue());
-            setCurrentWaitingSpot(waitingSpot);
-        }
     }
 
     public void reloadSpots(Context context) {
         mRepository.loadSpots(context);
-        updateWaitingSpot(context);
     }
 
-    private Spot getWaitingSpot(List<Spot> spotList) {
+    private Spot findWaitingSpot(List<Spot> spotList) {
         Spot spot = null;
         //There should be only one waiting spot, and it should always be at the first position of the list
         // (the list is ordered descending by datetime). But in case some bug has happened and the user
@@ -63,27 +58,12 @@ public class SpotsListViewModel extends AndroidViewModel {
         return spot;
     }
 
-    public void setCurrentWaitingSpot(Spot spot) {
-        if (mCurrentWaitingSpot == null)
-            mCurrentWaitingSpot = new MutableLiveData<>();
-        mCurrentWaitingSpot.setValue(spot);
+    public void setWaitingSpot(Spot spot) {
+        mWaitingSpot.setValue(spot);
     }
 
-    public LiveData<Spot> getCurrentWaitingSpot() {
-        if (mCurrentWaitingSpot == null)
-            mCurrentWaitingSpot = new MutableLiveData<>();
-        return mCurrentWaitingSpot;
-    }
-
-    /**
-     * TODO: We're keeping the old logic here, but in the future we can avaluate the possibility of
-     * replacing this method for {@link #getSpots(Context)}
-     * because they seem to do the same thing + we'd keep spotlist updated.
-     **/
-    public void loadWaitingSpot(Context context) {
-        Spot waitingSpot = mRepository.getWaitingSpot(context);
-        if (waitingSpot != null)
-            setCurrentWaitingSpot(waitingSpot);
+    public LiveData<Spot> getWaitingSpot() {
+        return mWaitingSpot;
     }
 
     public Cursor rawQuery(Context context, String sql, String[] selectionArgs) {

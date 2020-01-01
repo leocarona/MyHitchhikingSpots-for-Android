@@ -65,7 +65,7 @@ import static android.os.Looper.getMainLooper;
  * Download, view, navigate to, and delete an offline region.
  */
 public class OfflineMapManagerFragment extends Fragment implements
-        OnMapReadyCallback, PermissionsListener, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
+        OnMapReadyCallback, PermissionsListener, FirstLocationUpdateListener {
 
     // JSON encoding/decoding
     public static final String JSON_CHARSET = "UTF-8";
@@ -221,10 +221,6 @@ public class OfflineMapManagerFragment extends Fragment implements
 
         // Set up the offlineManager
         offlineManager = OfflineManager.getInstance(activity);
-    }
-
-    @Override
-    public void onSpotListChanged() {
     }
 
     @Override

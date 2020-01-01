@@ -41,14 +41,6 @@ limitations under the License.
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".SpotFormActivity"
-            android:label="@string/save_spot_button_text"
-            android:theme="@style/Theme.Base.NoActionBar">
-            <!--<meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                 />-->
-        </activity>
-        <activity
             android:name=".MyRoutesActivity"
             android:label="@string/main_activity_title"
             android:theme="@style/Theme.Base.NoActionBar" />

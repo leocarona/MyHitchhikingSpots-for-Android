@@ -112,7 +112,7 @@ public class SpotListFragment extends Fragment {
                 public void onSpotClicked(Spot spot) {
                     if (isHandlingRequestToOpenSpotForm)
                         return;
-                    Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
+                    Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
 
                     //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
                     if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
@@ -179,7 +179,7 @@ public class SpotListFragment extends Fragment {
     private void deleteSelectedSpots() {
         String errorMessage = "";
         try {
-            Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
+            Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
             Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
                     mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
             ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
@@ -189,7 +189,7 @@ public class SpotListFragment extends Fragment {
 
                 //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
                 if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
-                    viewModel.setCurrentWaitingSpot(null);
+                    viewModel.setWaitingSpot(null);
 
                 //Concatenate Id in a list as "Id.columnName = x"
                 spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
