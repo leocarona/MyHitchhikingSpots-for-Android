@@ -681,8 +681,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             // let's try to use a countries list previously downloaded.
             // (this list might be not so updated, but it's better than nothing!)
             if (!result.isEmpty() && !isListJustDownloaded && wasCountriesListDownloaded()) {
-                countries = Utils.loadCountriesListFromLocalFile();
-                isListLoadedFromLocalStorage = true;
+                try {
+                    countries = Utils.loadCountriesListFromLocalFile();
+                    isListLoadedFromLocalStorage = true;
+                } catch (Exception ex) {
+                    Crashlytics.logException(ex);
+                    countries = new CountryInfoBasic[0];
+                    result = ex.getLocalizedMessage();
+                }
             }
 
             if (countries == null || countries.length == 0) {
@@ -694,21 +700,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             countriesContainer = countries;
 
             if (isListJustDownloaded) {
-                saveCountriesListLocally(countriesContainer);
+                try {
+                    saveCountriesListLocally(countriesContainer);
 
-                //also write into prefs that markers sync has occurred
-                Long currentMillis = System.currentTimeMillis();
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).apply();
-
-                /*if (currentMillis != 0) {
-                    //convert millisecondsAtDownload to some kind of date and time text
-                    SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-                    Date resultdate = new Date(currentMillis);
-                    String timeStamp = sdf.format(resultdate);
-
-                    String.format(getString(R.string.general_items_downloaded_message),
-                    countriesContainer.length) + " " + String.format(getString(R.string.general_last_sync_date), timeStamp);
-                } */
+                    //also write into prefs that markers sync has occurred
+                    Long currentMillis = System.currentTimeMillis();
+                    prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).apply();
+                } catch (Exception exception) {
+                    Crashlytics.logException(exception);
+                }
             }
 
             if (isListJustDownloaded || isListLoadedFromLocalStorage) {
@@ -719,32 +719,27 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     };
 
-    void saveCountriesListLocally(CountryInfoBasic[] countriesList) {
+    void saveCountriesListLocally(CountryInfoBasic[] countriesList) throws Exception {
         File file = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
-        try {
-            FileOutputStream fileOutput = new FileOutputStream(file);
+        FileOutputStream fileOutput = new FileOutputStream(file);
 
-            Gson gsonC = new Gson();
-            String placesContainerAsString = gsonC.toJson(countriesList);
+        Gson gsonC = new Gson();
+        String placesContainerAsString = gsonC.toJson(countriesList);
 
-            InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
+        InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
 
-            //create a buffer...
-            byte[] buffer = new byte[1024];
-            int bufferLength = 0; //used to store a temporary size of the buffer
+        //create a buffer...
+        byte[] buffer = new byte[1024];
+        int bufferLength = 0; //used to store a temporary size of the buffer
 
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                //add the data in the buffer to the file in the file output stream (the file on the sd card
-                fileOutput.write(buffer, 0, bufferLength);
-            }
-
-            //close the output stream when done
-            fileOutput.close();
-
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
+        while ((bufferLength = inputStream.read(buffer)) > 0) {
+            //add the data in the buffer to the file in the file output stream (the file on the sd card
+            fileOutput.write(buffer, 0, bufferLength);
         }
+
+        //close the output stream when done
+        fileOutput.close();
     }
 
     void showCountriesListDialog() {
@@ -876,31 +871,38 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void onDownloadedFinished(String result) {
-        if (result.contentEquals("spotsDownloaded")) {
+        String errMsg = "";
+        try {
+            if (result.contentEquals("spotsDownloaded")) {
+                savePlacesListLocally(placesContainer);
 
-            savePlacesListLocally(placesContainer);
+                //Get current datetime in milliseconds
+                Long millisecondsAtRefresh = System.currentTimeMillis();
 
-            //Get current datetime in milliseconds
-            Long millisecondsAtRefresh = System.currentTimeMillis();
-
-            //also write into prefs that markers sync has occurred
-            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
-            prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
-
-            Activity activity = getActivity();
-            if (activity != null)
-                Toast.makeText(activity.getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
-        } else {
-            if (result.contentEquals("nothingToSync")) {
+                //also write into prefs that markers sync has occurred
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
+                prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
+            } else if (result.contentEquals("nothingToSync")) {
                 //also write into prefs that markers sync has occurred
                 prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
                 prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
 
                 savePlacesListLocally(placesContainer);
-
-                showErrorAlert(getString(R.string.hwmaps_spotslist_cleared_title), getString(R.string.hwmaps_spotslist_cleared_message));
             } else if (!result.isEmpty())
-                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.hwmaps_hitchwikiMapsSpots_download_failed_message), result));
+                errMsg = result;
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            errMsg = ex.getLocalizedMessage();
+        }
+
+        Activity activity = getActivity();
+        if (activity != null) {
+            if (!errMsg.isEmpty())
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.hwmaps_hitchwikiMapsSpots_download_failed_message), errMsg));
+            else if (result.contentEquals("nothingToSync"))
+                showErrorAlert(getString(R.string.hwmaps_spotslist_cleared_title), getString(R.string.hwmaps_spotslist_cleared_message));
+            else if (result.contentEquals("spotsDownloaded"))
+                Toast.makeText(activity.getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
         }
 
         dismissProgressDialog();
@@ -1075,35 +1077,29 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     };
 
-    void savePlacesListLocally(List<PlaceInfoBasic> places) {
+    void savePlacesListLocally(List<PlaceInfoBasic> places) throws Exception {
         //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
         //so we have to create file in storage folder and stream placesContainer into it using gson
         File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
-        try {
-            FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
+        FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
 
-            Gson gsonC = new Gson();
-            String placesContainerAsString = gsonC.toJson(places);
+        Gson gsonC = new Gson();
+        String placesContainerAsString = gsonC.toJson(places);
 
-            InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
+        InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
 
-            //create a buffer...
-            byte[] buffer = new byte[1024];
-            int bufferLength = 0; //used to store a temporary size of the buffer
+        //create a buffer...
+        byte[] buffer = new byte[1024];
+        int bufferLength = 0; //used to store a temporary size of the buffer
 
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                //add the data in the buffer to the file in the file output stream (the file on the sd card
-                fileOutput.write(buffer, 0, bufferLength);
-            }
-
-            //close the output stream when done
-            fileOutput.close();
-
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
+        while ((bufferLength = inputStream.read(buffer)) > 0) {
+            //add the data in the buffer to the file in the file output stream (the file on the sd card
+            fileOutput.write(buffer, 0, bufferLength);
         }
 
+        //close the output stream when done
+        fileOutput.close();
     }
 
     @Override
