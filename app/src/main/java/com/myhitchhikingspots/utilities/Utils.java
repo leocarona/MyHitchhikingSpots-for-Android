@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import hitchwikiMapsSDK.classes.ApiManager;
@@ -193,36 +192,24 @@ public class Utils {
         }
     }
 
-    public static CountryInfoBasic[] loadCountriesListFromLocalFile() {
+    public static CountryInfoBasic[] loadCountriesListFromLocalFile() throws Exception {
+        //get markersStorageFile streamed into String, so gson can convert it into placesContainer
+        String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
-        try {
-            //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
-
-            return parseGetCountriesWithCoordinates(placesContainerAsString);
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
-        }
-
-        return new CountryInfoBasic[0];
+        return parseGetCountriesWithCoordinates(placesContainerAsString);
     }
 
     static String TAG = "utils";
 
-    public static PlaceInfoBasic[] loadHitchwikiSpotsFromLocalFile() {
+    public static PlaceInfoBasic[] loadHitchwikiSpotsFromLocalFile() throws Exception {
+        //get markersStorageFile streamed into String, so gson can convert it into placesContainer
+        String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
-        try {
-            //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
+        Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
+        Crashlytics.setString("placesContainerAsString", placesContainerAsString);
 
-            Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
-            Crashlytics.setString("placesContainerAsString", placesContainerAsString);
-
-            if (!placesContainerAsString.isEmpty())
-                return new ApiManager().getPlacesByContinenFromLocalFile(placesContainerAsString);
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
-        }
+        if (!placesContainerAsString.isEmpty())
+            return new ApiManager().getPlacesByContinenFromLocalFile(placesContainerAsString);
 
         return new PlaceInfoBasic[0];
     }
@@ -372,19 +359,14 @@ public class Utils {
         return errorMessage;
     }
 
-    public static String loadFileFromLocalStorage(String fileName) {
+    public static String loadFileFromLocalStorage(String fileName) throws Exception {
         Crashlytics.setString("Name of the file to load", fileName);
         File markersStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
-        String result = "";
         File fl = new File(markersStorageFolder, fileName);
-        try {
-            FileInputStream fin = new FileInputStream(fl);
-            result = Utils.convertStreamToString(fin);
-            fin.close();
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
-        }
+        FileInputStream fin = new FileInputStream(fl);
+        String result = Utils.convertStreamToString(fin);
+        fin.close();
 
         return result;
     }
