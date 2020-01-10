@@ -722,6 +722,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     void saveCountriesListLocally(CountryInfoBasic[] countriesList) throws Exception {
         File file = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
+        if (!file.exists())
+            file.createNewFile();
+
         FileOutputStream fileOutput = new FileOutputStream(file);
 
         Gson gsonC = new Gson();
@@ -1081,6 +1084,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
         //so we have to create file in storage folder and stream placesContainer into it using gson
         File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
+
+        if (!fileToStoreMarkersInto.exists())
+            fileToStoreMarkersInto.createNewFile();
 
         FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
 
