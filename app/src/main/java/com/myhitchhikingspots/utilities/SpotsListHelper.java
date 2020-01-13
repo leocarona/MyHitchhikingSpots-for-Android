@@ -1,18 +1,24 @@
 package com.myhitchhikingspots.utilities;
 
+import android.content.Context;
+
 import androidx.core.util.Pair;
 
+import com.crashlytics.android.Crashlytics;
 import com.mapbox.geojson.Feature;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.MyMapsFragment;
+import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.model.Spot;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Minutes;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -278,8 +284,8 @@ public class SpotsListHelper {
         return numOfRides;
     }
 
-    public static int getShortestWaitingTime(List<Spot> spotList){
-        Integer  shortestWaitingTime = 0;
+    public static int getShortestWaitingTime(List<Spot> spotList) {
+        Integer shortestWaitingTime = 0;
 
         if (spotList.size() > 0)
             shortestWaitingTime = spotList.get(0).getWaitingTime() == null ? 0 : spotList.get(0).getWaitingTime();
@@ -303,10 +309,11 @@ public class SpotsListHelper {
         return shortestWaitingTime;
     }
 
-    public static int getLongestWaitingTime(List<Spot> spotList){
-        int longestWaitingTime=0;
+    public static int getLongestWaitingTime(List<Spot> spotList) {
+        int longestWaitingTime = 0;
         if (spotList.size() > 0)
-            longestWaitingTime = spotList.get(0).getWaitingTime() == null ? 0 : spotList.get(0).getWaitingTime();;
+            longestWaitingTime = spotList.get(0).getWaitingTime() == null ? 0 : spotList.get(0).getWaitingTime();
+        ;
 
         for (Spot spot : spotList) {
             Boolean isDestination = spot.getIsDestination() == null ? false : spot.getIsDestination();
@@ -321,5 +328,61 @@ public class SpotsListHelper {
             }
         }
         return longestWaitingTime;
+    }
+
+    /**
+     * Get a string containing the sum of all totals of each route.
+     *
+     * @returns List where Long is the id of the route's destination spot and a String containing the totals.
+     * .get(id_of_the_destination_spot) should give you the totals of that route.
+     **/
+    public static Hashtable<Long, String> SumRouteTotalsAndUpdateTheirDestinationNotes(Context context, List<Spot> data) {
+        Hashtable<Long, String> totalsToDestinations = new Hashtable<>();
+        //Integer totalWaitingTimeMinutes = 0;
+        Integer totalRides = 0;
+        DateTime startDateTime = null;
+
+        if (data.size() > 1)
+            startDateTime = data.get(data.size() - 1).getStartDateTime();
+
+        //The spots are ordered from the last saved ones to the first saved ones, so we need to
+        // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
+        for (int i = data.size() - 1; i >= 0; i--) {
+            try {
+                Spot spot = data.get(i);
+                Boolean isDestination = spot.getIsDestination() == null ? false : spot.getIsDestination();
+                Boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() == null ? false : spot.getIsHitchhikingSpot();
+                Boolean isPartOfARoute = spot.getIsPartOfARoute() == null ? false : spot.getIsPartOfARoute();
+                Boolean isGotARide = spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE;
+
+                if (!isDestination) {
+                    if (isHitchhikingSpot && isPartOfARoute && isGotARide)
+                        totalRides++;
+                } else {
+                    Integer minutes = 0;
+
+                    if (startDateTime != null) {
+                        DateTime endDateTime = spot.getStartDateTime();
+                        minutes = Minutes.minutesBetween(startDateTime, endDateTime).getMinutes();
+                    }
+
+                    String waiting_time = Utils.getWaitingTimeAsString((minutes), context);
+                    String formatedStr = String.format(context.getResources().getString(R.string.destination_spot_totals_format),
+                            totalRides, waiting_time);
+
+                    totalsToDestinations.put(spot.getId(), formatedStr);
+
+                    //totalWaitingTimeMinutes = 0;
+                    totalRides = 0;
+                    startDateTime = null;
+
+                    if (i - 1 >= 0)
+                        startDateTime = data.get(i - 1).getStartDateTime();
+                }
+            } catch (Exception ex) {
+                Crashlytics.logException(ex);
+            }
+        }
+        return totalsToDestinations;
     }
 }

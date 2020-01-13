@@ -82,8 +82,10 @@ import org.joda.time.DateTime;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 
 import static android.os.Looper.getMainLooper;
@@ -1525,6 +1527,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             if (activity == null)
                 return false;
 
+            Hashtable<Long, String> totalsToDestinations = SpotsListHelper.SumRouteTotalsAndUpdateTheirDestinationNotes(activity.getContext(), Arrays.asList(spotList));
             List<Route> routes = new ArrayList<>();
             List<Spot> singleSpots = new ArrayList<>();
 
@@ -1540,7 +1543,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             //Convert every spot that belong to no route (a.k.a single spot) into a Feature with properties
             for (int j = 0; j < singleSpots.size(); j++) {
-                spotsListAsFeatures.add(GetFeature(singleSpots.get(j), 0, false, activityRef));
+                spotsListAsFeatures.add(GetFeature(singleSpots.get(j), 0, false, "", activityRef));
             }
 
             for (int i = 0; i < routes.size(); i++) {
@@ -1549,7 +1552,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 //Convert every spot that belong to a route into a Feature with properties
                 for (int j = 0; j < r.spots.size(); j++) {
                     Spot s = r.spots.get(j);
-                    spotsListAsFeatures.add(GetFeature(s, i, (j == 0), activityRef));
+                    spotsListAsFeatures.add(GetFeature(s, i, (j == 0), totalsToDestinations.get(s.getId()), activityRef));
                 }
 
                 //Convert every SubRoute into a LineString with properties (color, style and routeIndex)
@@ -1611,7 +1614,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             activity.setupAnnotations(spotsListAsFeatures, linesForSubRoutes, numberOfSpotsOnMostRecentRoute);
         }
 
-        static Feature GetFeature(Spot spot, int routeIndex, boolean isOrigin, WeakReference<MyMapsFragment> activityRef) {
+        static Feature GetFeature(Spot spot, int routeIndex, boolean isOrigin, String routeTotalsForDestinationSpotsOnly, WeakReference<MyMapsFragment> activityRef) {
             MyMapsFragment activity = activityRef.get();
             if (activity == null)
                 return null;
@@ -1619,6 +1622,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             LatLng pos = new LatLng(spot.getLatitude(), spot.getLongitude());
             String tag = spot.getId() != null ? spot.getId().toString() : "";
             String snippet = getSnippet(activity, spot, "\n", " ", "\n");
+
+            if (spot.getIsDestination() != null && spot.getIsDestination())
+                snippet += "\n" + routeTotalsForDestinationSpotsOnly;
 
             JsonObject properties = new JsonObject();
             properties.addProperty(PROPERTY_ROUTEINDEX, routeIndex);

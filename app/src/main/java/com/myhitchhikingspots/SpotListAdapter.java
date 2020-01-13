@@ -21,10 +21,10 @@ import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.interfaces.CheckboxListener;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.utilities.SpotsListHelper;
 import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
-import org.joda.time.Minutes;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -37,7 +37,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     protected static final String TAG = "spot-list-adapter";
     private List<Spot> mData;
     private Activity activity;
-    public Hashtable<Long, String> totalsToDestinations;
+    public final Hashtable<Long, String> totalsToDestinations = new Hashtable<>();
     public ArrayList<Integer> selectedSpots = new ArrayList<>();
     ListListener onSelectedSpotsListChangedListener;
 
@@ -49,57 +49,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     void setSpotList(List<Spot> spotsList) {
         mData = spotsList;
 
-        SumRouteTotalsAndUpdateTheirDestinationNotes(mData);
-    }
-
-    private void SumRouteTotalsAndUpdateTheirDestinationNotes(List<Spot> data) {
+        totalsToDestinations.clear();
         Crashlytics.log(Log.INFO, TAG, "Summing up the total of rides gotten and hours traveling");
-        totalsToDestinations = new Hashtable<>();
-        //Integer totalWaitingTimeMinutes = 0;
-        Integer totalRides = 0;
-        DateTime startDateTime = null;
-
-        if (data.size() > 1)
-            startDateTime = data.get(data.size() - 1).getStartDateTime();
-
-        //The spots are ordered from the last saved ones to the first saved ones, so we need to
-        // go through the list in the oposite direction in order to sum up the route's totals from their origin to their destinations
-        for (int i = data.size() - 1; i >= 0; i--) {
-            try {
-                Spot spot = data.get(i);
-                Boolean isDestination = spot.getIsDestination() == null ? false : spot.getIsDestination();
-                Boolean isHitchhikingSpot = spot.getIsHitchhikingSpot() == null ? false : spot.getIsHitchhikingSpot();
-                Boolean isPartOfARoute = spot.getIsPartOfARoute() == null ? false : spot.getIsPartOfARoute();
-                Boolean isGotARide = spot.getAttemptResult() != null && spot.getAttemptResult() == Constants.ATTEMPT_RESULT_GOT_A_RIDE;
-
-                if (!isDestination) {
-                    if (isHitchhikingSpot && isPartOfARoute && isGotARide)
-                        totalRides++;
-                } else {
-                    Integer minutes = 0;
-
-                    if (startDateTime != null) {
-                        DateTime endDateTime = spot.getStartDateTime();
-                        minutes = Minutes.minutesBetween(startDateTime, endDateTime).getMinutes();
-                    }
-
-                    String waiting_time = Utils.getWaitingTimeAsString((minutes), activity);
-                    String formatedStr = String.format(activity.getResources().getString(R.string.destination_spot_totals_format),
-                            totalRides, waiting_time);
-
-                    totalsToDestinations.put(spot.getId(), formatedStr);
-
-                    //totalWaitingTimeMinutes = 0;
-                    totalRides = 0;
-                    startDateTime = null;
-
-                    if (i - 1 >= 0)
-                        startDateTime = data.get(i - 1).getStartDateTime();
-                }
-            } catch (Exception ex) {
-                Crashlytics.logException(ex);
-            }
-        }
+        totalsToDestinations.putAll(SpotsListHelper.SumRouteTotalsAndUpdateTheirDestinationNotes(activity, spotsList));
     }
 
     public boolean getIsOneOrMoreSpotsSelected() {
