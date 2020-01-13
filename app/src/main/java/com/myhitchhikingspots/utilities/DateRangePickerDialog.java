@@ -1,4 +1,4 @@
-package com.myhitchhikingspots;
+package com.myhitchhikingspots.utilities;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -8,6 +8,7 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
+import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.utilities.Utils;
 import com.savvi.rangedatepicker.CalendarPickerView;
 
@@ -61,7 +62,7 @@ public class DateRangePickerDialog extends Dialog {
         lastCalendarDay.add(Calendar.DAY_OF_MONTH, -1);
 
 
-        calendar.init(lastCalendarDay.getTime(), nextCalendarDay.getTime(), new SimpleDateFormat("MMMM, YYYY", Locale.getDefault()))
+        calendar.init(lastCalendarDay.getTime(), nextCalendarDay.getTime(), new SimpleDateFormat("MMMM, yyyy", Locale.getDefault()))
                 .inMode(CalendarPickerView.SelectionMode.RANGE)
                 .withAllDatesDeactivatedExcept(possibleBeginningDates);
 
