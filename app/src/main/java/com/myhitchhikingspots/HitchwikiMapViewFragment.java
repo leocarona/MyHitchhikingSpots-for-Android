@@ -100,6 +100,9 @@ import static android.os.Looper.getMainLooper;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.step;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
@@ -139,6 +142,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private static final int PERMISSIONS_LOCATION = 0;
     private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
 
+    private final int ic_add_zoom_level = 12;
+
     private static final String MARKER_SOURCE_ID = "markers-source";
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
@@ -146,7 +151,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     AsyncTask loadTask, downloadPlacesAsyncTask, downloadCountriesListAsyncTask;
 
     Icon ic_single_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
-    Icon ic_hitchability_unknown, ic_hitchability_very_good, ic_hitchability_good, ic_hitchability_average, ic_hitchability_bad, ic_hitchability_senseless;
+    Icon ic_hitchability_unknown, ic_hitchability_very_good, ic_hitchability_good, ic_hitchability_average, ic_hitchability_bad, ic_hitchability_senseless, ic_target;
 
     List<Spot> spotList = new ArrayList();
     //Each hitchhiking spot is a feature
@@ -265,6 +270,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         ic_hitchability_average = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
         ic_hitchability_bad = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
         ic_hitchability_senseless = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(5));
+
+        ic_target = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_add, ContextCompat.getColorStateList(getActivity(), R.color.mapboxGrayExtraDark));
     }
 
     @Override
@@ -586,6 +593,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         loadedMapStyle.addImage(ic_hitchability_average.getId(), ic_hitchability_average.getBitmap());
         loadedMapStyle.addImage(ic_hitchability_bad.getId(), ic_hitchability_bad.getBitmap());
         loadedMapStyle.addImage(ic_hitchability_senseless.getId(), ic_hitchability_senseless.getBitmap());
+        loadedMapStyle.addImage(ic_target.getId(), ic_target.getBitmap());
     }
 
     SharedPreferences prefs;
@@ -1594,8 +1602,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER_ID, MARKER_SOURCE_ID)
                     .withProperties(
                             PropertyFactory.iconAllowOverlap(true),
-                            PropertyFactory.iconImage("{" + PROPERTY_ICONIMAGE + "}")
-                    )
+                            PropertyFactory.iconImage(step(zoom(), get(PROPERTY_ICONIMAGE),
+                                    stop(ic_add_zoom_level, ic_target.getId()))),
+                            PropertyFactory.iconSize(step(zoom(), 1,
+                                    stop(4, 1.2),
+                                    stop(5, 1.4),
+                                    stop(6, 1.6),
+                                    stop(7, 1.8),
+                                    stop(8, 2),
+                                    stop(ic_add_zoom_level, 1))))
                     /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
                     .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
 

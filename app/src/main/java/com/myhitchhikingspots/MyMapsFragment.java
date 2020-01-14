@@ -94,7 +94,9 @@ import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.rgb;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.step;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
@@ -122,6 +124,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private PermissionsManager locationPermissionsManager;
 
+    private final int ic_add_zoom_level = 12;
+
     private static final String SPOTS_SOURCE_ID = "spots-source";
     private static final String ROUTES_SPOTS_STYLE_LAYER_ID = "spots-style-layer";
     private static final String SUB_ROUTE_SOURCE_ID = "sub-routes-source";
@@ -138,7 +142,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     static String locationSeparator = ", ";
 
     Icon ic_single_spot, ic_typeunknown_spot, ic_took_a_break_spot, ic_waiting_spot, ic_point_on_the_route_spot, ic_arrival_spot = null;
-    Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4;
+    Icon ic_got_a_ride_spot0, ic_got_a_ride_spot1, ic_got_a_ride_spot2, ic_got_a_ride_spot3, ic_got_a_ride_spot4, ic_target;
 
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
 
@@ -431,6 +435,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         ic_got_a_ride_spot2 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(2));
         ic_got_a_ride_spot3 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
         ic_got_a_ride_spot4 = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
+
+        ic_target = IconUtils.drawableToIcon(activity, R.drawable.ic_add, ContextCompat.getColorStateList(activity.getBaseContext(), R.color.mapboxGrayExtraDark));
     }
 
     /**
@@ -772,6 +778,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         loadedMapStyle.addImage(ic_got_a_ride_spot2.getId(), ic_got_a_ride_spot2.getBitmap());
         loadedMapStyle.addImage(ic_got_a_ride_spot3.getId(), ic_got_a_ride_spot3.getBitmap());
         loadedMapStyle.addImage(ic_got_a_ride_spot4.getId(), ic_got_a_ride_spot4.getBitmap());
+        loadedMapStyle.addImage(ic_target.getId(), ic_target.getBitmap());
     }
 
     private LatLng convertToLatLng(Feature feature) {
@@ -1883,7 +1890,15 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             loadedMapStyle.addLayer(new SymbolLayer(ROUTES_SPOTS_STYLE_LAYER_ID, SPOTS_SOURCE_ID)
                     .withProperties(
                             PropertyFactory.iconAllowOverlap(true),
-                            PropertyFactory.iconImage("{" + PROPERTY_ICONIMAGE + "}")
+                            PropertyFactory.iconImage(step(zoom(), get(PROPERTY_ICONIMAGE),
+                                    stop(ic_add_zoom_level, ic_target.getId()))),
+                            PropertyFactory.iconSize(step(zoom(), 1,
+                                    stop(4, 1.2),
+                                    stop(5, 1.4),
+                                    stop(6, 1.6),
+                                    stop(7, 1.8),
+                                    stop(8, 2),
+                                    stop(ic_add_zoom_level, 1)))
                     )
                     /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
                     .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false))));
