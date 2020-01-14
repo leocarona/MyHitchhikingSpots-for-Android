@@ -124,7 +124,6 @@ public class ToolsActivity extends AppCompatActivity {
 
         findViewById(R.id.btnExport).setOnClickListener(this::exportButtonHandler);
         findViewById(R.id.btnImport).setOnClickListener(this::importButtonHandler);
-        findViewById(R.id.btnPickFile).setOnClickListener(this::pickFileButtonHandler);
 
         Spinner spinner = findViewById(R.id.spinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
@@ -275,16 +274,6 @@ public class ToolsActivity extends AppCompatActivity {
 
         //start the chooser for sharing
         startActivity(Intent.createChooser(shareIntent, "Insert share chooser title here"));
-    }
-
-    public void pickFileButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(this))
-            requestStoragePermissions(this);
-        else {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            startActivityForResult(intent, PICK_DB_REQUEST);
-        }
     }
 
 
