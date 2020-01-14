@@ -65,6 +65,8 @@
     <string name="settings_fixing_date_message">Ajustando fecha y hora</string>
     <string name="settings_automatically_fix_spots_datetime_title">Podemos ajustar fecha y hora</string>
     <string name="settings_automatically_fix_spots_datetime_message">Nos dimos cuenta de que las fechas y horas guardadas con My Hitchhiking Spots v2.2.5 (o anterior) No se guardaron adecuadamente. El archivo en importación parece haber sido generado antes de la versión 2.2.5. ¿Quieres que ajustemos automáticamente las fechas y horas?</string>
+    <string name="settings_preferences_label">Preferencias</string>
+    <string name="settings_preferences_description">¿Qué opción te gustaría ver primero\ncuando abras la aplicación?</string>
 
     <string name="hwmaps_downloadHDSpots_button_label">Descargar lugares de Hitchwiki Maps</string>
     <string name="hwmaps_select_continents_button_label">Seleccionar continentes</string>

@@ -144,6 +144,26 @@
                     <TextView
                         style="?android:attr/listSeparatorTextViewStyle"
                         android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_preferences_label" />
+
+                    <TextView
+                        android:id="@+id/textView10"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:gravity="end"
+                        android:text="@string/settings_preferences_description"
+                        android:textStyle="italic" />
+
+                    <Spinner
+                        android:id="@+id/spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        style="?android:attr/listSeparatorTextViewStyle"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
 
                     <TextView
