@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -15,15 +14,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
-import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,7 +41,6 @@ import com.myhitchhikingspots.utilities.Utils;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -130,6 +126,30 @@ public class ToolsActivity extends AppCompatActivity {
         findViewById(R.id.btnImport).setOnClickListener(this::importButtonHandler);
         findViewById(R.id.btnPickFile).setOnClickListener(this::pickFileButtonHandler);
 
+        Spinner spinner = findViewById(R.id.spinner);
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.startup_fragment_options, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
+        // Set current default fragment (use 1 - My Maps if none has been selected yet)
+        String defaultFragmentClassName = prefs.getString(Constants.PREFS_DEFAULT_STARTUP_FRAGMENT, "");
+        spinner.setSelection(getSelectedSpinnerItemIndexForFragment(defaultFragmentClassName));
+        // Set the select listener
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                prefs.edit().putString(Constants.PREFS_DEFAULT_STARTUP_FRAGMENT, getFragmentClassNameForSelectedSpinnerItem(pos)).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         coordinatorLayout = findViewById(R.id.coordinatiorLayout);
 
         findViewById(R.id.item_description_layout).setOnClickListener((v) -> {
@@ -138,6 +158,23 @@ public class ToolsActivity extends AppCompatActivity {
 
         ((TextView) findViewById(R.id.tools_tips_description))
                 .setText(getString(R.string.tools_tips_description, getString(R.string.settings_exportdb_button_label), getString(R.string.settings_importdb_button_label)));
+    }
+
+    private static String getFragmentClassNameForSelectedSpinnerItem(int spinnerItemIndex) {
+        if (spinnerItemIndex == 0)
+            return DashboardFragment.class.getName();
+        else if (spinnerItemIndex == 2)
+            return HitchwikiMapViewFragment.class.getName();
+        else return MyMapsFragment.class.getName();
+    }
+
+
+    private static int getSelectedSpinnerItemIndexForFragment(String fragmentClassName) {
+        if (fragmentClassName.equals(DashboardFragment.class.getName()))
+            return 0;
+        else if (fragmentClassName.equals(HitchwikiMapViewFragment.class.getName()))
+            return 2;
+        else return 1;
     }
 
     //persmission method.

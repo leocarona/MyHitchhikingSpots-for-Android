@@ -69,6 +69,8 @@
     <string name="settings_fixing_date_message">Corrigindo datas e horários dos locais..</string>
     <string name="settings_automatically_fix_spots_datetime_title">Nós podemos corrigir as datas e horas</string>
     <string name="settings_automatically_fix_spots_datetime_message">A data e hora de locais de carona salvos com o Meus Locais de Carona v2.2.5 (ou inferior) não eram salvas de forma apropriada, o que acarretava em informaçōes incorretas ao viajar a alguma região com outro fuso horário. O arquivo sendo importado parece ter sido gerado numa versão anterior do aplicaitov. Você gostaria que corrigíssimos as datas e horas nos locais sendo importados?</string>
+    <string name="settings_preferences_label">Preferências</string>
+    <string name="settings_preferences_description">Qual opção você gostaria de ver primeiro\nquando abrir o aplicativo?</string>
 
     <string name="hwmaps_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>
     <string name="hwmaps_select_continents_button_label">Selecionar continentes</string>

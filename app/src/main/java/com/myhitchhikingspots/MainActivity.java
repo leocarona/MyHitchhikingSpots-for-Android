@@ -7,26 +7,23 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-
-import com.google.android.material.navigation.NavigationView;
-
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.crashlytics.android.Crashlytics;
+import com.google.android.material.navigation.NavigationView;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.ArrayList;
@@ -102,6 +99,10 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             //A resourceId was received through ARG_REQUEST_TO_OPEN_FRAGMENT
             if (getIntent().getExtras() != null && getIntent().getExtras().containsKey(ARG_REQUEST_TO_OPEN_FRAGMENT))
                 resourceToOpen = getIntent().getExtras().getInt(ARG_REQUEST_TO_OPEN_FRAGMENT);
+            else if (prefs.contains(Constants.PREFS_DEFAULT_STARTUP_FRAGMENT)) {
+                String favStartupFragment = prefs.getString(Constants.PREFS_DEFAULT_STARTUP_FRAGMENT, "");
+                resourceToOpen = getResourceIdForFragment(favStartupFragment);
+            }
         }
 
         loadSpotList(resourceToOpen);
@@ -204,6 +205,14 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             menuItemResourceId = R.id.nav_about_us;
 
         return menuItemResourceId;
+    }
+
+    int getResourceIdForFragment(String fragmentClassName) {
+        if (fragmentClassName.equals(DashboardFragment.class.getName()))
+            return R.id.nav_my_dashboard;
+        if (fragmentClassName.equals(HitchwikiMapViewFragment.class.getName()))
+            return R.id.nav_hitchwiki_map;
+        else return R.id.nav_my_map;
     }
 
     public void selectDrawerItem(int resourceId) {

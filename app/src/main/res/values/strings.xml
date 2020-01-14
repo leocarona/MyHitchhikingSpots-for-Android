@@ -39,20 +39,10 @@ The Hitchwiki team.
     <string name="attempt_result_successful" translatable="false">@string/got_a_ride_button_text</string>
     <string name="attempt_result_gave_up" translatable="false">@string/break_button_text</string>
 
-    <string-array name="hitchabilities" translatable="false">
-        <item>@string/hitchability_unknown</item>
-        <item>@string/hitchability_very_good</item>
-        <item>@string/hitchability_good</item>
-        <item>@string/hitchability_average</item>
-        <item>@string/hitchability_bad</item>
-        <item>@string/hitchability_senseless</item>
-        <item>@string/hitchability_no_answer</item>
-    </string-array>
-
-    <string-array name="attempt_results" translatable="false">
-        <item>@string/attempt_result_unknown</item>
-        <item>@string/attempt_result_successful</item>
-        <item>@string/attempt_result_gave_up</item>
+    <string-array name="startup_fragment_options" translatable="false">
+        <item>@string/menu_dashboard</item>
+        <item>@string/menu_my_maps</item>
+        <item>@string/menu_hitchwiki_maps</item>
     </string-array>
 
     <string name="tools_tips_title">TIPS</string>
@@ -76,6 +66,8 @@ The Hitchwiki team.
     <string name="settings_fixing_date_message">Datetimes getting fixed..</string>
     <string name="settings_automatically_fix_spots_datetime_title">We can fix the datetimes</string>
     <string name="settings_automatically_fix_spots_datetime_message">We realized that the date and time of spots saved with My Hitchhiking Spots v2.2.5 (or prior) have not been saved properly. The file being imported seem to have been generated before version 2.2.5. Would you like us to automatically fix the dates and times of the spots being imported?</string>
+    <string name="settings_preferences_label">Preferences</string>
+    <string name="settings_preferences_description">What option would you like to seen first\nwhen you open the app?</string>
 
     <string name="hwmaps_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
     <string name="hwmaps_select_continents_button_label">Select continents</string>
