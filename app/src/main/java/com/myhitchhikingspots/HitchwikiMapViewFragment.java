@@ -166,7 +166,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     // Variables needed to listen to location updates
     private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
 
-    public static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
+    private static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
+    private static final List<CountryInfoBasic> countriesContainerReordered = new ArrayList();
 
     @Override
     public void onAttach(Context context) {
@@ -758,9 +759,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         if (activity == null || activity.isFinishing())
             return;
 
-        PairParcelable[] lst = new PairParcelable[countriesContainer.length];
-        for (int i = 0; i < countriesContainer.length; i++) {
-            CountryInfoBasic country = countriesContainer[i];
+        String selectedCodes = prefs.getString(Constants.PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD, "");
+
+        countriesContainerReordered.clear();
+        countriesContainerReordered.addAll(getListWithSelectedItemsFirst(countriesContainer, selectedCodes));
+
+        PairParcelable[] lst = new PairParcelable[countriesContainerReordered.size()];
+        for (int i = 0; i < countriesContainerReordered.size(); i++) {
+            CountryInfoBasic country = countriesContainerReordered.get(i);
 
             //Build string to show
             String c2 = country.getName();
@@ -771,7 +777,21 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             lst[i] = item;
         }
 
-        showSelectionDialog(lst, DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY);
+        showSelectionDialog(lst, selectedCodes, DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY);
+    }
+
+    private static List<CountryInfoBasic> getListWithSelectedItemsFirst(CountryInfoBasic[] items, String selectedKeys) {
+        List<CountryInfoBasic> lst = new ArrayList<>();
+        int lastSelectedItemAddedAt = -1;
+        for (int i = 0; i < items.length; i++) {
+            // If country code is on selectedCodes list, add it to the beginning of the list
+            if (selectedKeys.contains(items[i].getIso())) {
+                lastSelectedItemAddedAt++;
+                lst.add(lastSelectedItemAddedAt, items[i]);
+            } else//bulgaria, botswana, albania
+                lst.add(items[i]);
+        }
+        return lst;
     }
 
     private boolean wasCountriesListDownloaded() {
@@ -826,7 +846,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         @Override
         public String getCountryContainer(int item) {
-            return countriesContainer[item].getIso();
+            return countriesContainerReordered.get(item).getIso();
         }
     };
 
@@ -922,18 +942,18 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         loadHWSpotsFromLocalStorage();
     }
 
-    private void showSelectionDialog(PairParcelable[] result, String dialogType) {
+    private void showSelectionDialog(PairParcelable[] result, String selectedCodes, String dialogType) {
         FragmentActivity activity = getActivity();
         if (activity == null)
             return;
 
         Bundle args = new Bundle();
         args.putParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY, result);
+        args.putString(Constants.DIALOG_SELECTEDKEYSLIST_BUNDLE_KEY, selectedCodes);
         args.putString(Constants.DIALOG_TYPE_BUNDLE_KEY, dialogType);
 
         FragmentManager fragmentManager = activity.getSupportFragmentManager();
         dialog = new DownloadHWSpotsDialog(downloadHWSpotsDialogListener);
-        //dialog.setTargetFragment(this, 0);
         dialog.setArguments(args);
         dialog.show(fragmentManager, "tagSelection");
     }
