@@ -47,8 +47,8 @@
     <string name="tools_tips_title">TIPS</string>
     <string name="tools_warning">Bien-venida(o) a nuestras Herramientas! Tenga en cuenta que aún no sincronizamos sus datos y lugares de autostop con ningún lugar. Mientras tanto, aquí hay algunas herramientas con las que puede moverse por ahora.</string>
     <string name="tools_tips_description">Si desas compartír tus lugares de autostop con tus amigos o si sólo deseas hacer un backup de tu base de datos, te recomendamos utilizar nuestra opción de \"%1$s\". Cuándo exportes tu base de datos, un pequeño archivo que contiene copia de tus lugares de autostop será guardada en la memória de tu teléfono. Entonces podrás compartirlo con tus amigos, o guardarlo en algún lugar seguro, cómo en tu e-mail o en uno servicio de nube. Si deseas restaurar una base de datos exportada anteriormente, puedes utilizar nuestra opción de \"%2$s\".</string>
-    <string name="tools_database_exported_successfully_message">Base de datos exportada con éxito!</string>
-    <string name="tools_exportdb_share_dialog_message">Ahora te recomendamos guardar la cópia de tu base de datos en algún otro lugar.\nHaz click en \"%s\" y elige tu opción favorita. Podrás guardar tu base de datos en un servicio de nube, enviarla a tu mismo (o quizás a un amigo) a través de e-mail, y otras opciones más! :-)</string>
+    <string name="tools_database_exported_successfully_message">Base de datos exportada con éxito.</string>
+    <string name="tools_exportdb_share_dialog_message">Te recomendamos guardar la cópia de tu base de datos en algún otro lugar.\nHaz click en \"%s\" y elige tu opción favorita. Podrás guardar tu base de datos en un servicio de nube, enviarla a tu mismo (o quizás a un amigo) a través de e-mail, y otras opciones más! :-)</string>
     <string name="tools_file_dialog_select_directory_title">Selecciona el directorio</string>
 
     <string name="settings_importdb_button_label">Importar base de datos</string>
