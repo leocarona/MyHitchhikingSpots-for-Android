@@ -24,6 +24,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -196,6 +197,17 @@ public class ToolsActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSIONS_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (actionToPerfomOncePermissionIsGranted == 1)
+                exportDBNow();
+            else if (actionToPerfomOncePermissionIsGranted == 2)
+                showFilePickerDialog();
+            actionToPerfomOncePermissionIsGranted = -1;
+        }
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
         if (requestCode == PICK_DB_REQUEST) {
@@ -276,22 +288,28 @@ public class ToolsActivity extends AppCompatActivity {
         startActivity(Intent.createChooser(shareIntent, "Insert share chooser title here"));
     }
 
+    // 1 for exporting database and 2 for importing database
+    int actionToPerfomOncePermissionIsGranted = -1;
 
     public void importButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(this))
+        if (!isStoragePermissionsGranted(this)) {
+            actionToPerfomOncePermissionIsGranted = 2;
             requestStoragePermissions(this);
-        else {
-            FilePickerDialog dialog = new FilePickerDialog();
-            //Add listener to be called when task finished
-            dialog.addListener(new AsyncTaskListener<File>() {
-                @Override
-                public void notifyTaskFinished(Boolean success, File file, String filePath) {
-                    //Start import task
-                    importPickedFile(file);
-                }
-            });
-            dialog.openDialog(this, this);
-        }
+        } else
+            showFilePickerDialog();
+    }
+
+    void showFilePickerDialog() {
+        FilePickerDialog dialog = new FilePickerDialog();
+        //Add listener to be called when task finished
+        dialog.addListener(new AsyncTaskListener<File>() {
+            @Override
+            public void notifyTaskFinished(Boolean success, File file, String filePath) {
+                //Start import task
+                importPickedFile(file);
+            }
+        });
+        dialog.openDialog(this, this);
     }
 
     void collapseExpandTextView() {
@@ -399,21 +417,6 @@ public class ToolsActivity extends AppCompatActivity {
                 .show();
     }
 
-    void showShouldDatabaseBeCopiedLocallyDialog() {
-        /*new AlertDialog.Builder(this)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(getString(R.string.settings_exportdb_button_label))
-                .setMessage("Would like to also save a copy of your database to your SD card?")
-                .setPositiveButton(getString(R.string.general_yes_option), (dialog, which) -> {
-                    exportDBNow(true);
-                })
-                .setNegativeButton(getString(R.string.general_no_option), (dialog, which) -> {
-                    exportDBNow(false);
-                })
-                .show();*/
-        exportDBNow();
-    }
-
     void showShareExportedDatabaseDialog() {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -450,52 +453,52 @@ public class ToolsActivity extends AppCompatActivity {
     }
 
     public void exportButtonHandler(View view) {
-        showShouldDatabaseBeCopiedLocallyDialog();
+        if (!isStoragePermissionsGranted(this)) {
+            actionToPerfomOncePermissionIsGranted = 1;
+            requestStoragePermissions(this);
+        } else
+            exportDBNow();
     }
 
     void exportDBNow() {
-        if (!isStoragePermissionsGranted(this))
-            requestStoragePermissions(this);
-        else {
-            try {
-                DatabaseExporter t = new DatabaseExporter(this);
-                //Add listener to be called when task finished
-                t.addListener(new AsyncTaskListener<String>() {
-                    @Override
-                    public void notifyTaskFinished(Boolean success, String message, String exportedFilePath) {
+        try {
+            DatabaseExporter t = new DatabaseExporter(this);
+            //Add listener to be called when task finished
+            t.addListener(new AsyncTaskListener<String>() {
+                @Override
+                public void notifyTaskFinished(Boolean success, String message, String exportedFilePath) {
 
-                        if (success) {
-                            DateTime now = DateTime.now(DateTimeZone.UTC);
-                            //Set date of last time an export (backup) was made
-                            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
+                    if (success) {
+                        DateTime now = DateTime.now(DateTimeZone.UTC);
+                        //Set date of last time an export (backup) was made
+                        prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_BACKUP, now.getMillis()).apply();
 
-                            //Show result message returned by DatabaseExporter
-                            mfeedbacklabel.setText(message);
-                            mfeedbacklabel.setVisibility(View.VISIBLE);
+                        //Show result message returned by DatabaseExporter
+                        mfeedbacklabel.setText(message);
+                        mfeedbacklabel.setVisibility(View.VISIBLE);
 
-                            //Create a record to track Export Database success
-                            Answers.getInstance().logCustom(new CustomEvent("Database export success"));
+                        //Create a record to track Export Database success
+                        Answers.getInstance().logCustom(new CustomEvent("Database export success"));
 
-                            if (!exportedFilePath.equals("")) {
-                                destinationFilePath = exportedFilePath;
-                                showShareExportedDatabaseDialog();
-                            }
-                        } else {
-                            showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
-
-                            //Create a record to track Export Database failure
-                            Answers.getInstance().logCustom(new CustomEvent("Database export failed"));
+                        if (!exportedFilePath.equals("")) {
+                            destinationFilePath = exportedFilePath;
+                            showShareExportedDatabaseDialog();
                         }
+                    } else {
+                        showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
+
+                        //Create a record to track Export Database failure
+                        Answers.getInstance().logCustom(new CustomEvent("Database export failed"));
                     }
-                });
-                t.execute();
+                }
+            });
+            t.execute();
 
-                ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
+            ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
 
-            } catch (Exception e) {
-                Crashlytics.logException(e);
-                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
-            }
+        } catch (Exception e) {
+            Crashlytics.logException(e);
+            showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.general_error_dialog_message), e.getMessage()));
         }
     }
 
