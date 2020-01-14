@@ -201,6 +201,7 @@
     <string name="general_enable_button_label">ativar</string>
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="general_showCase_button">Entendi!</string>
+    <string name="general_done_message">Pronto!</string>
 
     <string name="empty_list_dialog_message">Para visualizar locais adicionados por outros caroneiros ao Hitchwiki Maps, acesse o menu %s.</string>
 
