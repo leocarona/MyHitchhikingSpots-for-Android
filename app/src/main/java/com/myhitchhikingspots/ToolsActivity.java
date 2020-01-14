@@ -417,10 +417,21 @@ public class ToolsActivity extends AppCompatActivity {
                 .show();
     }
 
+    void showDatabaseExportedSuccessfullyDialog() {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getString(R.string.general_done_message))
+                .setMessage(getString(R.string.tools_database_exported_successfully_message))
+                .setNeutralButton(getString(R.string.general_ok_option), (dialog, which) -> {
+                    showShareExportedDatabaseDialog();
+                })
+                .show();
+    }
+
     void showShareExportedDatabaseDialog() {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(getString(R.string.tools_database_exported_successfully_message))
+                .setTitle(getString(R.string.settings_sharedb_button_label))
                 .setMessage(getString(R.string.tools_exportdb_share_dialog_message, getString(R.string.general_share_label)))
                 .setPositiveButton(getString(R.string.general_share_label), (dialog, which) -> {
                     shareCSV();
@@ -482,7 +493,7 @@ public class ToolsActivity extends AppCompatActivity {
 
                         if (!exportedFilePath.equals("")) {
                             destinationFilePath = exportedFilePath;
-                            showShareExportedDatabaseDialog();
+                            showDatabaseExportedSuccessfullyDialog();
                         }
                     } else {
                         showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
