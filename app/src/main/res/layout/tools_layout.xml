@@ -94,14 +94,6 @@
                         android:justificationMode="inter_word"
                         android:text="@string/tools_tips_description" />
 
-                    <Button
-                        android:id="@+id/btnPickFile"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="pick file"
-                        android:visibility="gone" />
-
                     <TextView
                         style="?android:attr/listSeparatorTextViewStyle"
                         android:layout_width="match_parent"
