@@ -5,4 +5,4 @@ Create records for the spots where you've been hitchhiking. Save your geographic
 Available [on Play store](https://play.google.com/store/apps/details?id=com.myhitchhikingspots)
 
 ## License
-* [The MIT License](LICENSE.md)
+* [The MIT License](https://github.com/Hitchwiki/MyHitchhikingSpots-for-Android/blob/master/LICENSE)
