@@ -944,7 +944,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     private void showSelectionDialog(PairParcelable[] result, String selectedCodes, String dialogType) {
         FragmentActivity activity = getActivity();
-        if (activity == null)
+        if (activity == null || activity.isFinishing() || activity.isDestroyed())
             return;
 
         Bundle args = new Bundle();
