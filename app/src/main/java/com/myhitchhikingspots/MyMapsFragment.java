@@ -547,7 +547,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         if (requestCode == PERMISSIONS_LOCATION) {
-            locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            if (locationPermissionsManager != null)
+                locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 enableLocationLayer(style);
                 callback.moveMapCameraToNextLocationReceived();
