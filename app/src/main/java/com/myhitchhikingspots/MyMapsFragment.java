@@ -551,7 +551,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 enableLocationLayer(style);
-                callback.moveMapCameraToNextLocationReceived();
+                if (callback != null)
+                    callback.moveMapCameraToNextLocationReceived();
             } else
                 Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
         }
