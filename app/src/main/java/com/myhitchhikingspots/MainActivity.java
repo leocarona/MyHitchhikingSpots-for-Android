@@ -313,6 +313,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     }
 
     private void replaceFragmentContainerWith(Fragment fragment) {
+        if (isFinishing())
+            return;
+
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()

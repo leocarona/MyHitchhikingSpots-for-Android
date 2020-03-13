@@ -290,11 +290,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_LOCATION:
-                locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                if (locationPermissionsManager != null)
+                    locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (isLocationRequestedByUser) {
                         enableLocationLayer(style);
-                        callback.moveMapCameraToNextLocationReceived();
+                        if (callback != null)
+                            callback.moveMapCameraToNextLocationReceived();
                         isLocationRequestedByUser = false;
                     }
                 } else {
@@ -944,7 +946,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     private void showSelectionDialog(PairParcelable[] result, String selectedCodes, String dialogType) {
         FragmentActivity activity = getActivity();
-        if (activity == null || activity.isFinishing() || activity.isDestroyed())
+        if (activity == null || activity.isFinishing())
             return;
 
         Bundle args = new Bundle();
