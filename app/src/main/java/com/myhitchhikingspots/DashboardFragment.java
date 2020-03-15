@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.SpotsListHelper;
 import com.myhitchhikingspots.utilities.Utils;
@@ -154,12 +155,25 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         updateUI();
     }
 
-    void updateUI() {
+    private void updateUI() {
+        try {
+            calculateStats();
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            displayValues("", "", "", "", "", "");
+        }
+    }
+
+    private void calculateStats() {
         Context context = getContext();
         if (context == null)
             return;
 
+        Crashlytics.log("Calculating stats..");
+
         List<Spot> spotList = getSpotList();
+        Crashlytics.setInt("spotList size", spotList.size());
+
         Integer longestWaitingTime = SpotsListHelper.getLongestWaitingTime(spotList),
                 shortestWaitingTime = SpotsListHelper.getShortestWaitingTime(spotList),
                 numOfRides = SpotsListHelper.getNumberOfRidesGotten(spotList),
@@ -178,12 +192,23 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         String waitingTimeOccurrencesStr = getWaitingTimeOccurrencesStr(context, waitingTimeOccurrences, numOfRides);
         String txtBestHoursToHitchhikeStr = getBestHoursToHitchhikeStr(numberOfOccurrences, numOfRides);
 
-        txtNumSpotsSaved.setText(String.format(getString(R.string.dashboard_number_of_rides), numOfRides));
-        txtNumHWSpotsDownloaded.setText(String.format(getString(R.string.dashboard_number_of_hw_spots_downloaded), numHWSpotsDownloaded));
+        displayValues(numOfRides, numHWSpotsDownloaded, shortestWaitingTimeStr, longestWaitingTimeStr, waitingTimeOccurrencesStr, txtBestHoursToHitchhikeStr);
+    }
+
+    private void displayValues(Integer numOfRides, Integer numHWSpotsDownloaded, String shortestWaitingTimeStr, String longestWaitingTimeStr, String waitingTimeOccurrencesStr, String txtBestHoursToHitchhikeStr) {
+        String numOfRidesStr = String.format(getString(R.string.dashboard_number_of_rides), numOfRides);
+        String numHWSpotsDownloadedStr = String.format(getString(R.string.dashboard_number_of_hw_spots_downloaded), numHWSpotsDownloaded);
+
+        displayValues(numOfRidesStr, shortestWaitingTimeStr, longestWaitingTimeStr, waitingTimeOccurrencesStr, txtBestHoursToHitchhikeStr, numHWSpotsDownloadedStr);
+    }
+
+    private void displayValues(String numOfRidesStr, String shortestWaitingTimeStr, String longestWaitingTimeStr, String waitingTimeOccurrencesStr, String txtBestHoursToHitchhikeStr, String numHWSpotsDownloadedStr) {
+        txtNumSpotsSaved.setText(numOfRidesStr);
+        txtNumHWSpotsDownloaded.setText(numHWSpotsDownloadedStr);
         txtShortestWaitingTime.setText(shortestWaitingTimeStr);
         txtLongestWaitingTime.setText(longestWaitingTimeStr);
-        txtShortestWaitingTimesAreBetween.setText(waitingTimeOccurrencesStr.toString());
-        txtBestHoursToHitchhike.setText(txtBestHoursToHitchhikeStr.toString());
+        txtShortestWaitingTimesAreBetween.setText(waitingTimeOccurrencesStr);
+        txtBestHoursToHitchhike.setText(txtBestHoursToHitchhikeStr);
     }
 
     private static String getWaitingTimeOccurrencesStr(Context context, List<Pair<Pair<Integer, Integer>, Integer>> waitingTimeOccurences, int numOfRides) {
