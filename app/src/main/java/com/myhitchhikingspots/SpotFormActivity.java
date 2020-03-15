@@ -1132,22 +1132,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 attemptResult = mCurrentSpot.getAttemptResult();
             updateAttemptResultButtonsState();
 
-            String title = "";
-            if (mFormType == FormType.Create)
-                title = getResources().getString(R.string.save_spot_button_text);
-            else if (mFormType == FormType.Edit)
-                title = getResources().getString(R.string.spot_form_title_edit);
-            else if (mFormType == FormType.ReadOnly) {
-                if (shouldRetrieveDetailsFromHW)
-                    title = "Hitchwiki";
-                else
-                    title = "Spot";
-            } else
-                title = getResources().getString(R.string.spot_form_title_evaluate);
-
-
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            toolbar.setTitle(title.toUpperCase());
+            updateToolbarTitle();
 
             if (shouldShowButtonsPanel) {
                 panel_buttons.setVisibility(View.VISIBLE);
@@ -1250,6 +1235,25 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
 
         updateUIFirstCalled = true;
+    }
+
+    private void updateToolbarTitle() {
+        String title = "";
+        if (mFormType == FormType.Create)
+            title = getResources().getString(R.string.save_spot_button_text);
+        else if (mFormType == FormType.Edit)
+            title = getResources().getString(R.string.spot_form_title_edit);
+        else if (mFormType == FormType.ReadOnly) {
+            if (shouldRetrieveDetailsFromHW)
+                title = "Hitchwiki";
+            else
+                title = "Spot";
+        } else
+            title = getResources().getString(R.string.spot_form_title_evaluate);
+
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle(title.toUpperCase());
     }
 
     private void updateDeleteButtonState() {
@@ -1560,6 +1564,13 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     public void deleteButtonHandler(View view) {
+        if (mCurrentSpot == null || mCurrentSpot.getId() == null || mCurrentSpot.getId() <= 0) {
+            Crashlytics.setBool("mCurrentSpot is null", mCurrentSpot == null);
+            Crashlytics.logException(new Exception("Delete button was visible when spot id was unknown, and user clicked it."));
+            mDeleteButton.setVisibility(View.GONE);
+            return;
+        }
+
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(getResources().getString(R.string.spot_form_delete_dialog_title_text))
