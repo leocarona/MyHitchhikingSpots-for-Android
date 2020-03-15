@@ -1564,6 +1564,13 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     public void deleteButtonHandler(View view) {
+        if (mCurrentSpot == null || mCurrentSpot.getId() == null || mCurrentSpot.getId() <= 0) {
+            Crashlytics.setBool("mCurrentSpot is null", mCurrentSpot == null);
+            Crashlytics.logException(new Exception("Delete button was visible when spot id was unknown, and user clicked it."));
+            mDeleteButton.setVisibility(View.GONE);
+            return;
+        }
+
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(getResources().getString(R.string.spot_form_delete_dialog_title_text))
