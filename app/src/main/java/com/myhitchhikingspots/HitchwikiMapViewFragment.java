@@ -37,6 +37,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
@@ -169,6 +170,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
     private static final List<CountryInfoBasic> countriesContainerReordered = new ArrayList();
 
+    private SpotsListViewModel viewModel;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -177,6 +180,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_hitchwiki_maps, container, false);
     }
 
@@ -1345,7 +1349,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
         } else {
             //The user might still be close to the last spot saved, move the map camera there
-            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getActivity().getApplicationContext()).getLastAddedRouteSpot();
+            Spot lastAddedSpot = viewModel.getLastAddedRouteSpot(getContext());
             if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                     && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
                 moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());

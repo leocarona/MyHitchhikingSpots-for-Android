@@ -1,10 +1,11 @@
 package com.myhitchhikingspots;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.location.Address;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,11 +25,8 @@ import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.myhitchhikingspots.interfaces.ListListener;
-import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
-
-import org.greenrobot.greendao.database.Database;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,20 +42,7 @@ public class SpotListFragment extends Fragment {
     SpotListAdapter mAdapter;
     private boolean isHandlingRequestToOpenSpotForm = false;
 
-    /**
-     * Tracks whether the user has requested an address. Becomes true when the user requests an
-     * address and false when the address (or an error message) is delivered.
-     * The user requests an address by pressing the Fetch Address button. This may happen
-     * before GoogleApiClient connects. This activity uses this boolean to keep track of the
-     * user's intent. If the value is true, the activity tries to fetch the address as soon as
-     * GoogleApiClient connects.
-     */
-    protected boolean mAddressRequested;
-
-    /**
-     * The formatted location address.
-     */
-    protected Address mAddressOutput;
+    private SharedPreferences prefs;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,14 +56,20 @@ public class SpotListFragment extends Fragment {
         if (savedInstanceState != null && savedInstanceState.containsKey(IS_EDIT_MODE_KEY)) {
             setIsEditMode(savedInstanceState.getBoolean(IS_EDIT_MODE_KEY));
         }
+
+        if (getContext() != null)
+            prefs = getContext().getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
     }
 
     final String sqlDeleteStatement = "DELETE FROM %1$s WHERE %2$s";
+    SpotsListViewModel viewModel;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.spot_list_fragment_layout, container, false);
+
+        viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
 
         recyclerView = (RecyclerView) rootView.findViewById(R.id.main_activity_recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -120,7 +112,7 @@ public class SpotListFragment extends Fragment {
                 public void onSpotClicked(Spot spot) {
                     if (isHandlingRequestToOpenSpotForm)
                         return;
-                    Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
+                    Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
 
                     //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
                     if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
@@ -187,7 +179,7 @@ public class SpotListFragment extends Fragment {
     private void deleteSelectedSpots() {
         String errorMessage = "";
         try {
-            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).getCurrentSpot();
+            Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
             Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
                     mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
             ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
@@ -197,19 +189,18 @@ public class SpotListFragment extends Fragment {
 
                 //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
                 if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
-                    ((MyHitchhikingSpotsApplication) getContext().getApplicationContext()).setCurrentSpot(null);
+                    viewModel.setCurrentWaitingSpot(null);
 
                 //Concatenate Id in a list as "Id.columnName = x"
                 spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
             }
 
-            //Get a DB session
-            Database db = DaoMaster.newDevSession(getContext(), Constants.INTERNAL_DB_FILE_NAME).getDatabase();
-
-            //Delete selected spots from DB
-            db.execSQL(String.format(sqlDeleteStatement,
+            viewModel.execSQL(getContext(), String.format(sqlDeleteStatement,
                     SpotDao.TABLENAME,
                     TextUtils.join(" OR ", spotsToBeDeleted_idList)));
+
+            if (prefs != null)
+                prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
 
             List<Spot> remainingSpots = new ArrayList<>();
 

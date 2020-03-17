@@ -35,6 +35,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -181,6 +182,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     MainActivity activity;
 
+    SpotsListViewModel viewModel;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -190,6 +193,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_my_map, container, false);
     }
 
@@ -287,7 +291,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         loadMarkerIcons();
 
-        updateUISaveFABs();
+        updateUISaveFABs(getSpotList());
 
         //onMapReady will take care of drawing the spots and routes on the map.
     }
@@ -311,6 +315,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             this.mapboxMap.addOnMapClickListener(this);
 
+            if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
+                showInternetUnavailableAlertDialog(getSpotList());
+
             if (style.isFullyLoaded()) {
                 LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
 
@@ -324,24 +331,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
                 enableLocationLayer(style);
 
-                //Move map camera to last known location so that if we call zoomOutToFitMostRecentRoute()
-                // the map will get nicely zoomed closer once spots list is loaded.
-                moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
-                    @Override
-                    public void onCancel() {
-                        drawAnnotations();
-                    }
-
-                    @Override
-                    public void onFinish() {
-                        drawAnnotations();
-                    }
-                });
+                showProgressDialog(getResources().getString(R.string.map_loading_dialog));
+                viewModel.getSpots(getContext()).observe(activity, this::updateUI);
             }
-
-            if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
-                showInternetUnavailableAlertDialog();
-
         });
     }
 
@@ -358,8 +350,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 mCurrentWaitingSpot.getIsWaitingForARide() : false;
     }
 
-    boolean isFirstSpotOfARoute() {
-        List<Spot> spotList = getSpotList();
+    boolean isFirstSpotOfARoute(List<Spot> spotList) {
         return ((spotList == null || spotList.size() == 0) ||
                 (spotList.get(0).getIsDestination() != null && spotList.get(0).getIsDestination()));
     }
@@ -516,10 +507,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     /**
      * Determines what type is the current page type and sets up the save buttons accordinly.
      **/
-    private void updateUISaveFABs() {
+    private void updateUISaveFABs(List<Spot> spotList) {
         //If it's not waiting for a ride
         if (!isWaitingForARide()) {
-            if (isFirstSpotOfARoute())
+            if (isFirstSpotOfARoute(spotList))
                 currentPage = pageType.WILL_BE_FIRST_SPOT_OF_A_ROUTE;
             else {
                 currentPage = pageType.WILL_BE_REGULAR_SPOT;
@@ -616,18 +607,24 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     @Override
     public boolean onMapClick(@NonNull LatLng point) {
-        PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
-        List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, CALLOUT_LAYER_ID);
-        if (!features.isEmpty()) {
-            // we received a click event on the callout layer
-            Feature feature = features.get(0);
-            handleClickCallout(feature);
-        } else {
-            // we didn't find a click event on callout layer, try clicking maki layer
-            handleClickIcon(screenPoint);
-        }
 
-        return true;
+        try {
+            PointF screenPoint = mapboxMap.getProjection().toScreenLocation(point);
+            List<Feature> features = mapboxMap.queryRenderedFeatures(screenPoint, CALLOUT_LAYER_ID);
+            if (!features.isEmpty()) {
+                // we received a click event on the callout layer
+                Feature feature = features.get(0);
+                handleClickCallout(feature);
+            } else {
+                // we didn't find a click event on callout layer, try clicking maki layer
+                handleClickIcon(screenPoint);
+            }
+
+            return true;
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+        }
+        return false;
     }
 
     /**
@@ -657,7 +654,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
 
         if (spot != null) {
-            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getCurrentSpot();
+            Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
 
             //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
             if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
@@ -724,7 +721,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         //If spotList has been changed, we want to remove any balloon that might have been generated for this feature and then regenerate it below with updated data.
         //TODO: Looks like it would make more sense to call removeImage removing all balloons already generated always that spotList is updated. Consider moving it into setupAnnotations(). All the other features are already been removed and re-added within that method.
-        if (spotListWasChanged)
+        if (spotListWasChanged && style.getImage(feature.id()) != null)
             style.removeImage(feature.id());
 
         if (style.getImage(feature.id()) == null) {
@@ -793,18 +790,37 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      **/
     @Override
     public void onSpotListChanged() {
+        //Reload spots, once completed, sets the spots list which is being observed and calls updateUI.
+        showProgressDialog(getResources().getString(R.string.map_loading_dialog));
+        viewModel.reloadSpots(getContext());
+    }
+
+    public void updateUI(List<Spot> spotList) {
         //We want the map camera also updated.
         this.shouldZoomToFitAllMarkers = true;
         this.spotListWasChanged = true;
 
-        updateUISaveFABs();
+        updateUISaveFABs(spotList);
 
-        if (mapboxMap != null) {
-            if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
-                showInternetUnavailableAlertDialog();
-            else
-                drawAnnotations();
-        }
+        //Move map camera to last known location so that if we call zoomOutToFitMostRecentRoute()
+        // the map will get nicely zoomed closer once spots list is loaded.
+        moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
+            @Override
+            public void onCancel() {
+                drawAnnotations(getSpotList());
+            }
+
+            @Override
+            public void onFinish() {
+                drawAnnotations(getSpotList());
+            }
+        });
+
+        if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs)) {
+            showInternetUnavailableAlertDialog(spotList);
+            dismissProgressDialog();
+        } else
+            drawAnnotations(spotList);
 
         if (dateRangeDialog != null) {
             dateRangeDialog.dismiss();
@@ -812,7 +828,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
     }
 
-    void showInternetUnavailableAlertDialog() {
+    private void showInternetUnavailableAlertDialog(List<Spot> spotList) {
         new AlertDialog.Builder(activity)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(getResources().getString(R.string.general_network_unavailable_message))
@@ -832,15 +848,14 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                         prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_LAST_OFFLINE_MODE_WARN, System.currentTimeMillis()).apply();
                         prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
 
-                        drawAnnotations();
+                        drawAnnotations(spotList);
                     }
                 }).show();
     }
 
-    void drawAnnotations() {
+    private void drawAnnotations(List<Spot> spotList) {
         if (mapboxMap != null && style != null && style.isFullyLoaded()) {
             showProgressDialog(getString(R.string.map_drawing_progress_text));
-            List<Spot> spotList = getSpotList();
             Spot[] spotArray = new Spot[spotList.size()];
             this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
         }
@@ -849,8 +864,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private List<Spot> getSpotList() {
         Activity activity = getActivity();
 
-        if (activity instanceof MainActivity)
-            return ((MainActivity) activity).spotList;
+        if (activity instanceof MainActivity) {
+            List<Spot> lst = viewModel.getSpots(getContext()).getValue();
+            if (lst != null) return lst;
+        }
 
         return new ArrayList<>();
     }
@@ -860,7 +877,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Activity activity = getActivity();
 
         if (activity instanceof MainActivity)
-            return ((MainActivity) activity).mCurrentWaitingSpot;
+            return viewModel.getCurrentWaitingSpot().getValue();
 
         return null;
     }
@@ -1468,7 +1485,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             cameraPositionTo = new LatLng(loc);
         } else {
             //Set start position for map camera: set it to the last spot saved
-            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getLastAddedRouteSpot();
+            Spot lastAddedSpot = viewModel.getLastAddedRouteSpot(getContext());
             if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                     && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
                 cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());

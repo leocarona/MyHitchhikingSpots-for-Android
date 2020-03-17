@@ -8,15 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import androidx.fragment.app.Fragment;
-import androidx.appcompat.app.AppCompatDelegate;
-
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -27,9 +18,16 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
@@ -106,6 +104,8 @@ public class OfflineMapManagerFragment extends Fragment implements
 
     private MainActivity activity;
 
+    SpotsListViewModel viewModel;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -114,6 +114,7 @@ public class OfflineMapManagerFragment extends Fragment implements
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_offline_map_manager, container, false);
     }
 
@@ -448,7 +449,7 @@ public class OfflineMapManagerFragment extends Fragment implements
      */
     @SuppressWarnings({"MissingPermission"})
     public void moveCameraToLastKnownLocation(int zoomLevel) {
-        if(!style.isFullyLoaded())
+        if (!style.isFullyLoaded())
             return;
 
         //Request permission of access to GPS updates or
@@ -466,7 +467,7 @@ public class OfflineMapManagerFragment extends Fragment implements
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
         } else {
             //The user might still be close to the last spot saved, move the map camera there
-            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) activity.getApplicationContext()).getLastAddedRouteSpot();
+            Spot lastAddedSpot = viewModel.getLastAddedRouteSpot(getContext());
             if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                     && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
                 moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
