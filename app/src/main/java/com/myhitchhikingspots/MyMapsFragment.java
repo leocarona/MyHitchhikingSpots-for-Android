@@ -961,14 +961,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onStart() {
         Crashlytics.log(Log.INFO, TAG, "onStart called");
         super.onStart();
-        mapView.onStart();
+        if (mapView != null)
+            mapView.onStart();
     }
 
     @Override
     public void onStop() {
         Crashlytics.log(Log.INFO, TAG, "onStop called");
         super.onStop();
-        mapView.onStop();
+        if (mapView != null)
+            mapView.onStop();
 
         /*
          * The device may have been rotated and the activity is going to be destroyed
@@ -986,7 +988,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onResume() {
         Crashlytics.log(Log.INFO, TAG, "onResume called");
         super.onResume();
-        mapView.onResume();
+        if (mapView != null)
+            mapView.onResume();
     }
 
     @Override
@@ -1025,7 +1028,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onPause() {
         Crashlytics.log(Log.INFO, TAG, "onPause was called");
         super.onPause();
-        mapView.onPause();
+
+        if (mapView != null)
+            mapView.onPause();
 
         dismissSnackbar();
         dismissProgressDialog();
@@ -1038,7 +1043,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onSaveInstanceState(Bundle savedInstanceState) {
         Crashlytics.log(Log.INFO, TAG, "onSaveInstanceState called");
         super.onSaveInstanceState(savedInstanceState);
-        mapView.onSaveInstanceState(savedInstanceState);
+
+        if (mapView != null)
+            mapView.onSaveInstanceState(savedInstanceState);
 
         savedInstanceState.putBoolean(SNACKBAR_SHOWED_KEY, wasSnackbarShown);
     }
@@ -1063,14 +1070,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (mapboxMap != null) {
             mapboxMap.removeOnMapClickListener(this);
         }
-        mapView.onDestroy();
+        if (mapView != null)
+            mapView.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         Crashlytics.log(Log.WARN, TAG, "onLowMemory was called");
         super.onLowMemory();
-        mapView.onLowMemory();
+        if (mapView != null)
+            mapView.onLowMemory();
     }
 
     @Override
