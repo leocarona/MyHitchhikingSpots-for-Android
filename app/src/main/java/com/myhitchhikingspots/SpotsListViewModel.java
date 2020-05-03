@@ -1,8 +1,10 @@
 package com.myhitchhikingspots;
 
+import android.app.Application;
 import android.content.Context;
 import android.database.Cursor;
 
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -15,12 +17,13 @@ import org.greenrobot.greendao.database.Database;
 
 import java.util.List;
 
-public class SpotsListViewModel extends ViewModel {
+public class SpotsListViewModel extends AndroidViewModel {
     private MutableLiveData<Spot> mCurrentWaitingSpot;
     private SpotsRepository mRepository;
 
-    public SpotsListViewModel() {
-        mRepository = new SpotsRepository();
+    public SpotsListViewModel(Application context) {
+        super(context);
+        mRepository = ((MyHitchhikingSpotsApplication) context).getSpotsRepository();
     }
 
     public LiveData<List<Spot>> getSpots(Context context) {

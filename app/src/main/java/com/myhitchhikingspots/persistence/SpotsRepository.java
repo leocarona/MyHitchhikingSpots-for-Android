@@ -22,6 +22,18 @@ import java.util.List;
 public class SpotsRepository {
 
     private MutableLiveData<List<Spot>> spots;
+    private static SpotsRepository sInstance;
+
+    public static SpotsRepository getInstance() {
+        if (sInstance == null) {
+            synchronized (SpotsRepository.class) {
+                if (sInstance == null) {
+                    sInstance = new SpotsRepository();
+                }
+            }
+        }
+        return sInstance;
+    }
 
     public LiveData<List<Spot>> getSpots(Context context) {
         if (spots == null) {
