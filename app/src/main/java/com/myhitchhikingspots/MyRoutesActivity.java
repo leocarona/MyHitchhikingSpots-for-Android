@@ -21,6 +21,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
@@ -28,9 +29,7 @@ import com.crashlytics.android.Crashlytics;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.myhitchhikingspots.interfaces.ListListener;
-import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.model.SpotDao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +66,8 @@ public class MyRoutesActivity extends AppCompatActivity {
     Boolean shouldGoBackToPreviousActivity = false;
     SharedPreferences prefs;
 
+    SpotsListViewModel viewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +77,7 @@ public class MyRoutesActivity extends AppCompatActivity {
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
+        viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
         // Set a Toolbar to replace the ActionBar.
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -123,6 +125,15 @@ public class MyRoutesActivity extends AppCompatActivity {
                 //onSaveInstanceState will be executed right after onSpotClicked because when a spot is clicked, the fragment starts SpotFormActivity
             }
         };
+
+        viewModel.getSpots(this).observe(this, spots -> {
+            //Update fragments
+            if (mSectionsPagerAdapter != null) {
+                mSectionsPagerAdapter.setValues(spots);
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+                selectTab(indexOfLastOpenTab);
+            }
+        });
     }
 
     public void selectTab(int tab_index) {
@@ -172,14 +183,6 @@ public class MyRoutesActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        Crashlytics.log(Log.INFO, TAG, "onResume called");
-
-        loadValues();
-    }
-
-    @Override
     public void onPause() {
         super.onPause();
 
@@ -192,21 +195,6 @@ public class MyRoutesActivity extends AppCompatActivity {
         super.onDestroy();
         if (mViewPager != null)
             mViewPager.clearOnPageChangeListeners();
-    }
-
-    void loadValues() {
-        Crashlytics.log(Log.INFO, TAG, "loadValues called");
-        MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) getApplicationContext());
-        DaoSession daoSession = appContext.getDaoSession();
-        SpotDao spotDao = daoSession.getSpotDao();
-        List<Spot> mSpotList = spotDao.queryBuilder().orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
-
-        //Update fragments
-        if (mSectionsPagerAdapter != null) {
-            mSectionsPagerAdapter.setValues(mSpotList);
-            mViewPager.setAdapter(mSectionsPagerAdapter);
-            selectTab(indexOfLastOpenTab);
-        }
     }
 
     @Override
@@ -227,8 +215,12 @@ public class MyRoutesActivity extends AppCompatActivity {
         if (mSectionsPagerAdapter != null)
             mSectionsPagerAdapter.onActivityResultFromSpotForm();
 
-        if (spotListWasChanged)
+        if (spotListWasChanged) {
+            viewModel.reloadSpots(this);
+
+            //Set this flag so that MainActivity knows that reloadSpots should be called to update their viewModel.
             prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
+        }
     }
 
     @Override
@@ -520,7 +512,7 @@ public class MyRoutesActivity extends AppCompatActivity {
 
         } else {
             requestId = Constants.EDIT_SPOT_REQUEST;
-            Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+            Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
             spot = mCurrentWaitingSpot;
         }
 
@@ -529,7 +521,7 @@ public class MyRoutesActivity extends AppCompatActivity {
     }
 
     private boolean isWaitingForARide() {
-        Spot mCurrentWaitingSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+        Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
         return (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
                 mCurrentWaitingSpot.getIsWaitingForARide() : false;
     }

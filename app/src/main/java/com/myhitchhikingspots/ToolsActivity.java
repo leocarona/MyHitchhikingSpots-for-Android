@@ -30,11 +30,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.widget.TextViewCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
+import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
 import com.myhitchhikingspots.utilities.DatabaseImporter;
 import com.myhitchhikingspots.utilities.FilePickerDialog;
@@ -503,9 +505,13 @@ public class ToolsActivity extends AppCompatActivity {
                     }
                 }
             });
-            t.execute();
 
-            ((MyHitchhikingSpotsApplication) getApplicationContext()).loadDatabase();
+            SpotsListViewModel viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
+            Cursor curCSV = viewModel.rawQuery(this, "select * from " + SpotDao.TABLENAME, null);
+
+            t.execute(curCSV);
+
+            viewModel.loadWaitingSpot(this);
 
         } catch (Exception e) {
             Crashlytics.logException(e);
