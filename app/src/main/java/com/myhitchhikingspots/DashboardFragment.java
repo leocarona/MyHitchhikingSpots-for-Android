@@ -1,6 +1,7 @@
 package com.myhitchhikingspots;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,12 +18,13 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
+import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.SpotsListHelper;
 import com.myhitchhikingspots.utilities.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -32,6 +34,9 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     SharedPreferences prefs;
     private boolean isHandlingRequestToOpenSpotForm = false;
 
+    private ProgressDialog loadingDialog;
+    SpotsListViewModel viewModel;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -39,6 +44,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_dashboard, container, false);
     }
 
@@ -64,7 +70,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         seeMyMapsBtn.setText(getString(R.string.action_button_label, getString(R.string.menu_my_maps)));
         seeMyMapsBtn.setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
 
-        updateUI();
+        viewModel.getSpots(getContext()).observe(activity, this::updateUI);
     }
 
     @Override
@@ -92,21 +98,12 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         return super.onOptionsItemSelected(item);
     }
 
-    private List<Spot> getSpotList() {
-        Activity activity = getActivity();
-
-        if (activity instanceof MainActivity)
-            return ((MainActivity) activity).spotList;
-
-        return new ArrayList<>();
-    }
-
     @Nullable
     private Spot getCurrentWaitingSpot() {
         Activity activity = getActivity();
 
         if (activity instanceof MainActivity)
-            return ((MainActivity) activity).mCurrentWaitingSpot;
+            return viewModel.getCurrentWaitingSpot().getValue();
 
         return null;
     }
@@ -149,17 +146,34 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         //NOTE: updateSpotList() will be called after DashboardFragment.onActivityResult() by MainActivity.onActivityResult()
     }
 
+    /**
+     * Method called always that spotList is loaded or reloaded from the database.
+     **/
     @Override
     public void onSpotListChanged() {
-        updateUI();
+        //Reload spots, once completed, sets the spots list which is being observed and calls updateUI.
+        showProgressDialog(getResources().getString(R.string.map_loading_dialog));
+        viewModel.reloadSpots(getContext());
     }
 
-    void updateUI() {
+    private void updateUI(List<Spot> spotList) {
+        try {
+            calculateStats(spotList);
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            displayValues("", "", "", "", "", "");
+        }
+        dismissProgressDialog();
+    }
+
+    private void calculateStats(List<Spot> spotList) {
         Context context = getContext();
         if (context == null)
             return;
 
-        List<Spot> spotList = getSpotList();
+        Crashlytics.log("Calculating stats..");
+        Crashlytics.setInt("spotList size", spotList.size());
+
         Integer longestWaitingTime = SpotsListHelper.getLongestWaitingTime(spotList),
                 shortestWaitingTime = SpotsListHelper.getShortestWaitingTime(spotList),
                 numOfRides = SpotsListHelper.getNumberOfRidesGotten(spotList),
@@ -178,12 +192,23 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         String waitingTimeOccurrencesStr = getWaitingTimeOccurrencesStr(context, waitingTimeOccurrences, numOfRides);
         String txtBestHoursToHitchhikeStr = getBestHoursToHitchhikeStr(numberOfOccurrences, numOfRides);
 
-        txtNumSpotsSaved.setText(String.format(getString(R.string.dashboard_number_of_rides), numOfRides));
-        txtNumHWSpotsDownloaded.setText(String.format(getString(R.string.dashboard_number_of_hw_spots_downloaded), numHWSpotsDownloaded));
+        displayValues(numOfRides, numHWSpotsDownloaded, shortestWaitingTimeStr, longestWaitingTimeStr, waitingTimeOccurrencesStr, txtBestHoursToHitchhikeStr);
+    }
+
+    private void displayValues(Integer numOfRides, Integer numHWSpotsDownloaded, String shortestWaitingTimeStr, String longestWaitingTimeStr, String waitingTimeOccurrencesStr, String txtBestHoursToHitchhikeStr) {
+        String numOfRidesStr = String.format(getString(R.string.dashboard_number_of_rides), numOfRides);
+        String numHWSpotsDownloadedStr = String.format(getString(R.string.dashboard_number_of_hw_spots_downloaded), numHWSpotsDownloaded);
+
+        displayValues(numOfRidesStr, shortestWaitingTimeStr, longestWaitingTimeStr, waitingTimeOccurrencesStr, txtBestHoursToHitchhikeStr, numHWSpotsDownloadedStr);
+    }
+
+    private void displayValues(String numOfRidesStr, String shortestWaitingTimeStr, String longestWaitingTimeStr, String waitingTimeOccurrencesStr, String txtBestHoursToHitchhikeStr, String numHWSpotsDownloadedStr) {
+        txtNumSpotsSaved.setText(numOfRidesStr);
+        txtNumHWSpotsDownloaded.setText(numHWSpotsDownloadedStr);
         txtShortestWaitingTime.setText(shortestWaitingTimeStr);
         txtLongestWaitingTime.setText(longestWaitingTimeStr);
-        txtShortestWaitingTimesAreBetween.setText(waitingTimeOccurrencesStr.toString());
-        txtBestHoursToHitchhike.setText(txtBestHoursToHitchhikeStr.toString());
+        txtShortestWaitingTimesAreBetween.setText(waitingTimeOccurrencesStr);
+        txtBestHoursToHitchhike.setText(txtBestHoursToHitchhikeStr);
     }
 
     private static String getWaitingTimeOccurrencesStr(Context context, List<Pair<Pair<Integer, Integer>, Integer>> waitingTimeOccurences, int numOfRides) {
@@ -241,5 +266,23 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
             }
         }
         return txtBestHoursToHitchhikeStr.toString();
+    }
+
+    private void showProgressDialog(String message) {
+        if (loadingDialog == null) {
+            loadingDialog = new ProgressDialog(getContext());
+            loadingDialog.setIndeterminate(true);
+            loadingDialog.setCancelable(false);
+        }
+        loadingDialog.setMessage(message);
+        loadingDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        try {
+            if (loadingDialog != null && loadingDialog.isShowing())
+                loadingDialog.dismiss();
+        } catch (Exception e) {
+        }
     }
 }

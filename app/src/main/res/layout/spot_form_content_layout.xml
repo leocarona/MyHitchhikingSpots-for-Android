@@ -176,7 +176,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <com.google.android.material.textfield.TextInputEditText
+                        <androidx.appcompat.widget.AppCompatEditText
                             android:id="@+id/spot_form_note_edittext"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -532,7 +532,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/spot_form_waiting_time_edittext"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

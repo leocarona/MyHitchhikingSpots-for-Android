@@ -59,6 +59,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.widget.NestedScrollView;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
@@ -87,10 +88,8 @@ import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.myhitchhikingspots.adapters.CommentsListViewAdapter;
 import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
-import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.MyLocation;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -236,6 +235,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
     private PermissionsManager locationPermissionsManager;
 
+    SpotFormViewModel viewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -251,6 +252,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         coordinatorLayout = (View) findViewById(R.id.coordinatorLayout);
 
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+
+        viewModel = new ViewModelProvider(this).get(SpotFormViewModel.class);
 
         // Set a Toolbar to replace the ActionBar.
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -308,7 +311,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             return;
         } else if (mFormType == FormType.Edit) {
             //Prevent user from editing a spot if he's currently waiting for a ride somewhere else.
-            Spot s = ((MyHitchhikingSpotsApplication) getApplicationContext()).getCurrentSpot();
+            Spot s = viewModel.getCurrentSpot().getValue();
 
             if (s != null &&
                     s.getIsWaitingForARide() != null && s.getIsWaitingForARide() &&
@@ -826,7 +829,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
         } else {
             //The user might still be close to the last spot saved, move the map camera there
-            Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
+            Spot lastAddedSpot = viewModel.getLastAddedRouteSpot(getContext());
             if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                     && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
                 moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
@@ -875,7 +878,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 //}
             } else {
                 //Set start position for map camera: set it to the last spot saved
-                Spot lastAddedSpot = ((MyHitchhikingSpotsApplication) getApplicationContext()).getLastAddedRouteSpot();
+                Spot lastAddedSpot = viewModel.getLastAddedRouteSpot(getContext());
                 if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                         && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
                     cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
@@ -984,9 +987,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     .setPositiveButton(getResources().getString(R.string.general_yes_option), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
-                            //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-                            setResult(RESULT_CANCELED);
                             finish();
                         }
 
@@ -994,9 +994,6 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                     .setNegativeButton(getResources().getString(R.string.general_no_option), null)
                     .show();
         } else {
-            //Set result to RESULT_CANCELED so that the activity who opened the current SpotFormActivity knows that nothing was changed in the dataset
-            //Set result so that the activity who opened the current SpotFormActivity knows that the dataset was changed and it should make the necessary updates on the UI
-            setResult(RESULT_CANCELED);
             finish();
         }
     }
@@ -1132,22 +1129,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 attemptResult = mCurrentSpot.getAttemptResult();
             updateAttemptResultButtonsState();
 
-            String title = "";
-            if (mFormType == FormType.Create)
-                title = getResources().getString(R.string.save_spot_button_text);
-            else if (mFormType == FormType.Edit)
-                title = getResources().getString(R.string.spot_form_title_edit);
-            else if (mFormType == FormType.ReadOnly) {
-                if (shouldRetrieveDetailsFromHW)
-                    title = "Hitchwiki";
-                else
-                    title = "Spot";
-            } else
-                title = getResources().getString(R.string.spot_form_title_evaluate);
-
-
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            toolbar.setTitle(title.toUpperCase());
+            updateToolbarTitle();
 
             if (shouldShowButtonsPanel) {
                 panel_buttons.setVisibility(View.VISIBLE);
@@ -1250,6 +1232,25 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         }
 
         updateUIFirstCalled = true;
+    }
+
+    private void updateToolbarTitle() {
+        String title = "";
+        if (mFormType == FormType.Create)
+            title = getResources().getString(R.string.save_spot_button_text);
+        else if (mFormType == FormType.Edit)
+            title = getResources().getString(R.string.spot_form_title_edit);
+        else if (mFormType == FormType.ReadOnly) {
+            if (shouldRetrieveDetailsFromHW)
+                title = "Hitchwiki";
+            else
+                title = "Spot";
+        } else
+            title = getResources().getString(R.string.spot_form_title_evaluate);
+
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle(title.toUpperCase());
     }
 
     private void updateDeleteButtonState() {
@@ -1539,9 +1540,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         new Thread() {
             @Override
             public void run() {
-                DaoSession daoSession = ((MyHitchhikingSpotsApplication) getApplicationContext()).getDaoSession();
-                SpotDao spotDao = daoSession.getSpotDao();
-                spotDao.insertOrReplace(mCurrentSpot);
+                viewModel.insertOrReplace(getContext(), mCurrentSpot);
 
                 // code runs in a thread
                 runOnUiThread(new Runnable() {
@@ -1560,6 +1559,13 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     }
 
     public void deleteButtonHandler(View view) {
+        if (mCurrentSpot == null || mCurrentSpot.getId() == null || mCurrentSpot.getId() <= 0) {
+            Crashlytics.setBool("mCurrentSpot is null", mCurrentSpot == null);
+            Crashlytics.logException(new Exception("Delete button was visible when spot id was unknown, and user clicked it."));
+            mDeleteButton.setVisibility(View.GONE);
+            return;
+        }
+
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(getResources().getString(R.string.spot_form_delete_dialog_title_text))
@@ -1570,10 +1576,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                         new Thread() {
                             @Override
                             public void run() {
-                                DaoSession daoSession = ((MyHitchhikingSpotsApplication) getApplicationContext()).getDaoSession();
-                                SpotDao spotDao = daoSession.getSpotDao();
-                                spotDao.delete(mCurrentSpot);
-                                ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(null);
+                                viewModel.deleteSpot(getContext(), mCurrentSpot);
+                                viewModel.setCurrentSpot(null);
 
                                 // code runs in a thread
                                 runOnUiThread(new Runnable() {
@@ -1610,9 +1614,9 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         setResult(result);
 
         if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide())
-            ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentSpot);
+            viewModel.setCurrentSpot(mCurrentSpot);
         else
-            ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(null);
+            viewModel.setCurrentSpot(null);
 
         //If a hitchhiking spot is being saved for the first time, then let the user evaluate it.
         if (mFormType == FormType.Create && is_hitchhiking_spot_check_box.isChecked()) {

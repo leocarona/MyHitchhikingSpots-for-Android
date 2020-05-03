@@ -35,7 +35,7 @@ import java.util.List;
  */
 public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHolder> implements ListListener {
     protected static final String TAG = "spot-list-adapter";
-    private List<Spot> mData;
+    private List<Spot> mData = new ArrayList<>();
     private Activity activity;
     public final Hashtable<Long, String> totalsToDestinations = new Hashtable<>();
     public ArrayList<Integer> selectedSpots = new ArrayList<>();
@@ -47,7 +47,10 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     }
 
     void setSpotList(List<Spot> spotsList) {
-        mData = spotsList;
+        if (spotsList == null)
+            mData = new ArrayList<>();
+        else
+            mData = spotsList;
 
         totalsToDestinations.clear();
         Crashlytics.log(Log.INFO, TAG, "Summing up the total of rides gotten and hours traveling");
