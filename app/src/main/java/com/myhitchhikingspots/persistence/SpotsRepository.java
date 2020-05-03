@@ -15,6 +15,7 @@ import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.Utils;
 
+import org.greenrobot.greendao.database.Database;
 import org.joda.time.DateTime;
 
 import java.util.List;
@@ -22,6 +23,18 @@ import java.util.List;
 public class SpotsRepository {
 
     private MutableLiveData<List<Spot>> spots;
+    private static SpotsRepository sInstance;
+
+    public static SpotsRepository getInstance() {
+        if (sInstance == null) {
+            synchronized (SpotsRepository.class) {
+                if (sInstance == null) {
+                    sInstance = new SpotsRepository();
+                }
+            }
+        }
+        return sInstance;
+    }
 
     public LiveData<List<Spot>> getSpots(Context context) {
         if (spots == null) {
@@ -114,5 +127,30 @@ public class SpotsRepository {
 
         SpotDao spotDao = daoSession.getSpotDao();
         spotDao.delete(spot);
+    }
+
+    public boolean isAnySpotMissingAuthor(Context context) {
+        DaoSession daoSession = getDaoSession(context);
+        SpotDao spotDao = daoSession.getSpotDao();
+        return !spotDao.queryBuilder().whereOr(SpotDao.Properties.AuthorUserName.isNull(), SpotDao.Properties.AuthorUserName.eq(""))
+                .limit(1).list().isEmpty();
+    }
+
+    /**
+     * Assign the given username to all spots missing AuthorUserName.
+     *
+     * @param username The username that the person uses on Hitchwiki.
+     */
+    public void assignMissingAuthorTo(Context context, String username) {
+        DaoSession daoSession = getDaoSession(context);
+        String sqlUpdateAuthorStatement = "UPDATE %1$s SET %2$s = '%3$s' WHERE %2$s IS NULL OR %2$s = ''";
+        //Get a DB session
+        Database db = daoSession.getDatabase();
+
+        //Delete selected spots from DB
+        db.execSQL(String.format(sqlUpdateAuthorStatement,
+                SpotDao.TABLENAME,
+                SpotDao.Properties.AuthorUserName.columnName,
+                username));
     }
 }

@@ -98,4 +98,17 @@ public class SpotsListViewModel extends ViewModel {
         //Delete selected spots from DB
         db.execSQL(sqlStatement);
     }
+
+    public boolean isAnySpotMissingAuthor(Context context) {
+        return mRepository.isAnySpotMissingAuthor(context);
+    }
+
+    /**
+     * Assign the given username to all spots missing AuthorUserName.
+     *
+     * @param username The username that the person uses on Hitchwiki.
+     */
+    public void assignMissingAuthorTo(Context context, String username) {
+        mRepository.assignMissingAuthorTo(context, username);
+    }
 }

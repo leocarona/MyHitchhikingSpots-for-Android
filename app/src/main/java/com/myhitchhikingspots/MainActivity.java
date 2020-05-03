@@ -1,5 +1,11 @@
 package com.myhitchhikingspots;
 
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,8 +14,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -29,7 +33,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-
 import com.crashlytics.android.Crashlytics;
 import com.google.android.material.navigation.NavigationView;
 import com.myhitchhikingspots.model.Spot;
@@ -39,9 +42,7 @@ import org.json.JSONObject;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
-import java.util.ArrayList;
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Map;
 
@@ -674,7 +675,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             if (prefs != null)
                                 prefs.edit().putString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, username).apply();
 
-                            showSuccessAndTryAssignAuthorDialog(this, getString(R.string.login_succeeded), getString(R.string.general_welcome_user, username));
+                            showSuccessAndTryAssignAuthorDialog(viewModel,this, getString(R.string.login_succeeded), getString(R.string.general_welcome_user, username));
 
                             updateLoginOptionVisibility();
                         }
@@ -701,18 +702,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         queue.add(jsonObjectRequest);
     }
 
-    public static void showSuccessAndTryAssignAuthorDialog(Context context, String dialogTitle, String dialogMessage) {
-        new AlertDialog.Builder(context)
-                .setIcon(R.drawable.ic_check_circle_black_24dp)
-                .setTitle(dialogTitle)
-                .setMessage(dialogMessage)
-                .setNeutralButton(context.getResources().getString(R.string.general_ok_option), (d, i) -> {
-                    if (((MyHitchhikingSpotsApplication) context.getApplicationContext()).IsAnySpotMissingAuthor())
-                        tryAssignAuthorToSpots(context);
-                })
-                .show();
-    }
-
     private void tryLogout() {
         /*
         NOTE: Trying to log user out on the server side doesn't seem to work with action=logout when the user has
@@ -724,6 +713,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             tryLogoutOnServerSide();*/
 
         onLogoutFinished();
+    }
+
+    public static void showSuccessAndTryAssignAuthorDialog(SpotsListViewModel viewModel, Context context, String dialogTitle, String dialogMessage) {
+        new AlertDialog.Builder(context)
+                .setIcon(R.drawable.ic_check_circle_black_24dp)
+                .setTitle(dialogTitle)
+                .setMessage(dialogMessage)
+                .setNeutralButton(context.getResources().getString(R.string.general_ok_option), (d, i) -> {
+                    if (viewModel.isAnySpotMissingAuthor(context))
+                        tryAssignAuthorToSpots(viewModel, context);
+                })
+                .show();
+    }
+
+    private void onLogoutFinished() {
+        showErrorAlert(getString(R.string.general_done_label), getString(R.string.logout_successful));
+
+        prefs.edit().remove(Constants.PREFS_LOGIN_TOKEN).apply();
+        prefs.edit().remove(Constants.PREFS_USER_CURRENTLY_LOGGED_IN).apply();
+
+        updateLoginOptionVisibility();
     }
 
     private void tryLogoutOnServerSide() {
@@ -760,30 +770,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         queue.add(jsonObjectRequest);
     }
 
-    private void onLogoutFinished() {
-        showErrorAlert(getString(R.string.general_done_label), getString(R.string.logout_successful));
-
-        prefs.edit().remove(Constants.PREFS_LOGIN_TOKEN).apply();
-        prefs.edit().remove(Constants.PREFS_USER_CURRENTLY_LOGGED_IN).apply();
-
-        updateLoginOptionVisibility();
-    }
-
-    private static void tryAssignAuthorToSpots(Context context) {
+    private static void tryAssignAuthorToSpots(SpotsListViewModel viewModel, Context context) {
         SharedPreferences prefs = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
         String username = (prefs == null) ? null : prefs.getString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, null);
         if (username == null)
             return;
-        showShouldAssignSpotsMissingAuthorToUserDialog(context, username);
+        showShouldAssignSpotsMissingAuthorToUserDialog(viewModel, context, username);
     }
 
-    private static void showShouldAssignSpotsMissingAuthorToUserDialog(Context context, String username) {
+    private static void showShouldAssignSpotsMissingAuthorToUserDialog(SpotsListViewModel viewModel, Context context, String username) {
         new AlertDialog.Builder(context)
                 .setIcon(R.drawable.ic_check_circle_black_24dp)
                 .setTitle(context.getString(R.string.assign_spots_dialog_title))
                 .setMessage(context.getString(R.string.assign_spots_dialog_message))
                 .setPositiveButton(context.getString(R.string.general_yes_option), (dialog, which) -> {
-                    ((MyHitchhikingSpotsApplication) context.getApplicationContext()).AssignMissingAuthorTo(username);
+                    viewModel.assignMissingAuthorTo(context, username);
                 })
                 .setNegativeButton(context.getString(R.string.general_no_option), (dialog, which) -> {
                 })

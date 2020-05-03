@@ -75,6 +75,8 @@ public class ToolsActivity extends AppCompatActivity {
     final static String DBBackupSubdirectory = "/backup";
     final static String TAG = "settings-activity";
 
+    SpotsListViewModel viewModel;
+
     /**
      * Path to the exported file on the local storage.
      * Please note that at the moment when this variable is set we know that the file exists because it has been just generated.
@@ -86,6 +88,8 @@ public class ToolsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tools_layout);
+
+        viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
 
         //prefs
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
@@ -360,7 +364,7 @@ public class ToolsActivity extends AppCompatActivity {
                     //Create a record to track database import
                     Answers.getInstance().logCustom(new CustomEvent(eventName));
 
-                    MainActivity.showSuccessAndTryAssignAuthorDialog(ToolsActivity.this, getString(R.string.general_import_finished_successful_message), TextUtils.join("\n", messages));
+                    MainActivity.showSuccessAndTryAssignAuthorDialog(viewModel, ToolsActivity.this, getString(R.string.general_import_finished_successful_message), TextUtils.join("\n", messages));
                 } else {
                     Answers.getInstance().logCustom(new CustomEvent("Database import failed"));
 
