@@ -9,12 +9,8 @@ import com.mapbox.mapboxsdk.Mapbox;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
+import com.myhitchhikingspots.persistence.SpotsRepository;
 import com.myhitchhikingspots.utilities.Utils;
-
-import org.greenrobot.greendao.database.Database;
-
-import hitchwikiMapsSDK.classes.APIConstants;
-import io.fabric.sdk.android.Fabric;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -63,6 +59,10 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         APIConstants.CODE_CONTINENT_ANTARTICA = getResources().getString(R.string.continent_code_antarctica);
         APIConstants.CODE_CONTINENT_EUROPE = getResources().getString(R.string.continent_code_europe);
         APIConstants.CODE_CONTINENT_AUSTRALIA = getResources().getString(R.string.continent_code_oceania);
+    }
+
+    public SpotsRepository getSpotsRepository() {
+        return SpotsRepository.getInstance();
     }
 
     final String TAG = "application-class";
