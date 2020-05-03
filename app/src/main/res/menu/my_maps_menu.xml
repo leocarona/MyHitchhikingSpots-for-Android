@@ -11,16 +11,17 @@
         android:icon="@drawable/ic_list_black_24dp"
         android:orderInCategory="100"
         app:showAsAction="always" />
-    <item android:id="@+id/action_zoom_to_fit_all"
-        android:title="@string/general_zoom_to_fit_all"
+    <item android:id="@+id/action_filter_by_date"
+        android:title="@string/general_filter_by_date_label"
         android:orderInCategory="100"
-        app:showAsAction="never" />
+        android:icon="@drawable/ic_date_range_black_24dp"
+        app:showAsAction="always" />
     <item android:id="@+id/action_toggle_icons"
         android:title="@string/general_toggle_buttons_label"
         android:orderInCategory="100"
         app:showAsAction="never" />
-    <item android:id="@+id/action_toggle_old_routes"
-        android:title="@string/general_hide_routes_label"
+    <item android:id="@+id/action_zoom_to_fit_all"
+        android:title="@string/general_zoom_to_fit_all"
         android:orderInCategory="100"
         app:showAsAction="never" />
 </menu>

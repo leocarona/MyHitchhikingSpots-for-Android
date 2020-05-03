@@ -41,7 +41,7 @@
 
     <string name="attempt_result">Resultado da tentativa</string>
 
-    <string name="menu_dashboard">Painel</string>
+    <string name="menu_dashboard">Estatísticas</string>
     <string name="menu_my_maps">Meu Mapa</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
     <string name="menu_tools">Ferramentas</string>
@@ -51,8 +51,8 @@
     <string name="tools_tips_title">DICAS</string>
     <string name="tools_warning">Bem-vindx às nossas Ferramentas! Tenha em mente que nós ainda não sincronizamos seus locais salvos em nenhum lugar. Enquanto isso, aqui estão algumas ferramentas que você pode usar para se virar enquanto isso.</string>
     <string name="tools_tips_description">Se você deseja enviar seus locais de carona salvos para seus amigos ou se você deseja fazer um backup deles, nós recomendamos fortemente a utilização da opção \"%1$s\". Exportando seu banco de dados um arquivo leve será salvo na memória do seu celular, permitindo que você a compartilhe com seus amigos, ou que você o copie para algum lugar mais seguro, como no seu e-mail ou em algum armazenamento em nuvem. Para restaurar um banco de dados exportado, use a opção \"%2$s\".</string>
-    <string name="tools_database_exported_successfully_message">Banco de dados exportado com sucesso!</string>
-    <string name="tools_exportdb_share_dialog_message">Agora nós recomendamos enviar esta cópia do seu banco de dados para algum outro lugar.\Clique em \"%s\" e escolha a opção mais conveniente para você. Talvez você queira salvar seu banco de dados em um serviço de núvem, enviá-lo para você mesmo (ou para um amigo) por e-mail, e por aí vai! :-)</string>
+    <string name="tools_database_exported_successfully_message">Banco de dados exportado com sucesso.</string>
+    <string name="tools_exportdb_share_dialog_message">Nós recomendamos enviar esta cópia do seu banco de dados para algum outro lugar.\Clique em \"%s\" e escolha a opção mais conveniente para você. Talvez você queira salvar seu banco de dados em um serviço de núvem, enviá-lo para você mesmo (ou para um amigo) por e-mail, e por aí vai! :-)</string>
     <string name="tools_file_dialog_select_directory_title">Selecione o diretório</string>
 
     <string name="settings_importdb_button_label">Importar banco de dados</string>
@@ -69,6 +69,8 @@
     <string name="settings_fixing_date_message">Corrigindo datas e horários dos locais..</string>
     <string name="settings_automatically_fix_spots_datetime_title">Nós podemos corrigir as datas e horas</string>
     <string name="settings_automatically_fix_spots_datetime_message">A data e hora de locais de carona salvos com o Meus Locais de Carona v2.2.5 (ou inferior) não eram salvas de forma apropriada, o que acarretava em informaçōes incorretas ao viajar a alguma região com outro fuso horário. O arquivo sendo importado parece ter sido gerado numa versão anterior do aplicaitov. Você gostaria que corrigíssimos as datas e horas nos locais sendo importados?</string>
+    <string name="settings_preferences_label">Preferências</string>
+    <string name="settings_preferences_description">Qual opção você gostaria de ver primeiro\nquando abrir o aplicativo?</string>
 
     <string name="hwmaps_downloadHDSpots_button_label">Baixar locais do Hitchwiki Maps</string>
     <string name="hwmaps_select_continents_button_label">Selecionar continentes</string>
@@ -153,7 +155,9 @@
 
     <string name="general_edit_list">Editar lista</string>
     <string name="general_toggle_buttons_label">Esconder/mostrar botōes</string>
-    <string name="general_hide_routes_label">Esconder/mostrar rotas passadas</string>
+    <string name="general_filter_by_date_label">Filtrar por datas</string>
+    <string name="general_filter_by_selected_dates_label">Filtrar locais desta data</string>
+    <string name="general_clear_selected_dates_label">Limpar</string>
     <string name="general_ok_option">Ok</string>
     <string name="general_yes_option">Sim</string>
     <string name="general_no_option">Não</string>
@@ -197,8 +201,10 @@
     <string name="general_enable_button_label">ativar</string>
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="general_showCase_button">Entendi!</string>
+
     <string name="general_view_map">Ver mapa</string>
     <string name="general_done_label">Pronto!</string>
+    <string name="general_done_message">Pronto!</string>
     <string name="general_welcome_user">Bem-vinda(o), %s!</string>
     <string name="general_log_in_label">Log in</string>
     <string name="general_log_out_label">Sair da minha conta</string>
@@ -294,6 +300,8 @@
     <string name="dashboard_number_of_hw_spots_downloaded">%d locais</string>
     <string name="dashboard_your_longest_waiting_time">Seu maior tempo de espera</string>
     <string name="dashboard_your_shortest_waiting_time">Seu menor tempo de espera</string>
+    <string name="dashboard_your_best_hitching_hours">Seus menores tempos de espera foram entre</string>
+    <string name="dashboard_usual_waiting_times">Geralmente te dão carona entre</string>
 
     <string name="about_us_first_text">Este aplicativo é um projeto de código aberto publicado pela Hitchwiki.org gratuitamente. É desenvolvido por e para caroneiros. Existe graças aos nossos apoiadores, nossos desenvolvedores e nossos usuários que avaliam o aplicativo e nos dão feedback, o que nos permite melhorar.</string>
     <string name="about_us_our_supporters_title">Quem Nos Apoia</string>

@@ -35,6 +35,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
 import com.crashlytics.android.Crashlytics;
@@ -99,6 +100,9 @@ import static android.os.Looper.getMainLooper;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.step;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
@@ -123,7 +127,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     private PermissionsManager locationPermissionsManager;
 
-    Toast waiting_GPS_update;
+    private ProgressDialog loadingDialog;
+    private DownloadHWSpotsDialog dialog;
 
     Boolean shouldZoomToFitAllMarkers = true;
 
@@ -137,14 +142,16 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private static final int PERMISSIONS_LOCATION = 0;
     private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
 
+    private final int ic_add_zoom_level = 12;
+
     private static final String MARKER_SOURCE_ID = "markers-source";
     private static final String MARKER_STYLE_LAYER_ID = "markers-style-layer";
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
 
-    AsyncTask loadTask;
+    AsyncTask loadTask, downloadPlacesAsyncTask, downloadCountriesListAsyncTask;
 
     Icon ic_single_spot, ic_took_a_break_spot, ic_waiting_spot, ic_arrival_spot = null;
-    Icon ic_hitchability_unknown, ic_hitchability_very_good, ic_hitchability_good, ic_hitchability_average, ic_hitchability_bad, ic_hitchability_senseless;
+    Icon ic_hitchability_unknown, ic_hitchability_very_good, ic_hitchability_good, ic_hitchability_average, ic_hitchability_bad, ic_hitchability_senseless, ic_target;
 
     List<Spot> spotList = new ArrayList();
     //Each hitchhiking spot is a feature
@@ -159,7 +166,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     // Variables needed to listen to location updates
     private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
 
-    public static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
+    private static CountryInfoBasic[] countriesContainer = new CountryInfoBasic[0];
+    private static final List<CountryInfoBasic> countriesContainerReordered = new ArrayList();
 
     @Override
     public void onAttach(Context context) {
@@ -263,6 +271,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         ic_hitchability_average = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(3));
         ic_hitchability_bad = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(4));
         ic_hitchability_senseless = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_route_point_black_24dp, getIdentifierColorStateList(5));
+
+        ic_target = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_add, ContextCompat.getColorStateList(getActivity(), R.color.mapboxGrayExtraDark));
     }
 
     @Override
@@ -280,11 +290,13 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_LOCATION:
-                locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                if (locationPermissionsManager != null)
+                    locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (isLocationRequestedByUser) {
                         enableLocationLayer(style);
-                        callback.moveMapCameraToNextLocationReceived();
+                        if (callback != null)
+                            callback.moveMapCameraToNextLocationReceived();
                         isLocationRequestedByUser = false;
                     }
                 } else {
@@ -414,8 +426,12 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * Ask for storage permission if necessary, load spots list and finally draw annotations.
      **/
     void onFirstLoad() {
-        if (!areStoragePermissionsGranted(getActivity())) {
-            requestStoragePermissions(getActivity());
+        Activity activity = getActivity();
+        if (activity == null)
+            return;
+
+        if (!areStoragePermissionsGranted(activity)) {
+            requestStoragePermissions(activity);
             return;
         }
 
@@ -426,7 +442,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     void downloadCountriesList() {
-        new DownloadCountriesListAsyncTask(onPlacesDownloadedListener).execute();
+        downloadCountriesListAsyncTask = new DownloadCountriesListAsyncTask(onPlacesDownloadedListener).execute();
     }
 
     @Override
@@ -580,6 +596,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         loadedMapStyle.addImage(ic_hitchability_average.getId(), ic_hitchability_average.getBitmap());
         loadedMapStyle.addImage(ic_hitchability_bad.getId(), ic_hitchability_bad.getBitmap());
         loadedMapStyle.addImage(ic_hitchability_senseless.getId(), ic_hitchability_senseless.getBitmap());
+        loadedMapStyle.addImage(ic_target.getId(), ic_target.getBitmap());
     }
 
     SharedPreferences prefs;
@@ -675,8 +692,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             // let's try to use a countries list previously downloaded.
             // (this list might be not so updated, but it's better than nothing!)
             if (!result.isEmpty() && !isListJustDownloaded && wasCountriesListDownloaded()) {
-                countries = Utils.loadCountriesListFromLocalFile();
-                isListLoadedFromLocalStorage = true;
+                try {
+                    countries = Utils.loadCountriesListFromLocalFile();
+                    isListLoadedFromLocalStorage = true;
+                } catch (Exception ex) {
+                    Crashlytics.logException(ex);
+                    countries = new CountryInfoBasic[0];
+                    result = ex.getLocalizedMessage();
+                }
             }
 
             if (countries == null || countries.length == 0) {
@@ -688,21 +711,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             countriesContainer = countries;
 
             if (isListJustDownloaded) {
-                saveCountriesListLocally(countriesContainer);
+                try {
+                    saveCountriesListLocally(countriesContainer);
 
-                //also write into prefs that markers sync has occurred
-                Long currentMillis = System.currentTimeMillis();
-                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).apply();
-
-                /*if (currentMillis != 0) {
-                    //convert millisecondsAtDownload to some kind of date and time text
-                    SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-                    Date resultdate = new Date(currentMillis);
-                    String timeStamp = sdf.format(resultdate);
-
-                    String.format(getString(R.string.general_items_downloaded_message),
-                    countriesContainer.length) + " " + String.format(getString(R.string.general_last_sync_date), timeStamp);
-                } */
+                    //also write into prefs that markers sync has occurred
+                    Long currentMillis = System.currentTimeMillis();
+                    prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, currentMillis).apply();
+                } catch (Exception exception) {
+                    Crashlytics.logException(exception);
+                }
             }
 
             if (isListJustDownloaded || isListLoadedFromLocalStorage) {
@@ -713,32 +730,30 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     };
 
-    void saveCountriesListLocally(CountryInfoBasic[] countriesList) {
+    void saveCountriesListLocally(CountryInfoBasic[] countriesList) throws Exception {
         File file = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
-        try {
-            FileOutputStream fileOutput = new FileOutputStream(file);
+        if (!file.exists())
+            file.createNewFile();
 
-            Gson gsonC = new Gson();
-            String placesContainerAsString = gsonC.toJson(countriesList);
+        FileOutputStream fileOutput = new FileOutputStream(file);
 
-            InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
+        Gson gsonC = new Gson();
+        String placesContainerAsString = gsonC.toJson(countriesList);
 
-            //create a buffer...
-            byte[] buffer = new byte[1024];
-            int bufferLength = 0; //used to store a temporary size of the buffer
+        InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
 
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                //add the data in the buffer to the file in the file output stream (the file on the sd card
-                fileOutput.write(buffer, 0, bufferLength);
-            }
+        //create a buffer...
+        byte[] buffer = new byte[1024];
+        int bufferLength = 0; //used to store a temporary size of the buffer
 
-            //close the output stream when done
-            fileOutput.close();
-
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
+        while ((bufferLength = inputStream.read(buffer)) > 0) {
+            //add the data in the buffer to the file in the file output stream (the file on the sd card
+            fileOutput.write(buffer, 0, bufferLength);
         }
+
+        //close the output stream when done
+        fileOutput.close();
     }
 
     void showCountriesListDialog() {
@@ -746,9 +761,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         if (activity == null || activity.isFinishing())
             return;
 
-        PairParcelable[] lst = new PairParcelable[countriesContainer.length];
-        for (int i = 0; i < countriesContainer.length; i++) {
-            CountryInfoBasic country = countriesContainer[i];
+        String selectedCodes = prefs.getString(Constants.PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD, "");
+
+        countriesContainerReordered.clear();
+        countriesContainerReordered.addAll(getListWithSelectedItemsFirst(countriesContainer, selectedCodes));
+
+        PairParcelable[] lst = new PairParcelable[countriesContainerReordered.size()];
+        for (int i = 0; i < countriesContainerReordered.size(); i++) {
+            CountryInfoBasic country = countriesContainerReordered.get(i);
 
             //Build string to show
             String c2 = country.getName();
@@ -759,7 +779,21 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             lst[i] = item;
         }
 
-        showSelectionDialog(lst, DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY);
+        showSelectionDialog(lst, selectedCodes, DownloadHWSpotsDialog.DIALOG_TYPE_COUNTRY);
+    }
+
+    private static List<CountryInfoBasic> getListWithSelectedItemsFirst(CountryInfoBasic[] items, String selectedKeys) {
+        List<CountryInfoBasic> lst = new ArrayList<>();
+        int lastSelectedItemAddedAt = -1;
+        for (int i = 0; i < items.length; i++) {
+            // If country code is on selectedCodes list, add it to the beginning of the list
+            if (selectedKeys.contains(items[i].getIso())) {
+                lastSelectedItemAddedAt++;
+                lst.add(lastSelectedItemAddedAt, items[i]);
+            } else//bulgaria, botswana, albania
+                lst.add(items[i]);
+        }
+        return lst;
     }
 
     private boolean wasCountriesListDownloaded() {
@@ -814,7 +848,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         @Override
         public String getCountryContainer(int item) {
-            return countriesContainer[item].getIso();
+            return countriesContainerReordered.get(item).getIso();
         }
     };
 
@@ -865,36 +899,43 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             //Clear countries container
             countriesContainer = new CountryInfoBasic[0];
 
-            new DownloadPlacesAsyncTask(hitchwikiStorageFolder, dialogType, lstToDownload, getPlacesByArea, this::onDownloadedFinished).execute();
+            downloadPlacesAsyncTask = new DownloadPlacesAsyncTask(hitchwikiStorageFolder, dialogType, lstToDownload, getPlacesByArea, this::onDownloadedFinished).execute();
         }
     }
 
     private void onDownloadedFinished(String result) {
-        if (result.contentEquals("spotsDownloaded")) {
+        String errMsg = "";
+        try {
+            if (result.contentEquals("spotsDownloaded")) {
+                savePlacesListLocally(placesContainer);
 
-            savePlacesListLocally(placesContainer);
+                //Get current datetime in milliseconds
+                Long millisecondsAtRefresh = System.currentTimeMillis();
 
-            //Get current datetime in milliseconds
-            Long millisecondsAtRefresh = System.currentTimeMillis();
-
-            //also write into prefs that markers sync has occurred
-            prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
-            prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
-
-            Activity activity = getActivity();
-            if (activity != null)
-                Toast.makeText(activity.getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
-        } else {
-            if (result.contentEquals("nothingToSync")) {
+                //also write into prefs that markers sync has occurred
+                prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
+                prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
+            } else if (result.contentEquals("nothingToSync")) {
                 //also write into prefs that markers sync has occurred
                 prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
                 prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
 
                 savePlacesListLocally(placesContainer);
-
-                showErrorAlert(getString(R.string.hwmaps_spotslist_cleared_title), getString(R.string.hwmaps_spotslist_cleared_message));
             } else if (!result.isEmpty())
-                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.hwmaps_hitchwikiMapsSpots_download_failed_message), result));
+                errMsg = result;
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            errMsg = ex.getLocalizedMessage();
+        }
+
+        Activity activity = getActivity();
+        if (activity != null) {
+            if (!errMsg.isEmpty())
+                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.hwmaps_hitchwikiMapsSpots_download_failed_message), errMsg));
+            else if (result.contentEquals("nothingToSync"))
+                showErrorAlert(getString(R.string.hwmaps_spotslist_cleared_title), getString(R.string.hwmaps_spotslist_cleared_message));
+            else if (result.contentEquals("spotsDownloaded"))
+                Toast.makeText(activity.getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
         }
 
         dismissProgressDialog();
@@ -903,14 +944,18 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         loadHWSpotsFromLocalStorage();
     }
 
-    private void showSelectionDialog(PairParcelable[] result, String dialogType) {
+    private void showSelectionDialog(PairParcelable[] result, String selectedCodes, String dialogType) {
+        FragmentActivity activity = getActivity();
+        if (activity == null || activity.isFinishing())
+            return;
+
         Bundle args = new Bundle();
         args.putParcelableArray(Constants.DIALOG_STRINGLIST_BUNDLE_KEY, result);
+        args.putString(Constants.DIALOG_SELECTEDKEYSLIST_BUNDLE_KEY, selectedCodes);
         args.putString(Constants.DIALOG_TYPE_BUNDLE_KEY, dialogType);
 
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        DownloadHWSpotsDialog dialog = new DownloadHWSpotsDialog(downloadHWSpotsDialogListener);
-        //dialog.setTargetFragment(this, 0);
+        FragmentManager fragmentManager = activity.getSupportFragmentManager();
+        dialog = new DownloadHWSpotsDialog(downloadHWSpotsDialogListener);
         dialog.setArguments(args);
         dialog.show(fragmentManager, "tagSelection");
     }
@@ -941,12 +986,18 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onStart() {
         super.onStart();
         mapView.onStart();
+        if (dialog != null)
+            dialog.onStart();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         mapView.onStop();
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog.onStop();
+        }
 
         /*
          * The device may have been rotated and the activity is going to be destroyed
@@ -958,6 +1009,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             this.loadTask.cancel(false);
             dismissProgressDialog();
         }
+        if (downloadPlacesAsyncTask != null)
+            downloadPlacesAsyncTask.cancel(false);
+        if (downloadCountriesListAsyncTask != null)
+            downloadCountriesListAsyncTask.cancel(false);
     }
 
     @Override
@@ -983,7 +1038,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void onPause() {
         super.onPause();
         mapView.onPause();
-
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog.onPause();
+        }
         dismissProgressDialog();
     }
 
@@ -1000,6 +1058,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             mapboxMap.removeOnMapClickListener(this);
         }
         mapView.onDestroy();
+        if (dialog != null)
+            dialog.onDestroy();
     }
 
     @Override
@@ -1050,35 +1110,32 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
     };
 
-    void savePlacesListLocally(List<PlaceInfoBasic> places) {
+    void savePlacesListLocally(List<PlaceInfoBasic> places) throws Exception {
         //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
         //so we have to create file in storage folder and stream placesContainer into it using gson
         File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
-        try {
-            FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
+        if (!fileToStoreMarkersInto.exists())
+            fileToStoreMarkersInto.createNewFile();
 
-            Gson gsonC = new Gson();
-            String placesContainerAsString = gsonC.toJson(places);
+        FileOutputStream fileOutput = new FileOutputStream(fileToStoreMarkersInto);
 
-            InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
+        Gson gsonC = new Gson();
+        String placesContainerAsString = gsonC.toJson(places);
 
-            //create a buffer...
-            byte[] buffer = new byte[1024];
-            int bufferLength = 0; //used to store a temporary size of the buffer
+        InputStream inputStream = new ByteArrayInputStream(placesContainerAsString.getBytes("UTF-8"));
 
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                //add the data in the buffer to the file in the file output stream (the file on the sd card
-                fileOutput.write(buffer, 0, bufferLength);
-            }
+        //create a buffer...
+        byte[] buffer = new byte[1024];
+        int bufferLength = 0; //used to store a temporary size of the buffer
 
-            //close the output stream when done
-            fileOutput.close();
-
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
+        while ((bufferLength = inputStream.read(buffer)) > 0) {
+            //add the data in the buffer to the file in the file output stream (the file on the sd card
+            fileOutput.write(buffer, 0, bufferLength);
         }
 
+        //close the output stream when done
+        fileOutput.close();
     }
 
     @Override
@@ -1270,7 +1327,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      */
     @SuppressWarnings({"MissingPermission"})
     public void moveCameraToLastKnownLocation(int zoomLevel, @Nullable MapboxMap.CancelableCallback callback) {
-        if(!style.isFullyLoaded())
+        if (!style.isFullyLoaded())
             return;
 
         //Request permission of access to GPS updates or
@@ -1310,8 +1367,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             mapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(moveCameraPositionTo, bestZoomLevel), callback);
 
     }
-
-    private ProgressDialog loadingDialog;
 
     private void showProgressDialog(String message) {
         showProgressDialog(message, null);
@@ -1569,8 +1624,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             markerStyleLayer = new SymbolLayer(MARKER_STYLE_LAYER_ID, MARKER_SOURCE_ID)
                     .withProperties(
                             PropertyFactory.iconAllowOverlap(true),
-                            PropertyFactory.iconImage("{" + PROPERTY_ICONIMAGE + "}")
-                    )
+                            PropertyFactory.iconImage(step(zoom(), get(PROPERTY_ICONIMAGE),
+                                    stop(ic_add_zoom_level, ic_target.getId()))),
+                            PropertyFactory.iconSize(step(zoom(), 1,
+                                    stop(4, 1.2),
+                                    stop(5, 1.4),
+                                    stop(6, 1.6),
+                                    stop(7, 1.8),
+                                    stop(8, 2),
+                                    stop(ic_add_zoom_level, 1))))
                     /* add a filter to show only features with PROPERTY_SHOULDHIDE set to false */
                     .withFilter(eq((get(PROPERTY_SHOULDHIDE)), literal(false)));
 

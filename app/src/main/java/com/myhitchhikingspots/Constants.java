@@ -36,6 +36,7 @@ public final class Constants {
     public static final int SPOT_TYPE_POINT_ON_THE_ROUTE = 7;
 
     public static final String DIALOG_STRINGLIST_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_STRINGLIST_BUNDLE_KEY";
+    public static final String DIALOG_SELECTEDKEYSLIST_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_SELECTEDKEYS_BUNDLE_KEY";
     public static final String DIALOG_TYPE_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_TYPE_BUNDLE_KEY";
 
     public static final String SPOT_BUNDLE_EXTRA_KEY = PACKAGE_NAME + ".SPOT";
@@ -75,6 +76,7 @@ public final class Constants {
     public static final String PREFS_SPOTSSTARTDATETIME_WERE_FIXED = "startDateTimesFixed";
     public static final String PREFS_LOGIN_TOKEN = "loginToken";
     public static final String PREFS_USER_CURRENTLY_LOGGED_IN = "userCurrentlyLoggedIn";
+    public static final String PREFS_DEFAULT_STARTUP_FRAGMENT = "defaultStartUpFragment";
 
     public static final String PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD = "PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD";
     public static final String PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD = "PREFS_SELECTED_CONTINENTS_TO_DOWNLOAD";

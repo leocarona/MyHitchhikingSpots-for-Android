@@ -1,5 +1,32 @@
 package com.myhitchhikingspots.utilities;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Environment;
+import android.text.format.DateUtils;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import com.crashlytics.android.Crashlytics;
+import com.mapbox.geojson.Point;
+import com.myhitchhikingspots.Constants;
+import com.myhitchhikingspots.R;
+import com.myhitchhikingspots.model.Route;
+import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.model.SubRoute;
+import com.savvi.rangedatepicker.CalendarPickerView;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,39 +38,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
-
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Environment;
-
-import androidx.annotation.NonNull;
-
-import android.text.format.DateUtils;
-import android.util.Log;
-
-import com.crashlytics.android.Crashlytics;
+import java.util.TimeZone;
 
 import hitchwikiMapsSDK.classes.ApiManager;
 import hitchwikiMapsSDK.entities.CountryInfoBasic;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
-import com.mapbox.geojson.Point;
-import com.myhitchhikingspots.Constants;
-import com.myhitchhikingspots.R;
-import com.myhitchhikingspots.model.Route;
-import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.model.SubRoute;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import static java.util.Calendar.HOUR_OF_DAY;
+import static java.util.Calendar.MILLISECOND;
+import static java.util.Calendar.MINUTE;
+import static java.util.Calendar.SECOND;
 
 public class Utils {
     //metric radius
@@ -185,36 +192,24 @@ public class Utils {
         }
     }
 
-    public static CountryInfoBasic[] loadCountriesListFromLocalFile() {
+    public static CountryInfoBasic[] loadCountriesListFromLocalFile() throws Exception {
+        //get markersStorageFile streamed into String, so gson can convert it into placesContainer
+        String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
-        try {
-            //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
-
-            return parseGetCountriesWithCoordinates(placesContainerAsString);
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
-        }
-
-        return new CountryInfoBasic[0];
+        return parseGetCountriesWithCoordinates(placesContainerAsString);
     }
 
     static String TAG = "utils";
 
-    public static PlaceInfoBasic[] loadHitchwikiSpotsFromLocalFile() {
+    public static PlaceInfoBasic[] loadHitchwikiSpotsFromLocalFile() throws Exception {
+        //get markersStorageFile streamed into String, so gson can convert it into placesContainer
+        String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
-        try {
-            //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-            String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
+        Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
+        Crashlytics.setString("placesContainerAsString", placesContainerAsString);
 
-            Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
-            Crashlytics.setString("placesContainerAsString", placesContainerAsString);
-
-            if (!placesContainerAsString.isEmpty())
-                return new ApiManager().getPlacesByContinenFromLocalFile(placesContainerAsString);
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
-        }
+        if (!placesContainerAsString.isEmpty())
+            return new ApiManager().getPlacesByContinenFromLocalFile(placesContainerAsString);
 
         return new PlaceInfoBasic[0];
     }
@@ -364,19 +359,14 @@ public class Utils {
         return errorMessage;
     }
 
-    public static String loadFileFromLocalStorage(String fileName) {
+    public static String loadFileFromLocalStorage(String fileName) throws Exception {
         Crashlytics.setString("Name of the file to load", fileName);
         File markersStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
-        String result = "";
         File fl = new File(markersStorageFolder, fileName);
-        try {
-            FileInputStream fin = new FileInputStream(fl);
-            result = Utils.convertStreamToString(fin);
-            fin.close();
-        } catch (Exception exception) {
-            Crashlytics.logException(exception);
-        }
+        FileInputStream fin = new FileInputStream(fl);
+        String result = Utils.convertStreamToString(fin);
+        fin.close();
 
         return result;
     }
@@ -573,6 +563,54 @@ public class Utils {
                 localDateTime.getMinuteOfHour(),
                 DateTimeZone.UTC
         );
+    }
+
+    public static boolean sameDate(DateTime d1, DateTime d2) {
+        return sameDate(d1.toDate(), d2.toDate());
+    }
+
+    public static boolean sameDate(Date d1, Date d2) {
+        Calendar cal1 = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        cal1.setTime(d1);
+        Calendar cal2 = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        cal2.setTime(d2);
+
+        return CalendarPickerView.sameDate(cal1, cal2);
+    }
+
+    public static boolean containsDate(List<Calendar> selectedCals, Calendar cal) {
+        return CalendarPickerView.containsDate(selectedCals, cal);
+    }
+
+    public static boolean containsDate(List<Date> selectedDates, Date date) {
+        for (Date selectedDate : selectedDates) {
+            if (sameDate(date, selectedDate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Calendar getCalendarAtMidnight(DateTime date) {
+        return getCalendarAtMidnight(date.toDate());
+    }
+
+    public static Calendar getCalendarAtMidnight(Date date) {
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        cal.setTime(date);
+        // Remove hour, minute, seconds and milliseconds data from the date
+        setMidnight(cal);
+        return cal;
+    }
+
+    /**
+     * Clears out the hours/minutes/seconds/millis of a Calendar.
+     */
+    public static void setMidnight(Calendar cal) {
+        cal.set(HOUR_OF_DAY, 0);
+        cal.set(MINUTE, 0);
+        cal.set(SECOND, 0);
+        cal.set(MILLISECOND, 0);
     }
 
     /**

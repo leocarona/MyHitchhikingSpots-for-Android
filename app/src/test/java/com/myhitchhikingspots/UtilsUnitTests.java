@@ -118,7 +118,7 @@ public class UtilsUnitTests {
     public void dateTimeToString_dateTimeInUTCOnADifferentYear_ReturnDayMonthYearAndTime() {
         DateTime dateTimeInUTC = new DateTime(2015, 1, 1, 12, 0, 0, DateTimeZone.UTC);
 
-        assertThat(Utils.dateTimeToString(dateTimeInUTC)).isEqualTo("01/Jan/2015, 12:00");
+        assertThat(Utils.dateTimeToString(dateTimeInUTC)).isEqualTo("01/01/2015, 12:00");
     }
 
     @Test

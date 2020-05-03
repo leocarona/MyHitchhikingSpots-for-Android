@@ -39,27 +39,17 @@ The Hitchwiki team.
     <string name="attempt_result_successful" translatable="false">@string/got_a_ride_button_text</string>
     <string name="attempt_result_gave_up" translatable="false">@string/break_button_text</string>
 
-    <string-array name="hitchabilities" translatable="false">
-        <item>@string/hitchability_unknown</item>
-        <item>@string/hitchability_very_good</item>
-        <item>@string/hitchability_good</item>
-        <item>@string/hitchability_average</item>
-        <item>@string/hitchability_bad</item>
-        <item>@string/hitchability_senseless</item>
-        <item>@string/hitchability_no_answer</item>
-    </string-array>
-
-    <string-array name="attempt_results" translatable="false">
-        <item>@string/attempt_result_unknown</item>
-        <item>@string/attempt_result_successful</item>
-        <item>@string/attempt_result_gave_up</item>
+    <string-array name="startup_fragment_options" translatable="false">
+        <item>@string/menu_dashboard</item>
+        <item>@string/menu_my_maps</item>
+        <item>@string/menu_hitchwiki_maps</item>
     </string-array>
 
     <string name="tools_tips_title">TIPS</string>
     <string name="tools_warning">Welcome to our Tools! Please note that we still do not synchronize your hitchhiking spots to anywhere. Meanwhile here are some tools you can get around with for now.</string>
     <string name="tools_tips_description">If you want to share your saved spots to your friends or if you just want to have your spots backed up we strongly recommend using our \"%1$s\" option. Exporting your database will save a light copy of your spots data on your phone\'s storage, and you can then share it with friends, or even save it somewhere safer, like on your e-mail or favorite cloud service. To restore a exported database, use our \"%2$s\" option.</string>
-    <string name="tools_database_exported_successfully_message">Database exported successfully!</string>
-    <string name="tools_exportdb_share_dialog_message">Now we\'d recommend saving this copy of your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
+    <string name="tools_database_exported_successfully_message">Database exported successfully</string>
+    <string name="tools_exportdb_share_dialog_message">We recommend saving this copy of your database somewhere else.\nClick \"%s\" and pick your favorite option. You might want to save your database to you cloud service, send it to yourself (or perhaps to a friend) over e-mail, and so on! :-)</string>
     <string name="tools_file_dialog_select_directory_title">Select directory</string>
 
     <string name="settings_importdb_button_label">Import database</string>
@@ -76,6 +66,8 @@ The Hitchwiki team.
     <string name="settings_fixing_date_message">Datetimes getting fixed..</string>
     <string name="settings_automatically_fix_spots_datetime_title">We can fix the datetimes</string>
     <string name="settings_automatically_fix_spots_datetime_message">We realized that the date and time of spots saved with My Hitchhiking Spots v2.2.5 (or prior) have not been saved properly. The file being imported seem to have been generated before version 2.2.5. Would you like us to automatically fix the dates and times of the spots being imported?</string>
+    <string name="settings_preferences_label">Preferences</string>
+    <string name="settings_preferences_description">What option would you like to seen first\nwhen you open the app?</string>
 
     <string name="hwmaps_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
     <string name="hwmaps_select_continents_button_label">Select continents</string>
@@ -108,7 +100,7 @@ The Hitchwiki team.
     <string name="spot_form_read_comments_showCase">Click here to read what other hitchhikers have commented about this spot.</string>
     <string name="spot_form_extra_options_showCase">Want to add a different spot on your route?\nDon\'t forget you may swipe up and find some extra options here! :-)</string>
 
-    <string name="menu_dashboard">Dashboard</string>
+    <string name="menu_dashboard">Statistics</string>
     <string name="menu_my_maps">My Maps</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
     <string name="menu_tools">Tools</string>
@@ -168,7 +160,9 @@ The Hitchwiki team.
 
     <string name="general_edit_list">Edit list</string>
     <string name="general_toggle_buttons_label">Toggle buttons</string>
-    <string name="general_hide_routes_label">Toggle past routes</string>
+    <string name="general_filter_by_date_label">Filter by date</string>
+    <string name="general_filter_by_selected_dates_label">Filter spots on these dates</string>
+    <string name="general_clear_selected_dates_label">Clear</string>
     <string name="general_close_editing_mode_label" translatable="false">Close editing mode</string>
     <string name="general_ok_option">OK</string>
     <string name="general_yes_option">Yes</string>
@@ -213,8 +207,10 @@ The Hitchwiki team.
     <string name="general_enable_button_label">enable</string>
     <string name="general_hitchwiki_logo_label">Hitchwiki logo</string>
     <string name="general_showCase_button">GOT IT!</string>
+
     <string name="general_view_map">View map</string>
     <string name="general_done_label">Done!</string>
+    <string name="general_done_message">Done!</string>
     <string name="general_welcome_user">Welcome in, %s!</string>
     <string name="general_log_in_label">Log in</string>
     <string name="general_log_out_label">Log out</string>
@@ -313,6 +309,8 @@ The Hitchwiki team.
     <string name="dashboard_number_of_hw_spots_downloaded">%d spots</string>
     <string name="dashboard_your_longest_waiting_time">Your longest waiting time</string>
     <string name="dashboard_your_shortest_waiting_time">Your shortest waiting time</string>
+    <string name="dashboard_your_best_hitching_hours">Your shortest waiting times have been between</string>
+    <string name="dashboard_usual_waiting_times">You\'re usually picked up between</string>
 
     <string name="about_us_first_text">This app is an open source project published by Hitchwiki.org free of charge. Developed by and for hitchhikers. It exists thanks to our supporters, our developers and our users who rate and give us feedback, so we can improve.</string>
     <string name="about_us_our_supporters_title">Our Supporters</string>

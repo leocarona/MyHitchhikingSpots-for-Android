@@ -176,7 +176,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                        <com.google.android.material.textfield.TextInputEditText
+                        <androidx.appcompat.widget.AppCompatEditText
                             android:id="@+id/spot_form_note_edittext"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -297,7 +297,7 @@
                             app:fabSize="mini"
                             app:rippleColor="@color/ic_standard_fab_color_lighter"
                             app:useCompatPadding="true"
-                            mapbox:srcCompat="@drawable/ic_date_range_black_24dp"
+                            mapbox:srcCompat="@drawable/ic_date_range_white_24dp"
                             tools:ignore="VectorDrawableCompat" />
 
                     </RelativeLayout>
@@ -532,7 +532,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:id="@+id/spot_form_waiting_time_edittext"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

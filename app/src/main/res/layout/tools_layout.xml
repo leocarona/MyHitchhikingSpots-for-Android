@@ -94,14 +94,6 @@
                         android:justificationMode="inter_word"
                         android:text="@string/tools_tips_description" />
 
-                    <Button
-                        android:id="@+id/btnPickFile"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="pick file"
-                        android:visibility="gone" />
-
                     <TextView
                         style="?android:attr/listSeparatorTextViewStyle"
                         android:layout_width="match_parent"
@@ -140,6 +132,26 @@
                         android:onClick="shareDB"
                         android:textAllCaps="true"
                         android:visibility="gone" />
+
+                    <TextView
+                        style="?android:attr/listSeparatorTextViewStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_preferences_label" />
+
+                    <TextView
+                        android:id="@+id/textView10"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:gravity="end"
+                        android:text="@string/settings_preferences_description"
+                        android:textStyle="italic" />
+
+                    <Spinner
+                        android:id="@+id/spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
 
                     <TextView
                         style="?android:attr/listSeparatorTextViewStyle"

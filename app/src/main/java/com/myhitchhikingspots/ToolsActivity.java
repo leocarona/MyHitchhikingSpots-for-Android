@@ -17,10 +17,16 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -121,7 +127,30 @@ public class ToolsActivity extends AppCompatActivity {
 
         findViewById(R.id.btnExport).setOnClickListener(this::exportButtonHandler);
         findViewById(R.id.btnImport).setOnClickListener(this::importButtonHandler);
-        findViewById(R.id.btnPickFile).setOnClickListener(this::pickFileButtonHandler);
+
+        Spinner spinner = findViewById(R.id.spinner);
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.startup_fragment_options, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
+        // Set current default fragment (use 1 - My Maps if none has been selected yet)
+        String defaultFragmentClassName = prefs.getString(Constants.PREFS_DEFAULT_STARTUP_FRAGMENT, "");
+        spinner.setSelection(getSelectedSpinnerItemIndexForFragment(defaultFragmentClassName));
+        // Set the select listener
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                prefs.edit().putString(Constants.PREFS_DEFAULT_STARTUP_FRAGMENT, getFragmentClassNameForSelectedSpinnerItem(pos)).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         coordinatorLayout = findViewById(R.id.coordinatiorLayout);
 
@@ -131,6 +160,23 @@ public class ToolsActivity extends AppCompatActivity {
 
         ((TextView) findViewById(R.id.tools_tips_description))
                 .setText(getString(R.string.tools_tips_description, getString(R.string.settings_exportdb_button_label), getString(R.string.settings_importdb_button_label)));
+    }
+
+    private static String getFragmentClassNameForSelectedSpinnerItem(int spinnerItemIndex) {
+        if (spinnerItemIndex == 0)
+            return DashboardFragment.class.getName();
+        else if (spinnerItemIndex == 2)
+            return HitchwikiMapViewFragment.class.getName();
+        else return MyMapsFragment.class.getName();
+    }
+
+
+    private static int getSelectedSpinnerItemIndexForFragment(String fragmentClassName) {
+        if (fragmentClassName.equals(DashboardFragment.class.getName()))
+            return 0;
+        else if (fragmentClassName.equals(HitchwikiMapViewFragment.class.getName()))
+            return 2;
+        else return 1;
     }
 
     //persmission method.
@@ -153,8 +199,20 @@ public class ToolsActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSIONS_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (actionToPerfomOncePermissionIsGranted == 1)
+                exportDBNow();
+            else if (actionToPerfomOncePermissionIsGranted == 2)
+                showFilePickerDialog();
+            actionToPerfomOncePermissionIsGranted = -1;
+        }
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_DB_REQUEST) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
@@ -206,28 +264,36 @@ public class ToolsActivity extends AppCompatActivity {
                 .show();
     }
 
-    public void pickFileButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(this))
-            requestStoragePermissions(this);
-        else {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            startActivityForResult(intent, PICK_DB_REQUEST);
-        }
+    public void shareButtonHandler(View view) {
+        //create the send intent
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+
+        //start the chooser for sharing
+        startActivity(Intent.createChooser(shareIntent, "Insert share chooser title here"));
     }
 
+    // 1 for exporting database and 2 for importing database
+    int actionToPerfomOncePermissionIsGranted = -1;
 
     public void importButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(this))
+        if (!isStoragePermissionsGranted(this)) {
+            actionToPerfomOncePermissionIsGranted = 2;
             requestStoragePermissions(this);
-        else {
-            FilePickerDialog dialog = new FilePickerDialog();
-            //Add listener to be called when task finished
-            dialog.addListener((success, file, filePath) -> {
+        } else
+            showFilePickerDialog();
+    }
+
+    void showFilePickerDialog() {
+        FilePickerDialog dialog = new FilePickerDialog();
+        //Add listener to be called when task finished
+        dialog.addListener(new AsyncTaskListener<File>() {
+            @Override
+            public void notifyTaskFinished(Boolean success, File file, String filePath) {
+                //Start import task
                 importPickedFile(file);
-            });
-            dialog.openDialog(this, this);
-        }
+            }
+        });
+        dialog.openDialog(this, this);
     }
 
 
@@ -333,10 +399,21 @@ public class ToolsActivity extends AppCompatActivity {
                 .show();
     }
 
+    void showDatabaseExportedSuccessfullyDialog() {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getString(R.string.general_done_message))
+                .setMessage(getString(R.string.tools_database_exported_successfully_message))
+                .setNeutralButton(getString(R.string.general_ok_option), (dialog, which) -> {
+                    showShareExportedDatabaseDialog();
+                })
+                .show();
+    }
+
     void showShareExportedDatabaseDialog() {
         new AlertDialog.Builder(this)
-                .setIcon(R.drawable.ic_check_circle_black_24dp)
-                .setTitle(getString(R.string.tools_database_exported_successfully_message))
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle(getString(R.string.settings_sharedb_button_label))
                 .setMessage(getString(R.string.tools_exportdb_share_dialog_message, getString(R.string.general_share_label)))
                 .setPositiveButton(getString(R.string.general_share_label), (dialog, which) -> {
                     shareCSV();
@@ -369,13 +446,14 @@ public class ToolsActivity extends AppCompatActivity {
     }
 
     public void exportButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(this))
+        if (!isStoragePermissionsGranted(this)) {
+            actionToPerfomOncePermissionIsGranted = 1;
             requestStoragePermissions(this);
-        else
-            startDatabaseExporterAsync();
+        } else
+            exportDBNow();
     }
 
-    private void startDatabaseExporterAsync() {
+    void exportDBNow() {
         try {
             DatabaseExporter t = new DatabaseExporter(this);
             //Add listener to be called when task finished

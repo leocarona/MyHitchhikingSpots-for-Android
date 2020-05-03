@@ -428,8 +428,7 @@ public class DatabaseImporter extends AsyncTask<Void, Void, String> {
                     propertyName.equals(SpotDao.Properties.CountryCode.columnName) ||
                     propertyName.equals(SpotDao.Properties.GpsResolved.columnName) ||
                     propertyName.equals(SpotDao.Properties.IsReverseGeocoded.columnName) ||
-                    propertyName.equals(SpotDao.Properties.Zip.columnName) ||
-                    propertyName.equals(SpotDao.Properties.AuthorUserName.columnName)) {
+                    propertyName.equals(SpotDao.Properties.Zip.columnName)) {
                 //Value will be copied into the local database as empty value
                 skipComparingColumns.add(i);
             }
