@@ -1,13 +1,11 @@
 package com.myhitchhikingspots;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import androidx.multidex.MultiDexApplication;
 import android.util.Log;
+
+import androidx.multidex.MultiDexApplication;
 
 import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -20,14 +18,14 @@ import io.fabric.sdk.android.Fabric;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.List;
+
+import hitchwikiMapsSDK.classes.APIConstants;
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by leoboaventura on 08/03/2016.
  */
 public class MyHitchhikingSpotsApplication extends MultiDexApplication {
-    public DaoSession daoSession;
-    public Spot currentSpot;
 
     @Override
     public void onCreate() {
@@ -45,7 +43,7 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         APIConstants.ENDPOINT_PREFIX = getResources().getString(R.string.hitchwikiEndpointPrefix);
         APIConstants.PLACE_INFO = "?" + getResources().getString(R.string.hitchwikiPlaceInfo);
         APIConstants.PLACE_INFO_BASIC_POSTFIX = getResources().getString(R.string.hitchwikiPlaceInfoPostfix);
-        APIConstants.PLACE_INFO_DATETIME_FORMAT =  getResources().getString(R.string.hitchwikiPlaceInfoDateTimeFormat);
+        APIConstants.PLACE_INFO_DATETIME_FORMAT = getResources().getString(R.string.hitchwikiPlaceInfoDateTimeFormat);
         APIConstants.LIST_PLACES_FROM_AREA = "?" + getResources().getString(R.string.hitchwikiBounds);
         APIConstants.LIST_PLACES_BY_CITY = "?" + getResources().getString(R.string.hitchwikiCity);
         APIConstants.LIST_PLACES_BY_COUNTRY = "?" + getResources().getString(R.string.hitchwikiCountry);
@@ -65,92 +63,6 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         APIConstants.CODE_CONTINENT_ANTARTICA = getResources().getString(R.string.continent_code_antarctica);
         APIConstants.CODE_CONTINENT_EUROPE = getResources().getString(R.string.continent_code_europe);
         APIConstants.CODE_CONTINENT_AUSTRALIA = getResources().getString(R.string.continent_code_oceania);
-
-        loadDatabase();
-    }
-
-    public void loadDatabase() {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.INTERNAL_DB_FILE_NAME, null);
-        SQLiteDatabase db = helper.getWritableDatabase();
-        Integer v1 = db.getVersion();
-        //helper.onUpgrade(db, 1, 2);
-        DaoMaster daoMaster = new DaoMaster(db);
-        daoSession = daoMaster.newSession();
-
-        //insertSampleData2(daoSession);
-
-        LoadCurrentWaitingSpot();
-    }
-
-    public Cursor rawQuery(String sql, String[] selectionArgs) {
-        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, Constants.INTERNAL_DB_FILE_NAME, null);
-        SQLiteDatabase db = helper.getWritableDatabase();
-        return db.rawQuery(sql, selectionArgs);
-    }
-
-    private void LoadCurrentWaitingSpot() {
-        SpotDao spotDao = daoSession.getSpotDao();
-        List<Spot> areWaitingForARide = spotDao.queryBuilder().where(SpotDao.Properties.IsHitchhikingSpot.eq(true), SpotDao.Properties.IsWaitingForARide.eq(true))
-                .orderDesc(SpotDao.Properties.IsPartOfARoute, SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).list();
-
-        if (areWaitingForARide.size() > 1)
-            Crashlytics.logException(new Exception("Error at: LoadCurrentWaitingSpot. More than 1 spot was found with IsWaitingForARide set to true! This should never happen - Please be aware of this."));
-        if (areWaitingForARide.size() >= 1)
-            currentSpot = areWaitingForARide.get(0);
-    }
-
-    public boolean IsAnySpotMissingAuthor() {
-        SpotDao spotDao = daoSession.getSpotDao();
-        return !spotDao.queryBuilder().whereOr(SpotDao.Properties.AuthorUserName.isNull(), SpotDao.Properties.AuthorUserName.eq(""))
-                .limit(1).list().isEmpty();
-    }
-
-    /**
-     * Assign the given username to all spots missing AuthorUserName.
-     *
-     * @param username The username that the person uses on Hitchwiki.
-     */
-    public void AssignMissingAuthorTo(String username) {
-        String sqlUpdateAuthorStatement = "UPDATE %1$s SET %2$s = '%3$s' WHERE %2$s IS NULL OR %2$s = ''";
-        //Get a DB session
-        Database db = daoSession.getDatabase();
-
-        //Delete selected spots from DB
-        db.execSQL(String.format(sqlUpdateAuthorStatement,
-                SpotDao.TABLENAME,
-                SpotDao.Properties.AuthorUserName.columnName,
-                username));
-    }
-
-    public DaoSession getDaoSession() {
-        return daoSession;
-    }
-
-
-    public Spot getCurrentSpot() {
-        return currentSpot;
-    }
-
-    public Spot getLastAddedRouteSpot() {
-        SpotDao spotDao = daoSession.getSpotDao();
-        Spot spot = spotDao.queryBuilder()
-                .where(SpotDao.Properties.IsPartOfARoute.eq(true))
-                .orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).limit(1).unique();
-
-        return spot;
-    }
-
-    public Spot getLastNotGPSResolvedSpot() {
-        SpotDao spotDao = daoSession.getSpotDao();
-        Spot spot = spotDao.queryBuilder()
-                .where(SpotDao.Properties.GpsResolved.eq(false))
-                .orderDesc(SpotDao.Properties.StartDateTime, SpotDao.Properties.Id).limit(1).unique();
-
-        return spot;
-    }
-
-    public void setCurrentSpot(Spot currentSpot) {
-        this.currentSpot = currentSpot;
     }
 
     final String TAG = "application-class";

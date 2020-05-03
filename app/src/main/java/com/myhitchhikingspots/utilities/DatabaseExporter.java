@@ -23,7 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
-public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
+public class DatabaseExporter extends AsyncTask<Cursor, Void, Boolean> {
     private ProgressDialog dialog;
     private WeakReference<Context> contextRef;
     private AsyncTaskListener<String> onFinished;
@@ -52,10 +52,11 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
         this.dialog.show();
     }
 
-    protected Boolean doInBackground(Void... params) {
+    protected Boolean doInBackground(Cursor... params) {
         Context context = contextRef.get();
         if (context == null || isCancelled())
             return false;
+        Cursor curCSV = params[0];
 
         Crashlytics.log(Log.INFO, TAG, "DatabaseExporter started executing..");
         try {
@@ -73,7 +74,6 @@ public class DatabaseExporter extends AsyncTask<Void, Void, Boolean> {
             File destinationFile = new File(exportDir, fileName);
             destinationFile.createNewFile();
             CSVWriter csvWrite = new CSVWriter(new FileWriter(destinationFile));
-            Cursor curCSV = appContext.rawQuery("select * from " + SpotDao.TABLENAME, null);
             csvWrite.writeNext(curCSV.getColumnNames());
             while (curCSV.moveToNext()) {
                 String[] mySecondStringArray = new String[curCSV.getColumnNames().length];

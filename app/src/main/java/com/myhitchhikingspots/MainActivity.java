@@ -1,12 +1,5 @@
 package com.myhitchhikingspots;
 
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,6 +22,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -47,19 +41,15 @@ import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoutesTask.onPostExecute, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
 
-    List<Spot> spotList = new ArrayList();
-    Spot mCurrentWaitingSpot;
-
-    public static String ARG_SPOTLIST_KEY = "spot_list_arg";
-    public static String ARG_CURRENTSPOT_KEY = "current_spot_arg";
     public static String ARG_REQUEST_TO_OPEN_FRAGMENT = "request-to-open-resource-id";
     public static String ARG_CHECKED_MENU_ITEM_ID_KEY = "my-fragment-title-arg";
     protected static final String TAG = "main-activity";
@@ -67,9 +57,6 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     // Make sure to be using android.support.v7.app.ActionBarDrawerToggle version.
     // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
     private ActionBarDrawerToggle drawerToggle;
-
-    private AsyncTask loadTask;
-    private AsyncTask fixSpotsStartDateTimeTask;
 
     SharedPreferences prefs;
 
@@ -89,10 +76,13 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
         void onActivityResult(int requestCode, int resultCode, Intent data);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    SpotsListViewModel viewModel;
+
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
+
+        viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
 
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
@@ -126,9 +116,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             }
         }
 
-        updateLoginOptionVisibility();
-
-        loadSpotList(resourceToOpen);
+        selectDrawerItem(resourceToOpen);
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -177,17 +165,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     public boolean onNavigationItemSelected(MenuItem menuItem) {
         Boolean shouldLoadSpotListFirst = false;
         int resourceId = menuItem.getItemId();
-
-        //If spotList has been updated, we should load the list here prior to opening the new fragment
-        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) &&
-                (resourceId == R.id.nav_my_dashboard || resourceId == R.id.nav_my_map))
-            shouldLoadSpotListFirst = true;
-
-        if (shouldLoadSpotListFirst)
-            loadSpotList(resourceId);
-        else
-            selectDrawerItem(menuItem);
-
+        selectDrawerItem(menuItem);
         return true;
     }
 
@@ -258,15 +236,9 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             CharSequence title = menuItem.getTitle();
             setupSelectedFragment(menuItem, title.toString());
 
-            //If spotList needs to be reloaded, let's do it here first.
-            //Once reload is completed, the fragment corresponding to the selected menuItem will be opened with the updated spot list.
-            if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false))
-                loadSpotList(selectedItemId);
-            else {
-                // Create a new fragment and specify the fragment to show based on nav item clicked
-                Class fragmentClass = getMenuItemFragment(selectedItemId);
-                replaceFragmentContainerWith(fragmentClass);
-            }
+            // Create a new fragment and specify the fragment to show based on nav item clicked
+            Class fragmentClass = getMenuItemFragment(selectedItemId);
+            replaceFragmentContainerWith(fragmentClass);
         }
 
         // Close the navigation drawer
@@ -411,13 +383,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
                 restoreLastCheckedMenuItem(menuItemIndex);
 
                 //Note: The fragment tag here is the same that we've defined earlier when we called fragmentManager.beginTransaction().replace(param1,param2,tagName).
-                Fragment currentFragment = getCurrentFragment(currentFragmentTag);
-                if (currentFragment instanceof OnMainActivityUpdated) {
-                    //Set the active fragment.
-                    OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
-                    //Update the active fragment so that it has the most recent data.
-                    frag.onSpotListChanged();
-                }
+                notifyFragment(getCurrentFragment(currentFragmentTag));
             }
         } catch (Exception ex) {
             Crashlytics.logException(ex);
@@ -506,21 +472,7 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
     protected void onStop() {
         super.onStop();
 
-        /*
-         * The device may have been rotated and the activity is going to be destroyed
-         * you always should be prepared to cancel your AsnycTasks before the Activity
-         * which created them is going to be destroyed.
-         * And dont rely on mayInteruptIfRunning
-         */
-        if (this.loadTask != null) {
-            this.loadTask.cancel(false);
-            dismissProgressDialog();
-        }
-
-        if (this.fixSpotsStartDateTimeTask != null) {
-            this.fixSpotsStartDateTimeTask.cancel(false);
-            dismissProgressDialog();
-        }
+        dismissProgressDialog();
     }
 
     /**
@@ -530,54 +482,32 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
      *                           if -1 then the updated values will be passed over to the current fragment
      */
     void loadSpotList(int fragmentResourceId) {
-        showProgressDialog(getResources().getString(R.string.map_loading_dialog));
-
         this.fragmentIdToBeOpenedOnSpotsListLoaded = fragmentResourceId;
 
-        //Load markers and polylines
-        this.loadTask = new LoadSpotsAndRoutesTask(this).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
+        // update UI
+        setupData(null, null, "");
 
         prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
     }
 
 
-    @Override
     /**
      * This method is called when LoadSpotsAndRoutesTask completes.
-     * **/
+     **/
     public void setupData(List<Spot> spotList, Spot mCurrentWaitingSpot, String errMsg) {
-        Crashlytics.log(Log.INFO, TAG, "LoadSpotsAndRoutesTask has finished. setupData was called");
-        if (!errMsg.isEmpty()) {
-            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-            return;
-        }
-
-        // If spots StartDateTime were not fixed yet, then execute FixSpotsStartDateTimeAsyncTask to fix them.
-        // Once FixSpotsStartDateTimeAsyncTask is finished, this method (setupData) will be called again.
-        // Make sure FixSpotsStartDateTimeAsyncTask is called only once at the first time when the app is updated.
-        if (!prefs.getBoolean(Constants.PREFS_SPOTSSTARTDATETIME_WERE_FIXED, false)) {
-            this.fixSpotsStartDateTimeTask = new FixSpotsStartDateTimeAsyncTask(this, spotList, mCurrentWaitingSpot).execute(((MyHitchhikingSpotsApplication) getApplicationContext()));
-            prefs.edit().putBoolean(Constants.PREFS_SPOTSSTARTDATETIME_WERE_FIXED, true).apply();
-            return;
-        }
-
-        this.spotList = spotList;
-        this.mCurrentWaitingSpot = mCurrentWaitingSpot;
-        ((MyHitchhikingSpotsApplication) getApplicationContext()).setCurrentSpot(mCurrentWaitingSpot);
+        Crashlytics.log(Log.INFO, TAG, "setupData was called");
 
         //Select fragment
         if (fragmentIdToBeOpenedOnSpotsListLoaded > -1) {
             selectDrawerItem(fragmentIdToBeOpenedOnSpotsListLoaded);
             fragmentIdToBeOpenedOnSpotsListLoaded = -1;
         } else
-            updateUI();
+            notifyFragment(getCurrentFragment());
 
-        dismissProgressDialog();
     }
 
-    void updateUI() {
+    private void notifyFragment(Fragment currentFragment) {
         //Update the active fragment's data
-        Fragment currentFragment = getCurrentFragment();
         if (currentFragment instanceof OnMainActivityUpdated) {
             //Set the active fragment.
             OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
@@ -604,9 +534,13 @@ public class MainActivity extends AppCompatActivity implements LoadSpotsAndRoute
             OnMainActivityUpdated frag = (OnMainActivityUpdated) currentFragment;
             frag.onActivityResult(requestCode, resultCode, data);
 
-            //If user is navigating back to Dashboard or My Maps, reload spot list
-            if (frag instanceof DashboardFragment || frag instanceof MyMapsFragment)
-                loadSpotList(-1);
+            if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false)) {
+                //If user is navigating back to Dashboard or My Maps, reload spot list
+                if (frag instanceof DashboardFragment || frag instanceof MyMapsFragment) {
+                    notifyFragment(getCurrentFragment());
+                    prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false).apply();
+                }
+            }
         }
     }
 
