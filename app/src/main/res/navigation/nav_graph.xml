@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/nav_my_map">
+
+    <fragment
+        android:id="@+id/nav_my_dashboard"
+        android:name="com.myhitchhikingspots.DashboardFragment"
+        android:label="@string/menu_dashboard"
+        tools:layout="@layout/fragment_dashboard"
+        app:startDestination="@id/action_nav_my_dashboard_to_nav_my_map">
+        <action
+            android:id="@+id/action_nav_my_dashboard_to_nav_my_map"
+            app:destination="@id/nav_my_map" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_my_map"
+        android:name="com.myhitchhikingspots.MyMapsFragment"
+        android:label="@string/menu_my_maps"
+        tools:layout="@layout/fragment_my_map" />
+
+    <fragment
+        android:id="@+id/nav_hitchwiki_map"
+        android:name="com.myhitchhikingspots.HitchwikiMapViewFragment"
+        android:label="@string/menu_hitchwiki_maps"
+        tools:layout="@layout/fragment_hitchwiki_maps" />
+
+    <fragment
+        android:id="@+id/nav_offline_map"
+        android:name="com.myhitchhikingspots.OfflineMapManagerFragment"
+        android:label="@string/menu_offline_maps"
+        tools:layout="@layout/fragment_offline_map_manager" />
+
+    <fragment
+        android:id="@+id/nav_about_us"
+        android:name="com.myhitchhikingspots.AboutUsFragment"
+        android:label="@string/menu_about_us"
+        tools:layout="@layout/fragment_about_us" />
+</navigation>

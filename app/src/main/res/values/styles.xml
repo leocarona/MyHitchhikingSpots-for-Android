@@ -11,10 +11,6 @@
 
     <style name="Theme.Base.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="Theme.Base.NoActionBar.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="Theme.Base.NoActionBar.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
     <style name="roundButtonTextStyle">
         <item name="android:layout_gravity">center_horizontal</item>
         <item name="android:textColor">#ffffff</item>

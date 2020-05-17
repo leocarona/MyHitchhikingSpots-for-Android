@@ -3,12 +3,6 @@
     <style name="Theme.Base.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-
-        <!--  colorPrimary = toolbar background color-->
-        <item name="colorPrimary">#fff</item>
-        <!--  both colorPrimaryDark and android:statusBarColor = status bar background color.
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>-->
+        <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 </resources>

@@ -68,7 +68,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         //If 'Go to my map' button is clicked, select My Map menu option
         Button seeMyMapsBtn = view.findViewById(R.id.go_to_my_map);
         seeMyMapsBtn.setText(getString(R.string.action_button_label, getString(R.string.menu_my_maps)));
-        seeMyMapsBtn.setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
+        seeMyMapsBtn.setOnClickListener(view1 -> activity.navigateToDestination(R.id.nav_my_map));
 
         viewModel.getSpots(getContext()).observe(activity, this::updateUI);
     }
