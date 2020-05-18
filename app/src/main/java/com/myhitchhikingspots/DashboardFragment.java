@@ -44,7 +44,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_dashboard, container, false);
     }
 
@@ -52,7 +52,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        MainActivity activity = (MainActivity) getActivity();
+        MainActivity activity = (MainActivity) requireActivity();
         if (activity == null)
             return;
 
