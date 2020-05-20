@@ -42,7 +42,7 @@
 
     <fragment
         android:id="@+id/nav_tools"
-        android:name="com.myhitchhikingspots.ToolsActivity"
+        android:name="com.myhitchhikingspots.ToolsFragment"
         android:label="@string/menu_tools"
-        tools:layout="@layout/tools_layout" />
+        tools:layout="@layout/fragment_tools" />
 </navigation>

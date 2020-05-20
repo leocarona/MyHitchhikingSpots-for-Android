@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 import static android.app.Activity.RESULT_OK;
 
 
-public class ToolsActivity extends Fragment implements MainActivity.OnMainActivityUpdated {
+public class ToolsFragment extends Fragment implements MainActivity.OnMainActivityUpdated {
     TextView mfeedbacklabel;
     View coordinatorLayout;
 
