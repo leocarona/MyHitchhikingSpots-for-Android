@@ -53,10 +53,6 @@ limitations under the License.
             android:label="@string/main_activity_title"
             android:theme="@style/Theme.Base.NoActionBar" />
         <activity
-            android:name=".ToolsActivity"
-            android:label="@string/menu_tools"
-            android:theme="@style/Theme.Base.NoActionBar" />
-        <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/Theme.Base.NoActionBar"/>

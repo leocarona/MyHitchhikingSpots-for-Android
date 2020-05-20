@@ -2,23 +2,27 @@ package com.myhitchhikingspots;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -26,15 +30,16 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.widget.TextViewCompat;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.mapbox.android.core.FileUtils;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
@@ -42,25 +47,19 @@ import com.myhitchhikingspots.utilities.DatabaseImporter;
 import com.myhitchhikingspots.utilities.FilePickerDialog;
 import com.myhitchhikingspots.utilities.Utils;
 
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URISyntaxException;
-import java.nio.channels.FileChannel;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static android.app.Activity.RESULT_OK;
 
-public class ToolsActivity extends AppCompatActivity {
+
+public class ToolsActivity extends Fragment implements MainActivity.OnMainActivityUpdated {
     TextView mfeedbacklabel;
     View coordinatorLayout;
 
@@ -80,26 +79,39 @@ public class ToolsActivity extends AppCompatActivity {
      **/
     public String destinationFilePath = "";
 
+    TextView tools_tips_description;
+    ImageView tools_tips_header_img;
+    Button btnShare;
+    SpotsListViewModel viewModel;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.tools_layout);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        viewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
+        return inflater.inflate(R.layout.tools_layout, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NotNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        Activity activity = requireActivity();
 
         //prefs
-        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+        prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
-        mfeedbacklabel = (TextView) findViewById(R.id.feedbacklabel);
+        mfeedbacklabel = view.findViewById(R.id.feedbacklabel);
         mfeedbacklabel.setVisibility(View.GONE);
 
-        //Set the toolbar as the app bar for this activity.
-        setSupportActionBar(findViewById(R.id.toolbar));
+        tools_tips_description = view.findViewById(R.id.tools_tips_description);
+        tools_tips_header_img = view.findViewById(R.id.tools_tips_header_img);
+        btnShare = view.findViewById(R.id.btnShare);
 
         String strLastDownload = "";
 
         Long millisecondsAtNow = System.currentTimeMillis();
         Long millisecondsLastCountriesRefresh = prefs.getLong(Constants.PREFS_TIMESTAMP_OF_COUNTRIES_DOWNLOAD, 0);
         if (millisecondsLastCountriesRefresh > 0) {
-            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh), this);
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastCountriesRefresh), activity);
             strLastDownload += "- " + String.format(getString(R.string.hwmaps_last_countriesList_update_message), timePast);
         }
 
@@ -107,7 +119,7 @@ public class ToolsActivity extends AppCompatActivity {
         if (millisecondsLastExport > 0) {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
-            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport), this);
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsLastExport), activity);
             strLastDownload += "- " + String.format(getString(R.string.settings_last_export_message), timePast);
         }
 
@@ -116,7 +128,7 @@ public class ToolsActivity extends AppCompatActivity {
             if (!strLastDownload.isEmpty())
                 strLastDownload += "\n";
 
-            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh), this);
+            String timePast = Utils.getWaitingTimeAsString((int) TimeUnit.MILLISECONDS.toMinutes(millisecondsAtNow - millisecondsAtRefresh), activity);
             strLastDownload += "- " + String.format(getString(R.string.hwmaps_last_download_message), timePast);
         }
 
@@ -125,12 +137,13 @@ public class ToolsActivity extends AppCompatActivity {
             mfeedbacklabel.setVisibility(View.VISIBLE);
         }
 
-        findViewById(R.id.btnExport).setOnClickListener(this::exportButtonHandler);
-        findViewById(R.id.btnImport).setOnClickListener(this::importButtonHandler);
+        view.findViewById(R.id.btnExport).setOnClickListener(this::exportButtonHandler);
+        view.findViewById(R.id.btnImport).setOnClickListener(this::importButtonHandler);
+        view.findViewById(R.id.btnShare).setOnClickListener(this::shareDB);
 
-        Spinner spinner = findViewById(R.id.spinner);
+        Spinner spinner = view.findViewById(R.id.spinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(activity,
                 R.array.startup_fragment_options, android.R.layout.simple_spinner_item);
         // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -152,14 +165,21 @@ public class ToolsActivity extends AppCompatActivity {
             }
         });
 
-        coordinatorLayout = findViewById(R.id.coordinatiorLayout);
+        coordinatorLayout = view.findViewById(R.id.coordinatiorLayout);
 
-        findViewById(R.id.item_description_layout).setOnClickListener((v) -> {
+        view.findViewById(R.id.item_description_layout).setOnClickListener((v) -> {
             collapseExpandTextView();
         });
 
-        ((TextView) findViewById(R.id.tools_tips_description))
+        ((TextView) view.findViewById(R.id.tools_tips_description))
                 .setText(getString(R.string.tools_tips_description, getString(R.string.settings_exportdb_button_label), getString(R.string.settings_importdb_button_label)));
+    }
+
+    /**
+     * Method called always that spotList is loaded or reloaded from the database.
+     **/
+    @Override
+    public void onSpotListChanged() {
     }
 
     private static String getFragmentClassNameForSelectedSpinnerItem(int spinnerItemIndex) {
@@ -180,7 +200,7 @@ public class ToolsActivity extends AppCompatActivity {
     }
 
     //persmission method.
-    public static boolean isStoragePermissionsGranted(Activity activity) {
+    private static boolean isStoragePermissionsGranted(Activity activity) {
         // Check if we have read and write permission
         int writePermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         int readPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
@@ -189,7 +209,7 @@ public class ToolsActivity extends AppCompatActivity {
         return (writePermission == PackageManager.PERMISSION_GRANTED && readPermission == PackageManager.PERMISSION_GRANTED);
     }
 
-    public static void requestStoragePermissions(Activity activity) {
+    private static void requestStoragePermissions(Activity activity) {
         ActivityCompat.requestPermissions(
                 activity,
                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -240,7 +260,7 @@ public class ToolsActivity extends AppCompatActivity {
         dismissProgressDialog();
     }
 
-    public static String getPath(Context context, Uri uri) throws URISyntaxException {
+    private static String getPath(Context context, Uri uri) {
         /*if ("content".equalsIgnoreCase(uri.getScheme())) {
             String[] projection = { "_data" };
             Cursor cursor = null;
@@ -273,8 +293,8 @@ public class ToolsActivity extends AppCompatActivity {
         return filePath;
     }
 
-    protected void showErrorAlert(String title, String msg) {
-        new AlertDialog.Builder(this)
+    private void showErrorAlert(String title, String msg) {
+        new AlertDialog.Builder(requireActivity())
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(title)
                 .setMessage(msg)
@@ -291,17 +311,17 @@ public class ToolsActivity extends AppCompatActivity {
     }
 
     // 1 for exporting database and 2 for importing database
-    int actionToPerfomOncePermissionIsGranted = -1;
+    private int actionToPerfomOncePermissionIsGranted = -1;
 
-    public void importButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(this)) {
+    private void importButtonHandler(View view) {
+        if (!isStoragePermissionsGranted(requireActivity())) {
             actionToPerfomOncePermissionIsGranted = 2;
             requestStoragePermissions(this);
         } else
             showFilePickerDialog();
     }
 
-    void showFilePickerDialog() {
+    private void showFilePickerDialog() {
         FilePickerDialog dialog = new FilePickerDialog();
         //Add listener to be called when task finished
         dialog.addListener(new AsyncTaskListener<File>() {
@@ -311,12 +331,10 @@ public class ToolsActivity extends AppCompatActivity {
                 importPickedFile(file);
             }
         });
-        dialog.openDialog(this, this);
+        dialog.openDialog(requireActivity(), null);
     }
 
-    void collapseExpandTextView() {
-        TextView tools_tips_description = findViewById(R.id.tools_tips_description);
-        ImageView tools_tips_header_img = findViewById(R.id.tools_tips_header_img);
+    private void collapseExpandTextView() {
         if (tools_tips_description.getVisibility() == View.GONE) {
             // it's collapsed - expand it
             tools_tips_description.setVisibility(View.VISIBLE);
@@ -334,7 +352,7 @@ public class ToolsActivity extends AppCompatActivity {
     boolean shouldFixStartDates = false;
     boolean userAlreadyAnswered = false;
 
-    void importPickedFile(File fileToImport) {
+    private void importPickedFile(File fileToImport) {
 
         try {
             shouldFixStartDates = shouldFixStartDateTimes(fileToImport.getName());
@@ -350,7 +368,7 @@ public class ToolsActivity extends AppCompatActivity {
             return;
         }
 
-        DatabaseImporter t = new DatabaseImporter(this, fileToImport, shouldFixStartDates);
+        DatabaseImporter t = new DatabaseImporter(requireActivity(), fileToImport, shouldFixStartDates);
 
         //Add listener to be called when task finished
         t.addListener(new AsyncTaskListener<ArrayList<String>>() {
@@ -364,7 +382,7 @@ public class ToolsActivity extends AppCompatActivity {
 
                     prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
 
-                    Toast.makeText(getBaseContext(), title, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireActivity(), title, Toast.LENGTH_SHORT).show();
 
                     String eventName = "Database import success";
                     if (shouldFixStartDates) {
@@ -397,8 +415,8 @@ public class ToolsActivity extends AppCompatActivity {
     /**
      * Ask user if he/she would like us to fix the StartDateTime of all spots being imported.
      **/
-    void showFixSpotsDatetimeDialog(File fileToImport) {
-        new AlertDialog.Builder(this)
+    private void showFixSpotsDatetimeDialog(File fileToImport) {
+        new AlertDialog.Builder(requireActivity())
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(getString(R.string.settings_automatically_fix_spots_datetime_title))
                 .setMessage(getString(R.string.settings_automatically_fix_spots_datetime_message))
@@ -413,7 +431,7 @@ public class ToolsActivity extends AppCompatActivity {
                     userAlreadyAnswered = true;
                     //if negative answer from user
                     shouldFixStartDates = false;
-                    //regardless of user's answer, call this method again
+                    //regardless of user's answer, call requireActivity() method again
                     importPickedFile(fileToImport);
                 })
                 .show();
@@ -439,7 +457,7 @@ public class ToolsActivity extends AppCompatActivity {
                     shareCSV();
                 })
                 .setNegativeButton(getString(R.string.general_cancel_option), (dialog, which) -> {
-                    findViewById(R.id.btnShare).setVisibility(View.VISIBLE);
+                    btnShare.setVisibility(View.VISIBLE);
                 })
                 .show();
     }
@@ -451,7 +469,7 @@ public class ToolsActivity extends AppCompatActivity {
      * @return True if we were able to check that the file being imported was generated before My Hitchhiking Spots version 26.
      * False if we were able to check that it has been exported by version 27 or after - what means that the spots StartDateTime do not need to be fixed.
      **/
-    public static boolean shouldFixStartDateTimes(String fileName) throws IllegalArgumentException {
+    static boolean shouldFixStartDateTimes(String fileName) throws IllegalArgumentException {
         DateTime version27_releasedOn = DateTime.parse(Constants.APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME);
 
         //NOTE:
@@ -465,17 +483,17 @@ public class ToolsActivity extends AppCompatActivity {
         return file_exportedOn.isBefore(version27_releasedOn);
     }
 
-    public void exportButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(this)) {
+    private void exportButtonHandler(View view) {
+        if (!isStoragePermissionsGranted(requireActivity())) {
             actionToPerfomOncePermissionIsGranted = 1;
-            requestStoragePermissions(this);
+            requestStoragePermissions(requireActivity());
         } else
             exportDBNow();
     }
 
-    void exportDBNow() {
+    private void exportDBNow() {
         try {
-            DatabaseExporter t = new DatabaseExporter(this);
+            DatabaseExporter t = new DatabaseExporter(requireActivity());
             //Add listener to be called when task finished
             t.addListener(new AsyncTaskListener<String>() {
                 @Override
@@ -495,7 +513,7 @@ public class ToolsActivity extends AppCompatActivity {
 
                         if (!exportedFilePath.equals("")) {
                             destinationFilePath = exportedFilePath;
-                            showDatabaseExportedSuccessfullyDialog();
+                            showShareExportedDatabaseDialog();
                         }
                     } else {
                         showErrorAlert(getString(R.string.general_export_finished_failed_message), message);
@@ -506,12 +524,12 @@ public class ToolsActivity extends AppCompatActivity {
                 }
             });
 
-            SpotsListViewModel viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
-            Cursor curCSV = viewModel.rawQuery(this, "select * from " + SpotDao.TABLENAME, null);
+            SpotsListViewModel viewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
+            Cursor curCSV = viewModel.rawQuery(requireActivity(), "select * from " + SpotDao.TABLENAME, null);
 
             t.execute(curCSV);
 
-            viewModel.loadWaitingSpot(this);
+            viewModel.loadWaitingSpot(requireActivity());
 
         } catch (Exception e) {
             Crashlytics.logException(e);
@@ -527,7 +545,7 @@ public class ToolsActivity extends AppCompatActivity {
         }
     }
 
-    void shareCSV() {
+    private void shareCSV() {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("text/csv");
         intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name));
@@ -535,7 +553,7 @@ public class ToolsActivity extends AppCompatActivity {
         //intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"email@example.com"});
         File file = new File(destinationFilePath);
         if (!file.exists() || !file.canRead()) {
-            Toast.makeText(this, "Attachment Error", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireActivity(), "Attachment Error", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -778,7 +796,7 @@ public class ToolsActivity extends AppCompatActivity {
 
     private void showProgressDialog(String title, String message) {
         if (progressDialog == null) {
-            progressDialog = new ProgressDialog(this);
+            progressDialog = new ProgressDialog(requireActivity());
             progressDialog.setIndeterminate(true);
             progressDialog.setCancelable(false);
         }
@@ -790,7 +808,7 @@ public class ToolsActivity extends AppCompatActivity {
 
     private void dismissProgressDialog() {
         //Remove the flag that keeps the screen from sleeping
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        requireActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (progressDialog != null && progressDialog.isShowing())
             progressDialog.dismiss();
     }

@@ -39,4 +39,10 @@
         android:name="com.myhitchhikingspots.AboutUsFragment"
         android:label="@string/menu_about_us"
         tools:layout="@layout/fragment_about_us" />
+
+    <fragment
+        android:id="@+id/nav_tools"
+        android:name="com.myhitchhikingspots.ToolsActivity"
+        android:label="@string/menu_tools"
+        tools:layout="@layout/tools_layout" />
 </navigation>
