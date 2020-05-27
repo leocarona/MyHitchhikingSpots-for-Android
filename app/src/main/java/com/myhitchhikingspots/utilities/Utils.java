@@ -1,10 +1,12 @@
 package com.myhitchhikingspots.utilities;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Environment;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -192,18 +194,18 @@ public class Utils {
         }
     }
 
-    public static CountryInfoBasic[] loadCountriesListFromLocalFile() throws Exception {
+    public static CountryInfoBasic[] loadCountriesListFromLocalFile(Context context) throws Exception {
         //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-        String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
+        String placesContainerAsString = loadFileFromLocalStorage(context, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
         return parseGetCountriesWithCoordinates(placesContainerAsString);
     }
 
     static String TAG = "utils";
 
-    public static PlaceInfoBasic[] loadHitchwikiSpotsFromLocalFile() throws Exception {
+    public static PlaceInfoBasic[] loadHitchwikiSpotsFromLocalFile(Context context) throws Exception {
         //get markersStorageFile streamed into String, so gson can convert it into placesContainer
-        String placesContainerAsString = loadFileFromLocalStorage(Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
+        String placesContainerAsString = loadFileFromLocalStorage(context, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
         Crashlytics.log(Log.INFO, TAG, "Calling ApiManager getPlacesByContinenFromLocalFile");
         Crashlytics.setString("placesContainerAsString", placesContainerAsString);
@@ -359,9 +361,13 @@ public class Utils {
         return errorMessage;
     }
 
-    public static String loadFileFromLocalStorage(String fileName) throws Exception {
+    public static String loadFileFromLocalStorage(Context context, String fileName) throws Exception {
         Crashlytics.setString("Name of the file to load", fileName);
-        File markersStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+        File markersStorageFolder = null;
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+            markersStorageFolder = context.getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+        //else
+        //    markersStorageFolder = new File(Constants.SDCARD_STORAGE_PATH + Constants.HITCHWIKI_MAPS_STORAGE_PATH);
 
         File fl = new File(markersStorageFolder, fileName);
         FileInputStream fin = new FileInputStream(fl);
@@ -369,6 +375,10 @@ public class Utils {
         fin.close();
 
         return result;
+    }
+
+    public static String getMHSExternalFilePath(Context context, String path) {
+        return context.getExternalFilesDir(null) + Constants.SDCARD_STORAGE_PATH + path;
     }
 
     public static Spot convertToSpot(PlaceInfoBasic place) {

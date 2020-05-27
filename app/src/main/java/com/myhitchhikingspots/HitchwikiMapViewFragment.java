@@ -15,6 +15,7 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -109,7 +110,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
-        MapboxMap.OnMapClickListener, LoadHitchwikiSpotsListTask.onPostExecute, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
+        MapboxMap.OnMapClickListener, MainActivity.OnMainActivityUpdated, FirstLocationUpdateListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
@@ -230,14 +231,19 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         loadMarkerIcons();
 
-        hitchwikiStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
-
-        //setupContinentsContainer();
-
         //Rename old Hitchwiki Maps directory to something more intuitive for the user
         if (prefs.getBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, false)) {
-            File oldFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
-            File newFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            File oldFolder = null;
+            File newFolder = null;
+
+            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                oldFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
+                newFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            /*} else {
+                oldFolder = new File(Constants.SDCARD_STORAGE_PATH + Constants.HITCHWIKI_MAPS_STORAGE_OLDPATH);
+                newFolder = new File(Constants.SDCARD_STORAGE_PATH + Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            }*/
+
             oldFolder.renameTo(newFolder);
             prefs.edit().putBoolean(Constants.PREFS_HITCHWIKI_STORAGE_RENAMED, true).apply();
         }
@@ -611,7 +617,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         this.loadTask = new LoadHitchwikiSpotsListTask(this).execute();
     }
 
-    @Override
     public void setupData(List<Spot> spotList, String errMsg) {
         if (!errMsg.isEmpty()) {
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
@@ -672,7 +677,17 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         dismissProgressDialog();
     }
 
-    File hitchwikiStorageFolder = new File(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+    private File hitchwikiStorageFolder = null;
+
+    private File getHitchwikiStorageFolder() {
+        if (hitchwikiStorageFolder == null) {
+            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                hitchwikiStorageFolder = requireActivity().getExternalFilesDir(Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+            //else
+            //    hitchwikiStorageFolder = new File(Constants.SDCARD_STORAGE_PATH + Constants.HITCHWIKI_MAPS_STORAGE_PATH);
+        }
+        return hitchwikiStorageFolder;
+    }
 
     onPlacesDownloadedListener onPlacesDownloadedListener = new onPlacesDownloadedListener() {
         @Override
@@ -680,10 +695,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             showProgressDialog(getString(R.string.hwmaps_downloadCountriesList_button_label));
 
             //create folder if not already created
-            if (!hitchwikiStorageFolder.exists()) {
+            if (!getHitchwikiStorageFolder().exists()) {
                 //create folder for the first time
-                hitchwikiStorageFolder.mkdirs();
-                Crashlytics.log(Log.INFO, TAG, "Directory created. " + hitchwikiStorageFolder.getPath());
+                getHitchwikiStorageFolder().mkdirs();
+                Crashlytics.log(Log.INFO, TAG, "Directory created. " + getHitchwikiStorageFolder().getPath());
             }
         }
 
@@ -697,7 +712,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             // (this list might be not so updated, but it's better than nothing!)
             if (!result.isEmpty() && !isListJustDownloaded && wasCountriesListDownloaded()) {
                 try {
-                    countries = Utils.loadCountriesListFromLocalFile();
+                    countries = Utils.loadCountriesListFromLocalFile(requireContext());
                     isListLoadedFromLocalStorage = true;
                 } catch (Exception ex) {
                     Crashlytics.logException(ex);
@@ -735,7 +750,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     };
 
     void saveCountriesListLocally(CountryInfoBasic[] countriesList) throws Exception {
-        File file = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
+        File file = new File(getHitchwikiStorageFolder(), Constants.HITCHWIKI_MAPS_COUNTRIES_LIST_FILE_NAME);
 
         if (!file.exists())
             file.createNewFile();
@@ -888,10 +903,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             showProgressDialog(getString(R.string.hwmaps_downloadHDSpots_button_label), String.format(getString(R.string.general_downloading_something_message), lstToDownload));
 
             //create folder if not already created
-            if (!hitchwikiStorageFolder.exists()) {
+            if (!getHitchwikiStorageFolder().exists()) {
                 //create folder for the first time
-                hitchwikiStorageFolder.mkdirs();
-                Crashlytics.log(Log.INFO, TAG, "Directory created. " + hitchwikiStorageFolder.getPath());
+                getHitchwikiStorageFolder().mkdirs();
+                Crashlytics.log(Log.INFO, TAG, "Directory created. " + getHitchwikiStorageFolder().getPath());
             }
 
             //recreate placesContainer, it might not be empty
@@ -903,7 +918,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             //Clear countries container
             countriesContainer = new CountryInfoBasic[0];
 
-            downloadPlacesAsyncTask = new DownloadPlacesAsyncTask(hitchwikiStorageFolder, dialogType, lstToDownload, getPlacesByArea, this::onDownloadedFinished).execute();
+            downloadPlacesAsyncTask = new DownloadPlacesAsyncTask(getHitchwikiStorageFolder(), dialogType, lstToDownload, getPlacesByArea, this::onDownloadedFinished).execute();
         }
     }
 
@@ -1117,7 +1132,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     void savePlacesListLocally(List<PlaceInfoBasic> places) throws Exception {
         //in this case, we have full placesContainer, processed to fulfill Clusterkraf model requirements and all,
         //so we have to create file in storage folder and stream placesContainer into it using gson
-        File fileToStoreMarkersInto = new File(hitchwikiStorageFolder, Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
+        File fileToStoreMarkersInto = new File(getHitchwikiStorageFolder(), Constants.HITCHWIKI_MAPS_MARKERS_LIST_FILE_NAME);
 
         if (!fileToStoreMarkersInto.exists())
             fileToStoreMarkersInto.createNewFile();

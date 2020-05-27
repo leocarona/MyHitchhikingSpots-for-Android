@@ -2,22 +2,14 @@ package com.myhitchhikingspots.utilities;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
-import com.myhitchhikingspots.R;
-import com.myhitchhikingspots.ToolsActivity;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 
 import hitchwikiMapsSDK.classes.APICallCompletionListener;
 import hitchwikiMapsSDK.classes.ApiManager;
-import hitchwikiMapsSDK.entities.Error;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 //async task to retrieve markers

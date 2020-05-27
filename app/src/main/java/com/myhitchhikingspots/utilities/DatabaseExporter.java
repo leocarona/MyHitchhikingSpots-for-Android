@@ -5,12 +5,13 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 import android.view.WindowManager;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
-import com.myhitchhikingspots.MyHitchhikingSpotsApplication;
 import com.myhitchhikingspots.R;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
 import com.myhitchhikingspots.model.SpotDao;
@@ -60,15 +61,17 @@ public class DatabaseExporter extends AsyncTask<Cursor, Void, Boolean> {
 
         Crashlytics.log(Log.INFO, TAG, "DatabaseExporter started executing..");
         try {
-            MyHitchhikingSpotsApplication appContext = ((MyHitchhikingSpotsApplication) context.getApplicationContext());
+            File exportDir = null;
+            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                exportDir = context.getExternalFilesDir(Constants.EXPORTED_DB_STORAGE_PATH);
+            //else
+            //    exportDir = new File(Constants.EXPORTED_DB_STORAGE_PATH);
 
-            File exportDir = new File(Constants.EXPORTED_DB_STORAGE_PATH);
 
             if (!exportDir.exists()) {
                 Crashlytics.log(Log.INFO, TAG, "Directory created. " + exportDir.getPath());
                 exportDir.mkdirs();
             }
-
             String fileName = Utils.getNewExportFileName(DateTime.now(), DateTimeZone.getDefault());
 
             File destinationFile = new File(exportDir, fileName);

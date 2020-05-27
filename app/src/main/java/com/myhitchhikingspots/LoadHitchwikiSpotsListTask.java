@@ -13,15 +13,11 @@ import java.util.List;
 import hitchwikiMapsSDK.entities.PlaceInfoBasic;
 
 public class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>> {
-    private final onPostExecute callback;
     private String errMsg = "";
+    private WeakReference<HitchwikiMapViewFragment> contextRef;
 
-    public interface onPostExecute {
-        void setupData(List<Spot> spotList, String errMsg);
-    }
-
-    LoadHitchwikiSpotsListTask(onPostExecute callback) {
-        this.callback = callback;
+    LoadHitchwikiSpotsListTask(HitchwikiMapViewFragment context) {
+        this.contextRef = new WeakReference<>(context);
     }
 
     @Override
@@ -29,8 +25,12 @@ public class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>
         if (this.isCancelled())
             return null;
 
+        HitchwikiMapViewFragment context = contextRef.get();
+        if (context == null)
+            return new ArrayList<>();
+
         try {
-            PlaceInfoBasic[] placesContainerFromFile = Utils.loadHitchwikiSpotsFromLocalFile();
+            PlaceInfoBasic[] placesContainerFromFile = Utils.loadHitchwikiSpotsFromLocalFile(context.getContext());
 
             List<Spot> spotList = new ArrayList<>();
 
@@ -61,6 +61,8 @@ public class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>
         if (this.isCancelled())
             return;
 
-        callback.setupData(spotList, errMsg);
+        HitchwikiMapViewFragment context = contextRef.get();
+        if (context != null)
+            context.setupData(spotList, errMsg);
     }
 }

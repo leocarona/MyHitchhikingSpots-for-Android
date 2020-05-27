@@ -1,21 +1,20 @@
 package com.myhitchhikingspots.utilities;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Environment;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.R;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileDialog {
     private static final String PARENT_DIR = "..";
@@ -49,13 +48,17 @@ public class FileDialog {
             this.fileEndsWith.add(type.toLowerCase());
         }
 
-        if (!path.exists()) path = Environment.getExternalStorageDirectory();
+        if (!path.exists()) path = activity.getExternalFilesDir(null);
 
         try {
+            if (path == null || path.list() == null) {
+                showErrorAlert(activity, activity.getString(R.string.general_error_dialog_title), "Path is unknown.");
+                return;
+            }
             loadFileList(path);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
-            showErrorAlert(activity, activity.getString(R.string.general_error_dialog_title), activity.getString(R.string.general_error_message_try_again));
+            showErrorAlert(activity, activity.getString(R.string.general_error_dialog_title), activity.getString(R.string.general_error_dialog_message, ex.getLocalizedMessage()));
         }
     }
 
@@ -84,7 +87,7 @@ public class FileDialog {
             public void onClick(DialogInterface dialog, int which) {
                 String fileChosen = fileList[which];
                 File chosenFile = getChosenFile(fileChosen);
-                if (chosenFile.isDirectory()) {
+                if (chosenFile != null && chosenFile.isDirectory()) {
                     try {
                         loadFileList(chosenFile);
                         dialog.cancel();
@@ -127,7 +130,8 @@ public class FileDialog {
      * Show file dialog
      */
     public void showDialog() {
-        createFileDialog().show();
+        if (currentPath != null)
+            createFileDialog().show();
     }
 
     private void fireFileSelectedEvent(final File file) {
@@ -185,6 +189,7 @@ public class FileDialog {
     }
 
     private File getChosenFile(String fileChosen) {
+        if (currentPath == null) return null;
         if (fileChosen.equals(PARENT_DIR)) return currentPath.getParentFile();
         else return new File(currentPath, fileChosen);
     }

@@ -69,7 +69,6 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
     private static final int PERMISSIONS_EXTERNAL_STORAGE = 1;
 
     final static int PICK_DB_REQUEST = 1;
-    final static String DBBackupSubdirectory = "/backup";
     final static String TAG = "settings-activity";
 
     /**
@@ -87,7 +86,7 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
-        return inflater.inflate(R.layout.tools_layout, container, false);
+        return inflater.inflate(R.layout.fragment_tools, container, false);
     }
 
     @Override
@@ -224,7 +223,7 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
             if (actionToPerfomOncePermissionIsGranted == 1)
                 exportDBNow();
             else if (actionToPerfomOncePermissionIsGranted == 2)
-                showFilePickerDialog();
+                importButtonHandler(null);
             actionToPerfomOncePermissionIsGranted = -1;
         }
     }
@@ -232,21 +231,14 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
-        if (requestCode == PICK_DB_REQUEST) {
-            // Make sure the request was successful
-            if (resultCode == RESULT_OK) {
-                // The user picked a contact.
-                // The Intent's data Uri identifies which contact was selected.
-
-                // Do something with the contact here (bigger example below)
+        if (resultCode == RESULT_OK && data != null) {
+            if (requestCode == PICK_DB_REQUEST) {
                 try {
-                    // Get the URI that points to the selected contact
-                    File mFile = new File(getPath(this, data.getData()));
-                    CopyChosenFile(mFile, getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
+                    Uri uri = data.getData();
+                    File file = FileUtils.getFile(requireContext(), uri.getPath());
+                    importPickedFile(file);
                 } catch (Exception e) {
-                    Crashlytics.logException(e);
-                    Toast.makeText(this, "Can't read file.",
-                            Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
                 }
             }
         }
@@ -302,23 +294,30 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
                 .show();
     }
 
-    public void shareButtonHandler(View view) {
-        //create the send intent
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-
-        //start the chooser for sharing
-        startActivity(Intent.createChooser(shareIntent, "Insert share chooser title here"));
-    }
-
     // 1 for exporting database and 2 for importing database
     private int actionToPerfomOncePermissionIsGranted = -1;
 
     private void importButtonHandler(View view) {
         if (!isStoragePermissionsGranted(requireActivity())) {
             actionToPerfomOncePermissionIsGranted = 2;
-            requestStoragePermissions(this);
-        } else
-            showFilePickerDialog();
+            requestStoragePermissions(requireActivity());
+            return;
+        }
+
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+        //    openFilePicker(requireActivity());
+        //else
+        showFilePickerDialog();
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private static void openFilePicker(Activity activity) {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        //From Android KitKat we were already exporting spot list always as CSV files, so thi sis the most important type to be able to import here.
+        i.setType("text/csv");
+        i.putExtra("android.content.extra.SHOW_ADVANCED", true);
+        activity.startActivityForResult(i, PICK_DB_REQUEST);
     }
 
     private void showFilePickerDialog() {
@@ -437,24 +436,16 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
                 .show();
     }
 
-    void showDatabaseExportedSuccessfullyDialog() {
-        new AlertDialog.Builder(this)
+    private void showShareExportedDatabaseDialog() {
+        new AlertDialog.Builder(requireActivity())
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(getString(R.string.general_done_message))
-                .setMessage(getString(R.string.tools_database_exported_successfully_message))
-                .setNeutralButton(getString(R.string.general_ok_option), (dialog, which) -> {
-                    showShareExportedDatabaseDialog();
-                })
-                .show();
-    }
-
-    void showShareExportedDatabaseDialog() {
-        new AlertDialog.Builder(this)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(getString(R.string.settings_sharedb_button_label))
+                .setTitle(getString(R.string.tools_database_exported_successfully_message))
                 .setMessage(getString(R.string.tools_exportdb_share_dialog_message, getString(R.string.general_share_label)))
-                .setPositiveButton(getString(R.string.general_share_label), (dialog, which) -> {
+                .setNeutralButton(getString(R.string.general_share_label), (dialog, which) -> {
                     shareCSV();
+                })
+                .setPositiveButton("Save", (dialog, which) -> {
+                    saveCSV();
                 })
                 .setNegativeButton(getString(R.string.general_cancel_option), (dialog, which) -> {
                     btnShare.setVisibility(View.VISIBLE);
@@ -565,231 +556,41 @@ public class ToolsFragment extends Fragment implements MainActivity.OnMainActivi
         startActivity(Intent.createChooser(intent, getString(R.string.settings_sharedb_button_label)));
     }
 
-    Uri getPathUri(File file) {
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    private void saveCSV() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.setType("text/csv");
+        File file = new File(destinationFilePath);
+        if (!file.exists() || !file.canRead()) {
+            Toast.makeText(requireActivity(), "Attachment Error", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<ResolveInfo> resInfoList = requireActivity().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        for (ResolveInfo resolveInfo : resInfoList) {
+            String packageName = resolveInfo.activityInfo.packageName;
+            requireActivity().getApplicationContext().grantUriPermission(packageName, Uri.parse(file.getPath()), Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+
+        intent.putExtra(Intent.EXTRA_TITLE, file.getName());
+
+        //Record usage of share option
+        Answers.getInstance().logCustom(new CustomEvent("Save CSV called"));
+
+        Uri uri = getPathUri(file); //  Uri.parse(destinationFilePath)
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        startActivity(Intent.createChooser(intent, getString(R.string.settings_sharedb_button_label)));
+    }
+
+    private Uri getPathUri(File file) {
         Uri uri;
         //We have to check if it's nougat or not.
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
-            uri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID, file);
+            uri = FileProvider.getUriForFile(requireActivity(), BuildConfig.APPLICATION_ID, file);
         } else {
             uri = Uri.fromFile(file);
         }
         return uri;
-    }
-
-    //importing database
-    private void importDB() {
-        File sd = Environment.getExternalStorageDirectory();
-
-        if (sd.canWrite()) {
-            String backupDBPath = DBBackupSubdirectory + "/" + Constants.INTERNAL_DB_FILE_NAME;
-            File backedupDB = new File(sd, backupDBPath);
-
-            CopyChosenFile(backedupDB, getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath());
-
-        } else
-            Toast.makeText(this, "Can't write to SD card.",
-                    Toast.LENGTH_LONG).show();
-    }
-
-    private void CopyChosenFile(File chosenFile, String destinationFilePath) {
-        String destinationPath = "";
-        try {
-            if (chosenFile.exists()) {
-                File currentDB = new File(destinationFilePath);
-
-                FileChannel src = new FileInputStream(chosenFile).getChannel();
-                FileChannel dst = new FileOutputStream(currentDB).getChannel();
-                dst.transferFrom(src, 0, src.size());
-                src.close();
-                dst.close();
-
-                Toast.makeText(this, "Database imported successfully.",
-                        Toast.LENGTH_LONG).show();
-
-                destinationPath = String.format("Database imported to:\n%s", currentDB.toString());
-            } else {
-                Toast.makeText(this, "No database found to be imported.",
-                        Toast.LENGTH_LONG).show();
-            }
-        } catch (Exception e) {
-            Crashlytics.logException(e);
-
-            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG)
-                    .show();
-
-        }
-        mfeedbacklabel.setText(destinationPath);
-        mfeedbacklabel.setVisibility(View.VISIBLE);
-    }
-
-    //exporting database
-    public String exportDB(Context context) {
-        //HERE'S A CODE FOUND LATER THAT CODE BE SIMPLER THAN THIS CURRENT METHOD WE'RE USING: http://www.techrepublic.com/blog/software-engineer/export-sqlite-data-from-your-android-device/
-
-        String currentDBPath = "";
-        String destinationPath = "";
-        try {
-            File sd = Environment.getExternalStorageDirectory();
-
-            if (sd.canWrite()) {
-                currentDBPath = context.getDatabasePath(Constants.INTERNAL_DB_FILE_NAME).getPath();
-
-                File backupDir = new File(sd + DBBackupSubdirectory);
-                boolean success = false;
-
-                if (backupDir.exists())
-                    success = true;
-                else
-                    success = backupDir.mkdir();
-
-                File currentDB = new File(currentDBPath);
-
-                if (success && currentDB.exists()) {
-                    File backupDB = new File(backupDir, Constants.INTERNAL_DB_FILE_NAME);
-
-                    //If a backup file already exists, RENAME it so that the new backup file we're generating now can use its name
-                    if (backupDB.exists()) {
-                        String DATE_FORMAT_NOW = Constants.EXPORT_CSV_FILENAME_FORMAT;
-                        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-                        String newname = sdf.format(new Date(backupDB.lastModified())) + Constants.INTERNAL_DB_FILE_NAME;
-                        backupDB.renameTo(new File(backupDir, newname));
-                    }
-
-                    backupDB = new File(backupDir, Constants.INTERNAL_DB_FILE_NAME);
-
-                    FileChannel src = new FileInputStream(currentDB).getChannel();
-                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
-                    dst.transferFrom(src, 0, src.size());
-                    src.close();
-                    dst.close();
-
-                    if (backupDB.exists()) {
-                        Toast.makeText(context, "Database exported successfully.",
-                                Toast.LENGTH_LONG).show();
-
-                        destinationPath = String.format("Database exported to:\n%s", backupDB.toString());
-                    } else
-                        Toast.makeText(context, "DB wasn't backed up.",
-                                Toast.LENGTH_LONG).show();
-                } else
-                    Toast.makeText(context, "No database found to be exported.",
-                            Toast.LENGTH_LONG).show();
-
-            } else
-                Toast.makeText(context, "Can't write to SD card.",
-                        Toast.LENGTH_LONG).show();
-
-        } catch (Exception e) {
-            Crashlytics.logException(e);
-
-            Toast.makeText(context, e.toString(), Toast.LENGTH_LONG)
-                    .show();
-
-        }
-
-        return destinationPath;
-    }
-
-    void exportDBToCSV() {
-        //Send email with CSV attached. Copied from: http://stackoverflow.com/a/5403357/1094261
-        String columnString = "\"PersonName\",\"Gender\",\"Street1\",\"postOffice\",\"Age\"";
-        String dataString = "\"";// + currentUser.userName + "\",\"" + currentUser.gender + "\",\"" + currentUser.street1 + "\",\"" + currentUser.postOFfice.toString() + "\",\"" + currentUser.age.toString() + "\"";
-        String combinedString = columnString + "\n" + dataString;
-
-        File file = null;
-        File root = Environment.getExternalStorageDirectory();
-        if (root.canWrite()) {
-            File dir = new File(root.getAbsolutePath() + "/PersonData");
-            dir.mkdirs();
-            file = new File(dir, "Data.csv");
-            FileOutputStream out = null;
-            try {
-                out = new FileOutputStream(file);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                out.write(combinedString.getBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        Uri u1 = null;
-        u1 = Uri.fromFile(file);
-
-        Intent sendIntent = new Intent(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Person Details");
-        sendIntent.putExtra(Intent.EXTRA_STREAM, u1);
-        sendIntent.setType("text/html");
-        startActivity(sendIntent);
-    }
-
-    /**
-     * Copies your database from your local assets-folder to the just created
-     * empty database in the system folder, from where it can be accessed and
-     * handled. This is done by transfering bytestream.
-     */
-    private void copyDataBase2(String dbname) throws IOException {
-        try {
-            // Open your local db as the input stream
-            InputStream myInput = getAssets().open(dbname);
-            // Path to the just created empty db
-            String outFileName = getDatabasePath(dbname).getPath();
-            // Open the empty db as the output stream
-            OutputStream myOutput = new FileOutputStream(outFileName);
-            // transfer bytes from the inputfile to the outputfile
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = myInput.read(buffer)) > 0) {
-                myOutput.write(buffer, 0, length);
-            }
-            // Close the streams
-            myOutput.flush();
-            myOutput.close();
-            myInput.close();
-            Toast.makeText(this, "copied successfully",
-                    Toast.LENGTH_LONG).show();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG)
-                    .show();
-        }
-    }
-
-    public void copyDataBase() {
-
-        int length;
-        byte[] buffer = new byte[1024];
-        String databasePath = "/BackupFolder/" + Constants.INTERNAL_DB_FILE_NAME;
-        try {
-            InputStream databaseInputFile = getAssets().open(Constants.INTERNAL_DB_FILE_NAME + Constants.INTERNAL_DB_FILE_EXTENSION);
-            OutputStream databaseOutputFile = new FileOutputStream(databasePath);
-
-            while ((length = databaseInputFile.read(buffer)) > 0) {
-                databaseOutputFile.write(buffer, 0, length);
-                databaseOutputFile.flush();
-            }
-            databaseInputFile.close();
-            databaseOutputFile.close();
-
-            Toast.makeText(this, "copied successfully",
-                    Toast.LENGTH_LONG).show();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG)
-                    .show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG)
-                    .show();
-        }
-
     }
 
     ProgressDialog progressDialog;

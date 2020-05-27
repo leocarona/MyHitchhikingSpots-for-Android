@@ -9,6 +9,8 @@ import android.view.View;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -63,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         setUpToolbarAndNavController();
     }
 
-    private void setUpToolbarAndNavController(){
+    private void setUpToolbarAndNavController() {
         // Set a Toolbar to replace the ActionBar.
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -126,12 +128,15 @@ public class MainActivity extends AppCompatActivity {
      * @param destinationResourceId The fragment's resource id.
      */
     public void navigateToDestination(@IdRes int destinationResourceId) {
-        Navigation.findNavController(this, R.id.nav_host_fragment).navigate(destinationResourceId);
+        navigateToDestination(destinationResourceId, null);
+    }
+
+    public void navigateToDestination(@IdRes int destinationResourceId, @Nullable Bundle args) {
+        Navigation.findNavController(this, R.id.nav_host_fragment).navigate(destinationResourceId, args);
     }
 
     public void startToolsActivityForResult() {
-        Intent intent = new Intent(getBaseContext(), ToolsActivity.class);
-        startActivityForResult(intent, 1);
+        navigateToDestination(R.id.nav_tools);
     }
 
     /**
