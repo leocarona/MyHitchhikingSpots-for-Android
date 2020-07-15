@@ -9,15 +9,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.crashlytics.android.Crashlytics;
+import com.myhitchhikingspots.databinding.SpotListItemBinding;
 import com.myhitchhikingspots.interfaces.CheckboxListener;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.Spot;
@@ -54,7 +52,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         totalsToDestinations.clear();
         Crashlytics.log(Log.INFO, TAG, "Summing up the total of rides gotten and hours traveling");
-        totalsToDestinations.putAll(SpotsListHelper.SumRouteTotalsAndUpdateTheirDestinationNotes(activity, spotsList));
+        totalsToDestinations.putAll(SpotsListHelper.SumRouteTotalsAndUpdateTheirDestinationNotes(activity, mData));
     }
 
     public boolean getIsOneOrMoreSpotsSelected() {
@@ -114,14 +112,11 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         onListOfSelectedSpotsChanged();
     }
 
+    @NonNull
     @Override
     public SpotListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // create a new view
-        View itemLayoutView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.spot_list_item, null);
-
-        // create ViewHolder
-        ViewHolder viewHolder = new SpotListAdapter.ViewHolder(itemLayoutView, activity);
+        LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
+        SpotListItemBinding itemBinding = SpotListItemBinding.inflate(layoutInflater, parent, false);
 
         CheckboxListener onCheckedChanged = new CheckboxListener() {
             @Override
@@ -140,6 +135,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             }
         };
 
+        SpotListAdapter.ViewHolder viewHolder = new SpotListAdapter.ViewHolder(itemBinding);
         viewHolder.setSpotCheckedChangedListener(onCheckedChanged);
         viewHolder.updateCheckboxVisibility();
 
@@ -147,7 +143,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
         Spot spot = mData.get(position);
 
         String secondLine = "";
@@ -165,6 +161,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         viewHolder.setFields(spot, secondLine, index > -1, activity);
         viewHolder.updateCheckboxVisibility();
+        viewHolder.bind(spot);
     }
 
     static String locationSeparator = ", ";
@@ -187,7 +184,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        return mData.size();
+        return mData == null ? 0 : mData.size();
     }
 
     public void setSelectedSpotsList(ArrayList<Integer> selectedSpots) {
@@ -224,46 +221,40 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
-        public TextView dateTime, cityNameText, notesText, waitingTimeText;
-        public ImageView waitingIcon, destinationIcon, singleSpotIcon, breakIcon;
-        public Activity activity;
         public Spot spot;
-        public View viewParent;
-        public AppCompatCheckBox cbx;
         CheckboxListener itemListener = null;
+        int ic_selected_bg_color, ic_regular_spot_color, ic_arrival_color;
+        private final SpotListItemBinding binding;
 
-        public ViewHolder(View itemLayoutView, Activity activity) {
-            super(itemLayoutView);
-            this.activity = activity;
+        public ViewHolder(SpotListItemBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
 
-            dateTime = (TextView) itemLayoutView.findViewById(R.id.date_time_layout_textview);
-            cityNameText = (TextView) itemLayoutView.findViewById(R.id.spot_city_name_layout_textview);
-            notesText = (TextView) itemLayoutView.findViewById(R.id.spot_notes_layout_textview);
-            waitingTimeText = (TextView) itemLayoutView.findViewById(R.id.waiting_time_layout_textview);
-            waitingIcon = (ImageView) itemLayoutView.findViewById(R.id.waiting_icon_layout_imageview);
-            destinationIcon = (ImageView) itemLayoutView.findViewById(R.id.arrival_icon_layout_imageview);
-            singleSpotIcon = (ImageView) itemLayoutView.findViewById(R.id.single_icon_layout_imageview);
-            breakIcon = (ImageView) itemLayoutView.findViewById(R.id.break_icon_layout_imageview);
+            ic_selected_bg_color = ContextCompat.getColor(binding.getRoot().getContext(), R.color.ic_selected_bg_color);
+            ic_regular_spot_color = ContextCompat.getColor(binding.getRoot().getContext(), R.color.ic_regular_spot_color);
+            ic_arrival_color = ContextCompat.getColor(binding.getRoot().getContext(), R.color.ic_arrival_color);
 
-            viewParent = itemLayoutView.findViewById(R.id.spot_list_item_parent);
-            viewParent.setOnClickListener(this);
-            viewParent.setOnLongClickListener((v) -> {
+            binding.spotListItemParent.setOnClickListener(this);
+            binding.spotListItemParent.setOnLongClickListener((v) -> {
                 if (!isEditMode)
                     setIsEditMode(true);
                 setChecked(getIsEditMode());
                 return true;
             });
+        }
 
-            cbx = (AppCompatCheckBox) itemLayoutView.findViewById(R.id.spot_delete_checkbox);
+        public void bind(Spot item) {
+            binding.setSpot(item);
+            binding.executePendingBindings();
         }
 
         private void setChecked(boolean value) {
-            if (cbx != null) cbx.setChecked(value);
+            binding.spotDeleteCheckbox.setChecked(value);
             updateCheckboxVisibility();
         }
 
         private void toggleChecked() {
-            setChecked(!cbx.isChecked());
+            setChecked(!binding.spotDeleteCheckbox.isChecked());
         }
 
         @Override
@@ -279,7 +270,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             if (buttonView.getId() == R.id.spot_delete_checkbox && itemListener != null) {
                 //Set background color
                 if (isChecked)
-                    buttonView.setBackgroundColor(ContextCompat.getColor(activity, R.color.ic_selected_bg_color));
+                    buttonView.setBackgroundColor(ic_selected_bg_color);
                 else
                     buttonView.setBackgroundColor(Color.TRANSPARENT);
 
@@ -293,35 +284,33 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         }
 
         public void updateCheckboxVisibility() {
-            if (cbx != null) {
-                if (getIsEditMode())
-                    cbx.setVisibility(View.VISIBLE);
-                else
-                    cbx.setVisibility(View.GONE);
-            }
+            if (getIsEditMode())
+                binding.spotDeleteCheckbox.setVisibility(View.VISIBLE);
+            else
+                binding.spotDeleteCheckbox.setVisibility(View.GONE);
         }
 
         public void setFields(Spot spot, String secondLine, Boolean isChecked, Context context) {
             try {
                 this.spot = spot;
 
-                destinationIcon.setVisibility(View.GONE);
-                waitingIcon.setVisibility(View.GONE);
-                breakIcon.setVisibility(View.GONE);
-                singleSpotIcon.setVisibility(View.GONE);
-                waitingTimeText.setVisibility(View.GONE);
-                viewParent.setBackgroundColor(Color.TRANSPARENT);
+                binding.arrivalIconLayoutImageview.setVisibility(View.GONE);
+                binding.waitingIconLayoutImageview.setVisibility(View.GONE);
+                binding.breakIconLayoutImageview.setVisibility(View.GONE);
+                binding.singleIconLayoutImageview.setVisibility(View.GONE);
+                binding.waitingTimeLayoutTextview.setVisibility(View.GONE);
+                binding.spotListItemParent.setBackgroundColor(Color.TRANSPARENT);
 
                 //Remove listener, apply checked/unchecked and set listener again
-                cbx.setOnCheckedChangeListener(null);
-                cbx.setChecked(isChecked);
-                cbx.setOnCheckedChangeListener(this);
+                binding.spotDeleteCheckbox.setOnCheckedChangeListener(null);
+                binding.spotDeleteCheckbox.setChecked(isChecked);
+                binding.spotDeleteCheckbox.setOnCheckedChangeListener(this);
 
                 //Set background color
                 if (isChecked)
-                    cbx.setBackgroundColor(ContextCompat.getColor(activity, R.color.ic_selected_bg_color));
+                    binding.spotDeleteCheckbox.setBackgroundColor(ic_selected_bg_color);
                 else
-                    cbx.setBackgroundColor(Color.TRANSPARENT);
+                    binding.spotDeleteCheckbox.setBackgroundColor(Color.TRANSPARENT);
 
                 //String hitchability = "";
 
@@ -332,18 +321,18 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot() &&
                             spot.getIsWaitingForARide() != null && spot.getIsWaitingForARide()) {
                         //The spot is where the user is waiting for a ride
-                        viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_regular_spot_color));
-                        waitingIcon.setVisibility(View.VISIBLE);
+                        binding.spotListItemParent.setBackgroundColor(ic_regular_spot_color);
+                        binding.waitingIconLayoutImageview.setVisibility(View.VISIBLE);
 
                     } else if (spot.getIsDestination() != null && spot.getIsDestination()) {
                         //The spot is a destination
 
-                        viewParent.setBackgroundColor(ContextCompat.getColor(viewParent.getContext(), R.color.ic_arrival_color));
-                        destinationIcon.setVisibility(View.VISIBLE);
+                        binding.spotListItemParent.setBackgroundColor(ic_arrival_color);
+                        binding.arrivalIconLayoutImageview.setVisibility(View.VISIBLE);
 
                     } else {
                         if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
-                            waitingTimeText.setVisibility(View.VISIBLE);
+                            binding.waitingTimeLayoutTextview.setVisibility(View.VISIBLE);
 
                             switch (spot.getAttemptResult()) {
                                 case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
@@ -357,9 +346,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                                 case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                     //The spot is a hitchhiking spot that was already evaluated
                                     //icon = ic_took_a_break_spot;
-                                    breakIcon.setImageResource(R.drawable.ic_break_spot_icon);
-                                    breakIcon.setVisibility(View.VISIBLE);
-                                    breakIcon.setAlpha((float) 1);
+                                    binding.breakIconLayoutImageview.setImageResource(R.drawable.ic_break_spot_icon);
+                                    binding.breakIconLayoutImageview.setVisibility(View.VISIBLE);
+                                    binding.breakIconLayoutImageview.setAlpha((float) 1);
                                     break;
                                 /*default:
                                     //The spot is a hitchhiking spot that was not evaluated yet
@@ -372,26 +361,26 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                             }
                         } else {
                             //The spot belongs to a route but it's not a hitchhiking spot, neither a destination
-                            breakIcon.setImageResource(R.drawable.ic_point_on_the_route_black_24dp);
-                            breakIcon.setVisibility(View.VISIBLE);
-                            breakIcon.setAlpha((float) 0.5);
+                            binding.breakIconLayoutImageview.setImageResource(R.drawable.ic_point_on_the_route_black_24dp);
+                            binding.breakIconLayoutImageview.setVisibility(View.VISIBLE);
+                            binding.breakIconLayoutImageview.setAlpha((float) 0.5);
                         }
                     }
                 } else {
                     //This spot doesn't belong to a route (it's a single spot)
 
                     if (spot.getIsHitchhikingSpot() != null && spot.getIsHitchhikingSpot()) {
-                        waitingTimeText.setVisibility(View.VISIBLE);
+                        binding.waitingTimeLayoutTextview.setVisibility(View.VISIBLE);
 
                         //if(spot.getHitchability() != null)
                         //  hitchability = Utils.getRatingOrDefaultAsString(context, Utils.findTheOpposite(spot.getHitchability()));
 
-                        singleSpotIcon.setVisibility(View.VISIBLE);
+                        binding.singleIconLayoutImageview.setVisibility(View.VISIBLE);
 
                     } else {
-                        breakIcon.setImageResource(R.drawable.ic_point_on_the_route_black_24dp);
-                        breakIcon.setVisibility(View.VISIBLE);
-                        breakIcon.setAlpha((float) 0.5);
+                        binding.breakIconLayoutImageview.setImageResource(R.drawable.ic_point_on_the_route_black_24dp);
+                        binding.breakIconLayoutImageview.setVisibility(View.VISIBLE);
+                        binding.breakIconLayoutImageview.setAlpha((float) 0.5);
                     }
                 }
 
@@ -404,18 +393,18 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 if (waitingTimeStr.equals(context.getString(R.string.general_seconds_label)))
                     waitingTimeStr = "<" + context.getString(R.string.general_minutes_label, 1);
 
-                waitingTimeText.setText(waitingTimeStr);
+                binding.waitingTimeLayoutTextview.setText(waitingTimeStr);
 
                 //Set the date and time
                 if (spot.getStartDateTime() != null) {
                     DateTime startDateTime = spot.getStartDateTime();
                     String dateTimeFormat = Utils.getDateTimeFormat(startDateTime, ",\n");
-                    dateTime.setText(Utils.dateTimeToString(startDateTime, dateTimeFormat));
+                    binding.dateTimeLayoutTextview.setText(Utils.dateTimeToString(startDateTime, dateTimeFormat));
                 }
 
                 //Set the address or coordinates
                 String spotLoc = getString(spot);
-                cityNameText.setText(spotLoc);
+                binding.spotCityNameLayoutTextview.setText(spotLoc);
 
                 //Set the second line, show the first letter capitalized
                 if (secondLine != null && !secondLine.isEmpty())
@@ -425,7 +414,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
                 //if (!hitchability.isEmpty())
                 //    secondLine = "(" + hitchability + ") " + secondLine;
 
-                notesText.setText(secondLine);
+                binding.spotNotesLayoutTextview.setText(secondLine);
 
             } catch (Exception ex) {
                 Crashlytics.logException(ex);

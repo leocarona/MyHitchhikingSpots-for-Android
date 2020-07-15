@@ -2,8 +2,6 @@ package com.myhitchhikingspots;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -14,16 +12,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.myhitchhikingspots.databinding.SpotListFragmentLayoutBinding;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -32,9 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SpotListFragment extends Fragment {
-    private RecyclerView recyclerView;
-    List<Spot> spotList = new ArrayList<>();
-    FloatingActionButton fabDelete;
+    MediatorLiveData<List<Spot>> spotList;
     public ArrayList<Integer> previouslySelectedSpots = new ArrayList<>();
     static String SELECTED_SPOTS_KEY = "SELECTED_SPOTS_KEY";
     static String IS_EDIT_MODE_KEY = "IS_EDIT_MODE_KEY";
@@ -44,9 +41,15 @@ public class SpotListFragment extends Fragment {
 
     private SharedPreferences prefs;
 
+    final String sqlDeleteStatement = "DELETE FROM %1$s WHERE %2$s";
+    SpotsListViewModel spotsListViewModel;
+    MyRoutesViewModel myRoutesViewModel;
+    SpotListFragmentLayoutBinding binding;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        spotList = new MediatorLiveData<>();
 
         //Retrieve saved state in onCreate. This method is called even when this fragment is on the back stack
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_SPOTS_KEY)) {
@@ -59,88 +62,41 @@ public class SpotListFragment extends Fragment {
 
         if (getContext() != null)
             prefs = getContext().getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+
+        spotsListViewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
+        myRoutesViewModel = new ViewModelProvider(requireActivity()).get(MyRoutesViewModel.class);
     }
 
-    final String sqlDeleteStatement = "DELETE FROM %1$s WHERE %2$s";
-    SpotsListViewModel viewModel;
-
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.spot_list_fragment_layout, container, false);
+        binding = DataBindingUtil.inflate(inflater, R.layout.spot_list_fragment_layout, container, false);
 
-        viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
-
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.main_activity_recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        fabDelete = (FloatingActionButton) rootView.findViewById(R.id.fab_delete_action);
-
-        fabDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new AlertDialog.Builder(getContext())
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setTitle(getString(R.string.spot_form_delete_dialog_title_text))
-                        .setMessage(getString(R.string.spot_form_delete_dialog_message_for_many_text, mAdapter.getSelectedSpots().size()))
-                        .setPositiveButton(String.format(getString(R.string.spot_form_delete_dialog_yes_for_many_option), mAdapter.getSelectedSpots().size()),
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        deleteSelectedSpots();
-                                    }
-                                })
-                        .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
-                        .show();
-            }
+        binding.fabDeleteAction.setOnClickListener(view -> {
+            new AlertDialog.Builder(requireContext())
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getString(R.string.spot_form_delete_dialog_title_text))
+                    .setMessage(getString(R.string.spot_form_delete_dialog_message_for_many_text, mAdapter.getSelectedSpots().size()))
+                    .setPositiveButton(String.format(getString(R.string.spot_form_delete_dialog_yes_for_many_option), mAdapter.getSelectedSpots().size()),
+                            (dialog, which) -> deleteSelectedSpots())
+                    .setNegativeButton(getResources().getString(R.string.spot_form_delete_dialog_no_option), null)
+                    .show();
         });
 
-        //When we go to next fragment and return back here, the adapter is already present and populated.
-        //Don't create it again in such cases. Hence the null check.
-        if (mAdapter == null) {
-            ListListener listener = new ListListener() {
-                @Override
-                public void onListOfSelectedSpotsChanged() {
-                    //Show or hide delete button. When one or more spot are delete, onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged() is fired
-                    updateDeleteButtons();
-                    Activity activity = getActivity();
-                    if (activity != null) activity.invalidateOptionsMenu();
-                    isHandlingRequestToOpenSpotForm = false;
-                }
+        setupRecyclerView();
 
-                @Override
-                public void onSpotClicked(Spot spot) {
-                    if (isHandlingRequestToOpenSpotForm)
-                        return;
-                    Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+        spotList.observe(requireActivity(), this::updateUI);
 
-                    //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-                    if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
-                            mCurrentWaitingSpot.getIsWaitingForARide()) {
+        if (type == MyRoutesSpotsType.SINGLESPOTS)
+            subscribeToSingleSpotsChange();
+        else
+            subscribeToRouteSpotsChange();
 
-                        if (mCurrentWaitingSpot.getId().equals(spot.getId()))
-                            spot.setAttemptResult(null);
-                        else {
-                            Resources res = getResources();
-                            String actionRequiredText = res.getString(R.string.evaluate_running_spot_required, res.getString(R.string.got_a_ride_button_text), res.getString(R.string.break_button_text));
-                            Toast.makeText(getContext(), actionRequiredText, Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                    }
+        return binding.getRoot();
+    }
 
-                    isHandlingRequestToOpenSpotForm = true;
-                    Intent intent = new Intent(getContext(), SpotFormFragment.class);
-                    intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-                    intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-                    startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
-
-                    if (onOneOrMoreSpotsDeleted != null)
-                        onOneOrMoreSpotsDeleted.onSpotClicked(spot);
-                }
-            };
-
-            mAdapter = new SpotListAdapter(listener, getActivity());
-        }
+    private void setupRecyclerView() {
+        mAdapter = new SpotListAdapter(listener, requireActivity());
 
         //Use the state retrieved in onCreate and set it on your views etc in onCreateView
         //This method is not called if the device is rotated when your fragment is on the back stack.
@@ -149,20 +105,52 @@ public class SpotListFragment extends Fragment {
         if (previouslySelectedSpots != null)
             mAdapter.setSelectedSpotsList(previouslySelectedSpots);
 
-        recyclerView.setAdapter(mAdapter);
-
-        return rootView;
+        binding.mainActivityRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.mainActivityRecyclerView.setAdapter(mAdapter);
     }
+
+    ListListener listener = new ListListener() {
+        @Override
+        public void onListOfSelectedSpotsChanged() {
+            //Show or hide delete button. When one or more spot are delete, onOneOrMoreSpotsDeleted.onListOfSelectedSpotsChanged() is fired
+            updateDeleteButtons();
+            Activity activity = getActivity();
+            if (activity != null) activity.invalidateOptionsMenu();
+            isHandlingRequestToOpenSpotForm = false;
+        }
+
+        @Override
+        public void onSpotClicked(Spot spot) {
+            if (isHandlingRequestToOpenSpotForm)
+                return;
+            Spot mCurrentWaitingSpot = spotsListViewModel.getWaitingSpot().getValue();
+
+            //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+            if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
+                    mCurrentWaitingSpot.getIsWaitingForARide()) {
+
+                if (mCurrentWaitingSpot.getId().equals(spot.getId()))
+                    spot.setAttemptResult(null);
+                else {
+                    Resources res = getResources();
+                    String actionRequiredText = res.getString(R.string.evaluate_running_spot_required, res.getString(R.string.got_a_ride_button_text), res.getString(R.string.break_button_text));
+                    Toast.makeText(getContext(), actionRequiredText, Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+
+            isHandlingRequestToOpenSpotForm = true;
+            ((MainActivity) requireActivity()).navigateToEditSpotForm(spot, -1);
+
+            if (onOneOrMoreSpotsDeleted != null)
+                onOneOrMoreSpotsDeleted.onSpotClicked(spot);
+        }
+    };
+
 
     public boolean getIsAllSpotsSelected() {
         if (mAdapter != null)
             return mAdapter.getIsAllSpotsSelected();
-        return false;
-    }
-
-    public boolean getIsOneOrMoreSpotsSelected() {
-        if (mAdapter != null)
-            return mAdapter.getIsOneOrMoreSpotsSelected();
         return false;
     }
 
@@ -179,42 +167,13 @@ public class SpotListFragment extends Fragment {
     private void deleteSelectedSpots() {
         String errorMessage = "";
         try {
-            Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
-            Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
-                    mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
-            ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
-
-            for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++) {
-                Integer selectedSpotId = mAdapter.getSelectedSpots().get(i);
-
-                //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-                if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
-                    viewModel.setWaitingSpot(null);
-
-                //Concatenate Id in a list as "Id.columnName = x"
-                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
-            }
-
-            viewModel.execSQL(getContext(), String.format(sqlDeleteStatement,
-                    SpotDao.TABLENAME,
-                    TextUtils.join(" OR ", spotsToBeDeleted_idList)));
+            deleteSelectedSpots(mAdapter.getSelectedSpots());
+            spotsListViewModel.reloadSpots(requireActivity());
 
             if (prefs != null)
                 prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
 
-            List<Spot> remainingSpots = new ArrayList<>();
-
-            //Go through all the spots in the list
-            for (int i = 0; i < spotList.size(); i++) {
-                //Check if this spot was in the list to be deleted
-                if (!mAdapter.getSelectedSpots().contains(spotList.get(i).getId().intValue())) {
-                    //Add spot to remaining list if it was not selected to be deleted
-                    remainingSpots.add(spotList.get(i));
-                } else {
-                    //Create recordd to track usage of Delete button for each spot deleted
-                    Answers.getInstance().logCustom(new CustomEvent("Spot deleted"));
-                }
-            }
+            /*List<Spot> remainingSpots = extractRemainingSpots(mAdapter.getSelectedSpots());
 
             setIsEditMode(false);
 
@@ -224,7 +183,7 @@ public class SpotListFragment extends Fragment {
             //Clear selectedSpotsList
             deselectAllSpots();
 
-            mAdapter.notifyDataSetChanged();
+            mAdapter.notifyDataSetChanged();*/
         } catch (Exception ex) {
             Crashlytics.logException(ex);
             errorMessage = "An error occurred: " + ex.getMessage();
@@ -241,27 +200,57 @@ public class SpotListFragment extends Fragment {
         }
     }
 
+    /*@NonNull
+    private List<Spot> extractRemainingSpots(ArrayList<Integer> selectedSpots) {
+        List<Spot> remainingSpots = new ArrayList<>();
+
+        //Go through all the spots in the list
+        for (int i = 0; i < spotList.size(); i++) {
+            //Check if this spot was in the list to be deleted
+            if (!selectedSpots.contains(spotList.get(i).getId().intValue())) {
+                //Add spot to remaining list if it was not selected to be deleted
+                remainingSpots.add(spotList.get(i));
+            } else {
+                //Create recordd to track usage of Delete button for each spot deleted
+                Answers.getInstance().logCustom(new CustomEvent("Spot deleted"));
+            }
+        }
+        return remainingSpots;
+    }*/
+
+    private void deleteSelectedSpots(ArrayList<Integer> selectedSpots) {
+        Spot mCurrentWaitingSpot = spotsListViewModel.getWaitingSpot().getValue();
+        Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
+                mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
+        ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
+
+        for (int i = 0; i < selectedSpots.size(); i++) {
+            Integer selectedSpotId = selectedSpots.get(i);
+
+            //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
+            if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
+                spotsListViewModel.setWaitingSpot(null);
+
+            //Concatenate Id in a list as "Id.columnName = x"
+            spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
+        }
+
+        spotsListViewModel.execSQL(getContext(), String.format(sqlDeleteStatement,
+                SpotDao.TABLENAME,
+                TextUtils.join(" OR ", spotsToBeDeleted_idList)));
+    }
+
     ListListener onOneOrMoreSpotsDeleted;
 
     void setOnOneOrMoreSpotsDeleted(ListListener listListener) {
         this.onOneOrMoreSpotsDeleted = listListener;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        Crashlytics.log(Log.INFO, TAG, "onResume was called");
-        updateUI();
-    }
-
     void updateDeleteButtons() {
-        if (fabDelete == null)
-            return;
-
         if (mAdapter != null && mAdapter.getSelectedSpots().size() > 0 && getIsEditMode())
-            fabDelete.show();
+            binding.fabDeleteAction.show();
         else
-            fabDelete.hide();
+            binding.fabDeleteAction.hide();
     }
 
     public void setIsEditMode(Boolean isEditMode) {
@@ -277,13 +266,13 @@ public class SpotListFragment extends Fragment {
         return false;
     }
 
-    void updateUI() {
+    void updateUI(List<Spot> spots) {
         Crashlytics.log(Log.INFO, TAG, "updateUI was called");
         try {
-            if (recyclerView != null) {
-                updateDeleteButtons();
-                mAdapter.setSpotList(spotList);
-            }
+            setIsEditMode(false);
+            //Clear selectedSpotsList
+            deselectAllSpots();
+            mAdapter.setSpotList(spots);
         } catch (Exception ex) {
             Crashlytics.logException(ex);
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message),
@@ -318,12 +307,22 @@ public class SpotListFragment extends Fragment {
 
     }
 
-    public void setValues(List list) {
-        Crashlytics.log(Log.INFO, TAG, "setValues was called");
-        spotList = list;
+    public enum MyRoutesSpotsType {ROUTESPOTS, SINGLESPOTS}
 
-        if (this.isResumed())
-            updateUI();
+    MyRoutesSpotsType type;
+
+    public void subscribeTo(MyRoutesSpotsType type) {
+        this.type = type;
+    }
+
+    void subscribeToRouteSpotsChange() {
+        Crashlytics.log(Log.INFO, TAG, "setValues was called");
+        myRoutesViewModel.getRouteSpots().observe(requireActivity(), lst -> spotList.setValue(lst));
+    }
+
+    void subscribeToSingleSpotsChange() {
+        Crashlytics.log(Log.INFO, TAG, "setValues was called");
+        myRoutesViewModel.getSingleSpots().observe(requireActivity(), lst -> spotList.setValue(lst));
     }
 
     public void onActivityResultFromSpotForm() {

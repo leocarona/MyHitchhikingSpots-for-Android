@@ -5,37 +5,37 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.core.content.ContextCompat;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.crashlytics.android.Crashlytics;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.tabs.TabLayout;
+import com.myhitchhikingspots.databinding.MyRoutesActivityLayoutBinding;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.Spot;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
-public class MyRoutesActivity extends AppCompatActivity {
+public class MyRoutesActivity extends Fragment {
 
     /**
      * The {@link PagerAdapter} that will provide
@@ -46,13 +46,9 @@ public class MyRoutesActivity extends AppCompatActivity {
      * {@link FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
+    private MyRoutesActivityLayoutBinding binding;
+    private Snackbar snackbar;
 
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private ViewPager mViewPager;
-
-    CoordinatorLayout coordinatorLayout;
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
     ListListener spotsListListener = null;
@@ -66,84 +62,94 @@ public class MyRoutesActivity extends AppCompatActivity {
     Boolean shouldGoBackToPreviousActivity = false;
     SharedPreferences prefs;
 
-    SpotsListViewModel viewModel;
+    SpotsListViewModel spotsListViewModel;
+    MyRoutesViewModel myRoutesViewModel;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.my_routes_activity_layout);
+        //Important: setHasOptionsMenu must be called so that onOptionsItemSelected works
+        setHasOptionsMenu(true);
 
-        //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
-        prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+        updateTitle(getString(R.string.main_activity_title));
 
-        viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
-        // Set a Toolbar to replace the ActionBar.
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        prefs = requireContext().getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+
+        spotsListViewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
+        myRoutesViewModel = new ViewModelProvider(requireActivity()).get(MyRoutesViewModel.class);
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        binding = DataBindingUtil.inflate(inflater, R.layout.my_routes_activity_layout, container, false);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState != null && savedInstanceState.keySet().contains(LAST_TAB_OPENED_KEY))
             indexOfLastOpenTab = savedInstanceState.getInt(LAST_TAB_OPENED_KEY, 0);
 
+        isHandlingRequestToOpenSpotForm = false;
+
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        if (mSectionsPagerAdapter == null)
-            mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        //Note: using getFragmentManager() instead of getChildFragmentManager() would cause undesired behavior when navigating back.
+        //For a little explanation see https://stackoverflow.com/a/27950670/1094261
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getChildFragmentManager(),
+                FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
 
+        // clear listeners first avoid adding duplicate listener upon calling notify update related code
+        binding.container.clearOnPageChangeListeners();
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        binding.container.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
 
             @Override
             public void onPageSelected(int position) {
-                invalidateOptionsMenu();
+                requireActivity().invalidateOptionsMenu();
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
             }
         });
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
-
+        binding.tabs.setupWithViewPager(binding.container);
+        binding.container.setAdapter(mSectionsPagerAdapter);
 
         spotsListListener = new ListListener() {
             @Override
             public void onListOfSelectedSpotsChanged() {
                 showSpotDeletedSnackbar();
-                invalidateOptionsMenu();
+                requireActivity().invalidateOptionsMenu();
                 prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
             }
 
             @Override
             public void onSpotClicked(Spot spot) {
-                indexOfLastOpenTab = mViewPager.getCurrentItem();
+                indexOfLastOpenTab = binding.container.getCurrentItem();
                 //onSaveInstanceState will be executed right after onSpotClicked because when a spot is clicked, the fragment starts SpotFormActivity
             }
         };
 
-        viewModel.getSpots().observe(this, spots -> {
-            //Update fragments
-            if (mSectionsPagerAdapter != null) {
-                mSectionsPagerAdapter.setValues(spots);
-                mViewPager.setAdapter(mSectionsPagerAdapter);
-                selectTab(indexOfLastOpenTab);
-            }
-        });
+        spotsListViewModel.getSpots().observe(requireActivity(), this::notifySpotListChanged);
+    }
+
+    private void notifySpotListChanged(List<Spot> spotList) {
+        myRoutesViewModel.notifySpotListChanged(spotList);
     }
 
     public void selectTab(int tab_index) {
-        mViewPager.setCurrentItem(tab_index);
+        binding.container.setCurrentItem(tab_index);
     }
 
-    Snackbar snackbar;
-
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        snackbar = Snackbar.make(coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
+        snackbar = Snackbar.make(binding.coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
                 .setAction(action, listener);
 
         // get snackbar view
@@ -157,9 +163,8 @@ public class MyRoutesActivity extends AppCompatActivity {
         TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
         if (textView != null) textView.setTextColor(Color.WHITE);
 
-
         // change snackbar background
-        snackbarView.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.ic_regular_spot_color));
+        snackbarView.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.ic_regular_spot_color));
 
         snackbar.show();
     }
@@ -168,18 +173,31 @@ public class MyRoutesActivity extends AppCompatActivity {
         showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
                 String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), v -> {
                     if (shouldGoBackToPreviousActivity)
-                        finish();
-                    else {
-                        Intent intent = new Intent(getBaseContext(), MainActivity.class);
-                        intent.putExtra(MainActivity.ARG_REQUEST_TO_OPEN_FRAGMENT, R.id.nav_my_map);
-                        startActivity(intent);
-                    }
+                        navigateUp();
+                    else
+                        navigateToMyMap();
                 });
     }
 
     void showSpotDeletedSnackbar() {
         showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
                 null, null);
+    }
+
+    public void updateTitle(String title) {
+        ActionBar actionBar = ((MainActivity) requireActivity()).getSupportActionBar();
+        if (actionBar == null)
+            return;
+
+        actionBar.setTitle(title);
+    }
+
+    private void navigateUp() {
+        Navigation.findNavController(requireActivity(), R.id.nav_host_fragment).navigateUp();
+    }
+
+    public void navigateToMyMap() {
+        Navigation.findNavController(requireActivity(), R.id.nav_host_fragment).navigate(R.id.nav_my_map);
     }
 
     @Override
@@ -191,17 +209,17 @@ public class MyRoutesActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mViewPager != null)
-            mViewPager.clearOnPageChangeListeners();
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding.container.clearOnPageChangeListeners();
+        spotsListViewModel.getSpots().removeObserver(this::notifySpotListChanged);
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Boolean spotListWasChanged = false;
+        /*boolean spotListWasChanged = false;
         if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED) {
             spotListWasChanged = true;
             showSpotSavedSnackbar();
@@ -216,54 +234,53 @@ public class MyRoutesActivity extends AppCompatActivity {
             mSectionsPagerAdapter.onActivityResultFromSpotForm();
 
         if (spotListWasChanged) {
-            viewModel.reloadSpots(this);
+            viewModel.reloadSpots(requireContext());
 
             //Set this flag so that MainActivity knows that reloadSpots should be called to update their viewModel.
             prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-        }
+        }*/
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.my_routes_menu, menu);
+        inflater.inflate(R.menu.my_routes_menu, menu);
 
         MenuItem item = menu.findItem(R.id.action_select_all);
 
-        boolean isEditModeOn = mSectionsPagerAdapter.getIsEditMode(mViewPager.getCurrentItem());
+        boolean isEditModeOn = mSectionsPagerAdapter.getIsEditMode(binding.container.getCurrentItem());
         item.setVisible(isEditModeOn);
 
         if (isEditModeOn) {
             String itemTitle = getString(R.string.general_select_all);
-            if (mSectionsPagerAdapter.getIsAllSpotsSelected(mViewPager.getCurrentItem()))
+            if (mSectionsPagerAdapter.getIsAllSpotsSelected(binding.container.getCurrentItem()))
                 itemTitle = getString(R.string.general_deselect_all);
             item.setTitle(itemTitle);
         }
 
-        return true;
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        boolean selectionHandled = false;
 
         switch (item.getItemId()) {
             case R.id.action_new_spot:
                 if (!isHandlingRequestToOpenSpotForm)
-                    saveSpotButtonHandler(false);
+                    saveSpotButtonHandler();
                 break;
             case R.id.action_select_all:
                 if (mSectionsPagerAdapter != null) {
-                    if (mSectionsPagerAdapter.getIsAllSpotsSelected(mViewPager.getCurrentItem())) {
-                        mSectionsPagerAdapter.deselectAllSpots(mViewPager.getCurrentItem());
+                    if (mSectionsPagerAdapter.getIsAllSpotsSelected(binding.container.getCurrentItem())) {
+                        mSectionsPagerAdapter.deselectAllSpots(binding.container.getCurrentItem());
                     } else {
-                        mSectionsPagerAdapter.selectAllSpots(mViewPager.getCurrentItem());
+                        mSectionsPagerAdapter.selectAllSpots(binding.container.getCurrentItem());
                     }
                 }
                 break;
             case R.id.action_edit_list:
                 if (mSectionsPagerAdapter != null) {
-                    switch (mViewPager.getCurrentItem()) {
+                    switch (binding.container.getCurrentItem()) {
                         case SectionsPagerAdapter.TAB_ROUTES_INDEX:
                             mSectionsPagerAdapter.toggleRoutesListEditMode();
                             break;
@@ -273,21 +290,18 @@ public class MyRoutesActivity extends AppCompatActivity {
                     }
 
                     //Call invalidateOptionsMenu so that it fires onCreateOptionsMenu and "Select all" option will be displayed.
-                    invalidateOptionsMenu();
+                    requireActivity().invalidateOptionsMenu();
                 }
                 break;
         }
 
-        if (selectionHandled)
-            return true;
-        else
-            return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
+    public void onSaveInstanceState(@NonNull Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-        indexOfLastOpenTab = mViewPager.getCurrentItem();
+        indexOfLastOpenTab = binding.container.getCurrentItem();
         savedInstanceState.putInt(LAST_TAB_OPENED_KEY, indexOfLastOpenTab);
     }
 
@@ -299,40 +313,42 @@ public class MyRoutesActivity extends AppCompatActivity {
         private SpotListFragment tab_route_spots_list;
         private SpotListFragment tab_single_spots_list;
 
-        List<Spot> routeSpots = new ArrayList<>(), singleSpots = new ArrayList<>();
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
+        public SectionsPagerAdapter(@NonNull FragmentManager fm, int behavior) {
+            super(fm, behavior);
         }
 
         //Called before instantiateItem(..)
+        @NonNull
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            switch (position) {
-                case TAB_ROUTES_INDEX:
-                    SpotListFragment listFrag = new SpotListFragment();
-                    Bundle args1 = new Bundle();
-                    listFrag.setArguments(args1);
-                    return listFrag;
-                case TAB_SPOTS_INDEX:
-                    SpotListFragment singleSpotsListFrag = new SpotListFragment();
-                    Bundle args2 = new Bundle();
-                    singleSpotsListFrag.setArguments(args2);
-                    return singleSpotsListFrag;
+            if (position == TAB_SPOTS_INDEX) {
+                SpotListFragment singleSpotsListFrag = new SpotListFragment();
+                Bundle args2 = new Bundle();
+                singleSpotsListFrag.setArguments(args2);
+                singleSpotsListFrag.subscribeTo(SpotListFragment.MyRoutesSpotsType.SINGLESPOTS);
+                singleSpotsListFrag.setOnOneOrMoreSpotsDeleted(spotsListListener);
+                return singleSpotsListFrag;
             }
-            return null;
+
+            SpotListFragment listFrag = new SpotListFragment();
+            Bundle args1 = new Bundle();
+            listFrag.setArguments(args1);
+            listFrag.subscribeTo(SpotListFragment.MyRoutesSpotsType.ROUTESPOTS);
+            listFrag.setOnOneOrMoreSpotsDeleted(spotsListListener);
+            return listFrag;
         }
 
-        // Here we can finally safely save a reference to the created
+       /* // Here we can finally safely save a reference to the created
         // Fragment, no matter where it came from (either getItem() or
         // FragmentManger). Simply save the returned Fragment from
         // super.instantiateItem() into an appropriate reference depending
         // on the ViewPager position. This solution was copied from:
         // http://stackoverflow.com/a/29288093/1094261
+        @NonNull
         @Override
-        public Object instantiateItem(ViewGroup container, int position) {
+        public Object instantiateItem(@NonNull ViewGroup container, int position) {
             Crashlytics.log(Log.INFO, TAG, "SectionsPagerAdapter.instantiateItem called for position " + position);
 
             Fragment createdFragment = (Fragment) super.instantiateItem(container, position);
@@ -340,19 +356,20 @@ public class MyRoutesActivity extends AppCompatActivity {
             switch (position) {
                 case TAB_ROUTES_INDEX:
                     SpotListFragment tab_list = (SpotListFragment) createdFragment;
-                    tab_list.setValues(routeSpots);
-                    this.tab_route_spots_list = tab_list;
+                    tab_list.subscribeTo(SpotListFragment.MyRoutesSpotsType.ROUTESPOTS);
                     this.tab_route_spots_list.setOnOneOrMoreSpotsDeleted(spotsListListener);
+                    this.tab_route_spots_list = tab_list;
                     break;
                 case TAB_SPOTS_INDEX:
                     SpotListFragment tab_single_spots_list = (SpotListFragment) createdFragment;
-                    tab_single_spots_list.setValues(singleSpots);
-                    this.tab_single_spots_list = tab_single_spots_list;
+                    tab_single_spots_list.subscribeTo(SpotListFragment.MyRoutesSpotsType.SINGLESPOTS);
                     this.tab_single_spots_list.setOnOneOrMoreSpotsDeleted(spotsListListener);
+                    this.tab_single_spots_list = tab_single_spots_list;
                     break;
             }
+
             return createdFragment;
-        }
+        }*/
 
         @Override
         public int getCount() {
@@ -377,7 +394,7 @@ public class MyRoutesActivity extends AppCompatActivity {
         }
 
         public void setValues(List<Spot> lst) {
-            Crashlytics.log(Log.INFO, TAG, "SectionsPagerAdapter.setValues called");
+            /*Crashlytics.log(Log.INFO, TAG, "SectionsPagerAdapter.setValues called");
             try {
                 routeSpots = new ArrayList<>();
                 singleSpots = new ArrayList<>();
@@ -398,26 +415,19 @@ public class MyRoutesActivity extends AppCompatActivity {
                     tab_single_spots_list.setValues(singleSpots);
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
-            }
+            }*/
         }
 
         public void toggleRoutesListEditMode() {
             if (tab_route_spots_list != null)
                 tab_route_spots_list.setIsEditMode(!tab_route_spots_list.getIsEditMode());
-            invalidateOptionsMenu();
+            requireActivity().invalidateOptionsMenu();
         }
 
         public void toggleSpotsListEditMode() {
             if (tab_single_spots_list != null)
                 tab_single_spots_list.setIsEditMode(!tab_single_spots_list.getIsEditMode());
-            invalidateOptionsMenu();
-        }
-
-        public void onActivityResultFromSpotForm() {
-            if (tab_route_spots_list != null)
-                tab_route_spots_list.onActivityResultFromSpotForm();
-            if (tab_single_spots_list != null)
-                tab_single_spots_list.onActivityResultFromSpotForm();
+            requireActivity().invalidateOptionsMenu();
         }
 
         /**
@@ -436,20 +446,6 @@ public class MyRoutesActivity extends AppCompatActivity {
                         tab_single_spots_list.selectAllSpots();
                     break;
             }
-        }
-
-        private boolean getIsOneOrMoreSpotsSelected(int tabPosition) {
-            switch (tabPosition) {
-                case TAB_ROUTES_INDEX:
-                    if (tab_route_spots_list != null)
-                        return tab_route_spots_list.getIsOneOrMoreSpotsSelected();
-                    break;
-                case TAB_SPOTS_INDEX:
-                    if (tab_single_spots_list != null)
-                        return tab_single_spots_list.getIsOneOrMoreSpotsSelected();
-                    break;
-            }
-            return false;
         }
 
         private boolean getIsAllSpotsSelected(int tabPosition) {
@@ -499,42 +495,8 @@ public class MyRoutesActivity extends AppCompatActivity {
         }
     }
 
-    private void saveSpotButtonHandler(boolean isDestination) {
-        double cameraZoom = -1;
-        Spot spot = null;
-        int requestId = -1;
-        Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
-        boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
-                mCurrentWaitingSpot.getIsWaitingForARide() : false;
-
-        if (!isWaitingForARide) {
-            requestId = Constants.SAVE_SPOT_REQUEST;
-            spot = new Spot();
-            spot.setIsHitchhikingSpot(!isDestination);
-            spot.setIsDestination(isDestination);
-            spot.setIsPartOfARoute(true);
-
-        } else {
-            requestId = Constants.EDIT_SPOT_REQUEST;
-            spot = mCurrentWaitingSpot;
-        }
-
+    private void saveSpotButtonHandler() {
         isHandlingRequestToOpenSpotForm = true;
-        startSpotFormActivityForResult(spot, cameraZoom, requestId, true, false);
-    }
-
-    /**
-     * @param shouldGoBack            should be set to true when you want the user to be sent to a new instance of MainActivity once they're done editing/adding a spot.
-     * @param shouldRetrieveHWDetails should be set to true when the given spot is a Hitchwiki spot, so that we'll download more data from HW and display them on SpotFormActivity.
-     */
-    private void startSpotFormActivityForResult(Spot spot, double cameraZoom, int requestId, boolean shouldGoBack, boolean shouldRetrieveHWDetails) {
-        SpotFormViewModel spotFormViewModel = new ViewModelProvider(this).get(SpotFormViewModel.class);
-        spotFormViewModel.setCurrentSpot(spot, shouldRetrieveHWDetails);
-
-        Intent intent = new Intent(getBaseContext(), SpotFormFragment.class);
-        intent.putExtra(Constants.SPOT_BUNDLE_EXTRA_KEY, spot);
-        intent.putExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
-        intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBack);
-        startActivityForResult(intent, requestId);
+        ((MainActivity) requireActivity()).navigateToCreateOrEditSpotForm(null, Constants.KEEP_ZOOM_LEVEL, false);
     }
 }
