@@ -126,37 +126,47 @@ public class MainActivity extends AppCompatActivity {
         Navigation.findNavController(this, R.id.nav_host_fragment).navigate(destinationResourceId, args);
     }
 
-    /**
-     * @param shouldGoBack should be set to true when you want the user to be sent to a new instance of MainActivity once they're done editing/adding a spot.
-     */
-    public void startSpotFormActivityForResult(@Nullable LatLng selectedLocation, double cameraZoom, boolean shouldGoBack) {
+    public void navigateToCreateOrEditSpotForm(@Nullable LatLng selectedLocation, double cameraZoom, boolean isDestination) {
+        Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+
+        if (mCurrentWaitingSpot != null)
+            navigateToEditSpotForm(mCurrentWaitingSpot, cameraZoom);
+        else
+            navigateToCreateSpotForm(selectedLocation, cameraZoom, isDestination);
+    }
+
+    public void navigateToCreateSpotForm(@Nullable LatLng selectedLocation, double cameraZoom, boolean isDestination) {
+        Spot mCurrentWaitingSpot = new Spot();
+        mCurrentWaitingSpot.setIsHitchhikingSpot(!isDestination);
+        mCurrentWaitingSpot.setIsNotHitchhikedFromHere(isDestination);
+        mCurrentWaitingSpot.setIsDestination(isDestination);
+        mCurrentWaitingSpot.setIsPartOfARoute(true);
+
+        if (selectedLocation != null) {
+            mCurrentWaitingSpot.setLatitude(selectedLocation.getLatitude());
+            mCurrentWaitingSpot.setLongitude(selectedLocation.getLongitude());
+        }
+        navigateToEditSpotForm(mCurrentWaitingSpot, cameraZoom);
+    }
+
+    public void navigateToEditSpotForm(Spot spot, double cameraZoom) {
         Bundle bundle = new Bundle();
         bundle.putDouble(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
-        bundle.putBoolean(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, shouldGoBack);
+
+        SpotFormViewModel spotFormViewModel = new ViewModelProvider(this).get(SpotFormViewModel.class);
+        spotFormViewModel.setCurrentSpot(spot, false);
 
         navigateToDestination(R.id.nav_spot_form, bundle);
     }
 
-    public void saveSpotButtonHandler(@Nullable LatLng selectedLocation, double cameraZoom, boolean isDestination) {
-        Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+    public void navigateToHWSpotForm(Spot spot, double cameraZoom) {
+        Bundle bundle = new Bundle();
+        bundle.putDouble(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, cameraZoom);
 
-        if (mCurrentWaitingSpot == null) {
-            mCurrentWaitingSpot = new Spot();
-            mCurrentWaitingSpot.setIsHitchhikingSpot(!isDestination);
-            mCurrentWaitingSpot.setIsNotHitchhikedFromHere(isDestination);
-            mCurrentWaitingSpot.setIsDestination(isDestination);
-            mCurrentWaitingSpot.setIsPartOfARoute(true);
+        SpotFormViewModel spotFormViewModel = new ViewModelProvider(this).get(SpotFormViewModel.class);
+        spotFormViewModel.setCurrentSpot(spot, true);
 
-            if (selectedLocation != null) {
-                mCurrentWaitingSpot.setLatitude(selectedLocation.getLatitude());
-                mCurrentWaitingSpot.setLongitude(selectedLocation.getLongitude());
-            }
-
-            SpotFormViewModel spotFormViewModel = new ViewModelProvider(this).get(SpotFormViewModel.class);
-            spotFormViewModel.setCurrentSpot(mCurrentWaitingSpot, false);
-        }
-
-        startSpotFormActivityForResult(selectedLocation, cameraZoom, true);
+        navigateToDestination(R.id.nav_spot_form, bundle);
     }
 
     @Override

@@ -90,20 +90,20 @@ public class DashboardFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.action_new_spot:
                 if (!isHandlingRequestToOpenSpotForm)
-                    saveSpotButtonHandler(false);
+                    saveSpotButtonHandler();
                 break;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void saveSpotButtonHandler(boolean isDestination) {
+    public void saveSpotButtonHandler() {
         MainActivity activity = (MainActivity) getActivity();
         if (activity == null)
             return;
 
         isHandlingRequestToOpenSpotForm = true;
-        ((MainActivity) requireActivity()).saveSpotButtonHandler(null, -1, isDestination);
+        ((MainActivity) requireActivity()).navigateToCreateOrEditSpotForm(null, Constants.KEEP_ZOOM_LEVEL, false);
     }
 
     @Override

@@ -39,6 +39,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -680,10 +681,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             isHandlingRequestToOpenSpotForm = true;
 
-            SpotFormViewModel spotFormViewModel = new ViewModelProvider(requireActivity()).get(SpotFormViewModel.class);
-            spotFormViewModel.setCurrentSpot(spot, false);
-
-            ((MainActivity) requireActivity()).startSpotFormActivityForResult(null, Constants.KEEP_ZOOM_LEVEL, true);
+            ((MainActivity) requireActivity()).navigateToEditSpotForm(spot, Constants.KEEP_ZOOM_LEVEL);
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
@@ -1349,9 +1347,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void startMyRoutesActivity() {
-        Intent intent = new Intent(requireActivity(), MyRoutesActivity.class);
-        intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
-        startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
+        Navigation.findNavController(requireActivity(), R.id.nav_host_fragment).navigate(R.id.nav_my_routes);
     }
 
     /**
@@ -2043,7 +2039,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         isHandlingRequestToOpenSpotForm = true;
 
-        ((MainActivity) requireActivity()).saveSpotButtonHandler(selectedLocation, cameraZoom, isDestination);
+        ((MainActivity) requireActivity()).navigateToCreateSpotForm(selectedLocation, cameraZoom, isDestination);
     }
 
     public void gotARideButtonHandler(Spot mCurrentWaitingSpot) {
@@ -2068,9 +2064,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         if (isWaitingForARide) {
             isHandlingRequestToOpenSpotForm = true;
-            SpotFormViewModel spotFormViewModel = new ViewModelProvider(requireActivity()).get(SpotFormViewModel.class);
-            spotFormViewModel.setCurrentSpot(mCurrentWaitingSpot, false);
-            ((MainActivity) requireActivity()).startSpotFormActivityForResult(null, Constants.KEEP_ZOOM_LEVEL, true);
+            ((MainActivity) requireActivity()).navigateToEditSpotForm(mCurrentWaitingSpot, Constants.KEEP_ZOOM_LEVEL);
         }
     }
 

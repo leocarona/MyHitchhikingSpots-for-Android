@@ -502,9 +502,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         if (spot != null) {
             //Create a record to track of HW spots viewed by the user
             Answers.getInstance().logCustom(new CustomEvent("HW spot viewed"));
-            SpotFormViewModel spotFormViewModel = new ViewModelProvider(requireActivity()).get(SpotFormViewModel.class);
-            spotFormViewModel.setCurrentSpot(spot, true);
-            activity.startSpotFormActivityForResult(null, Constants.KEEP_ZOOM_LEVEL, true);
+            activity.navigateToHWSpotForm(spot, Constants.KEEP_ZOOM_LEVEL);
         } else
             Crashlytics.log(Log.WARN, TAG,
                     "A spot corresponding to the clicked InfoWindow was not found on the list. If a spot isn't in the list, how a marker was added to it? The open marker's tag was: " + spotId);
