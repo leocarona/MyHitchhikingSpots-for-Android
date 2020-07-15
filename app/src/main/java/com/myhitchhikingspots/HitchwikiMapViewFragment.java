@@ -886,7 +886,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         }
 
         if (!Utils.isNetworkAvailable(getActivity())) {
-            showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_network_unavailable_message));
+            showErrorAlert(getString(R.string.general_offline_mode_label), getString(R.string.general_internet_unavailable_message));
         } else {
             String lstToDownload = "";
             switch (dialogType) {

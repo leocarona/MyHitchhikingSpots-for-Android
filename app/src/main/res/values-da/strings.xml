@@ -177,9 +177,9 @@
     <string name="general_select_all">Fravælg alle</string>
     <string name="general_deselect_all">Vælg alle</string>
 
-    <string name="general_internet_unavailable_title">Internet utilgængeligt</string>
     <string name="general_offline_mode_label">Offline mode</string>
-    <string name="general_network_unavailable_message">Your device doesn\'t seem to have an internet connection at the moment.</string>
+    <string name="general_internet_unavailable_title">Internet utilgængeligt</string>
+    <string name="general_internet_unavailable_message">Your device doesn\'t seem to have an internet connection at the moment.</string>
     <string name="general_export_finished_failed_message">Export failed</string>
     <string name="general_share_label">Del</string>
     <string name="general_last_sync_date">Last sync was on %s.</string>

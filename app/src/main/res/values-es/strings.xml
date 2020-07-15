@@ -195,9 +195,9 @@
     <string name="general_select_all">Seleccionar todo</string>
     <string name="general_deselect_all">Deseleccionar todo</string>
 
-    <string name="general_internet_unavailable_title">Internet no disponible</string>
     <string name="general_offline_mode_label">Modo offline</string>
-    <string name="general_network_unavailable_message">Parece que tu aparato no tiene conexión a internet.</string>
+    <string name="general_internet_unavailable_title">Internet no disponible</string>
+    <string name="general_internet_unavailable_message">Parece que tu aparato no tiene conexión a internet.</string>
     <string name="general_export_finished_failed_message">Exportación fallida</string>
     <string name="general_share_label">Compartír</string>
     <string name="general_last_sync_date">Última sincronización en %s.</string>
