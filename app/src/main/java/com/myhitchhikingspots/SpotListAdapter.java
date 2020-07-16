@@ -15,7 +15,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.crashlytics.android.Crashlytics;
-import com.myhitchhikingspots.databinding.SpotListItemBinding;
+import com.myhitchhikingspots.databinding.FragmentSpotListItemBinding;
 import com.myhitchhikingspots.interfaces.CheckboxListener;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.Spot;
@@ -116,7 +116,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     @Override
     public SpotListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        SpotListItemBinding itemBinding = SpotListItemBinding.inflate(layoutInflater, parent, false);
+        FragmentSpotListItemBinding itemBinding = FragmentSpotListItemBinding.inflate(layoutInflater, parent, false);
 
         CheckboxListener onCheckedChanged = new CheckboxListener() {
             @Override
@@ -224,9 +224,9 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         public Spot spot;
         CheckboxListener itemListener = null;
         int ic_selected_bg_color, ic_regular_spot_color, ic_arrival_color;
-        private final SpotListItemBinding binding;
+        private final FragmentSpotListItemBinding binding;
 
-        public ViewHolder(SpotListItemBinding binding) {
+        public ViewHolder(FragmentSpotListItemBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
 

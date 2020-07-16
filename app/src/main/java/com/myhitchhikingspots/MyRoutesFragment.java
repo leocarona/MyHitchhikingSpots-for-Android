@@ -28,14 +28,14 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.myhitchhikingspots.databinding.MyRoutesActivityLayoutBinding;
+import com.myhitchhikingspots.databinding.FragmentMyRoutesBinding;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.Spot;
 
 import java.util.List;
 
 
-public class MyRoutesActivity extends Fragment {
+public class MyRoutesFragment extends Fragment {
 
     /**
      * The {@link PagerAdapter} that will provide
@@ -46,7 +46,7 @@ public class MyRoutesActivity extends Fragment {
      * {@link FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    private MyRoutesActivityLayoutBinding binding;
+    private FragmentMyRoutesBinding binding;
     private Snackbar snackbar;
 
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
@@ -81,7 +81,7 @@ public class MyRoutesActivity extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.my_routes_activity_layout, container, false);
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_my_routes, container, false);
         return binding.getRoot();
     }
 

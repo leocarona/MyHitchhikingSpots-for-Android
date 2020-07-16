@@ -19,10 +19,9 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.crashlytics.android.Crashlytics;
-import com.myhitchhikingspots.databinding.SpotListFragmentLayoutBinding;
+import com.myhitchhikingspots.databinding.FragmentSpotListBinding;
 import com.myhitchhikingspots.interfaces.ListListener;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -44,7 +43,7 @@ public class SpotListFragment extends Fragment {
     final String sqlDeleteStatement = "DELETE FROM %1$s WHERE %2$s";
     SpotsListViewModel spotsListViewModel;
     MyRoutesViewModel myRoutesViewModel;
-    SpotListFragmentLayoutBinding binding;
+    FragmentSpotListBinding binding;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,7 +69,7 @@ public class SpotListFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.spot_list_fragment_layout, container, false);
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_spot_list, container, false);
 
         binding.fabDeleteAction.setOnClickListener(view -> {
             new AlertDialog.Builder(requireContext())
