@@ -1745,6 +1745,8 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         RelativeLayout commentsLayout = (RelativeLayout) View.inflate(getContext(), R.layout.dialog_comments_layout, null);
         ListView commentsListView = commentsLayout.findViewById(R.id.layout_comments_listview);
 
+        commentsLayout.findViewById(R.id.button3).setOnClickListener(this::dismissCommetsDialog);
+
         //set adapter and bound it to commentsListView
         commentsListView.setAdapter(commentsAdapter);
 
