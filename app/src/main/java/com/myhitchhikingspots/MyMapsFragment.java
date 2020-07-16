@@ -129,8 +129,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private PermissionsManager locationPermissionsManager;
 
-    private final int ic_add_zoom_level = 12;
-
     private static final String SPOTS_SOURCE_ID = "spots-source";
     private static final String ROUTES_SPOTS_STYLE_LAYER_ID = "spots-style-layer";
     private static final String SUB_ROUTE_SOURCE_ID = "sub-routes-source";
@@ -159,8 +157,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     GeoJsonSource spotSource;
     GeoJsonSource subRoutesSource;
 
-    // Variables needed to add the location engine
-    private LocationEngine locationEngine;
     private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
     private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
     // Variables needed to listen to location updates
@@ -599,7 +595,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      */
     @SuppressLint("MissingPermission")
     private void initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(requireActivity());
+        // Variables needed to add the location engine
+        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(requireActivity());
 
         LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
                 .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -1918,6 +1915,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (loadedMapStyle.getLayer(ROUTES_SPOTS_STYLE_LAYER_ID) == null) {
             //A style layer ties together the source and image and specifies how they are displayed on the map
             //Add markers layer
+            int ic_add_zoom_level = 12;
             loadedMapStyle.addLayer(new SymbolLayer(ROUTES_SPOTS_STYLE_LAYER_ID, SPOTS_SOURCE_ID)
                     .withProperties(
                             PropertyFactory.iconAllowOverlap(true),
