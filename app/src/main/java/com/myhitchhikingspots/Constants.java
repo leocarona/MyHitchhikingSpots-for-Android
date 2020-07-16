@@ -82,20 +82,8 @@ public final class Constants {
     public static final String PREFS_MYSPOTLIST_WAS_CHANGED = "PREFS_MYSPOTLIST_WAS_CHANGED";
     public static final String PREFS_HWSPOTLIST_WAS_CHANGED = "PREFS_HWSPOTLIST_WAS_CHANGED";
 
-    public static final int CROUTON_DURATION_2500 = 2500;
-    public static final int CROUTON_DURATION_5000 = 5000;
-    public static final int CROUTON_DURATION_1500 = 1500;
-
     public static final String ISPARTOFAROUTE_DEFAULT_VALUE = "1";
     public static final String ISHITCHHIKINGSPOT_DEFAULT_VALUE = "1";
-
-    public static final String SHOULD_SYNC_EU = "SHOULD_SYNC_EU";
-    public static final String SHOULD_SYNC_AS = "SHOULD_SYNC_AS";
-    public static final String SHOULD_SYNC_AF = "SHOULD_SYNC_AF";
-    public static final String SHOULD_SYNC_NA = "SHOULD_SYNC_NA";
-    public static final String SHOULD_SYNC_SA = "SHOULD_SYNC_SA";
-    public static final String SHOULD_SYNC_AN = "SHOULD_SYNC_AN";
-    public static final String SHOULD_SYNC_OC = "SHOULD_SYNC_OC";
 
     public static final int SAVE_SPOT_REQUEST = 2, EDIT_SPOT_REQUEST = 3;
     public static final int RESULT_OBJECT_ADDED = 2;

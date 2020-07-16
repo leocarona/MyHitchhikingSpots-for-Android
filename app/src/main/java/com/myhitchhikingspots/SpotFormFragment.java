@@ -137,13 +137,10 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         View.OnClickListener, CompoundButton.OnCheckedChangeListener, PermissionsListener, FirstLocationUpdateListener {
 
     protected static final String TAG = "spot-form-activity";
-    protected final static String CURRENT_SPOT_KEY = "current-spot-key";
     //----BEGIN: Part related to reverse geocoding
     protected static final String ADDRESS_REQUESTED_KEY = "address-request-pending";
-    protected static final String LOCATION_ADDRESS_KEY = "location-address";
     protected static final String SELECTED_ATTEMPT_RESULT_KEY = "selected-attempt-result";
     protected static final String SNACKBAR_SHOWED_KEY = "snackbar-showed";
-    protected static final String BUTTONS_PANEL_IS_VISIBLE_KEY = "buttons-panel-is-visible";
     protected static final String LAST_SELECTED_TAB_ID_KEY = "last-selected-tab";
     protected static final String REFRESH_DATETIME_ALERT_SHOWN_KEY = "PREF_REFRESH_DATETIME_ALERT_SHOWN_KEY";
     private static final int PERMISSIONS_LOCATION = 0;
@@ -165,7 +162,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     protected TextView mLocationAddressTextView;
     protected MapboxMap mapboxMap;
     SharedPreferences prefs;
-    Toast waiting_GPS_update;
     /**
      * Visible while the address is being fetched.
      */
@@ -179,7 +175,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     int lastSelectedTab = -1;
     LinearLayout panel_buttons, panel_info;
     TextView panel_map_not_displayed;
-    RelativeLayout datePanel;
     MenuItem saveMenuItem;
     boolean wasSnackbarShown;
     double cameraZoomFromBundle = -1;
@@ -197,7 +192,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     ViewTooltip.TooltipView locateUserTooltip;
     Toast msgResult;
     private Button mSaveButton, mDeleteButton;
-    private Button mViewMapButton; //mNewSpotButton
     private EditText note_edittext, waiting_time_edittext;
     private DatePicker date_datepicker;
     private TimePicker time_timepicker;
@@ -205,7 +199,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     private CheckBox is_part_of_a_route_check_box, is_destination_check_box, is_hitchhiking_spot_check_box, is_not_hitchhiked_from_here_check_box;
     private TextView hitchabilityLabel, selected_date;
     private ScrollView spot_form_evaluate;
-    private LinearLayout spot_form_more_options, hitchability_options;
+    private LinearLayout spot_form_more_options;
     private RatingBar hitchability_ratingbar;
     private BottomNavigationView menu_bottom;
     private View save_spot_form_checkboxes, imageView4, spot_form_waiting_time_refresh_button;
@@ -239,12 +233,8 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     private AddressResultReceiver mResultReceiver;
     private MapView mapView;
     private Style style;
-    private ImageView dropPinView;
     private View coordinatorLayout, spot_form_basic;
-    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
-    private NestedScrollView scrollView;
-    // Variables needed to add the location engine
-    private LocationEngine locationEngine;
+    private FloatingActionButton fabLocateUser;
     private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
     private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
     // Variables needed to listen to location updates
@@ -253,7 +243,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     private int attemptResult = Constants.ATTEMPT_RESULT_UNKNOWN;
     private boolean isFirstTimeCameraIsIdle = true;
     private FormType mFormType = FormType.Unknown;
-    private boolean updateUIFirstCalled = false;
     private AsyncTask<String, Void, String> taskThatRetrievesCompleteDetails = null;
 
     private static void resetSpotAddress(Spot mCurrentSpot) {
@@ -509,7 +498,8 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         mSaveButton = view.findViewById(R.id.save_button);
         mDeleteButton = view.findViewById(R.id.delete_button);
         placeButtonComments = view.findViewById(R.id.placeButtonComments);
-        mViewMapButton = view.findViewById(R.id.view_map_button);
+        //mNewSpotButton
+        Button mViewMapButton = view.findViewById(R.id.view_map_button);
         note_edittext = view.findViewById(R.id.spot_form_note_edittext);
         date_datepicker = view.findViewById(R.id.spot_form_date_datepicker);
         time_timepicker = view.findViewById(R.id.spot_form_time_timepicker);
@@ -520,7 +510,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         is_hitchhiking_spot_check_box = view.findViewById(R.id.save_spot_form_is_hitchhiking_spot_check_box);
         is_not_hitchhiked_from_here_check_box = view.findViewById(R.id.save_spot_form_is_not_hitchhiked_from_here_check_box);
         hitchability_ratingbar = view.findViewById(R.id.spot_form_hitchability_ratingbar);
-        hitchability_options = view.findViewById(R.id.save_spot_form_hitchability_options);
         hitchabilityLabel = view.findViewById(R.id.spot_form_hitchability_selectedvalue);
         selected_date = view.findViewById(R.id.spot_form_selected_date);
 
@@ -529,13 +518,12 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         panel_buttons = view.findViewById(R.id.panel_buttons);
         panel_info = view.findViewById(R.id.panel_info);
         panel_map_not_displayed = view.findViewById(R.id.save_spot_map_not_displayed);
-        datePanel = view.findViewById(R.id.date_panel);
 
         menu_bottom = view.findViewById(R.id.bottom_navigation);
 
         evaluate_menuitem = view.findViewById(R.id.action_evaluate);
 
-        scrollView = view.findViewById(R.id.spot_form_scrollview);
+        NestedScrollView scrollView = view.findViewById(R.id.spot_form_scrollview);
 
         mBottomSheetBehavior = BottomSheetBehavior.from(scrollView);
 
@@ -611,7 +599,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
             }
         });
 
-        fabZoomIn = view.findViewById(R.id.fab_zoom_in);
+        FloatingActionButton fabZoomIn = view.findViewById(R.id.fab_zoom_in);
         fabZoomIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -621,7 +609,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
             }
         });
 
-        fabZoomOut = view.findViewById(R.id.fab_zoom_out);
+        FloatingActionButton fabZoomOut = view.findViewById(R.id.fab_zoom_out);
         fabZoomOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1165,7 +1153,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         try {
             //Drawable d = ContextCompat.getDrawable(this, R.drawable.ic_add);
 
-            dropPinView = new ImageView(requireActivity());
+            ImageView dropPinView = new ImageView(requireActivity());
             dropPinView.setImageResource(R.drawable.ic_add);
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER);
             dropPinView.setLayoutParams(params);
@@ -1240,7 +1228,8 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
      */
     @SuppressLint("MissingPermission")
     private void initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(requireActivity());
+        // Variables needed to add the location engine
+        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(requireActivity());
 
         LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
                 .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -1284,7 +1273,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
             showErrorAlert(getResources().getString(R.string.general_error_dialog_title), String.format(getResources().getString(R.string.general_error_dialog_message), ex.getMessage()));
         }
 
-        updateUIFirstCalled = true;
+        boolean updateUIFirstCalled = true;
     }
 
     private void updateToolbarTitle(FormType mFormType) {
