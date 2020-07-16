@@ -240,6 +240,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     // Variables needed to listen to location updates
     private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
     private PermissionsManager locationPermissionsManager;
+    @Constants.AttemptResult
     private int attemptResult = Constants.ATTEMPT_RESULT_UNKNOWN;
     private boolean isFirstTimeCameraIsIdle = true;
     private FormType mFormType = FormType.Unknown;
