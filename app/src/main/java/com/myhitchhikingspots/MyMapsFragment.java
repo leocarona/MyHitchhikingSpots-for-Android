@@ -1695,7 +1695,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         static void setTitleIconAndType(Spot spot, JsonObject properties, boolean isOrigin, int routeIndex, MyMapsFragment activity) {
             String markerTitle = "";
             String icon;
-            int type;
+            @Constants.SpotType int type;
 
             //If spot belongs to a route (it's not a single spot)
             if (spot.getIsPartOfARoute() != null && spot.getIsPartOfARoute()) {
@@ -1783,7 +1783,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             properties.addProperty(PROPERTY_SPOTTYPE, type);
             properties.addProperty(PROPERTY_TITLE, markerTitle);
         }
-
     }
 
     /**

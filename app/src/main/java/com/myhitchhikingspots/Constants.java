@@ -1,8 +1,10 @@
 package com.myhitchhikingspots;
 
-/**
- * Created by leoboaventura on 08/03/2016.
- */
+import androidx.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 public final class Constants {
     public static final int SUCCESS_RESULT = 0;
 
@@ -19,12 +21,14 @@ public final class Constants {
 
     public static final Integer hitchabilityNumOfOptions = 5;
 
-    //If the user current location is added to the SpotList it should be distinguished from the other saved spots with this ID
-    public static final Long USER_CURRENT_LOCATION_SPOTLIST_ID = (long) -1;
-
     public static final int ATTEMPT_RESULT_UNKNOWN = 0;
     public static final int ATTEMPT_RESULT_GOT_A_RIDE = 1;
     public static final int ATTEMPT_RESULT_TOOK_A_BREAK = 2;
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({ATTEMPT_RESULT_UNKNOWN, ATTEMPT_RESULT_GOT_A_RIDE, ATTEMPT_RESULT_TOOK_A_BREAK})
+    public @interface AttemptResult {
+    }
 
     public static final int SPOT_TYPE_UNKNOWN = 0;
     public static final int SPOT_TYPE_ORIGIN = 1;
@@ -34,6 +38,12 @@ public final class Constants {
     public static final int SPOT_TYPE_DESTINATION = 5;
     public static final int SPOT_TYPE_SINGLE_SPOT = 6;
     public static final int SPOT_TYPE_POINT_ON_THE_ROUTE = 7;
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({SPOT_TYPE_UNKNOWN, SPOT_TYPE_ORIGIN, SPOT_TYPE_HITCHHIKING_SPOT, SPOT_TYPE_WAITING,
+            SPOT_TYPE_GOT_OFF_HERE, SPOT_TYPE_DESTINATION, SPOT_TYPE_SINGLE_SPOT, SPOT_TYPE_POINT_ON_THE_ROUTE})
+    public @interface SpotType {
+    }
 
     public static final String DIALOG_STRINGLIST_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_STRINGLIST_BUNDLE_KEY";
     public static final String DIALOG_SELECTEDKEYSLIST_BUNDLE_KEY = PACKAGE_NAME + ".DIALOG_SELECTEDKEYS_BUNDLE_KEY";
@@ -73,7 +83,6 @@ public final class Constants {
     public static final String PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW = "shouldLoadCurrentView";
     public static final String PREFS_MAPBOX_WAS_EVER_LOADED = "mapBoxWasEverLoaded";
     public static final String PREFS_HITCHWIKI_STORAGE_RENAMED = "hitchwikiStorageRenamed";
-    public static final String PREFS_SPOTSSTARTDATETIME_WERE_FIXED = "startDateTimesFixed";
     public static final String PREFS_DEFAULT_STARTUP_FRAGMENT = "defaultStartUpFragment";
 
     public static final String PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD = "PREFS_SELECTED_COUNTRIES_TO_DOWNLOAD";
