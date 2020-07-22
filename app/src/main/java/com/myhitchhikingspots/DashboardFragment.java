@@ -244,4 +244,10 @@ public class DashboardFragment extends Fragment {
         } catch (Exception e) {
         }
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        isHandlingRequestToOpenSpotForm = false;
+    }
 }
