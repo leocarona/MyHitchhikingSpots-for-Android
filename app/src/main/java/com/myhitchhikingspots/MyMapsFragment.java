@@ -136,8 +136,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private static final String CALLOUT_LAYER_ID = "mapbox.poi.callout";
     private static final int PERMISSIONS_LOCATION = 0;
 
-    Snackbar snackbar;
-
     AsyncTask loadTask;
 
     SharedPreferences prefs;
@@ -373,47 +371,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             locationComponent.setLocationComponentEnabled(true);
     }
 
-    void showSpotSavedSnackbar() {
-        showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
-                null, null);
+    void showSpotSavedSnackbar(boolean shouldDisplayViewMapButton) {
+        ((MainActivity) requireActivity()).showSpotSavedSnackbar(shouldDisplayViewMapButton);
     }
 
     void showSpotDeletedSnackbar() {
-        showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
-                null, null);
+        ((MainActivity) requireActivity()).showSpotDeletedSnackbar();
     }
 
-    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener
-            listener) {
-        String t = "";
-        if (text != null && text.length() > 0)
-            t = text.toString();
-        snackbar = Snackbar.make(coordinatorLayout, t.toUpperCase(), Snackbar.LENGTH_LONG)
-                .setAction(action, listener);
-
-        // get snackbar view
-        View snackbarView = snackbar.getView();
-
-        // set action button color
-        snackbar.setActionTextColor(Color.BLACK);
-
-        // change snackbar text color
-        int snackbarTextId = com.google.android.material.R.id.snackbar_text;
-        TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
-        if (textView != null) textView.setTextColor(Color.WHITE);
-
-        // change snackbar background
-        snackbarView.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.ic_regular_spot_color));
-
-        snackbar.show();
-    }
-
-    void dismissSnackbar() {
-        try {
-            if (snackbar != null && snackbar.isShown())
-                snackbar.dismiss();
-        } catch (Exception e) {
-        }
+    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
+        ((MainActivity) requireActivity()).showSnackbar(text, action, listener);
     }
 
     private void loadMarkerIcons(@NonNull Context context) {
@@ -995,38 +962,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        isHandlingRequestToOpenSpotForm = false;
-
-        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED) {
-            showSpotSavedSnackbar();
-        }
-
-        if (resultCode == Constants.RESULT_OBJECT_DELETED) {
-            showSpotDeletedSnackbar();
-        }
-
-        //We should get PREFS_MYSPOTLIST_WAS_CHANGED equals to true always that resultCode is RESULT_OBJECT_ADDED, RESULT_OBJECT_EDITED or RESULT_OBJECT_DELETED,
-        // so the other verifications together with it below should actually never be reached.
-        if (prefs.getBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, false) ||
-                resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED || resultCode == Constants.RESULT_OBJECT_DELETED) {
-            spotListWasChanged = true;
-
-            //We want the map camera to be adjusted when one or more spots have been added, edited or deleted.
-            // Please note: we do not want it to be adjusted always that spotList is reloaded, that's why shouldZoomToFitAllMarkers is been set here and not on onSpotListChanged().
-            //TODO: Consider also zooming out to fit all markers always when user navigates back AND there's no features within the viewport.
-            shouldZoomToFitAllMarkers = true;
-        } else {
-            //We don't want the map camera to be moved if the user navigates back without doing any change to the spot list.
-            shouldZoomToFitAllMarkers = false;
-        }
-
-        //NOTE: onSpotListChanged() will be called after MyMapsFragment.onActivityResult() by MainActivity.onActivityResult()
-    }
-
-    @Override
     public void onPause() {
         Crashlytics.log(Log.INFO, TAG, "onPause was called");
         super.onPause();
@@ -1034,7 +969,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         if (mapView != null)
             mapView.onPause();
 
-        dismissSnackbar();
         dismissProgressDialog();
 
         if (dateRangeDialog != null)

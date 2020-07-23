@@ -12,7 +12,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Location;
@@ -58,7 +57,6 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.AppCompatImageButton;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
@@ -73,7 +71,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationItemView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
@@ -187,7 +184,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     ProgressDialog loadingDialog;
     Dialog dialog;
     //----BEGIN: Part related to reverse geocoding
-    Snackbar snackbar;
     Intent fetchAddressServiceIntent;
     ViewTooltip.TooltipView locateUserTooltip;
     Toast msgResult;
@@ -233,7 +229,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     private AddressResultReceiver mResultReceiver;
     private MapView mapView;
     private Style style;
-    private View coordinatorLayout, spot_form_basic;
+    private View spot_form_basic;
     private FloatingActionButton fabLocateUser;
     private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
     private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
@@ -303,10 +299,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
 
         //savedInstanceState will be not null when a screen is rotated, for example. But will be null when activity is first created
         if (savedInstanceState == null) {
-            if (!wasSnackbarShown) {
-                if (requireActivity().getIntent().getBooleanExtra(Constants.SHOULD_SHOW_SPOT_SAVED_SNACKBAR_KEY, false))
-                    showViewMapSnackbar();
-            }
             cameraZoomFromBundle = requireActivity().getIntent().getDoubleExtra(Constants.SPOT_BUNDLE_MAP_ZOOM_KEY, -1);
             wasSnackbarShown = true;
         } else
@@ -491,8 +483,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
 
         //Prevent keyboard to be shown when activity starts
         requireActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
-        coordinatorLayout = view.findViewById(R.id.coordinatorLayout);
 
         prefs = requireActivity().getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
@@ -1125,7 +1115,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
 
         mapView.onPause();
 
-        dismissSnackbar();
         dismissProgressDialog();
         dismissCommetsDialog(null);
     }
@@ -1468,8 +1457,16 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         highlightCheckboxes();
     }
 
-    public void viewMapButtonHandler(View view) {
-        Navigation.findNavController(requireActivity(), R.id.nav_host_fragment).navigate(R.id.nav_my_map);
+    void showSpotSavedSnackbar() {
+        ((MainActivity) requireActivity()).showSpotSavedSnackbar(true);
+    }
+
+    void showSpotDeletedSnackbar() {
+        ((MainActivity) requireActivity()).showSpotDeletedSnackbar();
+    }
+
+     void viewMapButtonHandler(View view) {
+        ((MainActivity) requireActivity()).viewMapButtonHandler(view);
     }
 
     public void saveButtonHandler(View view) {
@@ -1520,19 +1517,12 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         new Thread() {
             @Override
             public void run() {
-                viewModel.insertOrReplace(getContext(), mCurrentSpot);
+                viewModel.insertOrReplace(requireContext(), mCurrentSpot);
 
                 // code runs in a thread
-                requireActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        int result = Constants.RESULT_OBJECT_ADDED;
-                        if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                            result = Constants.RESULT_OBJECT_EDITED;
-
-                        prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-                        finishSaving(result);
-                    }
+                requireActivity().runOnUiThread(() -> {
+                    showSpotSavedSnackbar();
+                    finishSaving();
                 });
             }
         }.start();
@@ -1609,14 +1599,12 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
                                 requireActivity().runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        ComponentName callingActivity = requireActivity().getCallingActivity();
-
                                         //Create a record to track usage of Delete button when a spot is deleted
                                         Answers.getInstance().logCustom(new CustomEvent("Spot deleted"));
 
-                                        requireActivity().setResult(Constants.RESULT_OBJECT_DELETED);
-                                        prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
+                                        spotsListViewModel.reloadSpots(requireActivity());
                                         navigateUp();
+                                        showSpotDeletedSnackbar();
                                     }
                                 });
                             }
@@ -1628,9 +1616,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
                 .show();
     }
 
-    private void finishSaving(int result) {
-        requireActivity().setResult(result);
-
+    private void finishSaving() {
         //When spot is a destination, user shall be sent to MyMapsFragment, so no need to observe changes in order to update SpotForm UI.
         // To prevent UI from getting updated, remove observers.
         if (mFormType == FormType.Edit || is_destination_check_box.isChecked()) {
@@ -1651,8 +1637,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
 
         collapseBottomSheet();
         hideKeyboard();
-
-        showViewMapSnackbar();
     }
 
     void showEvaluatePanel() {
@@ -1677,8 +1661,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
 
         collapseBottomSheet();
         hideKeyboard();
-
-        showViewMapSnackbar();
 
         //We want to show the Evaluate tab.
         lastSelectedTab = R.id.action_evaluate;
@@ -2009,44 +1991,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
 
             if (savedInstanceState.keySet().contains(REFRESH_DATETIME_ALERT_SHOWN_KEY))
                 refreshDatetimeAlertDialogWasShown = savedInstanceState.getBoolean(REFRESH_DATETIME_ALERT_SHOWN_KEY);
-        }
-    }
-
-    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        String t = "";
-        if (text != null && text.length() > 0)
-            t = text.toString();
-        snackbar = Snackbar.make(coordinatorLayout, t.toUpperCase(), Snackbar.LENGTH_LONG)
-                .setAction(action, listener);
-
-        // get snackbar view
-        View snackbarView = snackbar.getView();
-
-        // set action button color
-        snackbar.setActionTextColor(Color.BLACK);
-
-        // change snackbar text color
-        int snackbarTextId = com.google.android.material.R.id.snackbar_text;
-        TextView textView = snackbarView.findViewById(snackbarTextId);
-        if (textView != null) textView.setTextColor(Color.WHITE);
-
-
-        // change snackbar background
-        snackbarView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.ic_regular_spot_color));
-
-        snackbar.show();
-    }
-
-    void showViewMapSnackbar() {
-        showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
-                String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), this::viewMapButtonHandler);
-    }
-
-    void dismissSnackbar() {
-        try {
-            if (snackbar != null && snackbar.isShown())
-                snackbar.dismiss();
-        } catch (Exception e) {
         }
     }
 

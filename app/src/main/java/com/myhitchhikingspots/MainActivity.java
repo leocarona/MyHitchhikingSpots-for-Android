@@ -2,9 +2,12 @@ package com.myhitchhikingspots;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
@@ -12,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -20,13 +24,14 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.myhitchhikingspots.model.Spot;
 
 public class MainActivity extends AppCompatActivity {
-    private DrawerLayout mDrawer;
-    private Toolbar toolbar;
     private AppBarConfiguration mAppBarConfiguration;
+    private View coordinatorLayout;
+    private Snackbar snackbar;
 
     public static String ARG_REQUEST_TO_OPEN_FRAGMENT = "request-to-open-resource-id";
     protected static final String TAG = "main-activity";
@@ -43,16 +48,18 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
+        coordinatorLayout = findViewById(R.id.mainCoordinatorLayout);
+
         setUpToolbarAndNavController();
     }
 
     private void setUpToolbarAndNavController() {
         // Set a Toolbar to replace the ActionBar.
-        toolbar = findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         // Find our drawer view
-        mDrawer = findViewById(R.id.drawer_layout);
+        DrawerLayout mDrawer = findViewById(R.id.drawer_layout);
         mDrawer.addDrawerListener(drawerListener);
 
         // Find our drawer view
@@ -170,6 +177,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+
+        dismissSnackbar();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
 
@@ -201,7 +215,64 @@ public class MainActivity extends AppCompatActivity {
         try {
             if (loadingDialog != null && loadingDialog.isShowing())
                 loadingDialog.dismiss();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
+
+    public void showSnackbar(@NonNull CharSequence text, @Nullable CharSequence action, @Nullable View.OnClickListener listener) {
+        String t = "";
+        if (text.length() > 0)
+            t = text.toString();
+        snackbar = Snackbar.make(coordinatorLayout, t.toUpperCase(), Snackbar.LENGTH_LONG);
+
+        if (action != null && listener != null)
+            snackbar.setAction(action, listener);
+
+        // get snackbar view
+        View snackbarView = snackbar.getView();
+
+        // set action button color
+        snackbar.setActionTextColor(Color.BLACK);
+
+        // change snackbar text color
+        int snackbarTextId = com.google.android.material.R.id.snackbar_text;
+        TextView textView = snackbarView.findViewById(snackbarTextId);
+        if (textView != null) textView.setTextColor(Color.WHITE);
+
+
+        // change snackbar background
+        snackbarView.setBackgroundColor(ContextCompat.getColor(this, R.color.ic_regular_spot_color));
+
+        snackbar.show();
+    }
+
+    public void dismissSnackbar() {
+        try {
+            if (snackbar != null && snackbar.isShown())
+                snackbar.dismiss();
+        } catch (Exception ignored) {
+        }
+    }
+
+    public void showSpotSavedSnackbar(boolean shouldDisplayViewMapButton) {
+        CharSequence action = null;
+        View.OnClickListener listener = null;
+        if (shouldDisplayViewMapButton) {
+            action = String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label));
+            listener = this::viewMapButtonHandler;
+        }
+
+        showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
+                action, listener);
+    }
+
+    public void showSpotDeletedSnackbar() {
+        showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
+                null, null);
+    }
+
+    public void viewMapButtonHandler(View view) {
+        Navigation.findNavController(this, R.id.nav_host_fragment).navigate(R.id.nav_my_map);
+    }
+
 }

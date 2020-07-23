@@ -47,7 +47,6 @@ public class MyRoutesFragment extends Fragment {
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private FragmentMyRoutesBinding binding;
-    private Snackbar snackbar;
 
     static final String LAST_TAB_OPENED_KEY = "last-tab-opened-key";
     static final String TAG = "main-activity";
@@ -127,7 +126,6 @@ public class MyRoutesFragment extends Fragment {
             public void onListOfSelectedSpotsChanged() {
                 showSpotDeletedSnackbar();
                 requireActivity().invalidateOptionsMenu();
-                prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
             }
 
             @Override
@@ -148,40 +146,16 @@ public class MyRoutesFragment extends Fragment {
         binding.container.setCurrentItem(tab_index);
     }
 
-    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
-        snackbar = Snackbar.make(binding.coordinatorLayout, text.toString().toUpperCase(), Snackbar.LENGTH_LONG)
-                .setAction(action, listener);
-
-        // get snackbar view
-        View snackbarView = snackbar.getView();
-
-        // set action button color
-        snackbar.setActionTextColor(Color.BLACK);
-
-        // change snackbar text color
-        int snackbarTextId = com.google.android.material.R.id.snackbar_text;
-        TextView textView = (TextView) snackbarView.findViewById(snackbarTextId);
-        if (textView != null) textView.setTextColor(Color.WHITE);
-
-        // change snackbar background
-        snackbarView.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.ic_regular_spot_color));
-
-        snackbar.show();
-    }
-
-    void showSpotSavedSnackbar() {
-        showSnackbar(getResources().getString(R.string.spot_saved_successfuly),
-                String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), v -> {
-                    if (shouldGoBackToPreviousActivity)
-                        navigateUp();
-                    else
-                        navigateToMyMap();
-                });
-    }
-
     void showSpotDeletedSnackbar() {
-        showSnackbar(getResources().getString(R.string.spot_deleted_successfuly),
-                null, null);
+        ((MainActivity) requireActivity()).showSpotDeletedSnackbar();
+    }
+
+    void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener listener) {
+        ((MainActivity) requireActivity()).showSnackbar(text, action, listener);
+    }
+
+    void showSpotSavedSnackbar(boolean shouldDisplayViewMapButton) {
+        ((MainActivity) requireActivity()).showSpotSavedSnackbar(shouldDisplayViewMapButton);
     }
 
     public void updateTitle(String title) {
@@ -201,44 +175,10 @@ public class MyRoutesFragment extends Fragment {
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-
-        if (snackbar != null)
-            snackbar.dismiss();
-    }
-
-    @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding.container.clearOnPageChangeListeners();
         spotsListViewModel.getSpots().removeObserver(this::notifySpotListChanged);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        /*boolean spotListWasChanged = false;
-        if (resultCode == Constants.RESULT_OBJECT_ADDED || resultCode == Constants.RESULT_OBJECT_EDITED) {
-            spotListWasChanged = true;
-            showSpotSavedSnackbar();
-        } else if (resultCode == Constants.RESULT_OBJECT_DELETED) {
-            spotListWasChanged = true;
-            showSpotDeletedSnackbar();
-        }
-
-        isHandlingRequestToOpenSpotForm = false;
-
-        if (mSectionsPagerAdapter != null)
-            mSectionsPagerAdapter.onActivityResultFromSpotForm();
-
-        if (spotListWasChanged) {
-            viewModel.reloadSpots(requireContext());
-
-            //Set this flag so that MainActivity knows that reloadSpots should be called to update their viewModel.
-            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-        }*/
     }
 
     @Override

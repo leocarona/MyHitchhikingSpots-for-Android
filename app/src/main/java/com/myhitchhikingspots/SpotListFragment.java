@@ -169,9 +169,6 @@ public class SpotListFragment extends Fragment {
             deleteSelectedSpots(mAdapter.getSelectedSpots());
             spotsListViewModel.reloadSpots(requireActivity());
 
-            if (prefs != null)
-                prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-
             /*List<Spot> remainingSpots = extractRemainingSpots(mAdapter.getSelectedSpots());
 
             setIsEditMode(false);
@@ -322,9 +319,5 @@ public class SpotListFragment extends Fragment {
     void subscribeToSingleSpotsChange() {
         Crashlytics.log(Log.INFO, TAG, "setValues was called");
         myRoutesViewModel.getSingleSpots().observe(requireActivity(), lst -> spotList.setValue(lst));
-    }
-
-    public void onActivityResultFromSpotForm() {
-        isHandlingRequestToOpenSpotForm = false;
     }
 }

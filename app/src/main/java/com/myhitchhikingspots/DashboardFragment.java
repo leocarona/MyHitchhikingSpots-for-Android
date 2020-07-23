@@ -37,7 +37,7 @@ public class DashboardFragment extends Fragment {
     SpotsListViewModel viewModel;
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
     }
 
@@ -52,8 +52,6 @@ public class DashboardFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         MainActivity activity = (MainActivity) requireActivity();
-        if (activity == null)
-            return;
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
@@ -80,7 +78,7 @@ public class DashboardFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.dashboard_menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -104,15 +102,6 @@ public class DashboardFragment extends Fragment {
 
         isHandlingRequestToOpenSpotForm = true;
         ((MainActivity) requireActivity()).navigateToCreateOrEditSpotForm(null, Constants.KEEP_ZOOM_LEVEL, false);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        isHandlingRequestToOpenSpotForm = false;
-
-        //NOTE: updateSpotList() will be called after DashboardFragment.onActivityResult() by MainActivity.onActivityResult()
     }
 
     private void updateUI(List<Spot> spotList) {
