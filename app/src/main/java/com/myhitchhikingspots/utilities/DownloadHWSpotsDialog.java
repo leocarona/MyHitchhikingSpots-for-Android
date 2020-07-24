@@ -135,7 +135,7 @@ public class DownloadHWSpotsDialog extends DialogFragment {
                     }
                 })
                 .setNegativeButton(getResources().getString(R.string.general_cancel_option), (d, w) -> {
-                    Toast.makeText(context, "No Hitchwiki spot downloaded.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, getString(R.string.hitchwiki_maps_no_hitchwiki_spots_downloaded), Toast.LENGTH_LONG).show();
                 });
 
         return builder.create();
