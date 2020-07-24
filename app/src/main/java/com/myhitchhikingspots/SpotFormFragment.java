@@ -395,8 +395,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
 
         if (mFormType == FormType.Edit) {
             //Prevent user from editing a spot if he's currently waiting for a ride somewhere else.
-            if (mCurrentSpot != null &&
-                    mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide()) {
+            if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide()) {
                 String actionRequiredText = getString(R.string.evaluate_running_spot_required, getString(R.string.got_a_ride_button_text), getString(R.string.break_button_text));
                 showErrorAlert(getString(R.string.general_error_dialog_title),
                         getString(R.string.spot_form_not_allowed_to_edit) + "\n" + actionRequiredText);
