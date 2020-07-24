@@ -166,6 +166,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
     private pageType currentPage;
 
     Boolean shouldZoomToFitAllMarkers = true;
+    boolean isNoInternetAlertDialogShowed = false;
 
     protected static final String TAG = "map-view-activity";
     public static final String PROPERTY_ICONIMAGE = "iconImage",
@@ -776,25 +777,24 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void showInternetUnavailableAlertDialog(List<Spot> spotList) {
+        if (isNoInternetAlertDialogShowed)
+            return;
+        isNoInternetAlertDialogShowed = true;
+
         new AlertDialog.Builder(requireActivity())
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(getResources().getString(R.string.general_network_unavailable_message))
-                .setMessage(getResources().getString(R.string.map_error_alert_map_not_loaded_message))
-                .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
+                .setTitle(getString(R.string.general_internet_unavailable_title))
+                .setMessage(getString(R.string.general_internet_unavailable_message) + "\n" +
+                        getString(R.string.map_error_alert_map_not_loaded_message))
+                .setPositiveButton(getResources().getString(R.string.map_error_alert_map_not_loaded_positive_button), (dialog, which) -> {
+                    prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, false).apply();
 
-                        startMyRoutesActivity();
-                    }
+                    startMyRoutesActivity();
                 })
-                .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
+                .setNegativeButton(String.format(getString(R.string.action_button_label), getString(R.string.view_map_button_label)), (dialog, which) -> {
+                    prefs.edit().putBoolean(Constants.PREFS_OFFLINE_MODE_SHOULD_LOAD_CURRENT_VIEW, true).apply();
 
-                        drawAnnotationsOnFinishLoadingStyle(spotList);
-                    }
+                    drawAnnotationsOnFinishLoadingStyle(spotList);
                 }).show();
     }
 
