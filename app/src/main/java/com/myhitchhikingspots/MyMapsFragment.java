@@ -351,8 +351,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
             locationComponent.setLocationComponentEnabled(true);
     }
 
-    void showSpotSavedSnackbar(boolean shouldDisplayViewMapButton) {
-        ((MainActivity) requireActivity()).showSpotSavedSnackbar(shouldDisplayViewMapButton);
+    void showSpotSavedSnackbar() {
+        ((MainActivity) requireActivity()).showSpotSavedSnackbar(false);
     }
 
     void showSpotDeletedSnackbar() {
