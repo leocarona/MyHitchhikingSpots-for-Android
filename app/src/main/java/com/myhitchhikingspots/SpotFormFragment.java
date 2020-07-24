@@ -1505,7 +1505,8 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
         try {
             mapEditedValuesIntoObject();
 
-            if ((mCurrentSpot.getLatitude() == null || mCurrentSpot.getLatitude() == 0) || (mCurrentSpot.getLongitude() == null || mCurrentSpot.getLongitude() == 0)) {
+            if (((mCurrentSpot.getLatitude() == null || mCurrentSpot.getLatitude() == 0) || (mCurrentSpot.getLongitude() == null || mCurrentSpot.getLongitude() == 0)) &&
+                    !Utils.shouldLoadCurrentView(prefs) && Utils.isNetworkAvailable(requireContext())) {
                 Crashlytics.log(Log.WARN, TAG, "Coordinates were incomplete, so the user was prevented from executing saveSpot()!");
                 showErrorAlert(getString(R.string.save_spot_button_text), getString(R.string.save_spot_error_map_not_loaded));
                 return;
