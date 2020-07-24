@@ -30,7 +30,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.widget.TextViewCompat;
 import androidx.fragment.app.Fragment;
@@ -191,34 +190,43 @@ public class ToolsFragment extends Fragment {
         else return 1;
     }
 
-    //persmission method.
-    private static boolean isStoragePermissionsGranted(Activity activity) {
+    private static boolean areStoragePermissionsGranted(Activity activity) {
         // Check if we have read and write permission
-        int writePermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        int readPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
+        String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE};
 
-        // Check if user has granted location permission
-        return (writePermission == PackageManager.PERMISSION_GRANTED && readPermission == PackageManager.PERMISSION_GRANTED);
+        return arePermissionsGranted(activity, permissions);
     }
 
-    private static void requestStoragePermissions(Activity activity) {
-        ActivityCompat.requestPermissions(
-                activity,
-                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                PERMISSIONS_EXTERNAL_STORAGE
-        );
+    private static boolean arePermissionsGranted(Activity activity, String[] permissions) {
+        ArrayList<String> permissionsToExplain = Utils.getPendingPermissions(activity, permissions);
+        return permissionsToExplain.isEmpty();
+    }
+
+    private void requestStoragePermissions() {
+        String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
+        //If any permission is missing, show rationale
+        if (arePermissionsGranted(requireActivity(), permissions))
+            Toast.makeText(requireActivity(), getString(R.string.hitchwiki_maps_storage_permission_not_granted), Toast.LENGTH_LONG).show();
+
+        requestPermissions(permissions, PERMISSIONS_EXTERNAL_STORAGE);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSIONS_EXTERNAL_STORAGE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (actionToPerfomOncePermissionIsGranted == 1)
-                exportDBNow();
-            else if (actionToPerfomOncePermissionIsGranted == 2)
-                importButtonHandler(null);
-            actionToPerfomOncePermissionIsGranted = -1;
-        }
+        if (requestCode == PERMISSIONS_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (actionToPerfomOncePermissionIsGranted == 1)
+                    exportDBNow();
+                else if (actionToPerfomOncePermissionIsGranted == 2)
+                    importButtonHandler(null);
+                actionToPerfomOncePermissionIsGranted = -1;
+            } else
+                Toast.makeText(requireActivity(), getString(R.string.hitchwiki_maps_storage_permission_not_granted), Toast.LENGTH_LONG).show();
+        } else
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
@@ -291,9 +299,9 @@ public class ToolsFragment extends Fragment {
     private int actionToPerfomOncePermissionIsGranted = -1;
 
     private void importButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(requireActivity())) {
+        if (!areStoragePermissionsGranted(requireActivity())) {
             actionToPerfomOncePermissionIsGranted = 2;
-            requestStoragePermissions(requireActivity());
+            requestStoragePermissions();
             return;
         }
 
@@ -304,13 +312,13 @@ public class ToolsFragment extends Fragment {
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
-    private static void openFilePicker(Activity activity) {
+    private void openFilePicker() {
         Intent i = new Intent(Intent.ACTION_GET_CONTENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
         //From Android KitKat we were already exporting spot list always as CSV files, so thi sis the most important type to be able to import here.
         i.setType("text/csv");
         i.putExtra("android.content.extra.SHOW_ADVANCED", true);
-        activity.startActivityForResult(i, PICK_DB_REQUEST);
+        startActivityForResult(i, PICK_DB_REQUEST);
     }
 
     private void showFilePickerDialog() {
@@ -372,8 +380,6 @@ public class ToolsFragment extends Fragment {
                 if (success) {
                     title = getString(R.string.general_import_finished_successful_message);
 
-                    prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-
                     Toast.makeText(requireActivity(), title, Toast.LENGTH_SHORT).show();
 
                     String eventName = "Database import success";
@@ -387,6 +393,7 @@ public class ToolsFragment extends Fragment {
                     //Create a record to track database import
                     Answers.getInstance().logCustom(new CustomEvent(eventName));
 
+                    viewModel.reloadSpots(requireActivity());
                 } else {
                     title = getString(R.string.general_import_finished_failed_message);
 
@@ -468,9 +475,9 @@ public class ToolsFragment extends Fragment {
     }
 
     private void exportButtonHandler(View view) {
-        if (!isStoragePermissionsGranted(requireActivity())) {
+        if (!areStoragePermissionsGranted(requireActivity())) {
             actionToPerfomOncePermissionIsGranted = 1;
-            requestStoragePermissions(requireActivity());
+            requestStoragePermissions();
         } else
             exportDBNow();
     }

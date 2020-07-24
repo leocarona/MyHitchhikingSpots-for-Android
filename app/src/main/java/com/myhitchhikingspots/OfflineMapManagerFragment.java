@@ -1,6 +1,8 @@
 package com.myhitchhikingspots;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +32,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
-import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -53,11 +53,11 @@ import com.mapbox.mapboxsdk.plugins.localization.LocalizationPlugin;
 import com.myhitchhikingspots.interfaces.FirstLocationUpdateListener;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.utilities.LocationUpdatesCallback;
+import com.myhitchhikingspots.utilities.Utils;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static android.os.Looper.getMainLooper;
 
@@ -65,7 +65,7 @@ import static android.os.Looper.getMainLooper;
  * Download, view, navigate to, and delete an offline region.
  */
 public class OfflineMapManagerFragment extends Fragment implements
-        OnMapReadyCallback, PermissionsListener, FirstLocationUpdateListener {
+        OnMapReadyCallback, FirstLocationUpdateListener {
 
     // JSON encoding/decoding
     public static final String JSON_CHARSET = "UTF-8";
@@ -77,8 +77,6 @@ public class OfflineMapManagerFragment extends Fragment implements
     private Style style;
     private ProgressBar progressBar;
     private BottomNavigationView menu_bottom;
-    private FloatingActionButton fabLocateUser, fabZoomIn, fabZoomOut;
-    private Button downloadButton;
 
     private boolean isInProgress = false;
     private int regionSelected;
@@ -89,16 +87,10 @@ public class OfflineMapManagerFragment extends Fragment implements
     private OfflineRegion offlineRegion;
     SharedPreferences prefs;
 
-    // Variables needed to add the location engine
-    private LocationEngine locationEngine;
     private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
     private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
     // Variables needed to listen to location updates
     private LocationUpdatesCallback callback = new LocationUpdatesCallback(this);
-
-    private PermissionsManager locationPermissionsManager;
-
-    Toast waiting_GPS_update;
 
     Toast stillInProgressToast;
 
@@ -114,12 +106,12 @@ public class OfflineMapManagerFragment extends Fragment implements
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_offline_map_manager, container, false);
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         //Set CompatVectorFromResourcesEnabled to true in order to be able to use ContextCompat.getDrawable
@@ -127,124 +119,119 @@ public class OfflineMapManagerFragment extends Fragment implements
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
-        menu_bottom = (BottomNavigationView) view.findViewById(R.id.bottom_navigation);
+        menu_bottom = view.findViewById(R.id.bottom_navigation);
 
-        downloadButton = (Button) view.findViewById(R.id.download_button);
-        downloadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isInProgress) {
-                    //Show a toast to indicate that the download is still in progress
-                    showStillInProgressToast();
-                } else {
-                    // Download offline button
-                    downloadRegionDialog();
-                }
+        Button downloadButton = view.findViewById(R.id.download_button);
+        downloadButton.setOnClickListener(v -> {
+            if (isInProgress) {
+                //Show a toast to indicate that the download is still in progress
+                showStillInProgressToast();
+            } else {
+                // Download offline button
+                downloadRegionDialog();
             }
         });
 
-        menu_bottom.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        menu_bottom.setOnNavigationItemSelectedListener(item -> {
 
-                switch (item.getItemId()) {
-                    /*case R.id.action_view_map:
+            switch (item.getItemId()) {
+                /*case R.id.action_view_map:
 
-                        break;*/
-                    case R.id.action_view_list:
-                        if (isInProgress) {
-                            //Show message to let the user know that this tab will be enabled when the progress finish
-                            Toast.makeText(activity, "Still in progress, please wait",
-                                    Toast.LENGTH_SHORT).show();
+                    break;*/
+                case R.id.action_view_list:
+                    if (isInProgress) {
+                        //Show message to let the user know that this tab will be enabled when the progress finish
+                        Toast.makeText(activity, "Still in progress, please wait",
+                                Toast.LENGTH_SHORT).show();
 
-                            return false;
-                        }
+                        return false;
+                    }
 
-                        // List offline regions
-                        downloadedRegionList();
-                        break;
-                }
-                return true;
+                    // List offline regions
+                    downloadedRegionList();
+                    break;
             }
+            return true;
         });
 
         // Set up the MapView
-        mapView = (MapView) view.findViewById(R.id.mapView);
+        mapView = view.findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
-        fabLocateUser = (FloatingActionButton) view.findViewById(R.id.fab_locate_user);
-        fabLocateUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isInProgress) {
-                    //Show a toast to indicate that the download is still in progress
-                    showStillInProgressToast();
-                } else {
-                    if (mapboxMap != null && style != null && style.isFullyLoaded()) {
-                        callback.moveMapCameraToNextLocationReceived();
-                    }
+        FloatingActionButton fabLocateUser = view.findViewById(R.id.fab_locate_user);
+        fabLocateUser.setOnClickListener(view1 -> {
+            if (isInProgress) {
+                //Show a toast to indicate that the download is still in progress
+                showStillInProgressToast();
+            } else {
+                if (mapboxMap != null && style != null && style.isFullyLoaded()) {
+                    callback.moveMapCameraToNextLocationReceived();
                 }
             }
         });
 
-        fabZoomIn = (FloatingActionButton) view.findViewById(R.id.fab_zoom_in);
-        fabZoomIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isInProgress) {
-                    //Show a toast to indicate that the download is still in progress
-                    showStillInProgressToast();
-                } else {
-                    if (mapboxMap != null)
-                        mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
-                }
+        FloatingActionButton fabZoomIn = view.findViewById(R.id.fab_zoom_in);
+        fabZoomIn.setOnClickListener(view12 -> {
+            if (isInProgress) {
+                //Show a toast to indicate that the download is still in progress
+                showStillInProgressToast();
+            } else {
+                if (mapboxMap != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
             }
         });
 
-        fabZoomOut = (FloatingActionButton) view.findViewById(R.id.fab_zoom_out);
-        fabZoomOut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (isInProgress) {
-                    //Show a toast to indicate that the download is still in progress
-                    showStillInProgressToast();
-                } else {
-                    if (mapboxMap != null)
-                        mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
-                }
+        FloatingActionButton fabZoomOut = view.findViewById(R.id.fab_zoom_out);
+        fabZoomOut.setOnClickListener(view13 -> {
+            if (isInProgress) {
+                //Show a toast to indicate that the download is still in progress
+                showStillInProgressToast();
+            } else {
+                if (mapboxMap != null)
+                    mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
             }
         });
 
         // Assign progressBar for later use
-        progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
+        progressBar = view.findViewById(R.id.progress_bar);
 
         // Set up the offlineManager
         offlineManager = OfflineManager.getInstance(activity);
     }
 
-    @Override
-    public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+    void requestLocationPermissions() {
+        String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION};
+
+        if (arePermissionsGranted(requireActivity(), permissions)) {
+            // The developer should show an explanation to the user asynchronously
+            onLocationExplanationNeeded();
+        }
+
+        requestPermissions(permissions, PERMISSIONS_LOCATION);
     }
 
-    @Override
-    public void onPermissionResult(boolean granted) {
-        //As we request at least two different permissions (location and storage) for the users,
-        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    private static boolean arePermissionsGranted(Activity activity, String[] permissions) {
+        ArrayList<String> permissionsToExplain = Utils.getPendingPermissions(activity, permissions);
+        return permissionsToExplain.isEmpty();
+    }
+
+    void onLocationExplanationNeeded() {
+        Toast.makeText(requireActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == PERMISSIONS_LOCATION) {
-            locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 enableLocationLayer(style);
                 callback.moveMapCameraToNextLocationReceived();
             } else {
                 Toast.makeText(activity, getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
             }
-        }
+        } else
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -262,7 +249,6 @@ public class OfflineMapManagerFragment extends Fragment implements
         if (locationComponent.isLocationComponentActivated() && !locationComponent.isLocationComponentEnabled())
             locationComponent.setLocationComponentEnabled(true);
     }
-
 
     @SuppressWarnings({"MissingPermission"})
     private void setupLocationComponent(@NonNull Style loadedMapStyle) {
@@ -289,9 +275,7 @@ public class OfflineMapManagerFragment extends Fragment implements
 
             initLocationEngine();
         } else {
-            if (locationPermissionsManager == null)
-                locationPermissionsManager = new PermissionsManager(this);
-            locationPermissionsManager.requestLocationPermissions(activity);
+            requestLocationPermissions();
         }
     }
 
@@ -300,7 +284,8 @@ public class OfflineMapManagerFragment extends Fragment implements
      */
     @SuppressLint("MissingPermission")
     private void initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
+        // Variables needed to add the location engine
+        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
 
         LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
                 .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)

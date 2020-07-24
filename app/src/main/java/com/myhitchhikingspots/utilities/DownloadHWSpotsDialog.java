@@ -3,9 +3,9 @@ package com.myhitchhikingspots.utilities;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
@@ -15,9 +15,6 @@ import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.R;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DownloadHWSpotsDialog extends DialogFragment {
     final String TAG = "dialog-selection";
@@ -137,7 +134,9 @@ public class DownloadHWSpotsDialog extends DialogFragment {
                         callback.onDownloadConfirmClicked(selectedCodes, dialog_type);
                     }
                 })
-                .setNegativeButton(getResources().getString(R.string.general_cancel_option), null);
+                .setNegativeButton(getResources().getString(R.string.general_cancel_option), (d, w) -> {
+                    Toast.makeText(context, "No Hitchwiki spot downloaded.", Toast.LENGTH_LONG).show();
+                });
 
         return builder.create();
     }

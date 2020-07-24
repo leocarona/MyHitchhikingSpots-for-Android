@@ -63,6 +63,6 @@ public class LoadHitchwikiSpotsListTask extends AsyncTask<Void, Void, List<Spot>
 
         HitchwikiMapViewFragment context = contextRef.get();
         if (context != null)
-            context.setupData(spotList, errMsg);
+            context.onHWSpotListChanged(spotList, errMsg);
     }
 }

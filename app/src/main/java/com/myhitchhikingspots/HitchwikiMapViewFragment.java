@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
@@ -32,7 +31,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -48,8 +46,6 @@ import com.google.gson.JsonObject;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
-import com.mapbox.android.core.permissions.PermissionsListener;
-import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
@@ -108,7 +104,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
-public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
+public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCallback,
         MapboxMap.OnMapClickListener, FirstLocationUpdateListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
@@ -125,8 +121,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     boolean isLocationRequestedByUser = false;
 
     static String locationSeparator = ", ";
-
-    private PermissionsManager locationPermissionsManager;
 
     private ProgressDialog loadingDialog;
     private DownloadHWSpotsDialog dialog;
@@ -160,8 +154,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     GeoJsonSource source;
     SymbolLayer markerStyleLayer;
 
-    // Variables needed to add the location engine
-    private LocationEngine locationEngine;
     private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
     private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
     // Variables needed to listen to location updates
@@ -195,36 +187,28 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         prefs = getActivity().getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
-        fabLocateUser = (FloatingActionButton) view.findViewById(R.id.fab_locate_user);
-        fabLocateUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mapboxMap != null && style != null && style.isFullyLoaded()) {
-                    callback.moveMapCameraToNextLocationReceived();
-                    isLocationRequestedByUser = true;
-                }
+        fabLocateUser = view.findViewById(R.id.fab_locate_user);
+        fabLocateUser.setOnClickListener(view1 -> {
+            if (mapboxMap != null && style != null && style.isFullyLoaded()) {
+                enableLocationLayer(style);
+                callback.moveMapCameraToNextLocationReceived();
+                isLocationRequestedByUser = true;
             }
         });
 
-        fabZoomIn = (FloatingActionButton) view.findViewById(R.id.fab_zoom_in);
-        fabZoomIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mapboxMap != null)
-                    mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
-            }
+        fabZoomIn = view.findViewById(R.id.fab_zoom_in);
+        fabZoomIn.setOnClickListener(view12 -> {
+            if (mapboxMap != null)
+                mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
         });
 
-        fabZoomOut = (FloatingActionButton) view.findViewById(R.id.fab_zoom_out);
-        fabZoomOut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mapboxMap != null)
-                    mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
-            }
+        fabZoomOut = view.findViewById(R.id.fab_zoom_out);
+        fabZoomOut.setOnClickListener(view13 -> {
+            if (mapboxMap != null)
+                mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
         });
 
-        mapView = (MapView) view.findViewById(R.id.mapview2);
+        mapView = view.findViewById(R.id.mapview2);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
@@ -284,25 +268,34 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         ic_target = IconUtils.drawableToIcon(getActivity(), R.drawable.ic_add, ContextCompat.getColorStateList(getActivity(), R.color.mapboxGrayExtraDark));
     }
 
-    @Override
-    public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+    void requestStoragePermissions() {
+        String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
+        //If any permission is missing, show rationale
+        if (arePermissionsGranted(requireActivity(), permissions))
+            Toast.makeText(requireActivity(), getString(R.string.hitchwiki_maps_storage_permission_not_granted), Toast.LENGTH_LONG).show();
+
+        requestPermissions(permissions, PERMISSIONS_EXTERNAL_STORAGE);
     }
 
-    @Override
-    public void onPermissionResult(boolean granted) {
-        //As we request at least two different permissions (location and storage) for the users,
-        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    void requestLocationPermissions() {
+        String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION};
+
+        //If any permission is missing, show rationale
+        if (arePermissionsGranted(requireActivity(), permissions))
+            Toast.makeText(requireActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+
+        requestPermissions(permissions, PERMISSIONS_LOCATION);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_LOCATION:
-                if (locationPermissionsManager != null)
-                    locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (isLocationRequestedByUser) {
+                    if (isLocationRequestedByUser || spotList.isEmpty()) {
                         enableLocationLayer(style);
                         if (callback != null)
                             callback.moveMapCameraToNextLocationReceived();
@@ -311,14 +304,15 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 } else {
                     Toast.makeText(getActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
                 }
-
-                //Ask for storage permission if necessary, load spots list and finally draw annotations.
-                onFirstLoad();
                 break;
             case PERMISSIONS_EXTERNAL_STORAGE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     onFirstLoad();
-                }
+                } else
+                    Toast.makeText(getActivity(), getString(R.string.hitchwiki_maps_storage_permission_not_granted), Toast.LENGTH_LONG).show();
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
                 break;
         }
     }
@@ -330,14 +324,14 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      */
     private void setupLocationComponent(@NonNull Style loadedMapStyle) {
         // Check if permissions are enabled and if not request
-        if (areLocationPermissionsGranted(getActivity())) {
+        if (areLocationPermissionsGranted(requireActivity())) {
 
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
             // Set the LocationComponent activation options
             LocationComponentActivationOptions locationComponentActivationOptions =
-                    LocationComponentActivationOptions.builder(getActivity(), loadedMapStyle)
+                    LocationComponentActivationOptions.builder(requireActivity(), loadedMapStyle)
                             .useDefaultLocationEngine(false)
                             .build();
 
@@ -352,7 +346,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
             initLocationEngine();
         } else {
-            requestLocationsPermissions(getActivity());
+            requestLocationPermissions();
         }
     }
 
@@ -361,7 +355,8 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      */
     @SuppressLint("MissingPermission")
     private void initLocationEngine() {
-        locationEngine = LocationEngineProvider.getBestLocationEngine(getActivity());
+        // Variables needed to add the location engine
+        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(getActivity());
 
         LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
                 .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
@@ -378,22 +373,22 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
     //onMapReady is called after onResume()
     @Override
-    public void onMapReady(MapboxMap mapboxMap) {
+    public void onMapReady(@NonNull MapboxMap mapboxMap) {
         Crashlytics.log(Log.INFO, TAG, "mapReady called");
         prefs.edit().putBoolean(Constants.PREFS_MAPBOX_WAS_EVER_LOADED, true).apply();
 
         this.mapboxMap = mapboxMap;
 
+        this.mapboxMap.getUiSettings().setCompassEnabled(true);
+        this.mapboxMap.getUiSettings().setLogoEnabled(false);
+        this.mapboxMap.getUiSettings().setAttributionEnabled(false);
+        this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
+
+        this.mapboxMap.addOnMapClickListener(this);
+
         this.mapboxMap.setStyle(Style.MAPBOX_STREETS, style -> {
             // Map is set up and the style has loaded. Now you can add data or make other map adjustments.
             HitchwikiMapViewFragment.this.style = style;
-
-            this.mapboxMap.getUiSettings().setCompassEnabled(true);
-            this.mapboxMap.getUiSettings().setLogoEnabled(false);
-            this.mapboxMap.getUiSettings().setAttributionEnabled(false);
-            this.mapboxMap.getUiSettings().setTiltGesturesEnabled(false);
-
-            this.mapboxMap.addOnMapClickListener(this);
 
             if (style.isFullyLoaded()) {
                 LocalizationPlugin localizationPlugin = new LocalizationPlugin(mapView, mapboxMap, style);
@@ -406,27 +401,19 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
                 setupIconImages(style);
 
-                //If location permissions were not granted yet, let's request them.
-                // As soon as the user answers the request for location permissions, onFirstLoad() will be called.
-                if (!areLocationPermissionsGranted(getActivity()))
-                    requestLocationsPermissions(getActivity());
-                else {
-                    enableLocationLayer(style);
+                //Move map camera to last known location so that if we call zoomOutToFitAllMarkers()
+                // the map will get nicely zoomed closer once spots list is loaded.
+                moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
+                    @Override
+                    public void onCancel() {
+                        onFirstLoad();
+                    }
 
-                    //Move map camera to last known location so that if we call zoomOutToFitAllMarkers()
-                    // the map will get nicely zoomed closer once spots list is loaded.
-                    moveCameraToLastKnownLocation((int) mapboxMap.getMinZoomLevel(), new MapboxMap.CancelableCallback() {
-                        @Override
-                        public void onCancel() {
-                            onFirstLoad();
-                        }
-
-                        @Override
-                        public void onFinish() {
-                            onFirstLoad();
-                        }
-                    });
-                }
+                    @Override
+                    public void onFinish() {
+                        onFirstLoad();
+                    }
+                });
             }
         });
     }
@@ -435,19 +422,17 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
      * Ask for storage permission if necessary, load spots list and finally draw annotations.
      **/
     void onFirstLoad() {
-        Activity activity = getActivity();
-        if (activity == null)
-            return;
+        Activity activity = requireActivity();
 
         if (!areStoragePermissionsGranted(activity)) {
-            requestStoragePermissions(activity);
+            requestStoragePermissions();
             return;
         }
 
-        if (wasHWSpotsDownloaded())
-            loadHWSpotsFromLocalStorage();
-        else
+        if (!wasCountriesListDownloaded())
             downloadCountriesList();
+        else
+            loadHWSpotsFromLocalStorage();
     }
 
     void downloadCountriesList() {
@@ -615,24 +600,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         this.loadTask = new LoadHitchwikiSpotsListTask(this).execute();
     }
 
-    public void setupData(List<Spot> spotList, String errMsg) {
-        if (!errMsg.isEmpty()) {
-            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
-            return;
-        }
-
-        this.spotList = spotList;
-
-        //Update number of HW spots
-        prefs.edit().putInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, spotList.size()).apply();
-
-        dismissProgressDialog();
-
-        if (mapboxMap != null) {
-            updateAnnotations();
-        }
-    }
-
     void updateAnnotations() {
         if (mapboxMap != null && style != null && style.isFullyLoaded()) {
             showProgressDialog(getString(R.string.map_drawing_progress_text));
@@ -640,7 +607,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             this.loadTask = new DrawAnnotationsTask(this).execute(spotList.toArray(spotArray));
         }
     }
-
 
     private void setupAnnotations(ArrayList<Feature> features, String errMsg) {
         if (!errMsg.isEmpty()) {
@@ -659,10 +625,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 //Automatically zoom out to fit all markers only the first time that spots are loaded.
                 // Otherwise it can be annoying to loose your zoom when navigating back after editing a spot. In anyways, there's a button to do this zoom if/when the user wish.
                 if (shouldZoomToFitAllMarkers) {
-                    if (spotList.size() == 0) {
-                        callback.moveMapCameraToNextLocationReceived();
-                    } else
-                        zoomOutToFitAllMarkers();
+                    enableLocationLayer(style);
+
+                    if (!spotList.isEmpty()) zoomOutToFitAllMarkers();
                 }
             } catch (Exception ex) {
                 Crashlytics.logException(ex);
@@ -825,31 +790,23 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private static boolean areLocationPermissionsGranted(Activity activity) {
-        return PermissionsManager.areLocationPermissionsGranted(activity);
-    }
-
-    private void requestLocationsPermissions(Activity activity) {
-        if (locationPermissionsManager == null)
-            locationPermissionsManager = new PermissionsManager(this);
-        locationPermissionsManager.requestLocationPermissions(activity);
+        // Check if we have read and write permission
+        String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION};
+        return arePermissionsGranted(activity, permissions);
     }
 
     private static boolean areStoragePermissionsGranted(Activity activity) {
         // Check if we have read and write permission
-        int writePermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        int readPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
+        String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE};
 
-        // Check if user has granted location permission
-        return (writePermission == PackageManager.PERMISSION_GRANTED && readPermission == PackageManager.PERMISSION_GRANTED);
+        return arePermissionsGranted(activity, permissions);
     }
 
-    private static void requestStoragePermissions(Activity activity) {
-        ActivityCompat.requestPermissions(
-                activity,
-                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                PERMISSIONS_EXTERNAL_STORAGE
-        );
+    private static boolean arePermissionsGranted(Activity activity, String[] permissions) {
+        ArrayList<String> permissionsToExplain = Utils.getPendingPermissions(activity, permissions);
+        return permissionsToExplain.isEmpty();
     }
 
     DownloadHWSpotsDialog.DownloadHWSpotsDialogListener downloadHWSpotsDialogListener = new DownloadHWSpotsDialog.DownloadHWSpotsDialogListener() {
@@ -931,11 +888,9 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
                 //also write into prefs that markers sync has occurred
                 prefs.edit().putLong(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD, millisecondsAtRefresh).apply();
-                prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
             } else if (result.contentEquals("nothingToSync")) {
                 //also write into prefs that markers sync has occurred
                 prefs.edit().remove(Constants.PREFS_TIMESTAMP_OF_HWSPOTS_DOWNLOAD).apply();
-                prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, true).apply();
 
                 savePlacesListLocally(placesContainer);
             } else if (!result.isEmpty())
@@ -947,23 +902,47 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
         Activity activity = getActivity();
         if (activity != null) {
-            if (!errMsg.isEmpty())
-                showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.hwmaps_hitchwikiMapsSpots_download_failed_message), errMsg));
-            else if (result.contentEquals("nothingToSync"))
-                showErrorAlert(getString(R.string.hwmaps_spotslist_cleared_title), getString(R.string.hwmaps_spotslist_cleared_message));
-            else if (result.contentEquals("spotsDownloaded"))
+            if (result.contentEquals("spotsDownloaded")) {
                 Toast.makeText(activity.getBaseContext(), getString(R.string.general_download_finished_successffull_message), Toast.LENGTH_LONG).show();
+                shouldZoomToFitAllMarkers = true;
+            } else {
+                if (errMsg == null || !errMsg.isEmpty())
+                    showErrorAlert(getString(R.string.general_error_dialog_title), String.format(getString(R.string.hwmaps_hitchwikiMapsSpots_download_failed_message), errMsg));
+                else if (result.contentEquals("nothingToSync")) {
+                    showErrorAlert(getString(R.string.hwmaps_spotslist_cleared_title), getString(R.string.hwmaps_spotslist_cleared_message));
+                    shouldZoomToFitAllMarkers = false;
+                }
+            }
         }
 
-        dismissProgressDialog();
-
-        shouldZoomToFitAllMarkers = true;
         loadHWSpotsFromLocalStorage();
+    }
+
+    public void onHWSpotListChanged(List<Spot> spotList, String errMsg) {
+        if (!errMsg.isEmpty()) {
+            showErrorAlert(getResources().getString(R.string.general_error_dialog_title), errMsg);
+            return;
+        }
+
+        this.spotList = spotList;
+
+        //Update number of HW spots
+        prefs.edit().putInt(Constants.PREFS_NUM_OF_HW_SPOTS_DOWNLOADED, spotList.size()).apply();
+
+        //If countries list hasn't been downloaded yet, or if spotList is empty
+        // but the countries dialog hasn't been shown to the user yet, then show it once.
+        if (!wasCountriesListDownloaded() || (this.spotList.isEmpty() && downloadCountriesListAsyncTask == null))
+            downloadCountriesList();
+        else
+            updateAnnotations();
     }
 
     private void showSelectionDialog(PairParcelable[] result, String selectedCodes, String dialogType) {
         FragmentActivity activity = getActivity();
         if (activity == null || activity.isFinishing())
+            return;
+
+        if (dialog != null && dialog.isVisible())
             return;
 
         Bundle args = new Bundle();
@@ -1033,18 +1012,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         Crashlytics.log(Log.INFO, TAG, "onResume called");
         mapView.onResume();
     }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (prefs.getBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, false)) {
-            prefs.edit().putBoolean(Constants.PREFS_HWSPOTLIST_WAS_CHANGED, false).apply();
-            shouldZoomToFitAllMarkers = false;
-            onFirstLoad();
-        }
-    }
-
 
     @Override
     public void onPause() {
@@ -1157,7 +1124,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
                 if (countriesContainer != null && countriesContainer.length > 0)
                     showCountriesListDialog();
                 else if (!areStoragePermissionsGranted(getActivity()))
-                    requestStoragePermissions(getActivity());
+                    requestStoragePermissions();
                 else
                     downloadCountriesList();
                 break;
@@ -1341,10 +1308,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     public void moveCameraToLastKnownLocation(int zoomLevel, @Nullable MapboxMap.CancelableCallback callback) {
         if (!style.isFullyLoaded())
             return;
-
-        //Request permission of access to GPS updates or
-        // directly initialize and enable the location plugin if such permission was already granted.
-        enableLocationLayer(style);
 
         LatLng moveCameraPositionTo = null;
 

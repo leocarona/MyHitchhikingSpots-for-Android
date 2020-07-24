@@ -12,6 +12,8 @@ import android.text.format.DateUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 
 import com.crashlytics.android.Crashlytics;
 import com.mapbox.geojson.Point;
@@ -704,5 +706,15 @@ public class Utils {
                 }
             }
         }
+    }
+
+    public static ArrayList<String> getPendingPermissions( Activity activity, String[] permissions){
+        ArrayList<String> permissionsToExplain = new ArrayList<>();
+        for (String permission : permissions) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+                permissionsToExplain.add(permission);
+            }
+        }
+        return permissionsToExplain;
     }
 }

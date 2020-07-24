@@ -1,11 +1,11 @@
 package com.myhitchhikingspots;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
@@ -43,13 +43,10 @@ import androidx.navigation.Navigation;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.JsonObject;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
-import com.mapbox.android.core.permissions.PermissionsListener;
-import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.LineString;
@@ -94,6 +91,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import static android.os.Looper.getMainLooper;
+import static androidx.core.content.PermissionChecker.checkSelfPermission;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
@@ -106,7 +104,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAnchor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
-public class MyMapsFragment extends Fragment implements OnMapReadyCallback, PermissionsListener,
+public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
         MapboxMap.OnMapClickListener, FirstLocationUpdateListener {
     private MapView mapView;
     private MapboxMap mapboxMap;
@@ -126,8 +124,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Maximum number of spots to fit within the map camera when {@link #zoomOutToFitMostRecentRoute()} is called.
      **/
     int NUMBER_OF_SPOTS_TO_FIT = 10;
-
-    private PermissionsManager locationPermissionsManager;
 
     private static final String SPOTS_SOURCE_ID = "spots-source";
     private static final String ROUTES_SPOTS_STYLE_LAYER_ID = "spots-style-layer";
@@ -224,80 +220,66 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         } else
             updateValuesFromBundle(savedInstanceState);
 
-        fabLocateUser = (FloatingActionButton) view.findViewById(R.id.fab_locate_user);
-        fabLocateUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mapboxMap != null && style != null && style.isFullyLoaded()) {
-                    callback.moveMapCameraToNextLocationReceived();
-                }
+        fabLocateUser = view.findViewById(R.id.fab_locate_user);
+        fabLocateUser.setOnClickListener(view1 -> {
+            if (mapboxMap != null && style != null && style.isFullyLoaded()) {
+                enableLocationLayer(style);
+                callback.moveMapCameraToNextLocationReceived();
             }
         });
 
-        fabZoomIn = (FloatingActionButton) view.findViewById(R.id.fab_zoom_in);
-        fabZoomIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mapboxMap != null)
-                    mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
-            }
+        fabZoomIn = view.findViewById(R.id.fab_zoom_in);
+        fabZoomIn.setOnClickListener(view1 -> {
+            if (mapboxMap != null)
+                mapboxMap.moveCamera(CameraUpdateFactory.zoomIn());
         });
 
-        fabZoomOut = (FloatingActionButton) view.findViewById(R.id.fab_zoom_out);
-        fabZoomOut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mapboxMap != null)
-                    mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
-            }
+        fabZoomOut = view.findViewById(R.id.fab_zoom_out);
+        fabZoomOut.setOnClickListener(view1 -> {
+            if (mapboxMap != null)
+                mapboxMap.moveCamera(CameraUpdateFactory.zoomOut());
         });
 
-        fabSpotAction1 = (FloatingActionButton) view.findViewById(R.id.fab_spot_action_1);
-        fabSpotAction1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //While waiting for a ride, MainActionButton is a "Got a ride" button
-                //when not waiting for a ride, it's a "Save spot" button
-                //Prevent from handling multiple clicks
-                if (isHandlingRequestToOpenSpotForm)
-                    return;
+        fabSpotAction1 = view.findViewById(R.id.fab_spot_action_1);
+        fabSpotAction1.setOnClickListener(view1 -> {
+            //While waiting for a ride, MainActionButton is a "Got a ride" button
+            //when not waiting for a ride, it's a "Save spot" button
+            //Prevent from handling multiple clicks
+            if (isHandlingRequestToOpenSpotForm)
+                return;
 
-                Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
-                boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
-                        mCurrentWaitingSpot.getIsWaitingForARide() : false;
+            Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+            boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                    mCurrentWaitingSpot.getIsWaitingForARide() : false;
 
-                if (isWaitingForARide)
-                    gotARideButtonHandler(mCurrentWaitingSpot);
-                else
-                    saveRegularSpotButtonHandler(mCurrentWaitingSpot);
-            }
+            if (isWaitingForARide)
+                gotARideButtonHandler(mCurrentWaitingSpot);
+            else
+                saveRegularSpotButtonHandler(mCurrentWaitingSpot);
         });
 
-        fabSpotAction2 = (FloatingActionButton) view.findViewById(R.id.fab_spot_action_2);
-        fabSpotAction2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //While waiting for a ride, SecondaryActionButton is a "Arrived to destination" button
-                //when not waiting for a ride, it's a "Take a break" button
-                //Prevent from handling multiple clicks
-                if (isHandlingRequestToOpenSpotForm)
-                    return;
+        fabSpotAction2 = view.findViewById(R.id.fab_spot_action_2);
+        fabSpotAction2.setOnClickListener(view1 -> {
+            //While waiting for a ride, SecondaryActionButton is a "Arrived to destination" button
+            //when not waiting for a ride, it's a "Take a break" button
+            //Prevent from handling multiple clicks
+            if (isHandlingRequestToOpenSpotForm)
+                return;
 
-                Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
-                boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
-                        mCurrentWaitingSpot.getIsWaitingForARide() : false;
+            Spot mCurrentWaitingSpot = viewModel.getWaitingSpot().getValue();
+            boolean isWaitingForARide = (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null) ?
+                    mCurrentWaitingSpot.getIsWaitingForARide() : false;
 
-                if (isWaitingForARide)
-                    tookABreakButtonHandler(mCurrentWaitingSpot);
-                else
-                    saveDestinationSpotButtonHandler(mCurrentWaitingSpot);
-            }
+            if (isWaitingForARide)
+                tookABreakButtonHandler(mCurrentWaitingSpot);
+            else
+                saveDestinationSpotButtonHandler(mCurrentWaitingSpot);
         });
 
         fabSpotAction1.hide();
         fabSpotAction2.hide();
 
-        mapView = (MapView) view.findViewById(R.id.mapview2);
+        mapView = view.findViewById(R.id.mapview2);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
 
@@ -340,8 +322,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 }
 
                 setupIconImages(style);
-
-                enableLocationLayer(style);
             }
         });
     }
@@ -495,32 +475,51 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         showAllFAB();
     }
 
-    @Override
-    public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(requireContext(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+    void requestLocationPermissions() {
+        String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION};
+
+        if (arePermissionsGranted(requireActivity(), permissions)) {
+            // The developer should show an explanation to the user asynchronously
+            onLocationExplanationNeeded();
+        }
+
+        requestPermissions(permissions, PERMISSIONS_LOCATION);
     }
 
-    @Override
-    public void onPermissionResult(boolean granted) {
-        //As we request at least two different permissions (location and storage) for the users,
-        //instead of handling the results for location permission here alone, we've opted to handle it within onRequestPermissionsResult.
+    private static boolean arePermissionsGranted(Activity activity, String[] permissions) {
+        ArrayList<String> permissionsToExplain = Utils.getPendingPermissions(activity, permissions);
+        return permissionsToExplain.isEmpty();
+    }
+
+    void onLocationExplanationNeeded() {
+        Toast.makeText(requireActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         if (requestCode == PERMISSIONS_LOCATION) {
-            if (locationPermissionsManager != null)
-                locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableLocationLayer(style);
-                if (callback != null)
-                    callback.moveMapCameraToNextLocationReceived();
-            } else
-                Toast.makeText(requireActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
-        }
+            if (grantResults.length > 0) {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    enableLocationLayer(style);
+                    if (callback != null)
+                        callback.moveMapCameraToNextLocationReceived();
+                } else if (grantResults[0] == PackageManager.PERMISSION_DENIED)
+                    Toast.makeText(requireActivity(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
+            }
+        } else
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
+    private static boolean isLocationPermissionsGranted(Activity activity) {
+        // Check if we have read and write permission
+        int coarsePermission = checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION);
+        int finePermission = checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION);
+
+        // Check if user has granted location permission
+        return (coarsePermission == PackageManager.PERMISSION_GRANTED && finePermission == PackageManager.PERMISSION_GRANTED);
+    }
 
     @SuppressWarnings({"MissingPermission"})
     /**
@@ -529,7 +528,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      */
     private void setupLocationComponent(@NonNull Style loadedMapStyle) {
         // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(requireActivity())) {
+        if (isLocationPermissionsGranted(requireActivity())) {
 
             // Get an instance of the component
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
@@ -551,9 +550,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             initLocationEngine();
         } else {
-            if (locationPermissionsManager == null)
-                locationPermissionsManager = new PermissionsManager(this);
-            locationPermissionsManager.requestLocationPermissions(requireActivity());
+            requestLocationPermissions();
         }
     }
 
@@ -1248,6 +1245,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private void showSpotsSavedBetweenPeriodOfTimeFromMap(List<Integer> routeIndexesToShow, DateTime periodStartsOn, DateTime periodEndsOn) {
         // For each spot drawn on the map as feature
+        assert spotsCollection.features() != null;
         for (Feature f : spotsCollection.features()) {
             boolean shouldHide;
 
@@ -1262,15 +1260,18 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 // Show only if it belongs to any of the routes in routeIndexesToShow.
                 shouldHide = !routeIndexesToShow.contains(spotRouteIndex);
             }
+            assert f.properties() != null;
             f.properties().addProperty(PROPERTY_SHOULDHIDE, shouldHide);
         }
 
         refreshSpotsSource();
 
         // For each route line drawn on the map as a feature
+        assert subRoutesCollection.features() != null;
         for (Feature f : subRoutesCollection.features()) {
             int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
             // Show only if it belongs to any of the routes in routeIndexesToShow.
+            assert f.properties() != null;
             f.properties().addProperty(PROPERTY_SHOULDHIDE, !routeIndexesToShow.contains(spotRouteIndex));
         }
 
