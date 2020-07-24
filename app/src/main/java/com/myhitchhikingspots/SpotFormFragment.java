@@ -391,8 +391,6 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
     }
 
     private void onFormTypeChanged() {
-        updateEvaluateTabVisibility(mCurrentSpot.getIsHitchhikingSpot());
-
         if (mFormType == FormType.Edit) {
             //Prevent user from editing a spot if he's currently waiting for a ride somewhere else.
             if (mCurrentSpot.getIsWaitingForARide() != null && mCurrentSpot.getIsWaitingForARide()) {
@@ -441,6 +439,7 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
                 }
             }
         } else {
+            updateEvaluateTabVisibility(mCurrentSpot.getIsHitchhikingSpot());
             panel_buttons.setVisibility(View.GONE);
             panel_info.setVisibility(View.VISIBLE);
         }
