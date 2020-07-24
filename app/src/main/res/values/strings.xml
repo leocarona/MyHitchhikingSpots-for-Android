@@ -100,6 +100,9 @@ The Hitchwiki team.
     <string name="spot_form_read_comments_showCase">Click here to read what other hitchhikers have commented about this spot.</string>
     <string name="spot_form_extra_options_showCase">Want to add a different spot on your route?\nDon\'t forget you may swipe up and find some extra options here! :-)</string>
 
+    <string name="hitchwiki_maps_storage_permission_not_granted" translatable="false">Unable to use Hitchwiki Maps without storage permissions.</string>
+    <string name="export_storage_permission_not_granted" translatable="false">Unable to export database without storage permission.</string>
+
     <string name="menu_dashboard">Statistics</string>
     <string name="menu_my_maps">My Maps</string>
     <string name="menu_hitchwiki_maps">Hitchwiki Maps</string>
