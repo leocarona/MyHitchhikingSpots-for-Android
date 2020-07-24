@@ -1125,6 +1125,9 @@ public class SpotFormFragment extends Fragment implements RatingBar.OnRatingBarC
 
         mapView.onDestroy();
 
+        if (locateUserTooltip != null && locateUserTooltip.isShown())
+            locateUserTooltip.closeNow();
+
         if (spotsListViewModel == null)
             spotsListViewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
 
