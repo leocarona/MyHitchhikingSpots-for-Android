@@ -91,7 +91,6 @@ import java.util.Hashtable;
 import java.util.List;
 
 import static android.os.Looper.getMainLooper;
-import static androidx.core.content.PermissionChecker.checkSelfPermission;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
@@ -513,11 +512,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
 
     private static boolean isLocationPermissionsGranted(Activity activity) {
         // Check if we have read and write permission
-        int coarsePermission = checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION);
-        int finePermission = checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION);
-
-        // Check if user has granted location permission
-        return (coarsePermission == PackageManager.PERMISSION_GRANTED && finePermission == PackageManager.PERMISSION_GRANTED);
+        String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION};
+        return arePermissionsGranted(activity, permissions);
     }
 
     @SuppressWarnings({"MissingPermission"})
