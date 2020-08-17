@@ -1572,14 +1572,19 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void showErrorAlert(String title, String msg) {
-        Activity activity = getActivity();
-        if (activity == null)
-            return;
-        new AlertDialog.Builder(activity)
-                .setIcon(android.R.drawable.ic_dialog_alert)
+        showAlert(title, msg, android.R.drawable.ic_dialog_alert);
+    }
+
+    private void showInfoAlert(String title, String msg) {
+        showAlert(title, msg, android.R.drawable.ic_dialog_info);
+    }
+
+    private void showAlert(String title, String msg, int iconResourceId) {
+        new AlertDialog.Builder(requireContext())
+                .setIcon(iconResourceId)
                 .setTitle(title)
                 .setMessage(msg)
-                .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
+                .setPositiveButton(getResources().getString(R.string.general_ok_option), null)
                 .show();
     }
 
