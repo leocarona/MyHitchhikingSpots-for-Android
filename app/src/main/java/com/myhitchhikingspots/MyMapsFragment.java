@@ -148,8 +148,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
     //Each hitchhiking spot is a feature
     FeatureCollection spotsCollection;
     FeatureCollection subRoutesCollection;
-    GeoJsonSource spotSource;
-    GeoJsonSource subRoutesSource;
 
     private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
     private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
@@ -672,8 +670,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
             }
         } else {
             deselectAll();
-            refreshSpotsSource();
-            refreshSubRoutesSource();
+            setupSpotsSource(style);
+            setupSubRoutesSource(style);
         }
     }
 
@@ -716,7 +714,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
     private void showBalloon(Feature feature) {
         dismissProgressDialog();
         selectFeature(feature);
-        refreshSpotsSource();
+        setupSpotsSource(style);
     }
 
     /**
@@ -1130,12 +1128,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
         for (Feature f : spotsCollection.features())
             f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
 
-        refreshSpotsSource();
+        setupSpotsSource(style);
 
         for (Feature f : subRoutesCollection.features())
             f.properties().addProperty(PROPERTY_SHOULDHIDE, false);
 
-        refreshSubRoutesSource();
+        setupSubRoutesSource(style);
     }
 
     /*
@@ -1165,7 +1163,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
                 f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
         }
 
-        refreshSpotsSource();
+        setupSpotsSource(style);
 
         for (Feature f : subRoutesCollection.features()) {
             int spotRouteIndex = (int) f.getNumberProperty(PROPERTY_ROUTEINDEX);
@@ -1176,7 +1174,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
                 f.properties().addProperty(PROPERTY_SHOULDHIDE, true);
         }
 
-        refreshSubRoutesSource();
+        setupSubRoutesSource(style);
     }
 
     /*
@@ -1264,7 +1262,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
             f.properties().addProperty(PROPERTY_SHOULDHIDE, shouldHide);
         }
 
-        refreshSpotsSource();
+        setupSpotsSource(style);
 
         // For each route line drawn on the map as a feature
         assert subRoutesCollection.features() != null;
@@ -1275,7 +1273,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
             f.properties().addProperty(PROPERTY_SHOULDHIDE, !routeIndexesToShow.contains(spotRouteIndex));
         }
 
-        refreshSubRoutesSource();
+        setupSubRoutesSource(style);
     }
 
     private void startMyRoutesActivity() {
@@ -1830,19 +1828,17 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void setupSpotsSource(@NonNull Style loadedMapStyle) {
-        if (loadedMapStyle.getSource(SPOTS_SOURCE_ID) == null) {
-            spotSource = new GeoJsonSource(SPOTS_SOURCE_ID, spotsCollection);
-            loadedMapStyle.addSource(spotSource);
-        } else
-            refreshSpotsSource();
+        if (loadedMapStyle.getSource(SPOTS_SOURCE_ID) != null)
+            loadedMapStyle.removeSource(SPOTS_SOURCE_ID);
+        
+        loadedMapStyle.addSource(new GeoJsonSource(SPOTS_SOURCE_ID, spotsCollection));
     }
 
     private void setupSubRoutesSource(@NonNull Style loadedMapStyle) {
-        if (loadedMapStyle.getSource(SUB_ROUTE_SOURCE_ID) == null) {
-            subRoutesSource = new GeoJsonSource(SUB_ROUTE_SOURCE_ID, subRoutesCollection);
-            loadedMapStyle.addSource(subRoutesSource);
-        } else
-            refreshSubRoutesSource();
+        if (loadedMapStyle.getSource(SUB_ROUTE_SOURCE_ID) != null)
+            loadedMapStyle.removeSource(SUB_ROUTE_SOURCE_ID);
+
+        loadedMapStyle.addSource(new GeoJsonSource(SUB_ROUTE_SOURCE_ID, subRoutesCollection));
     }
 
     /* Setup style layer */
@@ -1915,17 +1911,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback,
                     /* add a filter to show only when selected feature property is true */
                     .withFilter(eq((get(PROPERTY_SELECTED)), literal(true))));
         }
-    }
-
-    private void refreshSpotsSource() {
-        if (spotSource != null && spotsCollection != null) {
-            spotSource.setGeoJson(spotsCollection);
-        }
-    }
-
-    private void refreshSubRoutesSource() {
-        if (subRoutesSource != null && subRoutesCollection != null)
-            subRoutesSource.setGeoJson(subRoutesCollection);
     }
 
     public void saveRegularSpotButtonHandler(Spot mCurrentWaitingSpot) {

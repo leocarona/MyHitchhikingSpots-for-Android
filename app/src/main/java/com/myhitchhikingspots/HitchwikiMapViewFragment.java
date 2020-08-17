@@ -151,7 +151,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     List<Spot> spotList = new ArrayList();
     //Each hitchhiking spot is a feature
     FeatureCollection featureCollection;
-    GeoJsonSource source;
     SymbolLayer markerStyleLayer;
 
     private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
@@ -514,7 +513,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             }
         } else {
             deselectAll(false);
-            refreshSource();
+            setupSource(style);
         }
     }
 
@@ -551,7 +550,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     private void showBalloon(Feature feature) {
         dismissProgressDialog();
         selectFeature(feature);
-        refreshSource();
+        setupSource(style);
     }
 
     /**
@@ -790,7 +789,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private static boolean areLocationPermissionsGranted(Activity activity) {
-        // Check if we have read and write permission
+        // Check if we have location permission
         String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION};
         return arePermissionsGranted(activity, permissions);
@@ -1585,11 +1584,10 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     }
 
     private void setupSource(@NonNull Style loadedMapStyle) {
-        if (loadedMapStyle.getSource(MARKER_SOURCE_ID) == null) {
-            source = new GeoJsonSource(MARKER_SOURCE_ID, featureCollection);
-            loadedMapStyle.addSource(source);
-        } else
-            refreshSource();
+        if (loadedMapStyle.getSource(MARKER_SOURCE_ID) != null)
+            loadedMapStyle.removeSource(MARKER_SOURCE_ID);
+
+        loadedMapStyle.addSource(new GeoJsonSource(MARKER_SOURCE_ID, featureCollection));
     }
 
     /* Setup style layer */
@@ -1638,12 +1636,6 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
 
                     /* add a filter to show only when selected feature property is true */
                     .withFilter(eq((get(PROPERTY_SELECTED)), literal(true))));
-        }
-    }
-
-    private void refreshSource() {
-        if (source != null && featureCollection != null) {
-            source.setGeoJson(featureCollection);
         }
     }
 
