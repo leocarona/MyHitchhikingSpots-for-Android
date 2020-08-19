@@ -183,6 +183,7 @@
     <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Irgendetwas ging schief :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message">Wir haben diesen Fehler protokolliert und werden ihn uns ansehen.</string>
     <string name="general_error_message_try_again">Wir haben diesen Fehler protokolliert und werden ihn uns ansehen. Sie können es erneut versuchen.</string>
     <string name="general_one_or_more_errors_occured">One or more error occured:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>

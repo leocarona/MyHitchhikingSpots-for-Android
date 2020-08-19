@@ -169,6 +169,7 @@
     <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Noget gik galt :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message">Vi har logget denne fejl, og vi skal se på den.</string>
     <string name="general_error_message_try_again">Vi har logget denne fejl, og vi skal se på den. Du kan prøve igen.</string>
     <string name="general_one_or_more_errors_occured">One or more error occured:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>

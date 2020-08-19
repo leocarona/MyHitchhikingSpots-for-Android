@@ -188,6 +188,7 @@ The Hitchwiki team.
     <string name="general_download_finished_successffull_message">Download successful</string>
     <string name="general_error_dialog_title">Something went wrong :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message">We have logged this error and we\'ll have a look at it.</string>
     <string name="general_error_message_try_again">We have logged this error and we\'ll have a look at it. You may try again.</string>
     <string name="general_one_or_more_errors_occured">One or more error occurred:</string>
     <string name="general_loading_dialog_title">Loading data&#8230;</string>

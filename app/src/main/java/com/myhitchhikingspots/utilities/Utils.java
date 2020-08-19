@@ -6,10 +6,12 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.text.format.DateUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.crashlytics.android.Crashlytics;
 import com.mapbox.geojson.Point;
@@ -694,5 +696,31 @@ public class Utils {
                 }
             }
         }
+    }
+
+    /**Set the usuario id, the one that has been automatically generated the first time ever that the user accessed the app. */
+    public static void setUserId(Context context, @Nullable String usuarioId) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (usuarioId == null || usuarioId.isEmpty())
+            prefs.edit().remove(Constants.FIREBASE_DATABASE_USUARIO_ID_PATH).apply();
+        else prefs.edit().putString(Constants.FIREBASE_DATABASE_USUARIO_ID_PATH, usuarioId).apply();
+    }
+
+    /**Get the usuario id, which has been automatically generated the first time ever that the user accessed the app. */
+    public static String getUserId(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getString(Constants.FIREBASE_DATABASE_USUARIO_ID_PATH, "");
+    }
+
+    public static void setHwUsername(Context context, @Nullable String hwUsername) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (hwUsername == null || hwUsername.isEmpty())
+            prefs.edit().remove(Constants.FIREBASE_DATABASE_USUARIO_HW_USERNAME_PATH).apply();
+        else prefs.edit().putString(Constants.FIREBASE_DATABASE_USUARIO_HW_USERNAME_PATH, hwUsername).apply();
+    }
+
+    public static String getHwUsername(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getString(Constants.FIREBASE_DATABASE_USUARIO_HW_USERNAME_PATH, "");
     }
 }

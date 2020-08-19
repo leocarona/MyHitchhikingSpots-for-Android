@@ -6,6 +6,7 @@ import androidx.multidex.MultiDexApplication;
 
 import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.myhitchhikingspots.db.UsuariosRepository;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
@@ -63,6 +64,10 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
 
     public SpotsRepository getSpotsRepository() {
         return SpotsRepository.getInstance();
+    }
+
+    public UsuariosRepository getUsuariosRepository() {
+        return UsuariosRepository.getInstance();
     }
 
     final String TAG = "application-class";

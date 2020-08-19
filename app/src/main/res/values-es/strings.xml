@@ -187,6 +187,7 @@
     <string name="general_download_finished_successffull_message">Satisfactoriamente descargado</string>
     <string name="general_error_dialog_title">Algo ha ido mal :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message">Hemos registrado este error y lo veremos.</string>
     <string name="general_error_message_try_again">Hemos registrado este error y lo veremos. Puedes intentar de nuevo.</string>
     <string name="general_one_or_more_errors_occured">Uno o más errores han ocurrido:</string>
     <string name="general_loading_dialog_title">Cargando datos&#8230;</string>

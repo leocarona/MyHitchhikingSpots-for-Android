@@ -35,7 +35,10 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.myhitchhikingspots.model.Spot;
+import com.myhitchhikingspots.model.Usuario;
 import com.myhitchhikingspots.utilities.Utils;
 
 import org.json.JSONObject;
@@ -59,8 +62,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // The android.support.v4.app.ActionBarDrawerToggle has been deprecated.
     private ActionBarDrawerToggle drawerToggle;
 
-    SharedPreferences prefs;
-
     int fragmentIdToBeOpenedOnSpotsListLoaded = -1;
 
     //Default fragment that will open on the app startup
@@ -77,15 +78,55 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         void onActivityResult(int requestCode, int resultCode, Intent data);
     }
 
-    SpotsListViewModel viewModel;
+    SharedPreferences prefs;
+
+    MainActivityViewModel mainViewModel;
+    SpotsListViewModel spotsViewModel;
+
+    FirebaseAuth mAuth;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
 
-        viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
-
+        mainViewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
+        spotsViewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
         prefs = getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
+        mAuth = FirebaseAuth.getInstance();
+
+        mAuth.addAuthStateListener(firebaseAuth -> {
+            String usuarioId = Utils.getUserId(this);
+
+            //On the first time the user opens the app, generate an id to identify the user on Firebase database.
+            if (usuarioId == null || usuarioId.isEmpty()) {
+                usuarioId = mainViewModel.addNewUsuario();
+                Utils.setUserId(this, usuarioId);
+            }
+
+            if (usuarioId != null) {
+                //Get Usuario from the db
+                mainViewModel.subscribeTo(usuarioId);
+            }
+
+            //If user just got logged into firebase, update last access time.
+            if (firebaseAuth.getUid() != null && usuarioId != null) {
+                updateFirebaseTokenFor(usuarioId);
+
+                mainViewModel.updateLastAccessAt(usuarioId, firebaseAuth.getUid());
+            } else {
+                //User has logged off.
+                //We must log them anonymously again so that they can continue using the app
+                // even if not logged in with their Hitchwiki credentials.
+                tryAnonymouslyLoginOnFirebase();
+            }
+        });
+
+        mainViewModel.getUsuario().observe(this, u -> {
+            //User is logged in if:
+            // the last firebase login id and the user's HW username match the values we have stored locally.
+            if (isUserFullyLoggedIn(u))
+                updateLoginOptionVisibility(u.hwUsername);
+        });
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = findViewById(R.id.toolbar);
@@ -118,6 +159,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         selectDrawerItem(resourceToOpen);
+
+        updateLoginOptionVisibility(null);
+    }
+
+    /**
+     * Check if user is logged in both on Firebase DB and on Hitchwiki.
+     *
+     * @return true if
+     * the usuario id and
+     * the last firebase login id and
+     * the user's HW username
+     * both match the values we have stored locally.
+     **/
+    boolean isUserFullyLoggedIn(@NonNull Usuario u) {
+        String loggedInFBId = mAuth.getUid();
+        String loggedInUsuarioId = Utils.getUserId(this);
+        String loggedInHWUsername = Utils.getHwUsername(this);
+        return (u.lastFbLoginId != null && !u.lastFbLoginId.isEmpty() &&
+                u.hwUsername != null && !u.hwUsername.isEmpty() &&
+                u.usuarioId.equals(loggedInUsuarioId) && u.lastFbLoginId.equals(loggedInFBId) && u.hwUsername.equals(loggedInHWUsername));
+    }
+
+    private void updateFirebaseTokenFor(final String usuarioId) {
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnSuccessListener(result -> {
+                    // Get new Instance ID token
+                    String token = result.getToken();
+                    mainViewModel.updateToken(usuarioId, token);
+                });
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
@@ -232,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else if (selectedItemId == R.id.nav_login)
             logIn();
         else if (selectedItemId == R.id.nav_logout)
-            logOut();
+            tryLogout();
         else {
             CharSequence title = menuItem.getTitle();
             setupSelectedFragment(menuItem, title.toString());
@@ -251,13 +321,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startActivityForResult(intent, 1);
     }
 
-    private void updateLoginOptionVisibility() {
+    private void updateLoginOptionVisibility(String username) {
         Menu menu = nvDrawer.getMenu();
         MenuItem item_nav_login = menu.findItem(R.id.nav_login), item_nav_logout = menu.findItem(R.id.nav_logout);
         View header = nvDrawer.getHeaderView(0);
         AppCompatTextView headerLabel = header.findViewById(R.id.app_header_label);
-        String username = (prefs == null) ? null : prefs.getString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, null);
-        if (username != null) {
+
+        if (username != null && !username.isEmpty()) {
             if (item_nav_login != null) item_nav_login.setVisible(false);
             if (item_nav_logout != null) item_nav_logout.setVisible(true);
             headerLabel.setText(getString(R.string.general_welcome_user, username));
@@ -570,10 +640,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getToken();
     }
 
-    public void logOut() {
-        tryLogout();
-    }
-
     final String hw_request_token_api_url = "https://hitchwiki.org/en/api.php?action=query&meta=tokens&type=login&format=json";
     final String hw_clientlogin_api_url = "https://hitchwiki.org/en/api.php?action=clientlogin&format=json&loginreturnurl=http://hitchwiki.org/";
     final String hw_logout_api_url = "https://hitchwiki.org/en/api.php?action=logout&format=json";
@@ -582,6 +648,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     void getToken() {
         if (!Utils.isNetworkAvailable(this)) {
             showErrorAlert(getString(R.string.general_internet_unavailable_title), getString(R.string.general_network_unavailable_message));
+            return;
+        }
+        if (mAuth.getCurrentUser() == null) {
+            showErrorAlert(getString(R.string.general_error_dialog_title), getString(R.string.general_error_message));
             return;
         }
         // Instantiate the RequestQueue.
@@ -654,10 +724,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             showErrorAlert(getString(R.string.general_internet_unavailable_title), getString(R.string.general_network_unavailable_message));
             return;
         }
-        tryLoginOnServerSide(logintoken, username, password);
+        tryLoginOnHitchwiki(logintoken, username, password);
     }
 
-    void tryLoginOnServerSide(String logintoken, String username, String password) {
+    void tryLoginOnHitchwiki(String logintoken, String username, String password) {
         if (logintoken == null) return;
 
         // Instantiate the RequestQueue.
@@ -671,13 +741,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         if (responseObj.has("error"))
                             showErrorAlert(getString(R.string.general_error_dialog_title), responseObj.getJSONObject("error").getString("info"));
                         else if (responseObj.getJSONObject("clientlogin").getString("status").equals("PASS")) {
-
-                            if (prefs != null)
-                                prefs.edit().putString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, username).apply();
-
-                            showSuccessAndTryAssignAuthorDialog(viewModel,this, getString(R.string.login_succeeded), getString(R.string.general_welcome_user, username));
-
-                            updateLoginOptionVisibility();
+                            onHWLoginSucceeded(username);
                         }
                     } catch (Exception ex) {
                         showErrorAlert(getString(R.string.general_error_dialog_title), ex.getLocalizedMessage());
@@ -702,6 +766,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         queue.add(jsonObjectRequest);
     }
 
+    private void onHWLoginSucceeded(String username) {
+        //Update db with user's data
+        String usuarioId = Utils.getUserId(this);
+        mainViewModel.updateHwUsername(usuarioId, username)
+                .addOnSuccessListener(s -> {
+                    showSuccessAndTryAssignAuthorDialog(getString(R.string.general_welcome_user, username));
+                });
+    }
+
+    /**
+     * Sign user in to Firebase database, so that he'll be granted permissions to save/edit his own spots to the database.
+     **/
+    private void tryAnonymouslyLoginOnFirebase() {
+        Crashlytics.log("Signing user anonymously in to Firebase db.");
+        mAuth.signInAnonymously()
+                .addOnFailureListener(e -> {
+                    //If sign in fails, log the exception.
+                    Crashlytics.log("User might not be able to save anything to the database. This must be checked asap.");
+                    Crashlytics.logException(e);
+                    updateLoginOptionVisibility(null);
+                    showErrorAlert(getString(R.string.general_error_dialog_title), getString(R.string.general_error_message));
+                });
+    }
+
     private void tryLogout() {
         /*
         NOTE: Trying to log user out on the server side doesn't seem to work with action=logout when the user has
@@ -712,28 +800,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (Utils.isNetworkAvailable(this))
             tryLogoutOnServerSide();*/
 
-        onLogoutFinished();
+        mainViewModel.unsubscribeFrom(Utils.getUserId(this));
+
+        //Log out from firebase
+        FirebaseAuth.getInstance().signOut();
+
+        //Remove data from local storage
+        Utils.setUserId(this, null);
+        Utils.setHwUsername(this, null);
+        prefs.edit().remove(Constants.PREFS_LOGIN_TOKEN).apply();
+
+        //Update UI
+        updateLoginOptionVisibility(null);
+
+        //Show done message
+        showErrorAlert(getString(R.string.general_done_label), getString(R.string.logout_successful));
     }
 
-    public static void showSuccessAndTryAssignAuthorDialog(SpotsListViewModel viewModel, Context context, String dialogTitle, String dialogMessage) {
-        new AlertDialog.Builder(context)
+    public void showSuccessAndTryAssignAuthorDialog(String dialogMessage) {
+        new AlertDialog.Builder(this)
                 .setIcon(R.drawable.ic_check_circle_black_24dp)
-                .setTitle(dialogTitle)
+                .setTitle(getString(R.string.login_succeeded))
                 .setMessage(dialogMessage)
-                .setNeutralButton(context.getResources().getString(R.string.general_ok_option), (d, i) -> {
-                    if (viewModel.isAnySpotMissingAuthor(context))
-                        tryAssignAuthorToSpots(viewModel, context);
+                .setNeutralButton(getString(R.string.general_ok_option), (d, i) -> {
+                    if (spotsViewModel.isAnySpotMissingAuthor(this))
+                        tryAssignAuthorToSpots(spotsViewModel, this);
                 })
                 .show();
-    }
-
-    private void onLogoutFinished() {
-        showErrorAlert(getString(R.string.general_done_label), getString(R.string.logout_successful));
-
-        prefs.edit().remove(Constants.PREFS_LOGIN_TOKEN).apply();
-        prefs.edit().remove(Constants.PREFS_USER_CURRENTLY_LOGGED_IN).apply();
-
-        updateLoginOptionVisibility();
     }
 
     private void tryLogoutOnServerSide() {
@@ -770,9 +863,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         queue.add(jsonObjectRequest);
     }
 
-    private static void tryAssignAuthorToSpots(SpotsListViewModel viewModel, Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
-        String username = (prefs == null) ? null : prefs.getString(Constants.PREFS_USER_CURRENTLY_LOGGED_IN, null);
+    public static void tryAssignAuthorToSpots(SpotsListViewModel viewModel, Context context) {
+        String username = Utils.getUserId(context);
         if (username == null)
             return;
         showShouldAssignSpotsMissingAuthorToUserDialog(viewModel, context, username);

@@ -182,6 +182,7 @@
     <string name="general_download_finished_successffull_message">Download concluído com sucesso</string>
     <string name="general_error_dialog_title">Houve uma falha :(</string>
     <string name="general_error_dialog_message">"%s"</string>
+    <string name="general_error_message">Nós registramos este erro e vamos verificá-lo.</string>
     <string name="general_error_message_try_again">Nós registramos este erro e vamos verificá-lo. Você pode tentar novamente.</string>
     <string name="general_one_or_more_errors_occured">Um ou alguns erros aconteceram:</string>
     <string name="general_loading_dialog_title">Carregando&#8230;</string>

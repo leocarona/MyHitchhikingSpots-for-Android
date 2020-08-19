@@ -364,7 +364,7 @@ public class ToolsActivity extends AppCompatActivity {
                     //Create a record to track database import
                     Answers.getInstance().logCustom(new CustomEvent(eventName));
 
-                    MainActivity.showSuccessAndTryAssignAuthorDialog(viewModel, ToolsActivity.this, getString(R.string.general_import_finished_successful_message), TextUtils.join("\n", messages));
+                    showSuccessAndTryAssignAuthorDialog(getString(R.string.general_import_finished_successful_message), TextUtils.join("\n", messages));
                 } else {
                     Answers.getInstance().logCustom(new CustomEvent("Database import failed"));
 
@@ -378,6 +378,18 @@ public class ToolsActivity extends AppCompatActivity {
         });
 
         t.execute(); //execute asyncTask to import data into database from selected file.
+    }
+
+    public void showSuccessAndTryAssignAuthorDialog(String dialogTitle, String dialogMessage) {
+        new AlertDialog.Builder(this)
+                .setIcon(R.drawable.ic_check_circle_black_24dp)
+                .setTitle(dialogTitle)
+                .setMessage(dialogMessage)
+                .setNeutralButton(getString(R.string.general_ok_option), (d, i) -> {
+                    if (viewModel.isAnySpotMissingAuthor(this))
+                        MainActivity.tryAssignAuthorToSpots(viewModel, this);
+                })
+                .show();
     }
 
     /**

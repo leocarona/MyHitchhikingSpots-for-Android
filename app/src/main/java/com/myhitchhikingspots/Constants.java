@@ -105,4 +105,17 @@ public final class Constants {
     public static final int RESULT_OBJECT_DELETED = 4;
 
     public static final String APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME = "2019-06-01T00:00Z";
+
+    public static final String FIREBASE_DATABASE_USUARIOS_PATH = "Usuarios";
+    public static final String FIREBASE_DATABASE_USUARIO_ID_PATH = "usuarioId";
+    public static final String FIREBASE_DATABASE_USUARIO_REGISTERED_SINCE_PATH = "registeredSince";
+    public static final String FIREBASE_DATABASE_USUARIO_LAST_FB_TOKEN_PATH = "lastFBToken";
+    public static final String FIREBASE_DATABASE_USUARIO_LAST_FB_ACCESS_AT_PATH = "lastFbLoginAt";
+    public static final String FIREBASE_DATABASE_USUARIO_LAST_FB_LOGIN_ID_PATH = "lastFbLoginId";
+    public static final String FIREBASE_DATABASE_USUARIO_HW_LOGIN_AT_PATH = "hwLoginAt";
+    public static final String FIREBASE_DATABASE_USUARIO_HW_USERNAME_PATH = "hwUsername";
+
+    public static final String FIREBASE_DATABASE_USUARIOS_LAST_KNOWN_LOCATION_PATH = "lastKnownLocation";
+    public static final String FIREBASE_DATABASE_USUARIO_LAST_LOCATION_POSITION_PATH = "coordinates";
+    public static final String FIREBASE_DATABASE_USUARIO_LAST_LOCATION_DATETIME_PATH = "updatedAt";
 }
