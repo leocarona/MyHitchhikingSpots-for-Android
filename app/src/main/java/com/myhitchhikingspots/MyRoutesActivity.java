@@ -126,7 +126,7 @@ public class MyRoutesActivity extends AppCompatActivity {
             }
         };
 
-        viewModel.getSpots(this).observe(this, spots -> {
+        viewModel.getSpots().observe(this, spots -> {
             //Update fragments
             if (mSectionsPagerAdapter != null) {
                 mSectionsPagerAdapter.setValues(spots);
@@ -195,6 +195,8 @@ public class MyRoutesActivity extends AppCompatActivity {
         super.onDestroy();
         if (mViewPager != null)
             mViewPager.clearOnPageChangeListeners();
+
+        viewModel.getSpots().removeObservers(this);
     }
 
     @Override
@@ -216,7 +218,7 @@ public class MyRoutesActivity extends AppCompatActivity {
             mSectionsPagerAdapter.onActivityResultFromSpotForm();
 
         if (spotListWasChanged) {
-            viewModel.reloadSpots(this);
+            viewModel.reloadSpots();
 
             //Set this flag so that MainActivity knows that reloadSpots should be called to update their viewModel.
             prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();

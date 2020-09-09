@@ -72,6 +72,8 @@ public class LocationUpdatesCallback
             return;
         }
 
+        frag.updateLastKnownLocation(location);
+
         // Pass the new location to the Maps SDK's LocationComponent
         if (frag.getMapboxMap() != null && result.getLastLocation() != null) {
             LocationComponent locationComponent = frag.getMapboxMap().getLocationComponent();

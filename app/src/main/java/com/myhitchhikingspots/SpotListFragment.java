@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,7 +34,7 @@ public class SpotListFragment extends Fragment {
     private RecyclerView recyclerView;
     List<Spot> spotList = new ArrayList<>();
     FloatingActionButton fabDelete;
-    public ArrayList<Integer> previouslySelectedSpots = new ArrayList<>();
+    public ArrayList<String> previouslySelectedSpots = new ArrayList<>();
     static String SELECTED_SPOTS_KEY = "SELECTED_SPOTS_KEY";
     static String IS_EDIT_MODE_KEY = "IS_EDIT_MODE_KEY";
     static final String TAG = "spot-list-fragment";
@@ -50,7 +49,7 @@ public class SpotListFragment extends Fragment {
 
         //Retrieve saved state in onCreate. This method is called even when this fragment is on the back stack
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_SPOTS_KEY)) {
-            previouslySelectedSpots = savedInstanceState.getIntegerArrayList(SELECTED_SPOTS_KEY);
+            previouslySelectedSpots = savedInstanceState.getStringArrayList(SELECTED_SPOTS_KEY);
         }
 
         if (savedInstanceState != null && savedInstanceState.containsKey(IS_EDIT_MODE_KEY)) {
@@ -61,7 +60,6 @@ public class SpotListFragment extends Fragment {
             prefs = getContext().getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
     }
 
-    final String sqlDeleteStatement = "DELETE FROM %1$s WHERE %2$s";
     SpotsListViewModel viewModel;
 
     @Override
@@ -69,7 +67,7 @@ public class SpotListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.spot_list_fragment_layout, container, false);
 
-        viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
 
         recyclerView = (RecyclerView) rootView.findViewById(R.id.main_activity_recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -118,7 +116,7 @@ public class SpotListFragment extends Fragment {
                     if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
                             mCurrentWaitingSpot.getIsWaitingForARide()) {
 
-                        if (mCurrentWaitingSpot.getId().equals(spot.getId()))
+                        if (mCurrentWaitingSpot.getSpotId() == spot.getSpotId())
                             spot.setAttemptResult(null);
                         else {
                             Resources res = getResources();
@@ -179,35 +177,17 @@ public class SpotListFragment extends Fragment {
     private void deleteSelectedSpots() {
         String errorMessage = "";
         try {
-            Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
-            Boolean isWaitingForARide = mCurrentWaitingSpot != null &&
-                    mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
-            ArrayList<String> spotsToBeDeleted_idList = new ArrayList<>();
-
-            for (int i = 0; i < mAdapter.getSelectedSpots().size(); i++) {
-                Integer selectedSpotId = mAdapter.getSelectedSpots().get(i);
-
-                //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
-                if (isWaitingForARide && mCurrentWaitingSpot.getId().intValue() == selectedSpotId)
-                    viewModel.setCurrentWaitingSpot(null);
-
-                //Concatenate Id in a list as "Id.columnName = x"
-                spotsToBeDeleted_idList.add(" " + SpotDao.Properties.Id.columnName + " = '" + selectedSpotId + "' ");
-            }
-
-            viewModel.execSQL(getContext(), String.format(sqlDeleteStatement,
-                    SpotDao.TABLENAME,
-                    TextUtils.join(" OR ", spotsToBeDeleted_idList)));
+            viewModel.deleteSpots(mAdapter.getSelectedSpots());
 
             if (prefs != null)
                 prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
 
-            List<Spot> remainingSpots = new ArrayList<>();
+            /*List<Spot> remainingSpots = new ArrayList<>();
 
             //Go through all the spots in the list
             for (int i = 0; i < spotList.size(); i++) {
                 //Check if this spot was in the list to be deleted
-                if (!mAdapter.getSelectedSpots().contains(spotList.get(i).getId().intValue())) {
+                if (!mAdapter.getSelectedSpots().contains(spotList.get(i).getSpotId())) {
                     //Add spot to remaining list if it was not selected to be deleted
                     remainingSpots.add(spotList.get(i));
                 } else {
@@ -216,10 +196,10 @@ public class SpotListFragment extends Fragment {
                 }
             }
 
-            setIsEditMode(false);
-
             //Replace spotList with the list not containing the removed spots, and call updateUI
-            setValues(remainingSpots);
+            setValues(remainingSpots);*/
+
+            setIsEditMode(false);
 
             //Clear selectedSpotsList
             deselectAllSpots();
@@ -312,10 +292,9 @@ public class SpotListFragment extends Fragment {
         //However, remember that this method is called when the device is rotated even if your fragment is on the back stack.
         //In such cases, the onCreateView was not called, hence there is nothing to save.
         //Hence, we just re-save the state that we had retrieved in onCreate. We sort of relay the state from onCreate to getSelectedSpots.
-        outState.putIntegerArrayList(SELECTED_SPOTS_KEY, previouslySelectedSpots);
+        outState.putStringArrayList(SELECTED_SPOTS_KEY, previouslySelectedSpots);
 
         outState.putBoolean(IS_EDIT_MODE_KEY, getIsEditMode());
-
     }
 
     public void setValues(List list) {

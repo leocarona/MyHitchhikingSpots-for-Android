@@ -70,7 +70,7 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
         seeMyMapsBtn.setText(getString(R.string.action_button_label, getString(R.string.menu_my_maps)));
         seeMyMapsBtn.setOnClickListener(view1 -> activity.selectDrawerItem(R.id.nav_my_map));
 
-        viewModel.getSpots(getContext()).observe(activity, this::updateUI);
+        viewModel.getSpots().observe(activity, this::updateUI);
     }
 
     @Override
@@ -152,8 +152,8 @@ public class DashboardFragment extends Fragment implements MainActivity.OnMainAc
     @Override
     public void onSpotListChanged() {
         //Reload spots, once completed, sets the spots list which is being observed and calls updateUI.
-        showProgressDialog(getResources().getString(R.string.map_loading_dialog));
-        viewModel.reloadSpots(getContext());
+        //showProgressDialog(getResources().getString(R.string.map_loading_dialog));
+        viewModel.reloadSpots();
     }
 
     private void updateUI(List<Spot> spotList) {

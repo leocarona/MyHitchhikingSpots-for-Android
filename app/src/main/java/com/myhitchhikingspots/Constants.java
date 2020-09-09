@@ -74,7 +74,7 @@ public final class Constants {
     public static final String PREFS_MAPBOX_WAS_EVER_LOADED = "mapBoxWasEverLoaded";
     public static final String PREFS_HITCHWIKI_STORAGE_RENAMED = "hitchwikiStorageRenamed";
     public static final String PREFS_SPOTSSTARTDATETIME_WERE_FIXED = "startDateTimesFixed";
-    public static final String PREFS_LOGIN_TOKEN = "loginToken";
+    public static final String PREFS_HITCHWIKI_LOGIN_TOKEN = "loginToken";
     public static final String PREFS_USER_CURRENTLY_LOGGED_IN = "userCurrentlyLoggedIn";
     public static final String PREFS_DEFAULT_STARTUP_FRAGMENT = "defaultStartUpFragment";
 
@@ -99,23 +99,25 @@ public final class Constants {
     public static final String SHOULD_SYNC_AN = "SHOULD_SYNC_AN";
     public static final String SHOULD_SYNC_OC = "SHOULD_SYNC_OC";
 
-    public static final int SAVE_SPOT_REQUEST = 2, EDIT_SPOT_REQUEST = 3;
+    public static final int SAVE_SPOT_REQUEST = 2, EDIT_SPOT_REQUEST = 3, FIREBASE_LOGIN_REQUEST = 4;
     public static final int RESULT_OBJECT_ADDED = 2;
     public static final int RESULT_OBJECT_EDITED = 3;
     public static final int RESULT_OBJECT_DELETED = 4;
 
     public static final String APP_VERSION27_WAS_RELEASED_ON_UTCDATETIME = "2019-06-01T00:00Z";
 
-    public static final String FIREBASE_DATABASE_USUARIOS_PATH = "Usuarios";
-    public static final String FIREBASE_DATABASE_USUARIO_ID_PATH = "usuarioId";
+    public static final String FIREBASE_DATABASE_USUARIOS_PATH = "Users";
     public static final String FIREBASE_DATABASE_USUARIO_REGISTERED_SINCE_PATH = "registeredSince";
     public static final String FIREBASE_DATABASE_USUARIO_LAST_FB_TOKEN_PATH = "lastFBToken";
-    public static final String FIREBASE_DATABASE_USUARIO_LAST_FB_ACCESS_AT_PATH = "lastFbLoginAt";
-    public static final String FIREBASE_DATABASE_USUARIO_LAST_FB_LOGIN_ID_PATH = "lastFbLoginId";
+    public static final String FIREBASE_DATABASE_USUARIO_LAST_ACCESS_AT_PATH = "lastAccessAt";
+    public static final String FIREBASE_DATABASE_USUARIO_FB_LOGIN_AT_PATH = "firebaseLoginAt";
     public static final String FIREBASE_DATABASE_USUARIO_HW_LOGIN_AT_PATH = "hwLoginAt";
     public static final String FIREBASE_DATABASE_USUARIO_HW_USERNAME_PATH = "hwUsername";
 
     public static final String FIREBASE_DATABASE_USUARIOS_LAST_KNOWN_LOCATION_PATH = "lastKnownLocation";
     public static final String FIREBASE_DATABASE_USUARIO_LAST_LOCATION_POSITION_PATH = "coordinates";
     public static final String FIREBASE_DATABASE_USUARIO_LAST_LOCATION_DATETIME_PATH = "updatedAt";
+
+    public static final String FIREBASE_DATABASE_SPOTS_PATH = "Spots";
+
 }

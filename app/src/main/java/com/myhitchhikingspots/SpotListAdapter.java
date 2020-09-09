@@ -37,8 +37,8 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     protected static final String TAG = "spot-list-adapter";
     private List<Spot> mData = new ArrayList<>();
     private Activity activity;
-    public final Hashtable<Long, String> totalsToDestinations = new Hashtable<>();
-    public ArrayList<Integer> selectedSpots = new ArrayList<>();
+    public final Hashtable<String, String> totalsToDestinations = new Hashtable<>();
+    public ArrayList<String> selectedSpots = new ArrayList<>();
     ListListener onSelectedSpotsListChangedListener;
 
     public SpotListAdapter(ListListener listListener, Activity activity) {
@@ -66,7 +66,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
             return false;
         boolean isAllSpotsSelected = true;
         for (Spot spot : mData) {
-            Integer spotId = spot.getId().intValue();
+            String spotId = spot.getSpotId();
             if (!selectedSpots.contains(spotId)) {
                 isAllSpotsSelected = false;
                 break;
@@ -76,7 +76,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
     }
 
     private void selectSpot(Spot spot) {
-        Integer spotId = spot.getId().intValue();
+        String spotId = spot.getSpotId();
         if (!selectedSpots.contains(spotId))
             selectedSpots.add(spotId);
 
@@ -85,7 +85,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
     private void deselectSpot(Spot spot) {
         //Find position on the list
-        int index = selectedSpots.indexOf(spot.getId().intValue());
+        int index = selectedSpots.indexOf(spot.getSpotId());
 
         //Remove it from previouslySelectedSpots
         if (index > -1)
@@ -96,7 +96,7 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
     private void selectAllSpots(List<Spot> spotList) {
         for (Spot spot : spotList) {
-            Integer spotId = spot.getId().intValue();
+            String spotId = spot.getSpotId();
             if (!selectedSpots.contains(spotId))
                 selectedSpots.add(spotId);
         }
@@ -152,14 +152,14 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
 
         String secondLine = "";
         if (spot.getIsDestination() != null && spot.getIsDestination())
-            secondLine = totalsToDestinations.get(spot.getId());
+            secondLine = totalsToDestinations.get(spot.getSpotId());
         else if (spot.getNote() != null)
             secondLine = spot.getNote();
 
         //Find position on the list
         int index = -1;
         for (int i = 0; i < selectedSpots.size() && index == -1; i++) {
-            if (selectedSpots.get(i).equals(spot.getId().intValue()))
+            if (selectedSpots.get(i) == spot.getSpotId())
                 index = i;
         }
 
@@ -190,11 +190,11 @@ public class SpotListAdapter extends RecyclerView.Adapter<SpotListAdapter.ViewHo
         return mData.size();
     }
 
-    public void setSelectedSpotsList(ArrayList<Integer> selectedSpots) {
+    public void setSelectedSpotsList(ArrayList<String> selectedSpots) {
         this.selectedSpots = selectedSpots;
     }
 
-    public ArrayList<Integer> getSelectedSpots() {
+    public ArrayList<String> getSelectedSpots() {
         return this.selectedSpots;
     }
 

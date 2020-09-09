@@ -70,6 +70,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineProvider;
 import com.mapbox.android.core.location.LocationEngineRequest;
@@ -284,8 +285,8 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
         else if (shouldRetrieveDetailsFromHW)
             mFormType = FormType.ReadOnly;
         else {
-            // If Id greater than zero, this means the user is editing a spot that was already saved in the database. So show full form.
-            if (mCurrentSpot.getId() != null && mCurrentSpot.getId() > 0) {
+            // If spotId is set, this means the user is editing a spot that was already saved. So show full form.
+            if (mCurrentSpot.getSpotId() != null && !mCurrentSpot.getSpotId().isEmpty()) {
                 if (isWaitingForARide())
                     mFormType = FormType.Evaluate;
                 else
@@ -315,7 +316,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
 
             if (s != null &&
                     s.getIsWaitingForARide() != null && s.getIsWaitingForARide() &&
-                    s.getId().equals(mCurrentSpot.getId())) {
+                    s.getSpotId() == mCurrentSpot.getSpotId()) {
                 String actionRequiredText = getString(R.string.evaluate_running_spot_required, getString(R.string.got_a_ride_button_text), getString(R.string.break_button_text));
                 showErrorAlert(getString(R.string.general_error_dialog_title),
                         getString(R.string.spot_form_not_allowed_to_edit) + "\n" + actionRequiredText);
@@ -528,7 +529,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                 }
 
                 //execute new asyncTask that will retrieve marker details for clickedMarker
-                taskThatRetrievesCompleteDetails = new retrievePlaceDetailsAsyncTask().execute(mCurrentSpot.getId().toString());
+                taskThatRetrievesCompleteDetails = new retrievePlaceDetailsAsyncTask().execute(mCurrentSpot.getSpotId());
             }
         }
     }
@@ -803,6 +804,11 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
     @Override
     public void moveCameraToLastKnownLocation() {
         moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED);
+    }
+
+    @Override
+    public void updateLastKnownLocation(Location loc) {
+
     }
 
     /**
@@ -1541,29 +1547,24 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
             showErrorAlert(getResources().getString(R.string.save_spot_button_text), String.format(getResources().getString(R.string.save_spot_error_general), ex.getMessage()));
         }
 
-        new Thread() {
-            @Override
-            public void run() {
-                viewModel.insertOrReplace(getContext(), mCurrentSpot);
+        try {
+            viewModel.insertOrReplace(getContext(), mCurrentSpot);
 
-                // code runs in a thread
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        int result = Constants.RESULT_OBJECT_ADDED;
-                        if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
-                            result = Constants.RESULT_OBJECT_EDITED;
+            int result = Constants.RESULT_OBJECT_ADDED;
+            if (mFormType == FormType.Evaluate || mFormType == FormType.Edit)
+                result = Constants.RESULT_OBJECT_EDITED;
 
-                        prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
-                        finishSaving(result);
-                    }
-                });
-            }
-        }.start();
+            prefs.edit().putBoolean(Constants.PREFS_MYSPOTLIST_WAS_CHANGED, true).apply();
+            finishSaving(result);
+        } catch (Exception ex) {
+            Crashlytics.logException(ex);
+            showErrorAlert(getString(R.string.general_error_dialog_title), getString(R.string.general_error_message));
+        }
+
     }
 
     public void deleteButtonHandler(View view) {
-        if (mCurrentSpot == null || mCurrentSpot.getId() == null || mCurrentSpot.getId() <= 0) {
+        if (mCurrentSpot == null || mCurrentSpot.getSpotId() == null || mCurrentSpot.getSpotId().isEmpty()) {
             Crashlytics.setBool("mCurrentSpot is null", mCurrentSpot == null);
             Crashlytics.logException(new Exception("Delete button was visible when spot id was unknown, and user clicked it."));
             mDeleteButton.setVisibility(View.GONE);
@@ -1580,7 +1581,7 @@ public class SpotFormActivity extends AppCompatActivity implements RatingBar.OnR
                         new Thread() {
                             @Override
                             public void run() {
-                                viewModel.deleteSpot(getContext(), mCurrentSpot);
+                                viewModel.deleteSpot(getContext(), FirebaseAuth.getInstance().getUid(), mCurrentSpot);
                                 viewModel.setCurrentSpot(null);
 
                                 // code runs in a thread

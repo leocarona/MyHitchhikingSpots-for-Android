@@ -67,7 +67,7 @@ The Hitchwiki team.
     <string name="settings_automatically_fix_spots_datetime_title">We can fix the datetimes</string>
     <string name="settings_automatically_fix_spots_datetime_message">We realized that the date and time of spots saved with My Hitchhiking Spots v2.2.5 (or prior) have not been saved properly. The file being imported seem to have been generated before version 2.2.5. Would you like us to automatically fix the dates and times of the spots being imported?</string>
     <string name="settings_preferences_label">Preferences</string>
-    <string name="settings_preferences_description">What option would you like to seen first\nwhen you open the app?</string>
+    <string name="settings_preferences_description">What option would you like to see first\nwhen you open the app?</string>
 
     <string name="hwmaps_downloadHDSpots_button_label">Download spots from Hitchwiki Maps</string>
     <string name="hwmaps_select_continents_button_label">Select continents</string>
@@ -213,7 +213,7 @@ The Hitchwiki team.
     <string name="general_done_label">Done!</string>
     <string name="general_done_message">Done!</string>
     <string name="general_welcome_user">Welcome in, %s!</string>
-    <string name="general_log_in_label">Log in</string>
+    <string name="general_log_in_label">Log in &amp; Sync</string>
     <string name="general_log_out_label">Log out</string>
 
     <string name="login_dialog_title">Login</string>

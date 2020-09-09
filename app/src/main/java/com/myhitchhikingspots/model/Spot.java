@@ -1,6 +1,10 @@
 package com.myhitchhikingspots.model;
 
-import org.greenrobot.greendao.annotation.*;
+import com.google.firebase.database.Exclude;
+
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Generated;
+import org.greenrobot.greendao.annotation.Id;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -12,8 +16,17 @@ import org.joda.time.DateTimeZone;
 @Entity
 public class Spot implements java.io.Serializable {
 
+    /*
+    UNDERSTANDING A SPOT' IDS:
+     Id is an old property, it is still needed to be of type Long since our local database (GreenDao)
+    automatically generates and sets a unique Long to identify the spot.
+     Once a spot gets uploaded from our local database to Firebase, this id is kept but a copy of it is made to spotId as a String.
+     In the other hand, if a spot is first created directly on Firebase database, its id is automatically generated
+    by Firebase Database as a unique String instead. In this case, the spot will have a unique id defined on spotId, and id will be null.
+    */
     @Id
     private Long id;
+    private String spotId;
     private String Name;
     private String Street;
     private String Zip;
@@ -44,13 +57,9 @@ public class Spot implements java.io.Serializable {
     public Spot() {
     }
 
-    public Spot(Long id) {
-        this.id = id;
-    }
-
     @Generated
     public Spot(Long id, String Name, String Street, String Zip, String City, String State, String Country, Double Longitude, Double Latitude, Boolean GpsResolved, Boolean IsReverseGeocoded, String Note, String Description, Long StartDateTime, Integer WaitingTime, Integer Hitchability, Integer AttemptResult, Boolean IsWaitingForARide, Boolean IsDestination, String CountryCode, Boolean HasAccuracy, Float Accuracy, Boolean IsPartOfARoute, Boolean IsHitchhikingSpot, Boolean IsNotHitchhikedFromHere, String AuthorUserName) {
-        this.id = id;
+        setId(id);
         this.Name = Name;
         this.Street = Street;
         this.Zip = Zip;
@@ -84,6 +93,15 @@ public class Spot implements java.io.Serializable {
 
     public void setId(Long id) {
         this.id = id;
+        setSpotId(Long.toString(id));
+    }
+
+    public String getSpotId() {
+        return spotId;
+    }
+
+    public void setSpotId(String id) {
+        this.spotId = id;
     }
 
     public String getName() {
@@ -194,7 +212,8 @@ public class Spot implements java.io.Serializable {
      * Gets the start date and time when the hitchhiker began hitchhiking at this spot.
      * To avoid confusion with datetime, this datetime is always in UTC.
      * E.g. If when the hitchhiker began hitchhiking at '1970-01-01 10:00 BRL' (his local time), then StartDateTime here is '1970-01-01 10:00 UTC'.
-     * **/
+     **/
+    @Exclude
     public DateTime getStartDateTime() {
         if (StartDateTime != null)
             return new DateTime(getStartDateTimeMillis(), DateTimeZone.UTC);
@@ -205,7 +224,8 @@ public class Spot implements java.io.Serializable {
      * @param StartDateTime The start date and time when the hitchhiker began hitchhiking at this spot.
      *                      To avoid confusion with datetime, this datetime is always in UTC.
      *                      E.g. If the local time for the hitchhiker is '1970-01-01 10:00 BRL', then StartDateTime here is '1970-01-01 10:00 UTC'.
-     * **/
+     **/
+    @Exclude
     public void setStartDateTime(DateTime StartDateTime) {
         setStartDateTimeMillis(StartDateTime.getMillis());
     }

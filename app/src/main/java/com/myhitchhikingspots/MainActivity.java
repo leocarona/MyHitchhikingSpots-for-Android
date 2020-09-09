@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
@@ -34,17 +35,23 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.crashlytics.android.Crashlytics;
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.model.Usuario;
+import com.myhitchhikingspots.persistence.FirebaseSpotsRepository;
+import com.myhitchhikingspots.persistence.IInsertOrReplaceEventListener;
+import com.myhitchhikingspots.persistence.SQLiteSpotsRepository;
 import com.myhitchhikingspots.utilities.Utils;
 
 import org.json.JSONObject;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,37 +102,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mAuth = FirebaseAuth.getInstance();
 
         mAuth.addAuthStateListener(firebaseAuth -> {
-            String usuarioId = Utils.getUserId(this);
+            if (firebaseAuth.getUid() != null && !firebaseAuth.getUid().isEmpty()) {
+                mainViewModel.setRegisteredSinceIfUnset(firebaseAuth.getUid());
 
-            //On the first time the user opens the app, generate an id to identify the user on Firebase database.
-            if (usuarioId == null || usuarioId.isEmpty()) {
-                usuarioId = mainViewModel.addNewUsuario();
-                Utils.setUserId(this, usuarioId);
-            }
-
-            if (usuarioId != null) {
                 //Get Usuario from the db
-                mainViewModel.subscribeTo(usuarioId);
-            }
+                mainViewModel.subscribeTo(firebaseAuth.getUid());
 
-            //If user just got logged into firebase, update last access time.
-            if (firebaseAuth.getUid() != null && usuarioId != null) {
-                updateFirebaseTokenFor(usuarioId);
+                //If user just got logged into firebase, update last access time.
+                updateFirebaseTokenFor(firebaseAuth.getUid());
 
-                mainViewModel.updateLastAccessAt(usuarioId, firebaseAuth.getUid());
+                mainViewModel.updateLastAccessAt(firebaseAuth.getUid());
+
+                updateUI(mAuth.getCurrentUser());
             } else {
                 //User has logged off.
-                //We must log them anonymously again so that they can continue using the app
-                // even if not logged in with their Hitchwiki credentials.
-                tryAnonymouslyLoginOnFirebase();
+
+                //Remove data from local storage
+                prefs.edit().remove(Constants.PREFS_HITCHWIKI_LOGIN_TOKEN).apply();
+                Utils.setHwUsername(this, null);
+
+                //Update UI
+                setWelcomeUserMessage(null);
+                updateUI(null);
             }
         });
 
         mainViewModel.getUsuario().observe(this, u -> {
             //User is logged in if:
             // the last firebase login id and the user's HW username match the values we have stored locally.
-            if (isUserFullyLoggedIn(u))
-                updateLoginOptionVisibility(u.hwUsername);
+            if (u.hwUsername != null && !u.hwUsername.isEmpty())
+                setWelcomeUserMessage(u.hwUsername);
         });
 
         // Set a Toolbar to replace the ActionBar.
@@ -160,25 +166,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         selectDrawerItem(resourceToOpen);
 
-        updateLoginOptionVisibility(null);
-    }
-
-    /**
-     * Check if user is logged in both on Firebase DB and on Hitchwiki.
-     *
-     * @return true if
-     * the usuario id and
-     * the last firebase login id and
-     * the user's HW username
-     * both match the values we have stored locally.
-     **/
-    boolean isUserFullyLoggedIn(@NonNull Usuario u) {
-        String loggedInFBId = mAuth.getUid();
-        String loggedInUsuarioId = Utils.getUserId(this);
-        String loggedInHWUsername = Utils.getHwUsername(this);
-        return (u.lastFbLoginId != null && !u.lastFbLoginId.isEmpty() &&
-                u.hwUsername != null && !u.hwUsername.isEmpty() &&
-                u.usuarioId.equals(loggedInUsuarioId) && u.lastFbLoginId.equals(loggedInFBId) && u.hwUsername.equals(loggedInHWUsername));
+        setWelcomeUserMessage(null);
     }
 
     private void updateFirebaseTokenFor(final String usuarioId) {
@@ -210,6 +198,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
     }
 
 
@@ -300,7 +296,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (selectedItemId == R.id.nav_tools)
             startToolsActivityForResult();
         else if (selectedItemId == R.id.nav_login)
-            logIn();
+            logInOnFirebase();
+            //logInOnHitchwiki();
         else if (selectedItemId == R.id.nav_logout)
             tryLogout();
         else {
@@ -321,19 +318,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startActivityForResult(intent, 1);
     }
 
-    private void updateLoginOptionVisibility(String username) {
-        Menu menu = nvDrawer.getMenu();
-        MenuItem item_nav_login = menu.findItem(R.id.nav_login), item_nav_logout = menu.findItem(R.id.nav_logout);
+    private void setWelcomeUserMessage(String username) {
         View header = nvDrawer.getHeaderView(0);
         AppCompatTextView headerLabel = header.findViewById(R.id.app_header_label);
 
         if (username != null && !username.isEmpty()) {
-            if (item_nav_login != null) item_nav_login.setVisible(false);
-            if (item_nav_logout != null) item_nav_logout.setVisible(true);
             headerLabel.setText(getString(R.string.general_welcome_user, username));
         } else {
-            if (item_nav_login != null) item_nav_login.setVisible(true);
-            if (item_nav_logout != null) item_nav_logout.setVisible(false);
             headerLabel.setText(getString(R.string.app_name));
         }
     }
@@ -586,9 +577,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    protected void showErrorAlert(String title, String msg) {
+    void showErrorAlert(String title, String msg) {
+        showAlert(title, msg, android.R.drawable.ic_dialog_alert);
+    }
+
+    void showSuccessAlert(String title, String msg) {
+        showAlert(title, msg, R.drawable.ic_check_circle_black_24dp);
+    }
+
+    void showAlert(String title, String msg, @DrawableRes int icon) {
         new AlertDialog.Builder(this)
-                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setIcon(icon)
                 .setTitle(title)
                 .setMessage(msg)
                 .setNegativeButton(getResources().getString(R.string.general_ok_option), null)
@@ -613,6 +612,83 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         }
+
+        if (requestCode == Constants.FIREBASE_LOGIN_REQUEST) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            if (resultCode == RESULT_OK) {
+                // Successfully signed in
+                try {
+                    moveSpotsFromSQLiteToFirebaseDatabase();
+
+                } catch (Exception e) {
+                    Crashlytics.logException(e);
+                    showErrorAlert(getString(R.string.general_error_dialog_title), "Your spots might not have been synced.\nThe error has been sent to our team, meanwhile you can try logging out and loggin in again.");
+                }
+            } else {
+                // Sign in failed. If response is null the user canceled the
+                // sign-in flow using the back button. Otherwise check
+                // response.getError().getErrorCode() and handle the error.
+                if (response != null && response.getError() != null) {
+                    Crashlytics.logException(response.getError());
+                    showErrorAlert(getString(R.string.general_error_dialog_title), "The error has been sent to our team, meanwhile you can try logging out and logging in again.");
+                }
+            }
+        }
+    }
+
+    private void moveSpotsFromSQLiteToFirebaseDatabase() throws Exception {
+        FirebaseSpotsRepository mFirebaseSpotsRepository = (FirebaseSpotsRepository) ((MyHitchhikingSpotsApplication) getApplication()).getFirebaseSpotsRepository();
+        SQLiteSpotsRepository mSQLiteSpotsRepository = (SQLiteSpotsRepository) ((MyHitchhikingSpotsApplication) getApplication()).getSQLiteSpotsRepository();
+
+        //Get spotsList from local storage (SQLite repository)
+        List<Spot> mSQLiteSpots = mSQLiteSpotsRepository.getSpots(this).getValue();
+
+        if (mSQLiteSpots != null && !mSQLiteSpots.isEmpty()) {
+            //Copy spots to Firebase Database
+            mFirebaseSpotsRepository.insertOrReplace(null, mSQLiteSpots, true,
+                    new IInsertOrReplaceEventListener() {
+                        @Override
+                        public void onSuccess(int numberOfSpotsOnTheListNow) {
+                            //Delete spots from local stoarge
+                            mSQLiteSpotsRepository.deleteAllSpots(getApplication());
+
+                            String msg = "You had " + mSQLiteSpots.size() + " spots saved locally";
+
+                            if (numberOfSpotsOnTheListNow == 0)
+                                msg += ". All spots have been synced successfully.";
+                            else
+                                msg += " and " + Math.abs(numberOfSpotsOnTheListNow - mSQLiteSpots.size()) +
+                                        " saved on our database. All " + numberOfSpotsOnTheListNow + " are now synced.";
+
+                            showSuccessAlert("Welcome!", msg);
+                        }
+
+                        @Override
+                        public void onFailed(@NonNull Exception ex) {
+                            Crashlytics.logException(ex);
+                            showErrorAlert(getString(R.string.general_error_dialog_title), "Your spots might not have been synced.\nThe error has been sent to our team, meanwhile you can try logging out and logging in again.");
+                        }
+                    });
+        } else
+            showSuccessAlert("Welcome!", "");
+    }
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null)
+            hideLoginButton();
+        else
+            showLoginButton();
+    }
+
+    void hideLoginButton() {
+        nvDrawer.getMenu().findItem(R.id.nav_login).setVisible(false);
+        nvDrawer.getMenu().findItem(R.id.nav_logout).setVisible(true);
+    }
+
+    void showLoginButton() {
+        nvDrawer.getMenu().findItem(R.id.nav_login).setVisible(true);
+        nvDrawer.getMenu().findItem(R.id.nav_logout).setVisible(false);
     }
 
     private ProgressDialog loadingDialog;
@@ -635,8 +711,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-
-    public void logIn() {
+    public void logInOnHitchwiki() {
         getToken();
     }
 
@@ -650,10 +725,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             showErrorAlert(getString(R.string.general_internet_unavailable_title), getString(R.string.general_network_unavailable_message));
             return;
         }
-        if (mAuth.getCurrentUser() == null) {
-            showErrorAlert(getString(R.string.general_error_dialog_title), getString(R.string.general_error_message));
-            return;
-        }
+
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(this);
 
@@ -663,7 +735,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         String logintoken = response.getJSONObject("query").getJSONObject("tokens").getString("logintoken");
 
                         if (prefs != null)
-                            prefs.edit().putString(Constants.PREFS_LOGIN_TOKEN, logintoken).apply();
+                            prefs.edit().putString(Constants.PREFS_HITCHWIKI_LOGIN_TOKEN, logintoken).apply();
 
                         showLoginDialog(logintoken);
                     } catch (Exception ex) {
@@ -767,27 +839,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void onHWLoginSucceeded(String username) {
-        //Update db with user's data
-        String usuarioId = Utils.getUserId(this);
-        mainViewModel.updateHwUsername(usuarioId, username)
-                .addOnSuccessListener(s -> {
-                    showSuccessAndTryAssignAuthorDialog(getString(R.string.general_welcome_user, username));
-                });
+        //Update Hitchwiki Username before showing success message.
+        if (FirebaseAuth.getInstance().getUid() != null) {
+            mainViewModel.updateHwUsername(FirebaseAuth.getInstance().getUid(), username)
+                    .addOnSuccessListener(s -> showSuccessAndTryAssignAuthorDialog(getString(R.string.general_welcome_user, username)));
+            return;
+        }
+
+        showSuccessAndTryAssignAuthorDialog(getString(R.string.general_welcome_user, username));
     }
 
-    /**
-     * Sign user in to Firebase database, so that he'll be granted permissions to save/edit his own spots to the database.
-     **/
-    private void tryAnonymouslyLoginOnFirebase() {
-        Crashlytics.log("Signing user anonymously in to Firebase db.");
-        mAuth.signInAnonymously()
-                .addOnFailureListener(e -> {
-                    //If sign in fails, log the exception.
-                    Crashlytics.log("User might not be able to save anything to the database. This must be checked asap.");
-                    Crashlytics.logException(e);
-                    updateLoginOptionVisibility(null);
-                    showErrorAlert(getString(R.string.general_error_dialog_title), getString(R.string.general_error_message));
-                });
+    private void logInOnFirebase() {
+        List<Spot> lst = spotsViewModel.getSpots().getValue();
+        if (lst != null && !lst.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_info)
+                    .setTitle("Sync " + lst.size() + " spot(s)")
+                    .setMessage("By logging in, your spots will be synced to our database.\nThey'll remain private, and you'll be able to access them again if you login from another device.")
+                    .setPositiveButton(getResources().getString(R.string.general_ok_option), (v1, v2) -> tryLoginOnFirebase())
+                    .setNegativeButton(getResources().getString(R.string.general_cancel_option), null)
+                    .show();
+            return;
+        }
+
+        tryLoginOnFirebase();
+    }
+
+    private void tryLoginOnFirebase() {
+        // Choose authentication providers
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.EmailBuilder().build());
+
+        // Create and launch sign-in intent
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .build(),
+                Constants.FIREBASE_LOGIN_REQUEST);
     }
 
     private void tryLogout() {
@@ -798,23 +887,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         is always giving a "badtoken" error, then we're commenting it out.
         Perhaps in the future we can consider learning more about how to use action=login and try that way.
         if (Utils.isNetworkAvailable(this))
-            tryLogoutOnServerSide();*/
+            tryLogoutOnHitchwiki();*/
 
-        mainViewModel.unsubscribeFrom(Utils.getUserId(this));
+        mainViewModel.unsubscribeFrom(FirebaseAuth.getInstance().getUid());
 
         //Log out from firebase
+        firebaseAuthSignOut();
         FirebaseAuth.getInstance().signOut();
-
-        //Remove data from local storage
-        Utils.setUserId(this, null);
-        Utils.setHwUsername(this, null);
-        prefs.edit().remove(Constants.PREFS_LOGIN_TOKEN).apply();
-
-        //Update UI
-        updateLoginOptionVisibility(null);
 
         //Show done message
         showErrorAlert(getString(R.string.general_done_label), getString(R.string.logout_successful));
+    }
+
+    void firebaseAuthSignOut() {
+        AuthUI.getInstance()
+                .signOut(this);/*
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // ...
+                    }
+                });*/
     }
 
     public void showSuccessAndTryAssignAuthorDialog(String dialogMessage) {
@@ -823,14 +915,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .setTitle(getString(R.string.login_succeeded))
                 .setMessage(dialogMessage)
                 .setNeutralButton(getString(R.string.general_ok_option), (d, i) -> {
-                    if (spotsViewModel.isAnySpotMissingAuthor(this))
+                    if (spotsViewModel.isAnySpotMissingAuthor())
                         tryAssignAuthorToSpots(spotsViewModel, this);
                 })
                 .show();
     }
 
-    private void tryLogoutOnServerSide() {
-        String logintoken = (prefs == null) ? null : prefs.getString(Constants.PREFS_LOGIN_TOKEN, null);
+    private void tryLogoutFromHitchwiki() {
+        String logintoken = (prefs == null) ? null : prefs.getString(Constants.PREFS_HITCHWIKI_LOGIN_TOKEN, null);
         if (logintoken == null) return;
 
         // Instantiate the RequestQueue.
@@ -863,20 +955,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         queue.add(jsonObjectRequest);
     }
 
-    public static void tryAssignAuthorToSpots(SpotsListViewModel viewModel, Context context) {
-        String username = Utils.getUserId(context);
-        if (username == null)
+    public static void tryAssignAuthorToSpots(SpotsListViewModel viewModel, @NonNull Context context) {
+        String userId = FirebaseAuth.getInstance().getUid();
+        if (userId == null)
             return;
-        showShouldAssignSpotsMissingAuthorToUserDialog(viewModel, context, username);
+        showShouldAssignSpotsMissingAuthorToUserDialog(viewModel, context, userId);
     }
 
-    private static void showShouldAssignSpotsMissingAuthorToUserDialog(SpotsListViewModel viewModel, Context context, String username) {
+    private static void showShouldAssignSpotsMissingAuthorToUserDialog(SpotsListViewModel viewModel, @NonNull Context context, @NonNull String username) {
         new AlertDialog.Builder(context)
                 .setIcon(R.drawable.ic_check_circle_black_24dp)
                 .setTitle(context.getString(R.string.assign_spots_dialog_title))
                 .setMessage(context.getString(R.string.assign_spots_dialog_message))
                 .setPositiveButton(context.getString(R.string.general_yes_option), (dialog, which) -> {
-                    viewModel.assignMissingAuthorTo(context, username);
+                    viewModel.assignMissingAuthorTo(username);
                 })
                 .setNegativeButton(context.getString(R.string.general_no_option), (dialog, which) -> {
                 })

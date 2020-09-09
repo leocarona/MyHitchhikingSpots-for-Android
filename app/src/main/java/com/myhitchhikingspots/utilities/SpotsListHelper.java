@@ -336,8 +336,8 @@ public class SpotsListHelper {
      * @returns List where Long is the id of the route's destination spot and a String containing the totals.
      * .get(id_of_the_destination_spot) should give you the totals of that route.
      **/
-    public static Hashtable<Long, String> SumRouteTotalsAndUpdateTheirDestinationNotes(Context context, List<Spot> data) {
-        Hashtable<Long, String> totalsToDestinations = new Hashtable<>();
+    public static Hashtable<String, String> SumRouteTotalsAndUpdateTheirDestinationNotes(Context context, List<Spot> data) {
+        Hashtable<String, String> totalsToDestinations = new Hashtable<>();
         //Integer totalWaitingTimeMinutes = 0;
         Integer totalRides = 0;
         DateTime startDateTime = null;
@@ -370,7 +370,7 @@ public class SpotsListHelper {
                     String formatedStr = String.format(context.getResources().getString(R.string.destination_spot_totals_format),
                             totalRides, waiting_time);
 
-                    totalsToDestinations.put(spot.getId(), formatedStr);
+                    totalsToDestinations.put(spot.getSpotId(), formatedStr);
 
                     //totalWaitingTimeMinutes = 0;
                     totalRides = 0;

@@ -1,55 +1,102 @@
 package com.myhitchhikingspots;
 
 import android.app.Application;
-import android.content.Context;
-import android.database.Cursor;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
-import com.myhitchhikingspots.model.DaoMaster;
+import com.google.firebase.auth.FirebaseAuth;
+import com.myhitchhikingspots.interfaces.ISpotsRepository;
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.persistence.SpotsRepository;
-
-import org.greenrobot.greendao.database.Database;
+import com.myhitchhikingspots.persistence.FirebaseSpotsRepository;
+import com.myhitchhikingspots.persistence.SQLiteSpotsRepository;
 
 import java.util.List;
 
 public class SpotsListViewModel extends AndroidViewModel {
+    private MediatorLiveData<List<Spot>> mSpotsList;
     private MutableLiveData<Spot> mCurrentWaitingSpot;
-    private SpotsRepository mRepository;
+    private ISpotsRepository mRepository;
 
     public SpotsListViewModel(Application context) {
         super(context);
-        mRepository = ((MyHitchhikingSpotsApplication)context).getSpotsRepository();
+        mSpotsList = new MediatorLiveData<>();
+
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        if (mAuth.getUid() == null || mAuth.getUid().isEmpty())
+            useSQLiteRepository();
+        else
+            useFirebaseRepository();
+
+        mAuth.addAuthStateListener(firebaseAuth -> {
+            if (firebaseAuth.getUid() != null && !firebaseAuth.getUid().isEmpty()) {
+                useFirebaseRepository();
+            } else {
+                //User has logged off.
+
+                useSQLiteRepository();
+            }
+        });
     }
 
-    public LiveData<List<Spot>> getSpots(Context context) {
-        LiveData<List<Spot>> spotList = mRepository.getSpots(context);
+    void useSQLiteRepository() {
+        if (mRepository instanceof SQLiteSpotsRepository)
+            return;
 
-        updateWaitingSpot(context);
+        //Stop observing other repository
+        if (mSpotsList != null && mRepository != null)
+            mSpotsList.removeSource(mRepository.getSpots(getApplication()));
 
-        return spotList;
+        //Set repository
+        mRepository = ((MyHitchhikingSpotsApplication) getApplication()).getSQLiteSpotsRepository();
+
+        //Start observing SQLiteRepository
+        mSpotsList.addSource(mRepository.getSpots(getApplication()), this::setSpotListAndWaitingSpot);
+
+        //Load list
+        mRepository.loadSpots(getApplication());
     }
 
-    void updateWaitingSpot(Context context) {
-        LiveData<List<Spot>> spots = mRepository.getSpots(context);
-        if (mCurrentWaitingSpot == null && spots != null && spots.getValue() != null) {
-            mCurrentWaitingSpot = new MutableLiveData<>();
+    void useFirebaseRepository() {
+        if (mRepository instanceof FirebaseSpotsRepository)
+            return;
 
-            Spot waitingSpot = getWaitingSpot(spots.getValue());
-            setCurrentWaitingSpot(waitingSpot);
-        }
+        //Stop observing other repository
+        if (mSpotsList != null && mRepository != null)
+            mSpotsList.removeSource(mRepository.getSpots(getApplication()));
+
+        //Set repository
+        mRepository = ((MyHitchhikingSpotsApplication) getApplication()).getFirebaseSpotsRepository();
+
+        //Start observing FirebaseRepository
+        mSpotsList.addSource(mRepository.getSpots(getApplication()), this::setSpotListAndWaitingSpot);
+
+        //Load list
+        mRepository.loadSpots(getApplication());
     }
 
-    public void reloadSpots(Context context) {
-        mRepository.loadSpots(context);
-        updateWaitingSpot(context);
+    void setSpotListAndWaitingSpot(List<Spot> newList) {
+        mSpotsList.setValue(newList);
+        updateWaitingSpot(newList);
     }
 
-    private Spot getWaitingSpot(List<Spot> spotList) {
+    void updateWaitingSpot(List<Spot> spots) {
+        Spot waitingSpot = getWaitingSpot(spots);
+        setCurrentWaitingSpot(waitingSpot);
+    }
+
+    public LiveData<List<Spot>> getSpots() {
+        return mSpotsList;
+    }
+
+    public void reloadSpots() {
+        mRepository.reloadSpots(getApplication());
+    }
+
+    private Spot getWaitingSpot(@NonNull List<Spot> spotList) {
         Spot spot = null;
         //There should be only one waiting spot, and it should always be at the first position of the list
         // (the list is ordered descending by datetime). But in case some bug has happened and the user
@@ -75,35 +122,27 @@ public class SpotsListViewModel extends AndroidViewModel {
         return mCurrentWaitingSpot;
     }
 
-    /**
-     * TODO: We're keeping the old logic here, but in the future we can avaluate the possibility of
-     * replacing this method for {@link #getSpots(Context)}
-     * because they seem to do the same thing + we'd keep spotlist updated.
-     **/
-    public void loadWaitingSpot(Context context) {
-        Spot waitingSpot = mRepository.getWaitingSpot(context);
-        if (waitingSpot != null)
-            setCurrentWaitingSpot(waitingSpot);
+    public Spot getLastAddedRouteSpot() {
+        return mRepository.getLastAddedRouteSpot(getApplication());
     }
 
-    public Cursor rawQuery(Context context, String sql, String[] selectionArgs) {
-        return mRepository.rawQuery(context, sql, selectionArgs);
+    public void deleteSpots(@NonNull List<String> spotsToBeDeleted_idList) {
+        mRepository.deleteSpots(spotsToBeDeleted_idList, getApplication());
+
+        /*
+        //Because SQLiteRepo won't update the list of spots until we navigate back,
+        //let's update mCurrentWaitingSpot here if needed.
+        if (mRepository instanceof SQLiteSpotsRepository) {
+            Spot mCurrentWaitingSpot = getCurrentWaitingSpot().getValue();
+            boolean isWaitingForARide = mCurrentWaitingSpot != null &&
+                    mCurrentWaitingSpot.getIsWaitingForARide() != null && mCurrentWaitingSpot.getIsWaitingForARide();
+            if (isWaitingForARide && spotsToBeDeleted_idList.contains(mCurrentWaitingSpot.getSpotId()))
+                setCurrentWaitingSpot(null);
+        }*/
     }
 
-    public Spot getLastAddedRouteSpot(Context context) {
-        return mRepository.getLastAddedRouteSpot(context);
-    }
-
-    public void execSQL(Context context, String sqlStatement) {
-        //Get a DB session
-        Database db = DaoMaster.newDevSession(context, Constants.INTERNAL_DB_FILE_NAME).getDatabase();
-
-        //Delete selected spots from DB
-        db.execSQL(sqlStatement);
-    }
-
-    public boolean isAnySpotMissingAuthor(Context context) {
-        return mRepository.isAnySpotMissingAuthor(context);
+    public boolean isAnySpotMissingAuthor() {
+        return mRepository.isAnySpotMissingAuthor(getApplication());
     }
 
     /**
@@ -111,7 +150,7 @@ public class SpotsListViewModel extends AndroidViewModel {
      *
      * @param username The username that the person uses on Hitchwiki.
      */
-    public void assignMissingAuthorTo(Context context, String username) {
-        mRepository.assignMissingAuthorTo(context, username);
+    public void assignMissingAuthorTo(@NonNull String username) {
+        mRepository.assignMissingAuthorTo(getApplication(), FirebaseAuth.getInstance().getUid(), username);
     }
 }

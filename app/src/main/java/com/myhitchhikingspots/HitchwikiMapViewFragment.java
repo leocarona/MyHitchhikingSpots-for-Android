@@ -180,7 +180,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_hitchwiki_maps, container, false);
     }
 
@@ -1323,6 +1323,11 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
         moveCameraToLastKnownLocation(FAVORITE_ZOOM_LEVEL_NOT_INFORMED, null);
     }
 
+    @Override
+    public void updateLastKnownLocation(Location loc) {
+
+    }
+
     /**
      * Move map camera to the last GPS location OR if it's not available,
      * we'll try to move the map camera to the location of the last saved spot.
@@ -1349,7 +1354,7 @@ public class HitchwikiMapViewFragment extends Fragment implements OnMapReadyCall
             moveCameraPositionTo = new LatLng(moveCameraPositionTo);
         } else {
             //The user might still be close to the last spot saved, move the map camera there
-            Spot lastAddedSpot = viewModel.getLastAddedRouteSpot(getContext());
+            Spot lastAddedSpot = viewModel.getLastAddedRouteSpot();
             if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                     && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
                 moveCameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());

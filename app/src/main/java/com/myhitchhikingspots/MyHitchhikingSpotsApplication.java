@@ -7,10 +7,12 @@ import androidx.multidex.MultiDexApplication;
 import com.crashlytics.android.Crashlytics;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.myhitchhikingspots.db.UsuariosRepository;
+import com.myhitchhikingspots.interfaces.ISpotsRepository;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
-import com.myhitchhikingspots.persistence.SpotsRepository;
+import com.myhitchhikingspots.persistence.FirebaseSpotsRepository;
+import com.myhitchhikingspots.persistence.SQLiteSpotsRepository;
 import com.myhitchhikingspots.utilities.Utils;
 
 import java.util.Calendar;
@@ -62,8 +64,12 @@ public class MyHitchhikingSpotsApplication extends MultiDexApplication {
         APIConstants.CODE_CONTINENT_AUSTRALIA = getResources().getString(R.string.continent_code_oceania);
     }
 
-    public SpotsRepository getSpotsRepository() {
-        return SpotsRepository.getInstance();
+    public ISpotsRepository getSQLiteSpotsRepository() {
+        return SQLiteSpotsRepository.getInstance();
+    }
+
+    public ISpotsRepository getFirebaseSpotsRepository() {
+        return FirebaseSpotsRepository.getInstance();
     }
 
     public UsuariosRepository getUsuariosRepository() {

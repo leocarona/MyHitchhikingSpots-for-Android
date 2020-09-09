@@ -40,6 +40,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.crashlytics.android.Crashlytics;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.JsonObject;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineProvider;
@@ -180,20 +181,21 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             PROPERTY_SHOULDHIDE = "shouldHide", PROPERTY_SELECTED = "selected",
             PROPERTY_STARTDATETIME_IN_MILLISECS = "startDateTime";
 
-    MainActivity activity;
-
-    SpotsListViewModel viewModel;
+    WeakReference<MainActivity> activityRef;
+    MainActivityViewModel mainViewModel;
+    SpotsListViewModel spotsViewModel;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        activity = (MainActivity) context;
+        activityRef = new WeakReference<>((MainActivity) context);
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(getActivity()).get(SpotsListViewModel.class);
+        mainViewModel = new ViewModelProvider(requireActivity()).get(MainActivityViewModel.class);
+        spotsViewModel = new ViewModelProvider(requireActivity()).get(SpotsListViewModel.class);
         return inflater.inflate(R.layout.fragment_my_map, container, false);
     }
 
@@ -205,6 +207,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         //mWaitingToGetCurrentLocationTextView = (TextView) findViewById(R.id.waiting_location_textview);
         coordinatorLayout = view.findViewById(R.id.constraintLayout);
+
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
 
         prefs = activity.getSharedPreferences(Constants.PACKAGE_NAME, Context.MODE_PRIVATE);
 
@@ -291,8 +297,6 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
         loadMarkerIcons();
 
-        updateUISaveFABs(getSpotList());
-
         //onMapReady will take care of drawing the spots and routes on the map.
     }
 
@@ -315,6 +319,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
             this.mapboxMap.addOnMapClickListener(this);
 
+            MainActivity activity = activityRef.get();
+            if (activity == null)
+                return;
+
             if (!Utils.isNetworkAvailable(activity) && !Utils.shouldLoadCurrentView(prefs))
                 showInternetUnavailableAlertDialog(getSpotList());
 
@@ -332,7 +340,8 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 enableLocationLayer(style);
 
                 showProgressDialog(getResources().getString(R.string.map_loading_dialog));
-                viewModel.getSpots(getContext()).observe(activity, this::updateUI);
+                spotsViewModel.getSpots().observe(activity, this::updateUI);
+                spotsViewModel.getCurrentWaitingSpot().observe(activity, s -> updateUISaveFABs(getSpotList()));
             }
         });
     }
@@ -380,8 +389,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     void showSnackbar(@NonNull CharSequence text, CharSequence action, View.OnClickListener
             listener) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
+
         String t = "";
-        if (text != null && text.length() > 0)
+        if (text.length() > 0)
             t = text.toString();
         snackbar = Snackbar.make(coordinatorLayout, t.toUpperCase(), Snackbar.LENGTH_LONG)
                 .setAction(action, listener);
@@ -413,6 +426,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void loadMarkerIcons() {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
+
         ic_single_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_route_point_black_24dp, -1);
 
         ic_point_on_the_route_spot = IconUtils.drawableToIcon(activity, R.drawable.ic_point_on_the_route_black_24dp, -1, 0.9, 0.9);
@@ -434,6 +451,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Setup fabSpotAction1 to be a button that allows saving a new spot.
      **/
     private void setupCreateNewSpotFAB() {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         fabSpotAction1.setImageResource(R.drawable.ic_regular_spot_icon);
         fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_regular_spot_color));
         fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_regular_spot_color_lighter));
@@ -444,6 +464,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Setup fabSpotAction1 to be a button that allows updating the current spot to a got a ride type.
      **/
     private void setupGotARideFAB() {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         fabSpotAction1.setImageResource(R.drawable.ic_got_a_ride_spot_icon);
         fabSpotAction1.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_got_a_ride_color));
         fabSpotAction1.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_got_a_ride_color_lighter));
@@ -454,6 +477,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Setup fabSpotAction2 to be a button that allows updating the current spot to a break type.
      **/
     private void setupTakeABreakFAB() {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         fabSpotAction2.setImageResource(R.drawable.ic_break_spot_icon);
         fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_break_color));
         fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_break_color_lighter));
@@ -464,6 +490,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Setup fabSpotAction2 to be a button that allows saving a destination spot.
      **/
     private void setupDestinationFAB() {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         fabSpotAction2.setImageResource(R.drawable.ic_arrival_icon);
         fabSpotAction2.setBackgroundTintList(ContextCompat.getColorStateList(activity.getBaseContext(), R.color.ic_arrival_color));
         fabSpotAction2.setRippleColor(ContextCompat.getColor(activity.getBaseContext(), R.color.ic_arrival_color_lighter));
@@ -525,6 +554,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         Toast.makeText(activity.getBaseContext(), getString(R.string.spot_form_user_location_permission_not_granted), Toast.LENGTH_LONG).show();
     }
 
@@ -537,6 +569,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         if (requestCode == PERMISSIONS_LOCATION) {
             if (locationPermissionsManager != null)
                 locationPermissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -556,6 +591,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * Map camera won't follow location updates by deafult.
      */
     private void setupLocationComponent(@NonNull Style loadedMapStyle) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(activity)) {
 
@@ -590,6 +628,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      */
     @SuppressLint("MissingPermission")
     private void initLocationEngine() {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         locationEngine = LocationEngineProvider.getBestLocationEngine(activity);
 
         LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
@@ -637,6 +678,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * @param feature the feature that was clicked
      */
     private void handleClickCallout(Feature feature) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         //Prevent from handling multiple clicks
         if (isHandlingRequestToOpenSpotForm)
             return;
@@ -646,7 +690,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Spot spot = null;
         for (Spot spot2 :
                 getSpotList()) {
-            String id = spot2.getId().toString();
+            String id = spot2.getSpotId();
             if (id.equals(spotId)) {
                 spot = spot2;
                 break;
@@ -654,12 +698,12 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         }
 
         if (spot != null) {
-            Spot mCurrentWaitingSpot = viewModel.getCurrentWaitingSpot().getValue();
+            Spot mCurrentWaitingSpot = spotsViewModel.getCurrentWaitingSpot().getValue();
 
             //If the user is currently waiting at a spot and the clicked spot is not the one he's waiting at, show a Toast.
             if (mCurrentWaitingSpot != null && mCurrentWaitingSpot.getIsWaitingForARide() != null &&
                     mCurrentWaitingSpot.getIsWaitingForARide()) {
-                if (mCurrentWaitingSpot.getId() == spot.getId())
+                if (mCurrentWaitingSpot.getSpotId() == spot.getSpotId())
                     spot.setAttemptResult(null);
                 else {
                     Resources res = getResources();
@@ -791,16 +835,17 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     @Override
     public void onSpotListChanged() {
         //Reload spots, once completed, sets the spots list which is being observed and calls updateUI.
-        showProgressDialog(getResources().getString(R.string.map_loading_dialog));
-        viewModel.reloadSpots(getContext());
+        //showProgressDialog(getResources().getString(R.string.map_loading_dialog));
+        spotsViewModel.reloadSpots();
     }
 
     public void updateUI(List<Spot> spotList) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         //We want the map camera also updated.
         this.shouldZoomToFitAllMarkers = true;
         this.spotListWasChanged = true;
-
-        updateUISaveFABs(spotList);
 
         //Move map camera to last known location so that if we call zoomOutToFitMostRecentRoute()
         // the map will get nicely zoomed closer once spots list is loaded.
@@ -829,6 +874,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void showInternetUnavailableAlertDialog(List<Spot> spotList) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         new AlertDialog.Builder(activity)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(getResources().getString(R.string.general_network_unavailable_message))
@@ -865,7 +913,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Activity activity = getActivity();
 
         if (activity instanceof MainActivity) {
-            List<Spot> lst = viewModel.getSpots(getContext()).getValue();
+            List<Spot> lst = spotsViewModel.getSpots().getValue();
             if (lst != null) return lst;
         }
 
@@ -877,7 +925,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         Activity activity = getActivity();
 
         if (activity instanceof MainActivity)
-            return viewModel.getCurrentWaitingSpot().getValue();
+            return spotsViewModel.getCurrentWaitingSpot().getValue();
 
         return null;
     }
@@ -885,6 +933,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     private void setupAnnotations
             (ArrayList<Feature> spots, ArrayList<Feature> linesForSubRoutes,
              int numberOfSpotsOnMostRecentRoute) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
+
         //Define the number of spots to be considered when zoomOutToFitMostRecentRoute is called.
         //We want to include at least the spots from the most recent route.
         if (numberOfSpotsOnMostRecentRoute > NUMBER_OF_SPOTS_TO_FIT)
@@ -904,6 +956,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             setupSubRoutesStyleLayer(style);
             //Setup a layer with Android SDK call-outs (title of the feature is used as key for the iconImage)
             setupCalloutLayer(style);
+
 
             try {
                 //Automatically zoom out to fit all markers only the first time that spots are loaded.
@@ -961,6 +1014,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     public void onStart() {
         Crashlytics.log(Log.INFO, TAG, "onStart called");
         super.onStart();
+        //Supposing that user has put app in background, and reopened it once he got to his destination,
+        // let's set isFirstLocationReceived to false so the next location received is updated on Firebase DB.
+        isFirstLocationReceived = false;
         if (mapView != null)
             mapView.onStart();
     }
@@ -1090,6 +1146,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return false;
+
         boolean selectionHandled = false;
 
         switch (item.getItemId()) {
@@ -1188,6 +1248,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
 
     private void showAllRoutesOnMap() {
         if (spotsCollection == null) {
+            MainActivity activity = activityRef.get();
+            if (activity == null)
+                return;
             Toast.makeText(activity, getString(R.string.general_spots_list_not_loaded), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -1341,6 +1404,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void startMyRoutesActivity() {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         Intent intent = new Intent(activity, MyRoutesActivity.class);
         intent.putExtra(Constants.SHOULD_GO_BACK_TO_PREVIOUS_ACTIVITY_KEY, true);
         startActivityForResult(intent, Constants.EDIT_SPOT_REQUEST);
@@ -1458,6 +1524,16 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
         return loc;
     }
 
+    boolean isFirstLocationReceived = false;
+
+    @Override
+    public void updateLastKnownLocation(Location loc) {
+        //if (!isFirstLocationReceived) {
+        mainViewModel.updateLastKnownLocation(FirebaseAuth.getInstance().getUid(), loc);
+        isFirstLocationReceived = true;
+        //}
+    }
+
     int FAVORITE_ZOOM_LEVEL_NOT_INFORMED = -1;
 
     @Override
@@ -1494,7 +1570,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             cameraPositionTo = new LatLng(loc);
         } else {
             //Set start position for map camera: set it to the last spot saved
-            Spot lastAddedSpot = viewModel.getLastAddedRouteSpot(getContext());
+            Spot lastAddedSpot = spotsViewModel.getLastAddedRouteSpot();
             if (lastAddedSpot != null && lastAddedSpot.getLatitude() != null && lastAddedSpot.getLongitude() != null
                     && lastAddedSpot.getLatitude() != 0.0 && lastAddedSpot.getLongitude() != 0.0) {
                 cameraPositionTo = new LatLng(lastAddedSpot.getLatitude(), lastAddedSpot.getLongitude());
@@ -1522,6 +1598,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private void showProgressDialog(String message) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         if (loadingDialog == null) {
             loadingDialog = new ProgressDialog(activity);
             loadingDialog.setIndeterminate(true);
@@ -1562,43 +1641,48 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             if (activity == null)
                 return false;
 
-            Hashtable<Long, String> totalsToDestinations = SpotsListHelper.SumRouteTotalsAndUpdateTheirDestinationNotes(activity.getContext(), Arrays.asList(spotList));
-            List<Route> routes = new ArrayList<>();
-            List<Spot> singleSpots = new ArrayList<>();
+            try {
+                Hashtable<String, String> totalsToDestinations = SpotsListHelper.SumRouteTotalsAndUpdateTheirDestinationNotes(activity.getContext(), Arrays.asList(spotList));
+                List<Route> routes = new ArrayList<>();
+                List<Spot> singleSpots = new ArrayList<>();
 
-            List<Spot> inverseList = new ArrayList<>();
-            for (int i = spotList.length - 1; i >= 0; i--) {
-                inverseList.add(spotList[i]);
-            }
-
-            Utils.parseDBSpotList(inverseList, routes, singleSpots);
-
-            if (routes.size() > 0)
-                numberOfSpotsOnMostRecentRoute = routes.get(routes.size() - 1).spots.size();
-
-            //Convert every spot that belong to no route (a.k.a single spot) into a Feature with properties
-            for (int j = 0; j < singleSpots.size(); j++) {
-                spotsListAsFeatures.add(GetFeature(singleSpots.get(j), 0, false, "", activityRef));
-            }
-
-            for (int i = 0; i < routes.size(); i++) {
-                Route r = routes.get(i);
-
-                //Convert every spot that belong to a route into a Feature with properties
-                for (int j = 0; j < r.spots.size(); j++) {
-                    Spot s = r.spots.get(j);
-                    spotsListAsFeatures.add(GetFeature(s, i, (j == 0), totalsToDestinations.get(s.getId()), activityRef));
+                List<Spot> inverseList = new ArrayList<>();
+                for (int i = spotList.length - 1; i >= 0; i--) {
+                    inverseList.add(spotList[i]);
                 }
 
-                //Convert every SubRoute into a LineString with properties (color, style and routeIndex)
-                for (SubRoute sr : r.subRoutes) {
-                    // Create the LineString from the list of coordinates and then make a GeoJSON
-                    // FeatureCollection so we can add the line to our map as a layer.
-                    linesForSubRoutes.add(getLineFeature(sr, i));
-                }
-            }
+                Utils.parseDBSpotList(inverseList, routes, singleSpots);
 
-            return true;
+                if (routes.size() > 0)
+                    numberOfSpotsOnMostRecentRoute = routes.get(routes.size() - 1).spots.size();
+
+                //Convert every spot that belong to no route (a.k.a single spot) into a Feature with properties
+                for (int j = 0; j < singleSpots.size(); j++) {
+                    spotsListAsFeatures.add(GetFeature(singleSpots.get(j), 0, false, "", activityRef));
+                }
+
+                for (int i = 0; i < routes.size(); i++) {
+                    Route r = routes.get(i);
+
+                    //Convert every spot that belong to a route into a Feature with properties
+                    for (int j = 0; j < r.spots.size(); j++) {
+                        Spot s = r.spots.get(j);
+                        spotsListAsFeatures.add(GetFeature(s, i, (j == 0), totalsToDestinations.get(s.getSpotId()), activityRef));
+                    }
+
+                    //Convert every SubRoute into a LineString with properties (color, style and routeIndex)
+                    for (SubRoute sr : r.subRoutes) {
+                        // Create the LineString from the list of coordinates and then make a GeoJSON
+                        // FeatureCollection so we can add the line to our map as a layer.
+                        linesForSubRoutes.add(getLineFeature(sr, i));
+                    }
+                }
+
+                return true;
+            } catch (Exception ex) {
+                Crashlytics.logException(ex);
+            }
+            return false;
         }
 
         @NonNull
@@ -1623,7 +1707,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     spot.getWaitingTime() != null) {
                 if (!snippet.isEmpty())
                     snippet += secondSeparator;
-                snippet += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), activity.activity.getBaseContext()) + ")";
+                snippet += "(" + Utils.getWaitingTimeAsString(spot.getWaitingTime(), activity.getContext()) + ")";
             }
 
             //Add note
@@ -1655,7 +1739,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                 return null;
 
             LatLng pos = new LatLng(spot.getLatitude(), spot.getLongitude());
-            String tag = spot.getId() != null ? spot.getId().toString() : "";
+            String tag = spot.getSpotId() != null ? spot.getSpotId() : "";
             String snippet = getSnippet(activity, spot, "\n", " ", "\n");
 
             if (spot.getIsDestination() != null && spot.getIsDestination())
@@ -1726,7 +1810,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                             case Constants.ATTEMPT_RESULT_GOT_A_RIDE:
                                 //The spot is a hitchhiking spot that was already evaluated
                                 icon = activity.getGotARideIconForRoute(routeIndex).getId();
-                                markerTitle = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                                markerTitle = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
                                 break;
                             case Constants.ATTEMPT_RESULT_TOOK_A_BREAK:
                                 //The spot is a hitchhiking spot that was already evaluated
@@ -1762,7 +1846,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
                     if (spot.getAttemptResult() == null)
                         markerTitle = activity.getString(R.string.map_infoview_spot_type_unknown_attempt_result);
                     else
-                        markerTitle = Utils.getRatingOrDefaultAsString(activity.activity.getBaseContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
+                        markerTitle = Utils.getRatingOrDefaultAsString(activity.getContext(), spot.getHitchability() != null ? spot.getHitchability() : 0);
 
                     icon = activity.ic_single_spot.getId();
                     type = Constants.SPOT_TYPE_SINGLE_SPOT;
@@ -1807,7 +1891,7 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
             MyMapsFragment activity = activityRef.get();
             if (activity != null) {
                 HashMap<String, Bitmap> imagesMap = new HashMap<>();
-                LayoutInflater inflater = LayoutInflater.from(activity.activity);
+                LayoutInflater inflater = LayoutInflater.from(activity.getContext());
 
                 View view = inflater.inflate(R.layout.layout_callout, null);
 
@@ -1886,6 +1970,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     protected void showErrorAlert(String title, String msg) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
         new AlertDialog.Builder(activity)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setTitle(title)
@@ -2005,6 +2092,10 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      * updates have already been requested.
      */
     public void saveSpotButtonHandler(boolean isDestination) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
+
         double cameraZoom = -1;
         Spot spot = null;
         int requestId = -1;
@@ -2053,6 +2144,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
      */
     public void evaluateSpotButtonHandler() {
         //mCurrentWaitingSpot.setHitchability(findTheOpposit(Math.round(hitchability_ratingbar.getRating())));
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return;
 
         if (isWaitingForARide()) {
             isHandlingRequestToOpenSpotForm = true;
@@ -2091,6 +2185,9 @@ public class MyMapsFragment extends Fragment implements OnMapReadyCallback, Perm
     }
 
     private ColorStateList getIdentifierColorStateList(int routeIndex) {
+        MainActivity activity = activityRef.get();
+        if (activity == null)
+            return null;
         return ContextCompat.getColorStateList(activity.getBaseContext(), getPolylineColorAsId(routeIndex));
     }
 

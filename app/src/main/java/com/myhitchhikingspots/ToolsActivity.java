@@ -3,7 +3,6 @@ package com.myhitchhikingspots;
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,11 +11,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -38,7 +35,6 @@ import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.myhitchhikingspots.interfaces.AsyncTaskListener;
-import com.myhitchhikingspots.model.SpotDao;
 import com.myhitchhikingspots.utilities.DatabaseExporter;
 import com.myhitchhikingspots.utilities.DatabaseImporter;
 import com.myhitchhikingspots.utilities.FilePickerDialog;
@@ -49,16 +45,10 @@ import org.joda.time.DateTimeZone;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 
@@ -386,7 +376,7 @@ public class ToolsActivity extends AppCompatActivity {
                 .setTitle(dialogTitle)
                 .setMessage(dialogMessage)
                 .setNeutralButton(getString(R.string.general_ok_option), (d, i) -> {
-                    if (viewModel.isAnySpotMissingAuthor(this))
+                    if (viewModel.isAnySpotMissingAuthor())
                         MainActivity.tryAssignAuthorToSpots(viewModel, this);
                 })
                 .show();
@@ -504,12 +494,8 @@ public class ToolsActivity extends AppCompatActivity {
                 }
             });
 
-            SpotsListViewModel viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
-            Cursor curCSV = viewModel.rawQuery(this, "select * from " + SpotDao.TABLENAME, null);
-
-            t.execute(curCSV);
-
-            viewModel.loadWaitingSpot(this);
+            //SpotsListViewModel viewModel = new ViewModelProvider(this).get(SpotsListViewModel.class);
+            //viewModel.reloadSpots();
 
         } catch (Exception e) {
             Crashlytics.logException(e);

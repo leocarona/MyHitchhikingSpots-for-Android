@@ -72,19 +72,27 @@ public class UsuariosRepository {
         return mUsuario;
     }
 
-    public String addNewUsuario() {
+    public void setRegisteredSinceIfUnset(@NonNull String usuarioId) {
+        if (usuarioId.isEmpty())
+            return;
+
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference(Constants.FIREBASE_DATABASE_USUARIOS_PATH);
+        DatabaseReference myRef = database.getReference(Constants.FIREBASE_DATABASE_USUARIOS_PATH)
+                .child(usuarioId).child(Constants.FIREBASE_DATABASE_USUARIO_REGISTERED_SINCE_PATH);
 
-        DatabaseReference usuarioRef = myRef.push();
-        String usuarioId = usuarioRef.getKey();
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String registeredSince = dataSnapshot.getValue(String.class);
+                if(registeredSince == null || registeredSince.isEmpty())
+                   myRef.setValue(DateTime.now().toString());
+            }
 
-        if (usuarioId != null) {
-            myRef.child(usuarioId).child(Constants.FIREBASE_DATABASE_USUARIO_ID_PATH).setValue(usuarioId);
-            myRef.child(usuarioId).child(Constants.FIREBASE_DATABASE_USUARIO_REGISTERED_SINCE_PATH).setValue(DateTime.now().toString());
-        }
-
-        return usuarioId;
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                myRef.setValue(DateTime.now().toString());
+            }
+        });
     }
 
     public void replaceUserKey(@NonNull String usuarioId, @NonNull String newUsuarioId) {
@@ -106,12 +114,11 @@ public class UsuariosRepository {
         });
     }
 
-    public void updateLastAccessAt(@NonNull String usuarioId, @NonNull String firebaseLoginId) {
+    public void updateLastAccessAt(@NonNull String usuarioId) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference(Constants.FIREBASE_DATABASE_USUARIOS_PATH);
 
-        myRef.child(usuarioId).child(Constants.FIREBASE_DATABASE_USUARIO_LAST_FB_ACCESS_AT_PATH).setValue(DateTime.now().toString());
-        myRef.child(usuarioId).child(Constants.FIREBASE_DATABASE_USUARIO_LAST_FB_LOGIN_ID_PATH).setValue(firebaseLoginId);
+        myRef.child(usuarioId).child(Constants.FIREBASE_DATABASE_USUARIO_LAST_ACCESS_AT_PATH).setValue(DateTime.now().toString());
     }
 
     public void updateLastHWLoginAt(@NonNull String usuarioId) {
