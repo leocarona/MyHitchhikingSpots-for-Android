@@ -148,6 +148,6 @@ public class SpotsListViewModel extends AndroidViewModel {
      * @param username The username that the person uses on Hitchwiki.
      */
     public void assignMissingAuthorTo(@NonNull String username) {
-        mRepository.assignMissingAuthorTo(getApplication(), FirebaseAuth.getInstance().getUid(), username);
+        mRepository.assignMissingAuthorTo(getApplication(), username);
     }
 }

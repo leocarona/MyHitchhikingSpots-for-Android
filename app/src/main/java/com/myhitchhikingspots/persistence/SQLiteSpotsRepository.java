@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
 import com.myhitchhikingspots.interfaces.IInsertOrReplaceEventListener;
 import com.myhitchhikingspots.interfaces.ISpotsRepository;
@@ -17,10 +16,8 @@ import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.model.SpotDao;
-import com.myhitchhikingspots.utilities.Utils;
 
 import org.greenrobot.greendao.database.Database;
-import org.joda.time.DateTime;
 
 import java.util.List;
 
@@ -163,13 +160,13 @@ public class SQLiteSpotsRepository implements ISpotsRepository {
      *
      * @param username The username that the person uses on Hitchwiki.
      */
-    public void assignMissingAuthorTo(@Nullable Context context, @Nullable String userId, @NonNull String username) {
+    public void assignMissingAuthorTo(@Nullable Context context, @NonNull String username) {
         DaoSession daoSession = getDaoSession(context);
         String sqlUpdateAuthorStatement = "UPDATE %1$s SET %2$s = '%3$s' WHERE %2$s IS NULL OR %2$s = ''";
         //Get a DB session
         Database db = daoSession.getDatabase();
 
-        //Delete selected spots from DB
+        //Update spots on DB
         db.execSQL(String.format(sqlUpdateAuthorStatement,
                 SpotDao.TABLENAME,
                 SpotDao.Properties.AuthorUserName.columnName,

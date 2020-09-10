@@ -31,5 +31,5 @@ public interface ISpotsRepository {
 
     boolean isAnySpotMissingAuthor(@Nullable Context context);
 
-    void assignMissingAuthorTo(@Nullable Context context, @Nullable String userId, @NonNull String username);
+    void assignMissingAuthorTo(@Nullable Context context, @NonNull String username);
 }

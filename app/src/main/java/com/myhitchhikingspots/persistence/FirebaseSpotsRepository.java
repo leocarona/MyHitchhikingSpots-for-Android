@@ -237,8 +237,7 @@ public class FirebaseSpotsRepository implements ISpotsRepository {
      *
      * @param username The username that the person uses on Hitchwiki.
      */
-    public void assignMissingAuthorTo(@Nullable Context context, @Nullable String userId, @NonNull String username) {
-        throw new java.lang.UnsupportedOperationException("Not supported yet.");
+    public void assignMissingAuthorTo(@Nullable Context context, @NonNull String username) {
 
         //Query all spots that belong to the current user which don't have a username set. Then update them on the database.
 
