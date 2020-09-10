@@ -9,7 +9,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import com.crashlytics.android.Crashlytics;
-import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.myhitchhikingspots.db.UsuariosRepository;
 import com.myhitchhikingspots.model.Usuario;
 
@@ -29,8 +29,10 @@ public class MainActivityViewModel extends AndroidViewModel {
         usuariosRepository.setRegisteredSinceIfUnset(usuarioId);
     }
 
-    Task<Void> updateHwUsername(@NonNull String usuarioId, @NonNull String username) {
-        return usuariosRepository.updateHwUsername(usuarioId, username);
+    void updateHwUsername(@NonNull String username) {
+        if (FirebaseAuth.getInstance().getUid() == null)
+            return;
+        usuariosRepository.updateHwUsername(FirebaseAuth.getInstance().getUid(), username);
     }
 
     void updateLastAccessAt(@NonNull String usuarioId) {
@@ -65,11 +67,11 @@ public class MainActivityViewModel extends AndroidViewModel {
         usuariosRepository.updateToken(usuarioId, newToken);
     }
 
-    void subscribeTo(String usuarioId) {
+    void subscribeTo(@NonNull String usuarioId) {
         usuariosRepository.subscribeTo(usuarioId);
     }
 
-    void unsubscribeFrom(String usuarioId) {
+    void unsubscribeFrom(@NonNull String usuarioId) {
         usuariosRepository.unsubscribeFrom(usuarioId);
     }
 

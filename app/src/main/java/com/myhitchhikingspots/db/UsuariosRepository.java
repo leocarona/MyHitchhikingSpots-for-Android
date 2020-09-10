@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -53,7 +53,7 @@ public class UsuariosRepository {
         }
     };
 
-    public void subscribeTo(String usuarioId) {
+    public void subscribeTo(@NonNull String usuarioId) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference(Constants.FIREBASE_DATABASE_USUARIOS_PATH).child(usuarioId);
 
@@ -61,7 +61,7 @@ public class UsuariosRepository {
         myRef.addValueEventListener(eventListener);
     }
 
-    public void unsubscribeFrom(String usuarioId) {
+    public void unsubscribeFrom(@NonNull String usuarioId) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference(Constants.FIREBASE_DATABASE_USUARIOS_PATH).child(usuarioId);
 
@@ -84,8 +84,8 @@ public class UsuariosRepository {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 String registeredSince = dataSnapshot.getValue(String.class);
-                if(registeredSince == null || registeredSince.isEmpty())
-                   myRef.setValue(DateTime.now().toString());
+                if (registeredSince == null || registeredSince.isEmpty())
+                    myRef.setValue(DateTime.now().toString());
             }
 
             @Override
@@ -128,19 +128,19 @@ public class UsuariosRepository {
         myRef.child(usuarioId).child(Constants.FIREBASE_DATABASE_USUARIO_HW_LOGIN_AT_PATH).setValue(DateTime.now().toString());
     }
 
-    public Task<Void> updateHwUsername(@NonNull String usuarioId, @NonNull String username) {
+    public void updateHwUsername(@NonNull String usuarioId, @NonNull String username) {
         Map<String, Object> map = new HashMap<>();
         map.put(Constants.FIREBASE_DATABASE_USUARIO_HW_USERNAME_PATH, username);
         map.put(Constants.FIREBASE_DATABASE_USUARIO_HW_LOGIN_AT_PATH, DateTime.now().toString());
 
-        return updateChildren(usuarioId, map);
+        updateChildren(usuarioId, map);
     }
 
-    private Task<Void> updateChildren(@NonNull String usuarioId, @NonNull Map<String, Object> map) {
+    private void updateChildren(@NonNull String usuarioId, @NonNull Map<String, Object> map) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference(Constants.FIREBASE_DATABASE_USUARIOS_PATH);
 
-        return myRef.child(usuarioId).updateChildren(map);
+        myRef.child(usuarioId).updateChildren(map);
     }
 
     public void updateToken(@NonNull String usuarioId, @NonNull String newToken) {

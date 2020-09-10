@@ -791,7 +791,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    void tryLogin(String logintoken, String username, String password) {
+    void tryLogin(@NonNull String logintoken, @NonNull String username, @NonNull String password) {
         if (!Utils.isNetworkAvailable(this)) {
             showErrorAlert(getString(R.string.general_internet_unavailable_title), getString(R.string.general_network_unavailable_message));
             return;
@@ -799,9 +799,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tryLoginOnHitchwiki(logintoken, username, password);
     }
 
-    void tryLoginOnHitchwiki(String logintoken, String username, String password) {
-        if (logintoken == null) return;
-
+    void tryLoginOnHitchwiki(@NonNull String logintoken, @NonNull String username, @NonNull String password) {
         // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(this);
 
@@ -838,12 +836,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         queue.add(jsonObjectRequest);
     }
 
-    private void onHWLoginSucceeded(String username) {
+    private void onHWLoginSucceeded(@NonNull String username) {
         //Update Hitchwiki Username before showing success message.
-        if (FirebaseAuth.getInstance().getUid() != null) {
-            mainViewModel.updateHwUsername(FirebaseAuth.getInstance().getUid(), username)
-                    .addOnSuccessListener(s -> showSuccessAndTryAssignAuthorDialog(getString(R.string.general_welcome_user, username)));
-            return;
+        if (!username.isEmpty()) {
+            mainViewModel.updateHwUsername(username);
         }
 
         showSuccessAndTryAssignAuthorDialog(getString(R.string.general_welcome_user, username));
@@ -889,7 +885,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (Utils.isNetworkAvailable(this))
             tryLogoutOnHitchwiki();*/
 
-        mainViewModel.unsubscribeFrom(FirebaseAuth.getInstance().getUid());
+        if (FirebaseAuth.getInstance().getUid() != null)
+            mainViewModel.unsubscribeFrom(FirebaseAuth.getInstance().getUid());
 
         //Log out from firebase
         firebaseAuthSignOut();
