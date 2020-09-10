@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 public class FirebaseSpotsRepository implements ISpotsRepository {
 
@@ -149,8 +148,7 @@ public class FirebaseSpotsRepository implements ISpotsRepository {
                         Spot spot = ds.getValue(Spot.class);
                         if (spot == null)
                             continue;
-                        String spotId = getSpotIdOrNewRandomUUID(spot);
-                        lst.put(spotId, spot);
+                        lst.put(ds.getKey(), spot);
                     }
 
                     for (Spot spot : newSpots) {
@@ -184,16 +182,6 @@ public class FirebaseSpotsRepository implements ISpotsRepository {
             }
         });
     }
-
-    String getSpotIdOrNewRandomUUID(Spot spot) {
-        String spotId = spot.getSpotId();
-        if (spotId == null && spot.getId() != null)
-            spotId = spot.getId().toString();
-        if (spotId == null || spotId.isEmpty())
-            spotId = UUID.randomUUID().toString();
-        return spotId;
-    }
-
 
     private void insertOrReplace(DatabaseReference myRef, @NonNull Spot spot) throws Exception {
         String spotId = null;
