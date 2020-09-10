@@ -238,12 +238,46 @@ public class FirebaseSpotsRepository implements ISpotsRepository {
      * @param username The username that the person uses on Hitchwiki.
      */
     public void assignMissingAuthorTo(@Nullable Context context, @NonNull String username) {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference(Constants.FIREBASE_DATABASE_SPOTS_PATH).child(getUserId());
 
-        //Query all spots that belong to the current user which don't have a username set. Then update them on the database.
+        /*
+        NOTE:
+        If we just call spots.addAll(newSpots) here, it is possible that spots hasn't been loaded yet.
+        To prevent that, we're retrieving the spots list from the database first.
+        Also, note that we're assuming that the user has not edited their spots list on another device.
+        Should we consider the possibility of the spots list be edited somewhere else and that
+         we receive cached data here (instead of receiving the updated list), then this code here should be bigger and
+         more complex.
+        As of now, we opted to not prevent that possible scenario as the chances seem very small.
+        */
 
-        /*FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference(Constants.FIREBASE_DATABASE_SPOTS_PATH).child(userId);
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                try {
+                    HashMap<String, Spot> lst = new HashMap<>();
 
-        myRef.setValue(spots);*/
+                    //Set AuthorUserName only for spots missing it
+                    for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                        Spot spot = ds.getValue(Spot.class);
+                        if (spot == null || username.equals(spot.getAuthorUserName()))
+                            continue;
+                        spot.setAuthorUserName(username);
+                        lst.put(ds.getKey(), spot);
+                    }
+
+                    myRef.setValue(lst);
+
+                } catch (Exception ex) {
+                    Crashlytics.logException(ex);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Crashlytics.logException(databaseError.toException());
+            }
+        });
     }
 }
