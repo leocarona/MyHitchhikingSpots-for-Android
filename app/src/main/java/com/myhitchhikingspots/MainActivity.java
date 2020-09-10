@@ -41,9 +41,9 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.myhitchhikingspots.interfaces.IInsertOrReplaceEventListener;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.persistence.FirebaseSpotsRepository;
-import com.myhitchhikingspots.interfaces.IInsertOrReplaceEventListener;
 import com.myhitchhikingspots.persistence.SQLiteSpotsRepository;
 import com.myhitchhikingspots.utilities.Utils;
 
@@ -130,8 +130,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mainViewModel.getUsuario().observe(this, u -> {
             //User is logged in if:
             // the last firebase login id and the user's HW username match the values we have stored locally.
-            if (u.hwUsername != null && !u.hwUsername.isEmpty())
+            if (u.hwUsername != null && !u.hwUsername.isEmpty()) {
+                Utils.setHwUsername(getApplication(), u.hwUsername);
                 setWelcomeUserMessage(u.hwUsername);
+            }
         });
 
         // Set a Toolbar to replace the ActionBar.
@@ -783,6 +785,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         alert.setPositiveButton(getString(R.string.general_log_in_label), (d, w) -> {
             String user = etUsername.getText().toString();
             String pass = etPassword.getText().toString();
+            if (user.isEmpty() || pass.isEmpty()) {
+                showErrorAlert("Invalid credentials", "Please enter your Hitchwiki username and password.");
+                return;
+            }
+
             tryLogin(logintoken, user, pass);
         });
 
@@ -810,9 +817,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                         if (responseObj.has("error"))
                             showErrorAlert(getString(R.string.general_error_dialog_title), responseObj.getJSONObject("error").getString("info"));
-                        else if (responseObj.getJSONObject("clientlogin").getString("status").equals("PASS")) {
+                        else if (responseObj.getJSONObject("clientlogin").getString("status").equals("PASS"))
                             onHWLoginSucceeded(username);
-                        }
                     } catch (Exception ex) {
                         showErrorAlert(getString(R.string.general_error_dialog_title), ex.getLocalizedMessage());
                     }
@@ -836,13 +842,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         queue.add(jsonObjectRequest);
     }
 
+    //Show Hitchwiki login success message and try to update username.
     private void onHWLoginSucceeded(@NonNull String username) {
-        //Update Hitchwiki Username before showing success message.
         if (!username.isEmpty()) {
             mainViewModel.updateHwUsername(username);
         }
 
-        showSuccessAndTryAssignAuthorDialog(getString(R.string.general_welcome_user, username));
+        //Show logged in successfully
+        new AlertDialog.Builder(this)
+                .setIcon(R.drawable.ic_check_circle_black_24dp)
+                .setTitle(getString(R.string.login_succeeded))
+                .setMessage(getString(R.string.general_welcome_user, username))
+                .setNeutralButton(getString(R.string.general_ok_option), (d, i) -> {
+                    //Try to assign author's username if needed
+                    if (!username.isEmpty() && spotsViewModel.isAnySpotMissingAuthor())
+                        tryAssignAuthorToSpots(spotsViewModel, username, this);
+                })
+                .show();
     }
 
     private void logInOnFirebase() {
@@ -906,18 +922,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });*/
     }
 
-    public void showSuccessAndTryAssignAuthorDialog(String dialogMessage) {
-        new AlertDialog.Builder(this)
-                .setIcon(R.drawable.ic_check_circle_black_24dp)
-                .setTitle(getString(R.string.login_succeeded))
-                .setMessage(dialogMessage)
-                .setNeutralButton(getString(R.string.general_ok_option), (d, i) -> {
-                    if (spotsViewModel.isAnySpotMissingAuthor())
-                        tryAssignAuthorToSpots(spotsViewModel, this);
-                })
-                .show();
-    }
-
     private void tryLogoutFromHitchwiki() {
         String logintoken = (prefs == null) ? null : prefs.getString(Constants.PREFS_HITCHWIKI_LOGIN_TOKEN, null);
         if (logintoken == null) return;
@@ -952,14 +956,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         queue.add(jsonObjectRequest);
     }
 
-    public static void tryAssignAuthorToSpots(SpotsListViewModel viewModel, @NonNull Context context) {
-        String userId = FirebaseAuth.getInstance().getUid();
-        if (userId == null)
-            return;
-        showShouldAssignSpotsMissingAuthorToUserDialog(viewModel, context, userId);
-    }
-
-    private static void showShouldAssignSpotsMissingAuthorToUserDialog(SpotsListViewModel viewModel, @NonNull Context context, @NonNull String username) {
+    public static void tryAssignAuthorToSpots(SpotsListViewModel viewModel, @NonNull String username, @NonNull Context context) {
         new AlertDialog.Builder(context)
                 .setIcon(R.drawable.ic_check_circle_black_24dp)
                 .setTitle(context.getString(R.string.assign_spots_dialog_title))

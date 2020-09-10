@@ -14,10 +14,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -354,7 +352,7 @@ public class ToolsActivity extends AppCompatActivity {
                     //Create a record to track database import
                     Answers.getInstance().logCustom(new CustomEvent(eventName));
 
-                    showSuccessAndTryAssignAuthorDialog(getString(R.string.general_import_finished_successful_message), TextUtils.join("\n", messages));
+                    onImportSpotsSucceeded(TextUtils.join("\n", messages));
                 } else {
                     Answers.getInstance().logCustom(new CustomEvent("Database import failed"));
 
@@ -370,14 +368,18 @@ public class ToolsActivity extends AppCompatActivity {
         t.execute(); //execute asyncTask to import data into database from selected file.
     }
 
-    public void showSuccessAndTryAssignAuthorDialog(String dialogTitle, String dialogMessage) {
+    //Show import success message and try to update username.
+    public void onImportSpotsSucceeded(String dialogMessage) {
+        //Show spots imported successfully
         new AlertDialog.Builder(this)
                 .setIcon(R.drawable.ic_check_circle_black_24dp)
-                .setTitle(dialogTitle)
+                .setTitle(getString(R.string.general_import_finished_successful_message))
                 .setMessage(dialogMessage)
                 .setNeutralButton(getString(R.string.general_ok_option), (d, i) -> {
-                    if (viewModel.isAnySpotMissingAuthor())
-                        MainActivity.tryAssignAuthorToSpots(viewModel, this);
+                    //Try to assign author's username if needed
+                    String username = Utils.getHwUsername(this);
+                    if (username != null && !username.isEmpty() && viewModel.isAnySpotMissingAuthor())
+                        MainActivity.tryAssignAuthorToSpots(viewModel, username, this);
                 })
                 .show();
     }
