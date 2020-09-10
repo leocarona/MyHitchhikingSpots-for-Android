@@ -99,20 +99,6 @@ public class FirebaseSpotsRepository implements ISpotsRepository {
         spots.setValue(spotList);
     }
 
-    public Spot getWaitingSpot(@Nullable Context context) {
-        Spot spot = null;
-        //There should be only one waiting spot, and it should always be at the first position of the list
-        // (the list is ordered descending by datetime). But in case some bug has happened and the user
-        // has a waiting spot at a different position, let's go through the list.
-        for (Spot s : spots.getValue()) {
-            if (s.getIsWaitingForARide() != null && s.getIsWaitingForARide()) {
-                spot = s;
-                break;
-            }
-        }
-        return spot;
-    }
-
     public Spot getLastAddedRouteSpot(@Nullable Context context) {
         Spot res = null;
         for (Spot s : spots.getValue()) {

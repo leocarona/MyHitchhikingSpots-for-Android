@@ -17,8 +17,6 @@ public interface ISpotsRepository {
 
     void reloadSpots(@Nullable Context context);
 
-    Spot getWaitingSpot(@Nullable Context context);
-
     Spot getLastAddedRouteSpot(@Nullable Context context);
 
     void insertOrReplace(@Nullable Context context, @NonNull Spot spot) throws Exception;

@@ -28,6 +28,7 @@ public class SQLiteSpotsRepository implements ISpotsRepository {
 
     private MutableLiveData<List<Spot>> spots;
     private static SQLiteSpotsRepository sInstance;
+    boolean isSpotsLisFirsttLoaded = false;
 
     public static SQLiteSpotsRepository getInstance() {
         if (sInstance == null) {
@@ -39,8 +40,6 @@ public class SQLiteSpotsRepository implements ISpotsRepository {
         }
         return sInstance;
     }
-
-    boolean isSpotsLisFirsttLoaded = false;
 
     SQLiteSpotsRepository() {
         spots = new MutableLiveData<>();
@@ -78,21 +77,6 @@ public class SQLiteSpotsRepository implements ISpotsRepository {
         spots.setValue(spotList);
     }
 
-    public Spot getWaitingSpot(@Nullable Context context) {
-        DaoSession daoSession = getDaoSession(context);
-
-        SpotDao spotDao = daoSession.getSpotDao();
-        List<Spot> areWaitingForARide = spotDao.queryBuilder().where(SpotDao.Properties.IsHitchhikingSpot.eq(true), SpotDao.Properties.IsWaitingForARide.eq(true))
-                .orderDesc(SpotDao.Properties.StartDateTime).list();
-
-        if (areWaitingForARide.size() > 1)
-            Crashlytics.logException(new Exception("Error at: LoadCurrentWaitingSpot. More than 1 spot was found with IsWaitingForARide set to true! This should never happen - Please be aware of this."));
-        if (areWaitingForARide.size() >= 1)
-            return areWaitingForARide.get(0);
-
-        return null;
-    }
-
     public Spot getLastAddedRouteSpot(@Nullable Context context) {
         DaoSession daoSession = getDaoSession(context);
 
@@ -101,30 +85,6 @@ public class SQLiteSpotsRepository implements ISpotsRepository {
         return spotDao.queryBuilder()
                 .where(SpotDao.Properties.IsPartOfARoute.eq(true))
                 .orderDesc(SpotDao.Properties.StartDateTime).limit(1).unique();
-    }
-
-    public void fixSpotsStartDateTime(Context context, List<Spot> spotList, Spot currentWaitingSpot) {
-        for (Spot s : spotList) {
-            DateTime fixedDateTime = Utils.fixDateTime(s.getStartDateTimeMillis());
-            s.setStartDateTime(fixedDateTime);
-        }
-
-        if (currentWaitingSpot != null) {
-            DateTime fixedDateTime = Utils.fixDateTime(currentWaitingSpot.getStartDateTimeMillis());
-            currentWaitingSpot.setStartDateTime(fixedDateTime);
-        }
-
-        updateInTx(context, spotList);
-    }
-
-    public void updateInTx(Context context, List<Spot> spotList) {
-        DaoSession daoSession = getDaoSession(context);
-
-        SpotDao spotDao = daoSession.getSpotDao();
-        spotDao.updateInTx(spotList);
-
-        //TODO: Check whether it's good idea to sync spots list here
-        loadSpots(context);
     }
 
     public void insertOrReplace(@Nullable Context context, @NonNull Spot spot) {

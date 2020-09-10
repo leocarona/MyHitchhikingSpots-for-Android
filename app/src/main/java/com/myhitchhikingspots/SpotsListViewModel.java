@@ -98,9 +98,6 @@ public class SpotsListViewModel extends AndroidViewModel {
 
     private Spot getWaitingSpot(@NonNull List<Spot> spotList) {
         Spot spot = null;
-        //There should be only one waiting spot, and it should always be at the first position of the list
-        // (the list is ordered descending by datetime). But in case some bug has happened and the user
-        // has a waiting spot at a different position, let's go through the list.
         for (Spot s : spotList) {
             if (s.getIsWaitingForARide() != null && s.getIsWaitingForARide()) {
                 spot = s;
