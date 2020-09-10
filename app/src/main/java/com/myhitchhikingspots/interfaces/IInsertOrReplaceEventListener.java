@@ -1,4 +1,4 @@
-package com.myhitchhikingspots.persistence;
+package com.myhitchhikingspots.interfaces;
 
 import androidx.annotation.NonNull;
 

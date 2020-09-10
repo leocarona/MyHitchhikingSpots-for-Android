@@ -7,7 +7,6 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 
 import com.myhitchhikingspots.model.Spot;
-import com.myhitchhikingspots.persistence.IInsertOrReplaceEventListener;
 
 import java.util.List;
 

@@ -11,6 +11,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.crashlytics.android.Crashlytics;
 import com.myhitchhikingspots.Constants;
+import com.myhitchhikingspots.interfaces.IInsertOrReplaceEventListener;
 import com.myhitchhikingspots.interfaces.ISpotsRepository;
 import com.myhitchhikingspots.model.DaoMaster;
 import com.myhitchhikingspots.model.DaoSession;

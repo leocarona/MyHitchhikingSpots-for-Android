@@ -15,6 +15,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.myhitchhikingspots.Constants;
+import com.myhitchhikingspots.interfaces.IInsertOrReplaceEventListener;
 import com.myhitchhikingspots.interfaces.ISpotsRepository;
 import com.myhitchhikingspots.model.Spot;
 

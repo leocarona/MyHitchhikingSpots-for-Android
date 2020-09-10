@@ -43,7 +43,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.myhitchhikingspots.model.Spot;
 import com.myhitchhikingspots.persistence.FirebaseSpotsRepository;
-import com.myhitchhikingspots.persistence.IInsertOrReplaceEventListener;
+import com.myhitchhikingspots.interfaces.IInsertOrReplaceEventListener;
 import com.myhitchhikingspots.persistence.SQLiteSpotsRepository;
 import com.myhitchhikingspots.utilities.Utils;
 
